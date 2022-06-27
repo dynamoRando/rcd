@@ -39,8 +39,8 @@ pub fn hello() {
 pub fn start() {
     unimplemented!("not completed yet");
 
-    read_config();
-    configure_backing_store();
+    //read_config();
+    //configure_backing_store();
 }
 
 /// reads the Settings.toml config file
@@ -74,4 +74,6 @@ fn read_config() {
 }
 
 /// checks the backing database to see if it needs to be setup
-fn configure_backing_store() {}
+fn configure_backing_store(database_type: DatabaseType) {
+    println!("database type: {:?}", database_type);
+}
