@@ -1,6 +1,13 @@
 use config::Config;
 use std::collections::HashMap;
 
+/// Represents the type of backing database rcd is hosting
+/// # Types
+/// * 0 - Unknown
+/// * 1 - Sqlite
+/// * 2 - Mysql
+/// * 3 - Postgres
+/// * 4 - Sqlserver
 #[derive(Debug)]
 pub enum DatabaseType {
     Unknown = 0,
@@ -23,6 +30,7 @@ impl DatabaseType {
         }
     }
 }
+
 pub fn hello() {
     println!("hello rcd_service");
     read_config();
