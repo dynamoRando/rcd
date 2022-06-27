@@ -1,6 +1,28 @@
 use config::Config;
 use std::collections::HashMap;
 
+#[derive(Debug)]
+pub enum DatabaseType {
+    Unknown = 0,
+    Sqlite = 1,
+    Mysql = 2,
+    Postgres = 3,
+    Sqlserver = 4,
+}
+
+// https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
+impl DatabaseType {
+    fn from_i64(value: i64) -> DatabaseType {
+        match value {
+            0 => DatabaseType::Unknown,
+            1 => DatabaseType::Sqlite,
+            2 => DatabaseType::Mysql,
+            3 => DatabaseType::Postgres,
+            4 => DatabaseType::Sqlserver,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+}
 pub fn hello() {
     println!("hello rcd_service");
     read_config();
@@ -25,10 +47,14 @@ fn read_config() {
         .unwrap();
 
     let priority_setting = String::from("priority");
-
     let priority_value = settings.get_int(&priority_setting).unwrap();
 
     println!("{:?}", priority_value);
+
+    let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
+    let database_type = DatabaseType::from_i64(i_database_type);
+
+    println!("database type: {:?}", database_type);
 
     // Print out our settings (as a HashMap)
     println!(
