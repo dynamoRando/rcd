@@ -1,6 +1,16 @@
 use config::Config;
 use std::collections::HashMap;
 
+/// Represents settings for rcd that can be passed in on a test case
+pub struct RcdSettings {
+    ip4_address: String,
+    database_port: u64,
+    client_port: u64,
+    admin_un: String,
+    admin_pw: String,
+    database_type: DatabaseType
+}
+
 /// Represents the type of backing database rcd is hosting
 /// # Types
 /// * 0 - Unknown
@@ -41,6 +51,10 @@ pub fn start() {
 
     //read_config();
     //configure_backing_store();
+}
+
+pub fn start_with_test_settings(test_settings: RcdSettings) {
+    unimplemented!("not completed yet");
 }
 
 /// reads the Settings.toml config file
