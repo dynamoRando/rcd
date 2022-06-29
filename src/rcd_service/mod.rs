@@ -8,7 +8,7 @@ pub struct RcdSettings {
     client_port: u64,
     admin_un: String,
     admin_pw: String,
-    database_type: DatabaseType
+    database_type: DatabaseType,
 }
 
 /// Represents the type of backing database rcd is hosting
@@ -41,6 +41,10 @@ impl DatabaseType {
     }
 }
 
+pub struct RcdService {
+    rcd_settings: RcdSettings,
+}
+
 pub fn hello() {
     println!("hello rcd_service");
     read_config();
@@ -55,6 +59,30 @@ pub fn start() {
 
 pub fn start_with_test_settings(test_settings: RcdSettings) {
     unimplemented!("not completed yet");
+}
+
+impl RcdService {
+    pub fn read_and_return_config(self: &Self) -> RcdSettings {
+        let settings = Config::builder()
+            .add_source(config::File::with_name("src/rcd_service/Settings"))
+            .add_source(config::Environment::with_prefix("APP"))
+            .build()
+            .unwrap();
+
+        let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
+        let database_type = DatabaseType::from_i64(i_database_type);
+
+        let rcd_setting = RcdSettings {
+            ip4_address: String::from(""),
+            database_port: 0,
+            client_port: 0,
+            admin_un: String::from(""),
+            admin_pw: String::from(""),
+            database_type: database_type,
+        };
+
+        return rcd_setting;
+    }
 }
 
 /// reads the Settings.toml config file
@@ -90,4 +118,25 @@ fn read_config() {
 /// checks the backing database to see if it needs to be setup
 fn configure_backing_store(database_type: DatabaseType) {
     println!("database type: {:?}", database_type);
+}
+
+#[test]
+fn test_read_settings() {
+    let sett = RcdSettings {
+        ip4_address: String::from(""),
+        database_port: 0,
+        client_port: 0,
+        admin_un: String::from(""),
+        admin_pw: String::from(""),
+        database_type: DatabaseType::Unknown,
+    };
+
+    let service = RcdService { rcd_settings: sett };
+    let returned_setting = service.read_and_return_config();
+    assert_eq!(returned_setting.database_type, DatabaseType::Sqlite);
+}
+
+#[test]
+fn exploration() {
+    assert_eq!(2 + 2, 4);
 }
