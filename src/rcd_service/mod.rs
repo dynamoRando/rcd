@@ -1,5 +1,6 @@
 use config::Config;
 use std::collections::HashMap;
+use std::cmp::PartialEq;
 
 /// Represents settings for rcd that can be passed in on a test case
 pub struct RcdSettings {
@@ -19,6 +20,7 @@ pub struct RcdSettings {
 /// * 3 - Postgres
 /// * 4 - Sqlserver
 #[derive(Debug)]
+#[derive(PartialEq)]
 pub enum DatabaseType {
     Unknown = 0,
     Sqlite = 1,
@@ -134,9 +136,4 @@ fn test_read_settings() {
     let service = RcdService { rcd_settings: sett };
     let returned_setting = service.read_and_return_config();
     assert_eq!(returned_setting.database_type, DatabaseType::Sqlite);
-}
-
-#[test]
-fn exploration() {
-    assert_eq!(2 + 2, 4);
 }
