@@ -1,6 +1,8 @@
-mod rcd_service;
+mod rcd;
 
 fn main() {
     println!("Hello, world!");
-    rcd_service::hello();
+    rcd::hello();
+    let service = rcd::get_service_from_config_file();
+    println!("{:?}", service);
 }
