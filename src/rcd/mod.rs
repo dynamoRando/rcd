@@ -1,5 +1,8 @@
 use config::Config;
 use std::cmp::PartialEq;
+use std::env;
+
+mod store_sqlite;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug)]
@@ -19,7 +22,7 @@ pub struct RcdSettings {
 /// * 2 - Mysql
 /// * 3 - Postgres
 /// * 4 - Sqlserver
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum DatabaseType {
     Unknown = 0,
     Sqlite = 1,
@@ -47,12 +50,36 @@ pub struct RcdService {
     rcd_settings: RcdSettings,
 }
 
+impl RcdService {
+    pub fn start(self: &Self) {
+        configure_backing_store(self.rcd_settings.database_type);
+    }
+}
+
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store(db_type: DatabaseType) {
+    let cwd = env::current_dir().unwrap();
+
+    match db_type {
+        DatabaseType::Sqlite => store_sqlite::configure(cwd.to_str().unwrap()),
+        DatabaseType::Mysql => do_nothing(),
+        DatabaseType::Postgres => do_nothing(),
+        DatabaseType::Sqlserver => do_nothing(),
+        _ => panic!("Unknown db type"),
+    }
+}
+
+fn do_nothing(){
+    println!("do nothing");
+}
+
+
 /// Test function that returns a call from the rcd mod
 pub fn hello() {
     println!("hello rcd_service");
 }
 
-/// Returns an RcdService from the
+/// Returns an RcdService from the config file
 pub fn get_service_from_config_file() -> RcdService {
     let settings = get_config_from_settings_file();
     let service = RcdService {
@@ -61,6 +88,7 @@ pub fn get_service_from_config_file() -> RcdService {
     return service;
 }
 
+/// Returns an RcdService from the supplied config (normally used in testing)
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     return RcdService {
         rcd_settings: config,
@@ -110,4 +138,24 @@ fn test_read_settings_from_config() {
     let service = get_service_from_config(rcd_setting);
 
     assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
+}
+
+
+#[test]
+fn test_configure_backing_db() {
+
+    // to see the output, run the test with the following
+    // cargo test -- --nocapture
+    
+    let rcd_setting = RcdSettings {
+        ip4_address: String::from(""),
+        database_port: 0,
+        client_port: 0,
+        admin_un: String::from(""),
+        admin_pw: String::from(""),
+        database_type: DatabaseType::Sqlite,
+    };
+
+    let service = get_service_from_config(rcd_setting);
+    service.start();
 }

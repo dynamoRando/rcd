@@ -5,4 +5,5 @@ fn main() {
     rcd::hello();
     let service = rcd::get_service_from_config_file();
     println!("{:?}", service);
+    service.start();
 }
