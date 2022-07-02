@@ -1,4 +1,7 @@
 debug = false
-priority = 32
-key = "189rjfadoisfj8923fjio"
 database_type = 1
+backing_database_name = "rcd.db"
+default_ip4 = "127.0.0.1"
+database_port = 5016
+client_port = 5017
+rcd_schema = "rcd"
