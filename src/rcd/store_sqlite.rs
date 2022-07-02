@@ -35,7 +35,7 @@ pub fn configure(root: &str, db_name: &str) {
         let db_conn = sqlite::open(&db_path).unwrap();
         create_user_table(&db_conn);
         create_role_table(&db_conn);
-        craete_user_role_table(&db_conn);
+        create_user_role_table(&db_conn);
     }
     
 }
@@ -48,6 +48,6 @@ fn create_role_table(conn: &sqlite::Connection) {
     conn.execute(CREATE_ROLE_TABLE).unwrap();
 }
 
-fn craete_user_role_table(conn: &sqlite::Connection) {
+fn create_user_role_table(conn: &sqlite::Connection) {
     conn.execute(CREATE_USER_ROLE_TABLE).unwrap();
 }
