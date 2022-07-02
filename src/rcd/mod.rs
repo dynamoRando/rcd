@@ -167,7 +167,6 @@ fn test_configure_backing_db() {
     };
 
     let cwd = env::current_dir().unwrap();
-
     let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
     
     if db_path.exists() {
