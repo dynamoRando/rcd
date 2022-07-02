@@ -1,6 +1,4 @@
 use std::path::Path;
-use std::env;
-use std::ffi::OsString;
 use sqlite;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
@@ -10,6 +8,17 @@ const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER
     SALT BLOB NOT NULL,
     HASH BLOB NOT NULL,
     WORKFACTOR INT NOT NULL
+);";
+
+const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
+(
+    ROLENAME VARCHAR(25) UNIQUE
+);";
+
+const CREATE_USER_ROLE_TABLE: &str = " CREATE TABLE IF NOT EXISTS RCD_USER_ROLE
+(
+    USERNAME VARCHAR(25) NOT NULL,
+    ROLENAME VARCHAR(25) NOT NULL   
 );";
 
 
@@ -24,11 +33,21 @@ pub fn configure(root: &str, db_name: &str) {
 
     if !db_path.exists() {
         let db_conn = sqlite::open(&db_path).unwrap();
-        create_user_table(db_conn);
+        create_user_table(&db_conn);
+        create_role_table(&db_conn);
+        craete_user_role_table(&db_conn);
     }
     
 }
 
-fn create_user_table(conn: sqlite::Connection) {
+fn create_user_table(conn: &sqlite::Connection) {
     conn.execute(CREATE_USER_TABLE).unwrap();
+}
+
+fn create_role_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_ROLE_TABLE).unwrap();
+}
+
+fn craete_user_role_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_USER_ROLE_TABLE).unwrap();
 }
