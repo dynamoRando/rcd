@@ -59,7 +59,7 @@ pub fn configure(root: &str, db_name: &str) {
 
         if !has_role_name(&String::from("SysAdmin"), &db_conn) {
             let statement = String::from("INSERT INTO RCD_ROLE (ROLENAME) VALUES ('SysAdmin');");
-            execute_write(&statement, &db_conn)
+            execute_write(&statement, &db_conn);
         }
     }
 }
