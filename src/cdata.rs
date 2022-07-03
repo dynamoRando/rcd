@@ -697,9 +697,7 @@ pub struct RowRemoteMetadata {
     pub is_hash_out_of_sync_with_host: bool,
     #[prost(bool, tag="3")]
     pub is_remote_deleted: bool,
-    #[prost(message, optional, tag="4")]
-    pub remote_deleted_date: ::core::option::Option<::prost_types::Timestamp>,
-    #[prost(bool, tag="5")]
+    #[prost(bool, tag="4")]
     pub is_local_deleted: bool,
 }
 /// a message for describing schema information of a column in a database table
@@ -736,22 +734,19 @@ pub struct Contract {
     /// the unique contract id
     #[prost(string, tag="1")]
     pub contract_guid: ::prost::alloc::string::String,
-    /// the date the contract was generated
-    #[prost(message, optional, tag="2")]
-    pub generated_date: ::core::option::Option<::prost_types::Timestamp>,
     /// a description of the rights in the contract 
-    #[prost(string, tag="3")]
+    #[prost(string, tag="2")]
     pub description: ::prost::alloc::string::String,
     /// the schema of the entire database
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag="3")]
     pub schema: ::core::option::Option<DatabaseSchema>,
     /// a GUID representing the version of the contract
-    #[prost(string, tag="5")]
+    #[prost(string, tag="4")]
     pub contract_version: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="6")]
+    #[prost(message, optional, tag="5")]
     pub host_info: ::core::option::Option<Host>,
     /// the status of the contract, if applicable
-    #[prost(uint32, tag="7")]
+    #[prost(uint32, tag="6")]
     pub status: u32,
 }
 /// a message representing information about a participant in the system
@@ -837,7 +832,7 @@ pub struct RowParticipantAddress {
 pub mod sql_client_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
-    /// a service for passing cooperative SQL statements to a CDS instance
+    /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug, Clone)]
     pub struct SqlClientClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -1219,6 +1214,7 @@ pub mod sql_client_client {
 pub mod data_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
+    /// a service for communication between different rcd stores
     #[derive(Debug, Clone)]
     pub struct DataServiceClient<T> {
         inner: tonic::client::Grpc<T>,
@@ -1599,7 +1595,7 @@ pub mod sql_client_server {
             request: tonic::Request<super::RejectPendingContractRequest>,
         ) -> Result<tonic::Response<super::RejectPendingContractReply>, tonic::Status>;
     }
-    /// a service for passing cooperative SQL statements to a CDS instance
+    /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
     pub struct SqlClientServer<T: SqlClient> {
         inner: _Inner<T>,
@@ -2402,6 +2398,7 @@ pub mod data_service_server {
             tonic::Status,
         >;
     }
+    /// a service for communication between different rcd stores
     #[derive(Debug)]
     pub struct DataServiceServer<T: DataService> {
         inner: _Inner<T>,

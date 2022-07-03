@@ -1,5 +1,4 @@
 syntax = "proto3";
-import "google/protobuf/timestamp.proto";
 package cdata;
 
 // a service for passing cooperative SQL statements to a rcd instance
@@ -489,8 +488,7 @@ message RowRemoteMetadata {
 	bool isRemoteOutOfSyncWithHost = 1;
 	bool isHashOutOfSyncWithHost = 2;
 	bool isRemoteDeleted = 3;
-	google.protobuf.Timestamp remoteDeletedDate = 4;
-	bool isLocalDeleted = 5;
+	bool isLocalDeleted = 4;
 }
 
 // a message for describing schema information of a column in a database table
@@ -517,17 +515,15 @@ message ColumnSchema {
 message Contract {
 	// the unique contract id
 	string contractGUID = 1;
-	// the date the contract was generated
-	google.protobuf.Timestamp generatedDate = 2;
 	// a description of the rights in the contract 
-	string description = 3;
+	string description = 2;
 	// the schema of the entire database
-	DatabaseSchema schema = 4;
+	DatabaseSchema schema = 3;
 	// a GUID representing the version of the contract
-	string contractVersion = 5;
-	Host hostInfo = 6;
+	string contractVersion = 4;
+	Host hostInfo = 5;
 	// the status of the contract, if applicable
-	uint32 status = 7;
+	uint32 status = 6;
 }
 
 // a message representing information about a participant in the system

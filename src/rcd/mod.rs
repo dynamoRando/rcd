@@ -6,6 +6,7 @@ use std::ffi::OsString;
 use std::fs;
 
 mod store_sqlite;
+mod client_service;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug)]
@@ -57,6 +58,9 @@ pub struct RcdService {
 impl RcdService {
     pub fn start(self: &Self) {
         configure_backing_store(self.rcd_settings.database_type, &self.rcd_settings.backing_database_name);
+
+        client_service::start_service();
+        
     }
 }
 

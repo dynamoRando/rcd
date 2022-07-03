@@ -1,8 +1,13 @@
 use std::{env, path::PathBuf};
 
 fn main() {
+
+    println!("build main");
+
     let proto_file = "./proto/cdata.proto";
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
+   
+    println!("{}", out_dir.display());
 
     tonic_build::configure()
         .build_server(true)
