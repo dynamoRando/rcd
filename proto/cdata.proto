@@ -1,0 +1,590 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package cdata;
+
+
+// a service for passing cooperative SQL statements to a CDS instance
+service SQLClient {
+	rpc IsOnline(TestRequest) returns (TestReply);
+	rpc CreateUserDatabase(CreateUserDatabaseRequest) returns (CreateUserDatabaseReply);
+	rpc EnableCoooperativeFeatures(EnableCoooperativeFeaturesRequest) returns (EnableCoooperativeFeaturesReply);
+	rpc ExecuteRead(ExecuteReadRequest) returns (ExecuteReadReply);
+	rpc ExecuteCooperativeRead(ExecuteCooperativeReadRequest) returns (ExecuteCooperativeReadReply);
+	rpc ExecuteWrite(ExecuteWriteRequest) returns (ExecuteWriteReply);
+	rpc ExecuteCooperativeWrite(ExecuteCooperativeWriteRequest) returns (ExecuteCooperativeWriteReply);
+	rpc HasTable(HasTableRequest) returns (HasTableReply);
+	rpc SetLogicalStoragePolicy(SetLogicalStoragePolicyRequest) returns (SetLogicalStoragePolicyReply);
+	rpc GetLogicalStoragePolicy(GetLogicalStoragePolicyRequest) returns (GetLogicalStoragePolicyReply);
+	rpc GenerateContract(GenerateContractRequest) returns (GenerateContractReply);
+	rpc AddParticipant(AddParticipantRequest) returns (AddParticipantReply);
+	rpc SendParticipantContract(SendParticipantContractRequest) returns (SendParticipantContractReply);
+	rpc ReviewPendingContracts(ViewPendingContractsRequest) returns (ViewPendingContractsReply);
+	rpc AcceptPendingContract(AcceptPendingContractRequest) returns (AcceptPendingContractReply);
+	rpc RejectPendingContract(RejectPendingContractRequest) returns (RejectPendingContractReply);
+}
+
+message SendParticipantContractRequest {
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string participantAlias = 3;
+
+}
+
+message SendParticipantContractReply {
+	AuthResult authenticationResult = 1;
+	bool isSent = 2;
+	string message = 3;
+}
+
+// a message representing the results of a SQL query
+message StatementResultset {
+	bool isError = 1;
+	string resultMessage = 2;
+	uint64 numberOfRowsAffected = 3;
+	repeated Row rows = 4;
+	string executionErrorMessage = 5;
+}
+
+message CreateUserDatabaseRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+}
+
+message CreateUserDatabaseReply {
+	AuthResult authenticationResult = 1;
+	bool isCreated = 2;
+	string message = 3;
+}
+
+message ExecuteReadRequest {
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string sqlStatement = 3;
+  uint32 databaseType = 4;
+}
+
+message ExecuteReadReply {
+	AuthResult authenticationResult = 1;
+	uint64 totalResultsets = 2;
+	repeated StatementResultset results = 3;
+}
+
+message ExecuteWriteRequest {
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string sqlStatement = 3;
+  uint32 databaseType = 4;
+}
+
+message ExecuteWriteReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	uint32 totalRowsAffected = 3;
+}
+
+message HasTableRequest{
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string tableName = 3;
+}
+
+message HasTableReply {
+	AuthResult authenticationResult = 1;
+	bool hasTable = 2;
+}
+
+message GenerateContractRequest {
+	AuthRequest authentication = 1;
+	string hostName = 2;
+	string description = 3;
+	string databaseName = 4;
+	uint32 remoteDeleteBehavior = 5;
+}
+
+message GenerateContractReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message SetLogicalStoragePolicyRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 policyMode = 4;
+}
+
+message SetLogicalStoragePolicyReply {
+	AuthResult authenticationResult  = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message GetLogicalStoragePolicyRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetLogicalStoragePolicyReply {
+	AuthResult authenticationResult  = 1;
+	uint32 policyMode = 2;
+}
+
+message ExecuteCooperativeReadRequest {
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string sqlStatement = 3;
+  uint32 databaseType = 4;
+  repeated string tables = 5;
+}
+
+message ExecuteCooperativeReadReply {
+	AuthResult authenticationResult = 1;
+	uint64 totalResultsets = 2;
+	repeated StatementResultset results = 3;
+}
+
+message ExecuteCooperativeWriteRequest {
+  AuthRequest authentication = 1;
+  string databaseName = 2;
+  string sqlStatement = 3;
+  uint32 databaseType = 4;
+  string alias = 5;
+  string participantId = 6;
+}
+
+message ExecuteCooperativeWriteReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	uint32 totalRowsAffected = 3;
+}
+
+message AddParticipantRequest{
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string alias = 3;
+	string ip4Address = 4;
+	uint32 port = 5;
+}
+
+message AddParticipantReply{
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message ViewPendingContractsRequest{
+	AuthRequest authentication = 1;
+}
+
+message ViewPendingContractsReply{
+	AuthResult authenticationResult = 1;
+	repeated Contract contracts = 2;
+}
+
+message AcceptPendingContractRequest {
+	AuthRequest authentication = 1;
+	string hostAlias = 2;
+}
+
+message AcceptPendingContractReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message RejectPendingContractRequest {
+	AuthRequest authentication = 1;
+	string hostAlias = 2;
+}
+
+message RejectPendingContractReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message EnableCoooperativeFeaturesRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+}
+
+message EnableCoooperativeFeaturesReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+
+
+// a service for communication between different CDS stores
+
+service DataService {
+	rpc IsOnline(TestRequest) returns (TestReply);
+	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
+	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
+	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
+	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
+	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
+	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
+	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
+	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
+	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
+	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
+	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
+}
+
+
+// a message for creating a table in a database
+message CreateTableRequest {
+	// The user requesting the table creation
+	AuthRequest authentication = 1;
+	// The database in which to create the table
+	string databaseName = 2;
+	// The database GUID in which to create the table
+	string databaseGUID = 3;
+	// The name of the table to create
+	string tableName = 4;
+	// a list of columns for the table
+	repeated ColumnSchema columns = 5;
+}
+
+// a message for describing the result of a CreateTableRequest
+message CreateTableResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	string tableId = 7;
+}
+
+// a message for inserting a row into a table in a database
+message InsertRowRequest {
+	AuthRequest authentication = 1;
+	TableSchema table = 2;
+	repeated RowValue values = 3;
+	MessageInfo messageInfo = 4; 
+	TransactionInfo transaction = 5;
+	uint32 rowId = 6;
+	Host hostInfo = 7;
+}
+
+// a message for describing the result of a InsertRowRequest
+message InsertRowResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	string tableId = 7;
+	uint32 rowId = 8;
+}
+
+message UpdateRowInTableRequest{
+	AuthRequest authentication = 1;
+	MessageInfo messageInfo = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	uint32 tableId = 6;
+	uint32 whereRowId = 7;
+	string updateColumn = 8;
+	string updateValue = 9; 
+	bytes existingDataHash = 10;
+}
+
+message UpdateRowInTableResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	string tableId = 6;
+	uint32 numberOfRowsAffected = 7;
+	string resultMessage = 8;
+	bytes newDataHash = 9;
+}
+
+message GetRowsFromTableRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string databaseId = 3;
+	string tableName = 4;
+	string tableId = 5;
+	string columnNames = 6;
+	repeated RowValue rowsWithValue = 7; // WHERE columnName = value
+	string operation = 8; // AND, OR, EQUAL, GREATER THAN, LESS THAN, ETC.
+}
+
+message GetRowsFromTableResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	string tableName = 5;
+	string tableId = 6;
+	uint32 numberOfRowsAffected = 7;
+	string resultMessage = 8;
+	repeated Row rows = 9;
+}
+
+message GetRowFromPartialDatabaseRequest {
+	AuthRequest authentication = 1;
+	RowParticipantAddress rowAddress = 2;
+	MessageInfo MessageInfo = 3;
+}
+
+message GetRowFromPartialDatabaseResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string resultMessage = 3;
+	Row row = 4;
+}
+
+// a message from a host to a participant to save a contract
+message SaveContractRequest {
+	//AuthRequest authentication = 1;
+	Contract contract = 1;
+	MessageInfo messageInfo = 2;
+}
+
+message SaveContractResult {
+	//AuthResult authenticationResult = 1;
+	bool isSaved = 1;
+	string errorMessage = 2;
+}
+
+message ParticipantAcceptsContractRequest {
+	Participant participant = 1;
+	string contractGUID = 2;
+	string databaseName = 3;
+	MessageInfo messageInfo = 4;
+}
+
+message ParticipantAcceptsContractResult {
+	bool contractAcceptanceIsAcknowledged = 1;
+	string errorMessage = 2;
+}
+
+message RemoveRowFromPartialDatabaseRequest {
+	AuthRequest authentication = 1;
+	MessageInfo MessageInfo = 2;
+	RowParticipantAddress rowAddress = 3;
+}
+
+message RemoveRowFromPartialDatabaseResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string resultMessage = 3;
+}
+
+message UpdateRowDataHashForHostRequest {
+	AuthRequest authentication = 1;
+	MessageInfo MessageInfo = 2;
+	Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	uint32 tableId = 7;
+	uint32 rowId = 8;
+	bytes updatedHashValue = 9;
+}
+
+message UpdateRowDataHashForHostResponse {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+}
+
+message NotifyHostOfRemovedRowRequest{
+	AuthRequest authentication = 1;
+	MessageInfo MessageInfo = 2;
+	Host hostInfo = 3;
+	string databaseName = 4;
+	string databaseId = 5;
+	string tableName = 6;
+	uint32 tableId = 7;
+	uint32 rowId = 8;
+}
+
+message NotifyHostOfRemovedRowResponse {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+}
+
+
+// A message for basic online testing
+message TestRequest {
+	string requestTimeUTC = 1;
+	string requestOriginURL = 2;
+	string requestOriginIP4 = 3;
+	string requestOriginIP6 = 4;
+	uint32 requestPortNumber = 5;
+	string requestEchoMessage = 6;
+}
+
+// A message for basic online testing
+message TestReply {
+	string replyTimeUTC = 1;
+	string replyEchoMessage = 2;
+}
+
+// a message for general information
+message MessageInfo {
+	bool isLittleEndian = 1;
+	repeated string messageAddresses = 2;
+	string messageGeneratedTimeUTC = 3;
+	string messageGUID = 4;
+}
+
+// A message for authentication purposes (note: this is proof of concept, and obviously not secure)
+message AuthRequest{
+  string userName = 1;
+  string pw = 2;
+  bytes pwHash = 3;
+  bytes token = 4;
+}
+
+// A message describing the results of an authentication attempt
+message AuthResult {
+	string userName = 1;
+	string token = 2;
+	bool isAuthenticated = 3;
+	string authenticationMessage = 4;
+}
+
+// A message for creating a user database
+message CreateDatabaseRequest{
+	AuthResult authentication = 1;
+	MessageInfo messageInfo = 2;
+	string databaseName = 3;
+}
+
+// A message describing the results of a CreateDatabaseRequest
+message CreateDatabaseResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string databaseName = 3;
+	string resultMessage = 4;
+	string databaseId = 5;
+}
+
+
+// an object for representing a row in a table. used for returning data
+message Row {
+	uint32 rowId = 1;
+	uint32 tableId = 2;
+	string databaseId = 3;
+	repeated RowValue values = 4;
+	bool isRemoteable = 5;
+	RowRemoteMetadata remoteMetadata = 6;
+}
+
+// an object for storing values for a row in a table. used for returning data
+message RowValue {
+	ColumnSchema column = 1;
+	bool isNullValue = 2;
+	// we send the raw bytes and expect the client to convert the value based on the column type. 
+	// note: this value does not include the 4 byte INT length prefix for variable length fields
+	// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
+	bytes value = 3; 
+}
+
+message RowRemoteMetadata {
+	bool isRemoteOutOfSyncWithHost = 1;
+	bool isHashOutOfSyncWithHost = 2;
+	bool isRemoteDeleted = 3;
+	google.protobuf.Timestamp remoteDeletedDate = 4;
+	bool isLocalDeleted = 5;
+}
+
+// a message for describing schema information of a column in a database table
+// see Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100 for more information
+message ColumnSchema {
+	// the name of the column. Max length of 50 characters
+	string columnName = 1;
+	// The ENUM data type of the column. See DotCommon.SQLColumnType
+	uint32 columnType = 2; 
+	// the max or fixed length of the column, if applicable
+	uint32 columnLength = 3; 
+	// if the column is nullable or not
+	bool isNullable = 4;
+	// the ordinal value of the column, i.e. the order in which the column appears in the table
+	uint32 ordinal = 5; 
+	// empty string in a request, populated in a response with the table GUID the column is attached to
+	string tableId = 6; 
+	// empty string in a request, populated in a response with the column GUID value
+	string columnId = 7;
+	// if the column is the primary key of the table. If this is part of a list of columns, it is implied to be a composite primary key
+	bool isPrimaryKey = 8;
+}
+
+message Contract {
+	// the unique contract id
+	string contractGUID = 1;
+	// the date the contract was generated
+	google.protobuf.Timestamp generatedDate = 2;
+	// a description of the rights in the contract 
+	string description = 3;
+	// the schema of the entire database
+	DatabaseSchema schema = 4;
+	// a GUID representing the version of the contract
+	string contractVersion = 5;
+	Host hostInfo = 6;
+	// the status of the contract, if applicable
+	uint32 status = 7;
+}
+
+// a message representing information about a participant in the system
+message Participant {
+	string participantGUID = 1;
+	string alias = 2;
+	string ip4Address = 3;
+	string ip6Address = 4;
+	uint32 databasePortNumber = 5;
+	bytes token = 6;
+}
+
+message Host{
+	string hostGUID = 1;
+	string hostName = 2;
+	string ip4Address = 3;
+	string ip6Address = 4;
+	uint32 databasePortNumber = 5;
+	bytes token = 6;
+}
+
+// a message for describing the schema of a database
+message DatabaseSchema {
+	string databaseName = 1;
+	string databaseId = 2;
+	repeated TableSchema tables = 3;
+}
+
+// a message for describing the schema information of a table in a database 
+message TableSchema {
+	string tableName = 1;
+	string tableId = 2;
+	string databaseName = 3;
+	string databaseId = 4;
+	repeated ColumnSchema columns = 5;
+	// Drummersoft.DrummerDB.Core.Structures.Enum.LogicalStoragePolicy
+	uint32 logicalStoragePolicy = 6;
+}
+
+message TransactionInfo {
+	string TransactionBatchId = 1;
+	uint32 TransactionMode = 2;
+}
+
+// a message for identifying the location of a row in a partial database
+message RowParticipantAddress {
+	uint32 rowId = 1;
+	uint32 tableId = 2;
+	string databaseId = 3;
+	string databaseName = 4;
+	string tableName = 5;
+}
