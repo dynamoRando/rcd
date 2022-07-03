@@ -2,8 +2,7 @@ syntax = "proto3";
 import "google/protobuf/timestamp.proto";
 package cdata;
 
-
-// a service for passing cooperative SQL statements to a CDS instance
+// a service for passing cooperative SQL statements to a rcd instance
 service SQLClient {
 	rpc IsOnline(TestRequest) returns (TestReply);
 	rpc CreateUserDatabase(CreateUserDatabaseRequest) returns (CreateUserDatabaseReply);
@@ -27,7 +26,6 @@ message SendParticipantContractRequest {
   AuthRequest authentication = 1;
   string databaseName = 2;
   string participantAlias = 3;
-
 }
 
 message SendParticipantContractReply {
@@ -216,10 +214,7 @@ message EnableCoooperativeFeaturesReply {
 	string message = 3;
 }
 
-
-
-// a service for communication between different CDS stores
-
+// a service for communication between different rcd stores
 service DataService {
 	rpc IsOnline(TestRequest) returns (TestReply);
 	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
@@ -234,7 +229,6 @@ service DataService {
 	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
 	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
 }
-
 
 // a message for creating a table in a database
 message CreateTableRequest {
@@ -415,7 +409,6 @@ message NotifyHostOfRemovedRowResponse {
 	bool isSuccessful = 2;
 }
 
-
 // A message for basic online testing
 message TestRequest {
 	string requestTimeUTC = 1;
@@ -471,7 +464,6 @@ message CreateDatabaseResult {
 	string resultMessage = 4;
 	string databaseId = 5;
 }
-
 
 // an object for representing a row in a table. used for returning data
 message Row {
