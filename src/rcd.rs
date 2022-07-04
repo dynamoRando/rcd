@@ -1,14 +1,15 @@
 use config::Config;
 use std::cmp::PartialEq;
 use std::env;
-use std::path::Path;
 use std::ffi::OsString;
 use std::fs;
+use std::path::Path;
+use std::rc::Rc;
 
 //use cdata::sql_client_server::{SqlClient, SqlClientServer};
 
-mod store_sqlite;
 mod client_service;
+mod store_sqlite;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -18,7 +19,7 @@ pub struct RcdSettings {
     database_type: DatabaseType,
     backing_database_name: String,
     client_service_addr_port: String,
-    database_service_addr_port: String
+    database_service_addr_port: String,
 }
 
 /// Represents the type of backing database rcd is hosting
@@ -58,7 +59,12 @@ pub struct RcdService {
 
 impl RcdService {
     pub fn start(self: &Self) {
-        configure_backing_store(self.rcd_settings.database_type, &self.rcd_settings.backing_database_name);
+        configure_backing_store(
+            self.rcd_settings.database_type,
+            &self.rcd_settings.backing_database_name,
+            &self.rcd_settings.admin_un,
+            &self.rcd_settings.admin_pw,
+        );
     }
 
     pub fn start_client_service(self: &Self) {
@@ -68,12 +74,21 @@ impl RcdService {
 }
 
 /// Configures the backing cds based on the type in the apps current working directory
-fn configure_backing_store(db_type: DatabaseType, backing_db_name: &str) {
-
+fn configure_backing_store(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+) {
     let cwd = env::current_dir().unwrap();
+    let _db_path = Path::new(&cwd.to_str().unwrap()).join(&backing_db_name);
+    let db_location = _db_path.as_os_str().to_str().unwrap();
 
     match db_type {
-        DatabaseType::Sqlite => store_sqlite::configure(cwd.to_str().unwrap(), backing_db_name),
+        DatabaseType::Sqlite => {
+            store_sqlite::configure(cwd.to_str().unwrap(), db_location);
+            store_sqlite::configure_admin(admin_un, admin_pw, db_location)
+        }
         DatabaseType::Mysql => do_nothing(),
         DatabaseType::Postgres => do_nothing(),
         DatabaseType::Sqlserver => do_nothing(),
@@ -81,10 +96,9 @@ fn configure_backing_store(db_type: DatabaseType, backing_db_name: &str) {
     }
 }
 
-fn do_nothing(){
+fn do_nothing() {
     println!("do nothing");
 }
-
 
 /// Test function that returns a call from the rcd mod
 pub fn hello() {
@@ -117,9 +131,13 @@ fn get_config_from_settings_file() -> RcdSettings {
     let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
     let database_type = DatabaseType::from_i64(i_database_type);
 
-    let s_db_name = settings.get_string(&String::from("backing_database_name")).unwrap();
+    let s_db_name = settings
+        .get_string(&String::from("backing_database_name"))
+        .unwrap();
 
-    let s_client_service_addr_port = settings.get_string(&String::from("client_service_addr_port")).unwrap();
+    let s_client_service_addr_port = settings
+        .get_string(&String::from("client_service_addr_port"))
+        .unwrap();
 
     let rcd_setting = RcdSettings {
         admin_un: String::from(""),
@@ -127,7 +145,7 @@ fn get_config_from_settings_file() -> RcdSettings {
         database_type: database_type,
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
-        database_service_addr_port: String::from("")
+        database_service_addr_port: String::from(""),
     };
 
     return rcd_setting;
@@ -148,7 +166,7 @@ fn test_read_settings_from_config() {
         database_type: DatabaseType::Unknown,
         backing_database_name: String::from(""),
         client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from("")
+        database_service_addr_port: String::from(""),
     };
 
     let service = get_service_from_config(rcd_setting);
@@ -156,31 +174,29 @@ fn test_read_settings_from_config() {
     assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
 }
 
-
 #[test]
 fn test_configure_backing_db() {
-
     // to see the output, run the test with the following
     // cargo test -- --nocapture
-    
+
     let rcd_setting = RcdSettings {
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: DatabaseType::Sqlite,
         backing_database_name: String::from("rcd_test.db"),
         client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from("")
+        database_service_addr_port: String::from(""),
     };
 
     let cwd = env::current_dir().unwrap();
     let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
-    
+
     if db_path.exists() {
-       fs::remove_file(&db_path).unwrap();
+        fs::remove_file(&db_path).unwrap();
     }
 
     assert!(!db_path.exists());
-    
+
     let service = get_service_from_config(rcd_setting);
     service.start();
 

@@ -64,8 +64,10 @@ pub fn configure(root: &str, db_name: &str) {
     }
 }
 
-pub fn configure_admin(login: &str, pw: &str) {
-    if !has_login(login) {
+pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
+    let conn = sqlite::open(&db_path).unwrap();
+
+    if !has_login(login, &conn) {
         create_login(login, pw);
     }
 
@@ -76,8 +78,9 @@ pub fn configure_admin(login: &str, pw: &str) {
     unimplemented!("not written");
 }
 
-pub fn has_login(login: &str) -> bool {
-    unimplemented!("not written");
+pub fn has_login(login: &str, conn: &sqlite::Connection) -> bool {
+    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = ?");
+    return has_item(cmd, login, conn);
 }
 
 pub fn create_login(login: &str, pw: &str) {
@@ -93,22 +96,25 @@ pub fn add_login_to_role(login: &str, role_name: &str) {
 }
 
 pub fn has_role_name(role_name: &str, conn: &sqlite::Connection) -> bool {
-    let mut has_role = false;
+    let cmd = &String::from("SELECT count(*) AS ROLECOUNT FROM RCD_ROLE WHERE ROLENAME = ?");
+    return has_item(cmd, role_name, conn);
+}
 
-    let cmd_string_base =
-        String::from("SELECT count(*) AS ROLECOUNT FROM RCD_ROLE WHERE ROLENAME = ?");
-    let mut statement = conn.prepare(cmd_string_base).unwrap();
-    statement.bind(1, role_name).unwrap();
+fn has_item(cmd_text: &str, item: &str, conn: &sqlite::Connection) -> bool {
+    let mut has_item = false;
+
+    let mut statement = conn.prepare(cmd_text).unwrap();
+    statement.bind(1, item).unwrap();
 
     while let State::Row = statement.next().unwrap() {
         let count = statement.read::<i64>(0).unwrap();
         if count > 0 {
-            has_role = true;
+            has_item = true;
             break;
         }
     }
 
-    return has_role;
+    return has_item;
 }
 
 fn execute_write(statement: &str, conn: &sqlite::Connection) {
