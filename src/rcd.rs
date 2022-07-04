@@ -179,6 +179,10 @@ fn test_configure_backing_db() {
        fs::remove_file(&db_path).unwrap();
     }
 
+    assert!(!db_path.exists());
+    
     let service = get_service_from_config(rcd_setting);
     service.start();
+
+    assert!(db_path.exists());
 }

@@ -64,27 +64,35 @@ pub fn configure(root: &str, db_name: &str) {
     }
 }
 
-fn create_user_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_USER_TABLE).unwrap();
+pub fn configure_admin(login: &str, pw: &str) {
+    if !has_login(login) {
+        create_login(login, pw);
+    }
+
+    if !login_is_in_role(login, &String::from("SysAdmin")) {
+        add_login_to_role(login, &String::from("SysAdmin"));
+    }
+
+    unimplemented!("not written");
 }
 
-fn create_role_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_ROLE_TABLE).unwrap();
+pub fn has_login(login: &str) -> bool {
+    unimplemented!("not written");
 }
 
-fn create_user_role_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_USER_ROLE_TABLE).unwrap();
+pub fn create_login(login: &str, pw: &str) {
+    unimplemented!("not written");
 }
 
-fn create_host_info_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_HOST_INFO_TABLE).unwrap();
+pub fn login_is_in_role(login: &str, role_name: &str) -> bool {
+    unimplemented!("not written");
 }
 
-fn create_contracts_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_CONTRACTS_TABLE).unwrap();
+pub fn add_login_to_role(login: &str, role_name: &str) {
+    unimplemented!("not written");
 }
 
-fn has_role_name(role_name: &str, conn: &sqlite::Connection) -> bool {
+pub fn has_role_name(role_name: &str, conn: &sqlite::Connection) -> bool {
     let mut has_role = false;
 
     let cmd_string_base =
@@ -105,4 +113,23 @@ fn has_role_name(role_name: &str, conn: &sqlite::Connection) -> bool {
 
 fn execute_write(statement: &str, conn: &sqlite::Connection) {
     conn.execute(statement).unwrap();
+}
+fn create_user_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_USER_TABLE).unwrap();
+}
+
+fn create_role_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_ROLE_TABLE).unwrap();
+}
+
+fn create_user_role_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_USER_ROLE_TABLE).unwrap();
+}
+
+fn create_host_info_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_HOST_INFO_TABLE).unwrap();
+}
+
+fn create_contracts_table(conn: &sqlite::Connection) {
+    conn.execute(CREATE_CONTRACTS_TABLE).unwrap();
 }
