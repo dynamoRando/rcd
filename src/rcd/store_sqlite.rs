@@ -87,6 +87,7 @@ pub fn has_login(login: &str, conn: &sqlite::Connection) -> bool {
 
 pub fn create_login(login: &str, pw: &str) {
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
+    // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
     unimplemented!("not written");
 }
 
