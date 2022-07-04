@@ -41,6 +41,8 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
     CONTRACT_STATUS INT
 );";
 
+const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, BYTELENGTH, SALT, HASH, WORKFACTOR) VALUES (@username, @bytelength, @salt, @hash, @workfactor);";
+
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
     println!("cwd is {}", root);
@@ -84,6 +86,7 @@ pub fn has_login(login: &str, conn: &sqlite::Connection) -> bool {
 }
 
 pub fn create_login(login: &str, pw: &str) {
+    // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     unimplemented!("not written");
 }
 
