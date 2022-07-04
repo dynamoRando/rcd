@@ -17,7 +17,8 @@ pub struct RcdSettings {
     admin_un: String,
     admin_pw: String,
     database_type: DatabaseType,
-    backing_database_name: String
+    backing_database_name: String,
+    client_service_addr_port: String
 }
 
 /// Represents the type of backing database rcd is hosting
@@ -58,9 +59,7 @@ pub struct RcdService {
 impl RcdService {
     pub fn start(self: &Self) {
         configure_backing_store(self.rcd_settings.database_type, &self.rcd_settings.backing_database_name);
-
-        client_service::start_service();
-        
+        client_service::start_service(&self.rcd_settings.client_service_addr_port);
     }
 }
 
@@ -116,6 +115,8 @@ fn get_config_from_settings_file() -> RcdSettings {
 
     let s_db_name = settings.get_string(&String::from("backing_database_name")).unwrap();
 
+    let s_client_service_addr_port = settings.get_string(&String::from("client_service_addr_port")).unwrap();
+
     let rcd_setting = RcdSettings {
         ip4_address: String::from(""),
         database_port: 0,
@@ -123,7 +124,8 @@ fn get_config_from_settings_file() -> RcdSettings {
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: database_type,
-        backing_database_name: s_db_name
+        backing_database_name: s_db_name,
+        client_service_addr_port: s_client_service_addr_port
     };
 
     return rcd_setting;
@@ -145,7 +147,8 @@ fn test_read_settings_from_config() {
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: DatabaseType::Unknown,
-        backing_database_name: String::from("")
+        backing_database_name: String::from(""),
+        client_service_addr_port: String::from("[::1]:50051")
     };
 
     let service = get_service_from_config(rcd_setting);
@@ -167,7 +170,8 @@ fn test_configure_backing_db() {
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: DatabaseType::Sqlite,
-        backing_database_name: String::from("rcd_test.db")
+        backing_database_name: String::from("rcd_test.db"),
+        client_service_addr_port: String::from("[::1]:50051")
     };
 
     let cwd = env::current_dir().unwrap();

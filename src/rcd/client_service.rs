@@ -153,8 +153,8 @@ impl SqlClient for SqlClientImpl {
 }
 
 #[tokio::main]
-pub async fn start_service() -> Result<(), Box<dyn std::error::Error>> {
-    let addr = "[::1]:50051".parse().unwrap();
+pub async fn start_service(address_port: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let addr = address_port.parse().unwrap();
     let sql_client = SqlClientImpl::default();
 
     // Add this
