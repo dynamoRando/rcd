@@ -5,20 +5,20 @@ use std::path::Path;
 use std::ffi::OsString;
 use std::fs;
 
+//use cdata::sql_client_server::{SqlClient, SqlClientServer};
+
 mod store_sqlite;
 mod client_service;
 
 /// Represents settings for rcd that can be passed in on a test case
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RcdSettings {
-    ip4_address: String,
-    database_port: u64,
-    client_port: u64,
     admin_un: String,
     admin_pw: String,
     database_type: DatabaseType,
     backing_database_name: String,
-    client_service_addr_port: String
+    client_service_addr_port: String,
+    database_service_addr_port: String
 }
 
 /// Represents the type of backing database rcd is hosting
@@ -51,7 +51,7 @@ impl DatabaseType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RcdService {
     rcd_settings: RcdSettings,
 }
@@ -59,6 +59,10 @@ pub struct RcdService {
 impl RcdService {
     pub fn start(self: &Self) {
         configure_backing_store(self.rcd_settings.database_type, &self.rcd_settings.backing_database_name);
+    }
+
+    pub fn start_client_service(self: &Self) {
+        println!("start_client_service");
         client_service::start_service(&self.rcd_settings.client_service_addr_port);
     }
 }
@@ -118,14 +122,12 @@ fn get_config_from_settings_file() -> RcdSettings {
     let s_client_service_addr_port = settings.get_string(&String::from("client_service_addr_port")).unwrap();
 
     let rcd_setting = RcdSettings {
-        ip4_address: String::from(""),
-        database_port: 0,
-        client_port: 0,
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: database_type,
         backing_database_name: s_db_name,
-        client_service_addr_port: s_client_service_addr_port
+        client_service_addr_port: s_client_service_addr_port,
+        database_service_addr_port: String::from("")
     };
 
     return rcd_setting;
@@ -141,14 +143,12 @@ fn test_read_settings_from_file() {
 #[test]
 fn test_read_settings_from_config() {
     let rcd_setting = RcdSettings {
-        ip4_address: String::from(""),
-        database_port: 0,
-        client_port: 0,
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: DatabaseType::Unknown,
         backing_database_name: String::from(""),
-        client_service_addr_port: String::from("[::1]:50051")
+        client_service_addr_port: String::from("[::1]:50051"),
+        database_service_addr_port: String::from("")
     };
 
     let service = get_service_from_config(rcd_setting);
@@ -164,14 +164,12 @@ fn test_configure_backing_db() {
     // cargo test -- --nocapture
     
     let rcd_setting = RcdSettings {
-        ip4_address: String::from(""),
-        database_port: 0,
-        client_port: 0,
         admin_un: String::from(""),
         admin_pw: String::from(""),
         database_type: DatabaseType::Sqlite,
         backing_database_name: String::from("rcd_test.db"),
-        client_service_addr_port: String::from("[::1]:50051")
+        client_service_addr_port: String::from("[::1]:50051"),
+        database_service_addr_port: String::from("")
     };
 
     let cwd = env::current_dir().unwrap();

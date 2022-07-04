@@ -1,8 +1,6 @@
 debug = false
 database_type = 1
 backing_database_name = "rcd.db"
-default_ip4 = "127.0.0.1"
-database_port = 5016
-client_port = 5017
 rcd_schema = "rcd"
 client_service_addr_port = "[::1]:50051"
+database_service_addr_port = ""

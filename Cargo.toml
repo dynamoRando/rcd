@@ -10,10 +10,11 @@ config = "0.13.1"
 sqlite = "0.24.0"
 tonic = "0.7.1"
 tonic-reflection = "0.4.0"
-tokio = { version = "1.18.0", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.18.0", features = ["full"] }
 prost = "0.10.1"
 prost-types = "0.7.0"
 chrono = "0.4"
+futures = { version = "0.3.*" }
 
 [build-dependencies]
 tonic-build = "0.7.2"
