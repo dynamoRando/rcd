@@ -15,6 +15,7 @@ prost = "0.10.1"
 prost-types = "0.7.0"
 chrono = "0.4"
 futures = { version = "0.3.*" }
+sodiumoxide = "0.2.7"
 
 [build-dependencies]
 tonic-build = "0.7.2"
