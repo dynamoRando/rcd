@@ -1,5 +1,5 @@
 use crate::rcd::crypt;
-use rusqlite::{Connection, Result, named_params};
+use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
@@ -8,9 +8,10 @@ const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER
     HASH TEXT NOT NULL
 );";
 
+#[derive(Debug)]
 struct User {
     username: String,
-    hash: String
+    hash: String,
 }
 
 const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
@@ -85,8 +86,9 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
 
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
-    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :username");
-    
+    let cmd =
+        &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :username");
+
     let mut statement = conn.prepare(cmd).unwrap();
 
     let rows = statement.query_map(&[(":username", login.to_string().as_str())], |row| {
@@ -103,23 +105,38 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     return Ok(has_login);
 }
 
-pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> Result<bool> {
-
+pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
     let mut is_verified = false;
 
     let cmd = &String::from(GET_LOGIN);
-    
+
     let mut statement = conn.prepare(cmd).unwrap();
 
-    let user_iter = statement.query_map([], |row| {
-        Ok(User {
-            username: row.get(0).unwrap(),
-            hash: row.get(1).unwrap()
+    let user_iter = statement
+        .query_map(&[":username", login.to_string().as_str()], |row| {
+            Ok(User {
+                username: row.get(0).unwrap(),
+                hash: row.get(1).unwrap(),
+            })
         })
-    });
+        .unwrap();
 
-    for u in user_iter {
-        println!("Found user {:?}", u.unwrap());
+    for user in user_iter {
+        let returned_value = user.unwrap();
+
+        let mut padded = [0u8; 128];
+        returned_value
+            .hash
+            .as_bytes()
+            .iter()
+            .enumerate()
+            .for_each(|(i, val)| {
+                padded[i] = val.clone();
+            });
+
+        if crypt::verify(padded, pw) {
+            is_verified = true;
+        }
     }
 
     return is_verified;
@@ -132,7 +149,9 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     let login_hash = crypt::hash(&pw);
     let cmd = &String::from(ADD_LOGIN);
     let mut statement = conn.prepare(cmd).unwrap();
-    statement.execute(named_params! { ":username": login, ":hash": login_hash.0 }).unwrap();
+    statement
+        .execute(named_params! { ":username": login, ":hash": login_hash.0 })
+        .unwrap();
 }
 
 pub fn login_is_in_role(login: &str, role_name: &str) -> bool {
