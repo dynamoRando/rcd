@@ -1,11 +1,11 @@
 use crate::rcd::crypt;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Connection, Result, named_params};
 use std::path::Path;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
 (
-    USERNAME VARCHAR(25) UNIQUE
-    HASH BLOB NOT NULL
+    USERNAME VARCHAR(25) UNIQUE,
+    HASH TEXT NOT NULL
 );";
 
 const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
@@ -102,7 +102,9 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
 
     let login_hash = crypt::hash(&pw);
-    unimplemented!("not written");
+    let cmd = &String::from(ADD_LOGIN);
+    let mut statement = conn.prepare(cmd).unwrap();
+    statement.execute(named_params! { ":username": login, ":hash": login_hash.0 }).unwrap();
 }
 
 pub fn login_is_in_role(login: &str, role_name: &str) -> bool {

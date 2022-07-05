@@ -181,8 +181,8 @@ fn test_configure_backing_db() {
     // cargo test -- --nocapture
 
     let rcd_setting = RcdSettings {
-        admin_un: String::from(""),
-        admin_pw: String::from(""),
+        admin_un: String::from("tester"),
+        admin_pw: String::from("1234"),
         database_type: DatabaseType::Sqlite,
         backing_database_name: String::from("rcd_test.db"),
         client_service_addr_port: String::from("[::1]:50051"),
