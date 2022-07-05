@@ -136,6 +136,7 @@ pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
 
         if crypt::verify(padded, pw) {
             is_verified = true;
+            break;
         }
     }
 
