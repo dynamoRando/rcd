@@ -1,5 +1,5 @@
-use sqlite;
-use sqlite::State;
+use crate::rcd::crypt;
+use rusqlite::{params, Connection, Result};
 use std::path::Path;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
@@ -38,7 +38,7 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
     CONTRACT_STATUS INT
 );";
 
-const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (@username, @hash);";
+const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (:username, :hash);";
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
@@ -49,7 +49,7 @@ pub fn configure(root: &str, db_name: &str) {
     println!("db_path is {}", db_path.as_os_str().to_str().unwrap());
 
     if !db_path.exists() {
-        let db_conn = sqlite::open(&db_path).unwrap();
+        let db_conn = Connection::open(&db_path).unwrap();
         create_user_table(&db_conn);
         create_role_table(&db_conn);
         create_user_role_table(&db_conn);
@@ -64,10 +64,10 @@ pub fn configure(root: &str, db_name: &str) {
 }
 
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
-    let conn = sqlite::open(&db_path).unwrap();
+    let conn = Connection::open(&db_path).unwrap();
 
     if !has_login(login, &conn) {
-        create_login(login, pw);
+        create_login(login, pw, &conn);
     }
 
     if !login_is_in_role(login, &String::from("SysAdmin")) {
@@ -77,14 +77,36 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     unimplemented!("not written");
 }
 
-pub fn has_login(login: &str, conn: &sqlite::Connection) -> bool {
-    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = ?");
-    return has_item(cmd, login, conn);
+pub fn has_login(login: &str, conn: &Connection) -> bool {
+    let mut has_login = false;
+    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :user");
+    
+    let mut statement = conn.prepare(cmd).unwrap();
+
+    let rows = statement.query_map(&[(":user", login.to_string().as_str())], |row| {
+        row.get(0)
+    });
+
+    let mut counts = Vec::new();
+    for num_row in rows {
+        counts.push(num_row);
+    }
+
+    for count in counts {
+        let i_count: u64 = *count.as_ref().unwrap();
+        if i_count > 0 {
+            has_login = true;
+        }
+    }
+
+    return has_login;
 }
 
-pub fn create_login(login: &str, pw: &str) {
+pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
+
+    let login_hash = crypt::hash(&pw);
     unimplemented!("not written");
 }
 
@@ -96,47 +118,51 @@ pub fn add_login_to_role(login: &str, role_name: &str) {
     unimplemented!("not written");
 }
 
-pub fn has_role_name(role_name: &str, conn: &sqlite::Connection) -> bool {
-    let cmd = &String::from("SELECT count(*) AS ROLECOUNT FROM RCD_ROLE WHERE ROLENAME = ?");
-    return has_item(cmd, role_name, conn);
-}
+pub fn has_role_name(role_name: &str, conn: &Connection) -> bool {
+    let mut has_role = false;
 
-fn has_item(cmd_text: &str, item: &str, conn: &sqlite::Connection) -> bool {
-    let mut has_item = false;
+    let cmd =
+        &String::from("SELECT count(*) AS ROLECOUNT FROM RCD_ROLE WHERE ROLENAME = :rolename");
+    let mut statement = conn.prepare(cmd).unwrap();
 
-    let mut statement = conn.prepare(cmd_text).unwrap();
-    statement.bind(1, item).unwrap();
+    let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
+        row.get(0)
+    });
 
-    while let State::Row = statement.next().unwrap() {
-        let count = statement.read::<i64>(0).unwrap();
-        if count > 0 {
-            has_item = true;
-            break;
+    let mut counts = Vec::new();
+    for num_row in rows {
+        counts.push(num_row);
+    }
+
+    for count in counts {
+        let i_count: u64 = count.unzip()
+        if i_count > 0 {
+            has_role = true;
         }
     }
 
-    return has_item;
+    return has_role;
 }
 
-fn execute_write(statement: &str, conn: &sqlite::Connection) {
-    conn.execute(statement).unwrap();
+fn execute_write(statement: &str, conn: &Connection) {
+    conn.execute(statement, []).unwrap();
 }
-fn create_user_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_USER_TABLE).unwrap();
-}
-
-fn create_role_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_ROLE_TABLE).unwrap();
+fn create_user_table(conn: &Connection) {
+    conn.execute(CREATE_USER_TABLE, []).unwrap();
 }
 
-fn create_user_role_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_USER_ROLE_TABLE).unwrap();
+fn create_role_table(conn: &Connection) {
+    conn.execute(CREATE_ROLE_TABLE, []).unwrap();
 }
 
-fn create_host_info_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_HOST_INFO_TABLE).unwrap();
+fn create_user_role_table(conn: &Connection) {
+    conn.execute(CREATE_USER_ROLE_TABLE, []).unwrap();
 }
 
-fn create_contracts_table(conn: &sqlite::Connection) {
-    conn.execute(CREATE_CONTRACTS_TABLE).unwrap();
+fn create_host_info_table(conn: &Connection) {
+    conn.execute(CREATE_HOST_INFO_TABLE, []).unwrap();
+}
+
+fn create_contracts_table(conn: &Connection) {
+    conn.execute(CREATE_CONTRACTS_TABLE, []).unwrap();
 }
