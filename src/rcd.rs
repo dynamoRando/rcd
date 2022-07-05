@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 mod client_service;
 mod store_sqlite;
+mod crypt;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -201,4 +202,11 @@ fn test_configure_backing_db() {
     service.start();
 
     assert!(db_path.exists());
+}
+
+
+#[test]
+fn test_hash(){
+    let pw = String::from("1234");
+    let hashed_pw = crypt::hash(&pw);
 }

@@ -4,11 +4,8 @@ use std::path::Path;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
 (
-    USERNAME VARCHAR(25) UNIQUE,
-    BYTELENGTH INT NOT NULL,
-    SALT BLOB NOT NULL,
-    HASH BLOB NOT NULL,
-    WORKFACTOR INT NOT NULL
+    USERNAME VARCHAR(25) UNIQUE
+    HASH BLOB NOT NULL
 );";
 
 const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
@@ -41,7 +38,7 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
     CONTRACT_STATUS INT
 );";
 
-const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, BYTELENGTH, SALT, HASH, WORKFACTOR) VALUES (@username, @bytelength, @salt, @hash, @workfactor);";
+const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (@username, @hash);";
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
