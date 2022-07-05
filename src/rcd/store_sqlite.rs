@@ -56,7 +56,7 @@ pub fn configure(root: &str, db_name: &str) {
         create_host_info_table(&db_conn);
         create_contracts_table(&db_conn);
 
-        if !has_role_name(&String::from("SysAdmin"), &db_conn) {
+        if !has_role_name(&String::from("SysAdmin"), &db_conn).unwrap() {
             let statement = String::from("INSERT INTO RCD_ROLE (ROLENAME) VALUES ('SysAdmin');");
             execute_write(&statement, &db_conn);
         }
@@ -66,7 +66,7 @@ pub fn configure(root: &str, db_name: &str) {
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     let conn = Connection::open(&db_path).unwrap();
 
-    if !has_login(login, &conn) {
+    if !has_login(login, &conn).unwrap() {
         create_login(login, pw, &conn);
     }
 
@@ -77,7 +77,7 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     unimplemented!("not written");
 }
 
-pub fn has_login(login: &str, conn: &Connection) -> bool {
+pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
     let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :user");
     
@@ -85,21 +85,16 @@ pub fn has_login(login: &str, conn: &Connection) -> bool {
 
     let rows = statement.query_map(&[(":user", login.to_string().as_str())], |row| {
         row.get(0)
-    });
+    })?;
 
-    let mut counts = Vec::new();
-    for num_row in rows {
-        counts.push(num_row);
-    }
-
-    for count in counts {
-        let i_count: u64 = *count.as_ref().unwrap();
-        if i_count > 0 {
+    for item in rows {
+        let count: u64 = item.unwrap();
+        if count > 0 {
             has_login = true;
         }
     }
 
-    return has_login;
+    return Ok(has_login);
 }
 
 pub fn create_login(login: &str, pw: &str, conn: &Connection) {
@@ -118,7 +113,7 @@ pub fn add_login_to_role(login: &str, role_name: &str) {
     unimplemented!("not written");
 }
 
-pub fn has_role_name(role_name: &str, conn: &Connection) -> bool {
+pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
     let mut has_role = false;
 
     let cmd =
@@ -127,21 +122,16 @@ pub fn has_role_name(role_name: &str, conn: &Connection) -> bool {
 
     let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
         row.get(0)
-    });
+    })?;
 
-    let mut counts = Vec::new();
-    for num_row in rows {
-        counts.push(num_row);
-    }
-
-    for count in counts {
-        let i_count: u64 = count.unzip()
-        if i_count > 0 {
+    for item in rows {
+        let count: u64 = item.unwrap();
+        if count > 0 {
             has_role = true;
         }
     }
 
-    return has_role;
+    return Ok(has_role);
 }
 
 fn execute_write(statement: &str, conn: &Connection) {
