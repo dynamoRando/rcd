@@ -1,5 +1,5 @@
 use crate::rcd::crypt;
-use rusqlite::{params, Connection, Result, named_params};
+use rusqlite::{Connection, Result, named_params};
 use std::path::Path;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
@@ -7,6 +7,11 @@ const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER
     USERNAME VARCHAR(25) UNIQUE,
     HASH TEXT NOT NULL
 );";
+
+struct User {
+    username: String,
+    hash: String
+}
 
 const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
 (
@@ -39,6 +44,7 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
 );";
 
 const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (:username, :hash);";
+const GET_LOGIN: &str = "SELECT USERNAME, HASH FROM RCD_USER WHERE USERNAME = :username";
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
@@ -79,11 +85,11 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
 
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
-    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :user");
+    let cmd = &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :username");
     
     let mut statement = conn.prepare(cmd).unwrap();
 
-    let rows = statement.query_map(&[(":user", login.to_string().as_str())], |row| {
+    let rows = statement.query_map(&[(":username", login.to_string().as_str())], |row| {
         row.get(0)
     })?;
 
@@ -95,6 +101,28 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     }
 
     return Ok(has_login);
+}
+
+pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> Result<bool> {
+
+    let mut is_verified = false;
+
+    let cmd = &String::from(GET_LOGIN);
+    
+    let mut statement = conn.prepare(cmd).unwrap();
+
+    let user_iter = statement.query_map([], |row| {
+        Ok(User {
+            username: row.get(0).unwrap(),
+            hash: row.get(1).unwrap()
+        })
+    });
+
+    for u in user_iter {
+        println!("Found user {:?}", u.unwrap());
+    }
+
+    return is_verified;
 }
 
 pub fn create_login(login: &str, pw: &str, conn: &Connection) {
