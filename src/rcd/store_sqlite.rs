@@ -47,7 +47,8 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
 const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (:username, :hash);";
 const GET_LOGIN: &str = "SELECT USERNAME, HASH FROM RCD_USER WHERE USERNAME = :un";
 const USER_WITH_ROLE: &str = "SELECT count(*) AS TOTALCOUNT FROM RCD_USER_ROLE WHERE USERNAME = :username AND ROLENAME = :rolename;";
-const ADD_USER_TO_ROLE: &str = "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
+const ADD_USER_TO_ROLE: &str =
+    "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
@@ -160,12 +161,9 @@ pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Resu
     let cmd = USER_WITH_ROLE;
     let mut statement = conn.prepare(cmd).unwrap();
 
-    let params = [(":username", login),(":rolename", role_name)];
+    let params = [(":username", login), (":rolename", role_name)];
 
-    let rows = statement.query_map(
-        &params,
-        |row| row.get(0),
-    )?;
+    let rows = statement.query_map(&params, |row| row.get(0))?;
 
     for item in rows {
         let count: u64 = item.unwrap();
