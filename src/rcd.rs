@@ -238,3 +238,38 @@ fn test_hash(){
 
     assert!(is_valid);
 }
+
+#[test]
+fn test_hash_false(){
+    println!("test_hash_false: running");
+
+    let cwd = env::current_dir().unwrap();
+    let backing_database_name = String::from("test.db");
+    let db_path = Path::new(&cwd).join(&backing_database_name);
+    
+    if db_path.exists() {
+        fs::remove_file(&db_path).unwrap();
+    }
+
+    store_sqlite::configure(&cwd.to_str().unwrap(), &backing_database_name);
+
+    let db_conn = Connection::open(&db_path).unwrap();
+
+    let un = String::from("tester_fail");
+    let pw = String::from("1234");
+
+    store_sqlite::create_login(&un, &pw, &db_conn);
+    let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
+
+    print!("test_hash_false: has_login {}", &has_login);
+
+    assert!(&has_login);
+
+    let wrong_pw = String::from("43210");
+
+    let is_valid = store_sqlite::verify_login(&un, &wrong_pw, &db_conn);
+
+    print!("test_hash_false: is_valid {}", is_valid);
+
+    assert!(!is_valid);
+}
