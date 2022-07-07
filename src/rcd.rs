@@ -5,6 +5,7 @@ use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::rc::Rc;
+use rusqlite::{named_params, Connection, Result};
 
 //use cdata::sql_client_server::{SqlClient, SqlClientServer};
 
@@ -207,6 +208,33 @@ fn test_configure_backing_db() {
 
 #[test]
 fn test_hash(){
+    println!("test_hash: running");
+
+    let cwd = env::current_dir().unwrap();
+    let backing_database_name = String::from("test.db");
+    let db_path = Path::new(&cwd).join(&backing_database_name);
+    
+    if db_path.exists() {
+        fs::remove_file(&db_path).unwrap();
+    }
+
+    store_sqlite::configure(&cwd.to_str().unwrap(), &backing_database_name);
+
+    let db_conn = Connection::open(&db_path).unwrap();
+
+    let un = String::from("tester");
     let pw = String::from("1234");
-    let hashed_pw = crypt::hash(&pw);
+
+    store_sqlite::create_login(&un, &pw, &db_conn);
+    let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
+
+    print!("test_hash: has_login {}", &has_login);
+
+    assert!(&has_login);
+
+    let is_valid = store_sqlite::verify_login(&un, &pw, &db_conn);
+
+    print!("test_hash: is_valid {}", is_valid);
+
+    assert!(is_valid);
 }

@@ -19,6 +19,18 @@
             "program": "${workspaceFolder}/target/debug/rcd",
             "args": [],
             "cwd": "${workspaceFolder}"
+        },
+        {
+            "name": "Run Test Debugger",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/debug/deps/rcd-bcbc6b3a50664507",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "preLaunchTask": "cargo test build",
         }
     ]
 }

@@ -1,4 +1,3 @@
 /target
 .DS_STORE
-rcd_test.db
-rcd.db
+**.db
