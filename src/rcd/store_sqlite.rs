@@ -46,6 +46,8 @@ const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
 
 const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (:username, :hash);";
 const GET_LOGIN: &str = "SELECT USERNAME, HASH FROM RCD_USER WHERE USERNAME = :un";
+const USER_WITH_ROLE: &str = "SELECT count(*) AS TOTALCOUNT FROM RCD_USER_ROLE WHERE USERNAME = :username AND ROLENAME = :rolename;";
+const ADD_USER_TO_ROLE: &str = "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
@@ -63,7 +65,9 @@ pub fn configure(root: &str, db_name: &str) {
         create_host_info_table(&db_conn);
         create_contracts_table(&db_conn);
 
-        if !has_role_name(&String::from("SysAdmin"), &db_conn).unwrap() {
+        let db_has_role = has_role_name(&String::from("SysAdmin"), &db_conn).unwrap();
+
+        if !db_has_role {
             let statement = String::from("INSERT INTO RCD_ROLE (ROLENAME) VALUES ('SysAdmin');");
             execute_write(&statement, &db_conn);
         }
@@ -77,8 +81,8 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
         create_login(login, pw, &conn);
     }
 
-    if !login_is_in_role(login, &String::from("SysAdmin")) {
-        add_login_to_role(login, &String::from("SysAdmin"));
+    if !login_is_in_role(login, &String::from("SysAdmin"), &conn).unwrap() {
+        add_login_to_role(login, &String::from("SysAdmin"), &conn);
     }
 }
 
@@ -89,9 +93,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 
     let mut statement = conn.prepare(cmd).unwrap();
 
-    let rows = statement.query_map(&[(login.to_string().as_str())], |row| {
-        row.get(0)
-    })?;
+    let rows = statement.query_map(&[(login.to_string().as_str())], |row| row.get(0))?;
 
     for item in rows {
         let count: u64 = item.unwrap();
@@ -114,7 +116,7 @@ pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
         .query_map(&[login.to_string().as_str()], |row| {
             Ok(User {
                 username: row.get(0).unwrap(),
-                hash: row.get(1).unwrap()
+                hash: row.get(1).unwrap(),
             })
         })
         .unwrap();
@@ -153,12 +155,34 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
         .unwrap();
 }
 
-pub fn login_is_in_role(login: &str, role_name: &str) -> bool {
-    unimplemented!("not written");
+pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Result<bool> {
+    let mut login_is_in_role = false;
+    let cmd = USER_WITH_ROLE;
+    let mut statement = conn.prepare(cmd).unwrap();
+
+    let params = [(":username", login),(":rolename", role_name)];
+
+    let rows = statement.query_map(
+        &params,
+        |row| row.get(0),
+    )?;
+
+    for item in rows {
+        let count: u64 = item.unwrap();
+        if count > 0 {
+            login_is_in_role = true;
+        }
+    }
+
+    return Ok(login_is_in_role);
 }
 
-pub fn add_login_to_role(login: &str, role_name: &str) {
-    unimplemented!("not written");
+pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
+    let cmd = &String::from(ADD_USER_TO_ROLE);
+    let mut statement = conn.prepare(cmd).unwrap();
+    statement
+        .execute(named_params! { ":username": login, ":rolename": role_name })
+        .unwrap();
 }
 
 pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
