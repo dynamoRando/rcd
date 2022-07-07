@@ -1,6 +1,7 @@
 use crate::rcd::crypt;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
+use log::{debug, error, log_enabled, info, Level};
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
 (
@@ -52,11 +53,13 @@ const ADD_USER_TO_ROLE: &str =
 
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
-    println!("cwd is {}", root);
-    println!("db_name is {}", db_name);
+    env_logger::try_init();
+
+    info!("cwd is {}", root);
+    info!("db_name is {}", db_name);
 
     let db_path = Path::new(&root).join(&db_name);
-    println!("db_path is {}", db_path.as_os_str().to_str().unwrap());
+    info!("db_path is {}", db_path.as_os_str().to_str().unwrap());
 
     if !db_path.exists() {
         let db_conn = Connection::open(&db_path).unwrap();

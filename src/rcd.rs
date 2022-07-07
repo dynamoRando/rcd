@@ -1,11 +1,13 @@
 use config::Config;
-use std::cmp::PartialEq;
+use std::{cmp::PartialEq, sync::Arc};
 use std::env;
 use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::rc::Rc;
 use rusqlite::{named_params, Connection, Result};
+use log::{info, trace, warn, error};
+use env_logger::{Builder, Target};
 
 //use cdata::sql_client_server::{SqlClient, SqlClientServer};
 
@@ -70,7 +72,7 @@ impl RcdService {
     }
 
     pub fn start_client_service(self: &Self) {
-        println!("start_client_service");
+        info!("start_client_service");
         client_service::start_service(&self.rcd_settings.client_service_addr_port);
     }
 }
@@ -153,8 +155,16 @@ fn get_config_from_settings_file() -> RcdSettings {
     return rcd_setting;
 }
 
+fn init() {
+    
+    let mut builder = Builder::from_default_env();
+    builder.target(Target::Stdout);
+    builder.is_test(true).try_init();
+}
+
 #[test]
 fn test_read_settings_from_file() {
+    init();
     let service = get_service_from_config_file();
     let db_type = service.rcd_settings.database_type;
     assert_eq!(db_type, DatabaseType::Sqlite);
@@ -162,6 +172,7 @@ fn test_read_settings_from_file() {
 
 #[test]
 fn test_read_settings_from_config() {
+    init();
     let rcd_setting = RcdSettings {
         admin_un: String::from(""),
         admin_pw: String::from(""),
@@ -178,8 +189,10 @@ fn test_read_settings_from_config() {
 
 #[test]
 fn test_configure_backing_db() {
+    init();
     // to see the output, run the test with the following
     // cargo test -- --nocapture
+    // RUST_LOG=debug cargo test -- --nocapture
 
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
@@ -208,7 +221,9 @@ fn test_configure_backing_db() {
 
 #[test]
 fn test_hash(){
-    println!("test_hash: running");
+    init();
+
+    info!("test_hash: running");
 
     let cwd = env::current_dir().unwrap();
     let backing_database_name = String::from("test.db");
@@ -228,20 +243,21 @@ fn test_hash(){
     store_sqlite::create_login(&un, &pw, &db_conn);
     let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
 
-    print!("test_hash: has_login {}", &has_login);
+    info!("test_hash: has_login {}", &has_login);
 
     assert!(&has_login);
 
     let is_valid = store_sqlite::verify_login(&un, &pw, &db_conn);
 
-    print!("test_hash: is_valid {}", is_valid);
+    info!("test_hash: is_valid {}", is_valid);
 
     assert!(is_valid);
 }
 
 #[test]
 fn test_hash_false(){
-    println!("test_hash_false: running");
+    init();
+    info!("test_hash_false: running");
 
     let cwd = env::current_dir().unwrap();
     let backing_database_name = String::from("test.db");
@@ -261,7 +277,7 @@ fn test_hash_false(){
     store_sqlite::create_login(&un, &pw, &db_conn);
     let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
 
-    print!("test_hash_false: has_login {}", &has_login);
+    info!("test_hash_false: has_login {}", &has_login);
 
     assert!(&has_login);
 
@@ -269,7 +285,7 @@ fn test_hash_false(){
 
     let is_valid = store_sqlite::verify_login(&un, &wrong_pw, &db_conn);
 
-    print!("test_hash_false: is_valid {}", is_valid);
+    info!("test_hash_false: is_valid {}", is_valid);
 
     assert!(!is_valid);
 }
