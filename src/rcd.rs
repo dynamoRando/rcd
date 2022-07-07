@@ -1,19 +1,19 @@
 use config::Config;
-use std::{cmp::PartialEq, sync::Arc};
+use env_logger::{Builder, Target};
+use log::{error, info, trace, warn};
+use rusqlite::{named_params, Connection, Result};
 use std::env;
 use std::ffi::OsString;
 use std::fs;
 use std::path::Path;
 use std::rc::Rc;
-use rusqlite::{named_params, Connection, Result};
-use log::{info, trace, warn, error};
-use env_logger::{Builder, Target};
+use std::{cmp::PartialEq, sync::Arc};
 
 //use cdata::sql_client_server::{SqlClient, SqlClientServer};
 
 mod client_service;
-mod store_sqlite;
 mod crypt;
+mod store_sqlite;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -156,7 +156,6 @@ fn get_config_from_settings_file() -> RcdSettings {
 }
 
 fn init() {
-    
     let mut builder = Builder::from_default_env();
     builder.target(Target::Stdout);
     builder.is_test(true).try_init();
@@ -218,9 +217,8 @@ fn test_configure_backing_db() {
     assert!(db_path.exists());
 }
 
-
 #[test]
-fn test_hash(){
+fn test_hash() {
     init();
 
     info!("test_hash: running");
@@ -228,7 +226,7 @@ fn test_hash(){
     let cwd = env::current_dir().unwrap();
     let backing_database_name = String::from("test.db");
     let db_path = Path::new(&cwd).join(&backing_database_name);
-    
+
     if db_path.exists() {
         fs::remove_file(&db_path).unwrap();
     }
@@ -255,14 +253,14 @@ fn test_hash(){
 }
 
 #[test]
-fn test_hash_false(){
+fn test_hash_false() {
     init();
     info!("test_hash_false: running");
 
     let cwd = env::current_dir().unwrap();
     let backing_database_name = String::from("test.db");
     let db_path = Path::new(&cwd).join(&backing_database_name);
-    
+
     if db_path.exists() {
         fs::remove_file(&db_path).unwrap();
     }
