@@ -159,8 +159,8 @@ fn get_config_from_settings_file() -> RcdSettings {
         .unwrap();
 
     let rcd_setting = RcdSettings {
-        admin_un: String::from(""),
-        admin_pw: String::from(""),
+        admin_un: String::from("tester"),
+        admin_pw: String::from("1234"),
         database_type: database_type,
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
