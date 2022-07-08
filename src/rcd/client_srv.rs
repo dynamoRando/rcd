@@ -3,13 +3,15 @@ use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
+use cdata::CreateUserDatabaseReply;
+use cdata::AuthResult;
 
 #[path = "sqlitedb.rs"] 
 pub mod sqlitedb;
 #[path = "rcd_db.rs"] 
 pub mod rcd_db;
 
-mod cdata {
+pub mod cdata {
     include!("../cdata.rs");
 
     // Add this
@@ -55,6 +57,8 @@ impl SqlClient for SqlClientImpl {
     ) -> Result<Response<cdata::CreateUserDatabaseReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
+        let mut is_database_created = false;
+
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
@@ -63,12 +67,26 @@ impl SqlClient for SqlClientImpl {
         let db_name = message.database_name;
         
         if is_authenticated {
-            sqlitedb::create_database(&db_name, &self.root_folder);
+            let result = sqlitedb::create_database(&db_name, &self.root_folder);
+            if !result.is_err() {
+                is_database_created = true;
+            }
         }
-        
-        // then create the database and return the result
 
-        unimplemented!("");
+        let auth_response = AuthResult{
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from("")
+        };
+
+        let create_db_result = CreateUserDatabaseReply {
+            authentication_result: Some(auth_response),
+            is_created: is_database_created,
+            message: String::from("")
+        };
+        
+        Ok(Response::new(create_db_result))
     }
 
     async fn enable_coooperative_features(

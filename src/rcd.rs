@@ -9,7 +9,7 @@ use std::path::Path;
 use std::rc::Rc;
 use std::{cmp::PartialEq, sync::Arc};
 
-mod client_srv;
+pub mod client_srv;
 mod db_srv;
 mod rcd_db;
 
