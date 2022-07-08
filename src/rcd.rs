@@ -12,8 +12,8 @@ use std::{cmp::PartialEq, sync::Arc};
 //use cdata::sql_client_server::{SqlClient, SqlClientServer};
 
 mod client_service;
-mod data_service;
 mod crypt;
+mod data_service;
 mod store_sqlite;
 
 /// Represents settings for rcd that can be passed in on a test case
@@ -74,10 +74,18 @@ impl RcdService {
 
     pub fn start_client_service(self: &Self) {
         info!("start_client_service");
-        client_service::start_service(&self.rcd_settings.client_service_addr_port);
+
+        let wd = env::current_dir().unwrap();
+        let cwd = wd.to_str().unwrap();
+
+        let item = client_service::start_service(
+            &self.rcd_settings.client_service_addr_port,
+            &cwd,
+            &&self.rcd_settings.backing_database_name,
+        );
     }
 
-    pub fn start_data_service(self: &Self){
+    pub fn start_data_service(self: &Self) {
         info!("start_data_service");
         data_service::start_service(&self.rcd_settings.database_service_addr_port);
     }
@@ -149,9 +157,9 @@ fn get_config_from_settings_file() -> RcdSettings {
         .get_string(&String::from("client_service_addr_port"))
         .unwrap();
 
-        let d_client_service_addr_port = settings
+    let d_client_service_addr_port = settings
         .get_string(&String::from("data_service_addr_port"))
-        .unwrap();  
+        .unwrap();
 
     let rcd_setting = RcdSettings {
         admin_un: String::from(""),
@@ -159,7 +167,7 @@ fn get_config_from_settings_file() -> RcdSettings {
         database_type: database_type,
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
-        database_service_addr_port: d_client_service_addr_port
+        database_service_addr_port: d_client_service_addr_port,
     };
 
     return rcd_setting;

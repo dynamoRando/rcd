@@ -1,7 +1,9 @@
-use chrono::Utc;
-use tonic::{transport::Server, Request, Response, Status};
-
+use super::store_sqlite;
 use cdata::sql_client_server::{SqlClient, SqlClientServer};
+use chrono::Utc;
+use rusqlite::{Connection, Result};
+use std::path::Path;
+use tonic::{transport::Server, Request, Response, Status};
 
 mod cdata {
     include!("../cdata.rs");
@@ -12,7 +14,18 @@ mod cdata {
 }
 
 #[derive(Default)]
-pub struct SqlClientImpl {}
+pub struct SqlClientImpl {
+    root_folder: String,
+    database_name: String,
+    addr_port: String,
+}
+
+impl SqlClientImpl {
+    fn get_rcd_db(self: &Self) -> Connection {
+        let db_path = Path::new(&self.root_folder).join(&self.database_name);
+        return Connection::open(&db_path).unwrap();
+    }
+}
 
 #[tonic::async_trait]
 impl SqlClient for SqlClientImpl {
@@ -36,6 +49,16 @@ impl SqlClient for SqlClientImpl {
         request: Request<cdata::CreateUserDatabaseRequest>,
     ) -> Result<Response<cdata::CreateUserDatabaseReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
+
+        // check if the user is authenticated
+        let auth = request.into_inner();
+        let a = auth.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = store_sqlite::verify_login(&a.user_name, &a.pw, &conn);
+        
+        
+        // then create the database and return the result
+
         unimplemented!("");
     }
 
@@ -153,11 +176,22 @@ impl SqlClient for SqlClientImpl {
 }
 
 #[tokio::main]
-pub async fn start_service(address_port: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_service(
+    address_port: &str,
+    root_folder: &str,
+    database_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    // https://betterprogramming.pub/building-a-grpc-server-with-rust-be2c52f0860e
     let addr = address_port.parse().unwrap();
-    let sql_client = SqlClientImpl::default();
 
-    // Add this
+    //let sql_client = SqlClientImpl::default();
+
+    let sql_client = SqlClientImpl {
+        root_folder: root_folder.to_string(),
+        database_name: database_name.to_string(),
+        addr_port: address_port.to_string(),
+    };
+
     let sql_client_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(cdata::FILE_DESCRIPTOR_SET)
         .build()

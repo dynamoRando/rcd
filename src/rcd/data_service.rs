@@ -104,7 +104,6 @@ pub async fn start_service(address_port: &str) -> Result<(), Box<dyn std::error:
     let addr = address_port.parse().unwrap();
     let data_client = DataServiceImpl::default();
 
-    // Add this
     let data_client_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(cdata::FILE_DESCRIPTOR_SET)
         .build()
