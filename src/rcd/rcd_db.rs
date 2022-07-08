@@ -1,7 +1,10 @@
-use crate::rcd::crypt;
+/// represents all the actions for admin'ing an rcd sqlite database
+use log::{debug, error, info, log_enabled, Level};
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-use log::{debug, error, log_enabled, info, Level};
+
+#[path = "crypt.rs"] 
+pub mod crypt;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
 (
@@ -55,7 +58,7 @@ const ADD_USER_TO_ROLE: &str =
 pub fn configure(root: &str, db_name: &str) {
     env_logger::try_init();
 
-    info!("cwd is {}", root);
+    log::info!("cwd is {}", root);
     info!("db_name is {}", db_name);
 
     let db_path = Path::new(&root).join(&db_name);

@@ -1,9 +1,13 @@
-use super::store_sqlite;
 use cdata::sql_client_server::{SqlClient, SqlClientServer};
 use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
+
+#[path = "sqlitedb.rs"] 
+pub mod sqlitedb;
+#[path = "rcd_db.rs"] 
+pub mod rcd_db;
 
 mod cdata {
     include!("../cdata.rs");
@@ -12,6 +16,7 @@ mod cdata {
     pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("greeter_descriptor");
 }
+
 
 #[derive(Default)]
 pub struct SqlClientImpl {
@@ -51,11 +56,15 @@ impl SqlClient for SqlClientImpl {
         println!("Request from {:?}", request.remote_addr());
 
         // check if the user is authenticated
-        let auth = request.into_inner();
-        let a = auth.authentication.unwrap();
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = store_sqlite::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
         
+        if is_authenticated {
+            sqlitedb::create_database(&db_name, &self.root_folder);
+        }
         
         // then create the database and return the result
 

@@ -1,6 +1,17 @@
 use std::thread;
 mod rcd;
 
+#[path = "rcd/crypt.rs"] 
+pub mod crypt;
+#[path = "rcd/db_srv.rs"] 
+pub mod db_srv;
+#[path = "rcd/rcd_db.rs"] 
+pub mod rcd_db;
+#[path = "rcd/client_srv.rs"] 
+pub mod client_srv;
+#[path = "rcd/sqlitedb.rs"] 
+pub mod sqlitedb;
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");

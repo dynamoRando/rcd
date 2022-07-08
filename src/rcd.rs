@@ -9,12 +9,9 @@ use std::path::Path;
 use std::rc::Rc;
 use std::{cmp::PartialEq, sync::Arc};
 
-//use cdata::sql_client_server::{SqlClient, SqlClientServer};
-
-mod client_service;
-mod crypt;
-mod data_service;
-mod store_sqlite;
+mod client_srv;
+mod db_srv;
+mod rcd_db;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -78,16 +75,16 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let item = client_service::start_service(
+        let item = client_srv::start_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
-            &&self.rcd_settings.backing_database_name,
+            &self.rcd_settings.backing_database_name,
         );
     }
 
     pub fn start_data_service(self: &Self) {
         info!("start_data_service");
-        data_service::start_service(&self.rcd_settings.database_service_addr_port);
+        db_srv::start_service(&self.rcd_settings.database_service_addr_port);
     }
 }
 
@@ -104,8 +101,8 @@ fn configure_backing_store(
 
     match db_type {
         DatabaseType::Sqlite => {
-            store_sqlite::configure(cwd.to_str().unwrap(), db_location);
-            store_sqlite::configure_admin(admin_un, admin_pw, db_location)
+            rcd_db::configure(cwd.to_str().unwrap(), db_location);
+            rcd_db::configure_admin(admin_un, admin_pw, db_location)
         }
         DatabaseType::Mysql => do_nothing(),
         DatabaseType::Postgres => do_nothing(),
@@ -141,7 +138,7 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
 
 fn get_config_from_settings_file() -> RcdSettings {
     let settings = Config::builder()
-        .add_source(config::File::with_name("src/rcd/Settings"))
+        .add_source(config::File::with_name("src/Settings"))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .unwrap();
@@ -249,21 +246,21 @@ fn test_hash() {
         fs::remove_file(&db_path).unwrap();
     }
 
-    store_sqlite::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
     let db_conn = Connection::open(&db_path).unwrap();
 
     let un = String::from("tester");
     let pw = String::from("1234");
 
-    store_sqlite::create_login(&un, &pw, &db_conn);
-    let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
+    rcd_db::create_login(&un, &pw, &db_conn);
+    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
 
     info!("test_hash: has_login {}", &has_login);
 
     assert!(&has_login);
 
-    let is_valid = store_sqlite::verify_login(&un, &pw, &db_conn);
+    let is_valid = rcd_db::verify_login(&un, &pw, &db_conn);
 
     info!("test_hash: is_valid {}", is_valid);
 
@@ -283,15 +280,15 @@ fn test_hash_false() {
         fs::remove_file(&db_path).unwrap();
     }
 
-    store_sqlite::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
     let db_conn = Connection::open(&db_path).unwrap();
 
     let un = String::from("tester_fail");
     let pw = String::from("1234");
 
-    store_sqlite::create_login(&un, &pw, &db_conn);
-    let has_login = store_sqlite::has_login(&un, &db_conn).unwrap();
+    rcd_db::create_login(&un, &pw, &db_conn);
+    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
 
     info!("test_hash_false: has_login {}", &has_login);
 
@@ -299,7 +296,7 @@ fn test_hash_false() {
 
     let wrong_pw = String::from("43210");
 
-    let is_valid = store_sqlite::verify_login(&un, &wrong_pw, &db_conn);
+    let is_valid = rcd_db::verify_login(&un, &wrong_pw, &db_conn);
 
     info!("test_hash_false: is_valid {}", is_valid);
 
