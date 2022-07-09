@@ -224,7 +224,7 @@ fn get_config_from_settings_file() -> RcdSettings {
 
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
-        admin_pw: String::from("1234"),
+        admin_pw: String::from("123456"),
         database_type: database_type,
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
@@ -252,8 +252,8 @@ fn test_read_settings_from_file() {
 fn test_read_settings_from_config() {
     init();
     let rcd_setting = RcdSettings {
-        admin_un: String::from(""),
-        admin_pw: String::from(""),
+        admin_un: String::from("tester"),
+        admin_pw: String::from("123456"),
         database_type: DatabaseType::Unknown,
         backing_database_name: String::from(""),
         client_service_addr_port: String::from("[::1]:50051"),
@@ -274,7 +274,7 @@ fn test_configure_backing_db() {
 
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
-        admin_pw: String::from("1234"),
+        admin_pw: String::from("123456"),
         database_type: DatabaseType::Sqlite,
         backing_database_name: String::from("rcd_test.db"),
         client_service_addr_port: String::from("[::1]:50051"),
@@ -377,8 +377,9 @@ pub mod test_client_srv {
     extern crate tokio;
     use std::cell::RefCell;
     use std::ops::DerefMut;
-    use std::sync::{Arc, Mutex};
+    use std::sync::{Arc, Mutex, mpsc};
     use std::{thread, time};
+    
 
     #[tokio::main]
     async fn check_if_online(test_message: &str) -> String {
@@ -420,7 +421,7 @@ pub mod test_client_srv {
         // https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
 
         let test_message: &str = "test_client_srv";
-        static response: String = String::from("");
+        let (tx, rx) = mpsc::channel();
         
         let service = rcd::get_service_from_config_file();
         println!("{:?}", service);
@@ -441,15 +442,17 @@ pub mod test_client_srv {
         thread::sleep(time);
 
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-
-        let foo = &response;
      
         thread::spawn(move || {
             let res = check_if_online(test_message);
-            foo = &res;
+            tx.send(res).unwrap();
         })
         .join()
         .unwrap();
+
+        let response = rx.try_recv().unwrap();
+
+        println!("test_is_online: got: {} sent: {}", response, test_message);
 
         assert_eq!(response, test_message);
     }

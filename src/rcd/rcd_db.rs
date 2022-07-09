@@ -154,6 +154,8 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
 
+    info!("un and pw: {} {}", login, pw);
+
     let login_hash = crypt::hash(&pw);
     let cmd = &String::from(ADD_LOGIN);
     let mut statement = conn.prepare(cmd).unwrap();
