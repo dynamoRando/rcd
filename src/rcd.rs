@@ -1,3 +1,4 @@
+use crate::client_srv::SqlClientImpl;
 use config::Config;
 use env_logger::{Builder, Target};
 use log::{error, info, trace, warn};
@@ -8,10 +9,26 @@ use std::fs;
 use std::path::Path;
 use std::rc::Rc;
 use std::{cmp::PartialEq, sync::Arc};
+//use crate::cdata::sql_client_server::SqlClientServer;
+use crate::client_srv::cdata::sql_client_server::SqlClientServer;
+//use crate::rcd::cdata::cdata::sql_client_server::SqlClientServer;
+//use crate::rcd::client_srv::cdata::sql_client_server::SqlClientServer;
+use std::{thread, time};
 
-pub mod client_srv;
+//use crate::client_srv::cdata::FILE_DESCRIPTOR_SET;
+//use crate::rcd::cdata::cdata::FILE_DESCRIPTOR_SET;
+use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
+
+use tonic::transport::Server;
+
+#[path = "rcd/client_srv.rs"]
+pub mod cdata;
+
 mod db_srv;
 mod rcd_db;
+
+#[path = "rcd/client_srv.rs"]
+pub mod client_srv;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -80,6 +97,53 @@ impl RcdService {
             &cwd,
             &self.rcd_settings.backing_database_name,
         );
+    }
+
+    #[tokio::main]
+    pub async fn start_client_async(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
+        info!("start_client_service");
+
+        let wd = env::current_dir().unwrap();
+        let cwd = wd.to_str().unwrap();
+
+        client_srv::start_service(
+            &self.rcd_settings.client_service_addr_port,
+            &cwd,
+            &self.rcd_settings.backing_database_name,
+        )
+    }
+
+    #[tokio::main]
+    pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
+        let address_port = &self.rcd_settings.client_service_addr_port;
+        let addr = address_port.parse().unwrap();
+        let database_name = &self.rcd_settings.backing_database_name;
+
+        let wd = env::current_dir().unwrap();
+        let root_folder = wd.to_str().unwrap();
+
+        let sql_client = SqlClientImpl {
+            root_folder: root_folder.to_string(),
+            database_name: database_name.to_string(),
+            addr_port: address_port.to_string(),
+        };
+
+        let sql_client_service = tonic_reflection::server::Builder::configure()
+            .register_encoded_file_descriptor_set(
+                crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET,
+            )
+            .build()
+            .unwrap();
+
+        println!("sql client server listening on {}", addr);
+
+        Server::builder()
+            .add_service(SqlClientServer::new(sql_client))
+            .add_service(sql_client_service) // Add this
+            .serve(addr)
+            .await?;
+
+        Ok(())
     }
 
     pub fn start_data_service(self: &Self) {
@@ -301,4 +365,92 @@ fn test_hash_false() {
     info!("test_hash_false: is_valid {}", is_valid);
 
     assert!(!is_valid);
+}
+
+pub mod test_client_srv {
+    use crate::cdata::sql_client_client::SqlClientClient;
+    use crate::cdata::TestRequest;
+    use crate::rcd;
+    use futures::future::lazy;
+    use log::info;
+    extern crate futures;
+    extern crate tokio;
+    use std::cell::RefCell;
+    use std::ops::DerefMut;
+    use std::sync::{Arc, Mutex};
+    use std::{thread, time};
+
+    #[tokio::main]
+    async fn check_if_online(test_message: &str) -> String {
+        info!("check_if_online attempting to connect");
+
+        // creating a channel ie connection to server
+        let channel = tonic::transport::Channel::from_static("http://[::1]:50051")
+            .connect()
+            .await
+            .unwrap();
+        // creating gRPC client from channel
+        let mut client = SqlClientClient::new(channel);
+
+        info!("created channel and client");
+
+        // creating a new Request
+        let request = tonic::Request::new(TestRequest {
+            request_echo_message: test_message.to_string(),
+            request_time_utc: String::from(""),
+            request_origin_url: String::from(""),
+            request_origin_ip4: String::from(""),
+            request_origin_ip6: String::from(""),
+            request_port_number: 1234,
+        });
+        // sending request and waiting for response
+
+        info!("sending request");
+
+        let response = client.is_online(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        return String::from(&response.reply_echo_message);
+    }
+
+    #[test]
+    fn test_is_online() {
+        //RUST_LOG=debug RUST_BACKTRACE=1 cargo test -- --nocapture
+        // https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
+
+        let test_message: &str = "test_client_srv";
+        static response: String = String::from("");
+        
+        let service = rcd::get_service_from_config_file();
+        println!("{:?}", service);
+        service.start();
+        
+        info!("starting client service");
+
+
+        thread::spawn(move || {
+            
+            service.start_client_service_alt();
+        });
+
+        let time = time::Duration::from_secs(5);
+        
+        info!("sleeping for 5 seconds...");
+
+        thread::sleep(time);
+
+        // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
+
+        let foo = &response;
+     
+        thread::spawn(move || {
+            let res = check_if_online(test_message);
+            foo = &res;
+        })
+        .join()
+        .unwrap();
+
+        assert_eq!(response, test_message);
+    }
 }

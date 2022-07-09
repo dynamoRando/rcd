@@ -11,6 +11,7 @@ pub mod rcd_db;
 pub mod client_srv;
 #[path = "rcd/sqlitedb.rs"] 
 pub mod sqlitedb;
+pub mod cdata;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

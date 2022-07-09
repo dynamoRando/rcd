@@ -1,15 +1,16 @@
 use cdata::sql_client_server::{SqlClient, SqlClientServer};
+use cdata::AuthResult;
+use cdata::CreateUserDatabaseReply;
 use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
-use cdata::CreateUserDatabaseReply;
-use cdata::AuthResult;
+use crate::rcd::client_srv::cdata::TestRequest;
 
-#[path = "sqlitedb.rs"] 
-pub mod sqlitedb;
-#[path = "rcd_db.rs"] 
+#[path = "rcd_db.rs"]
 pub mod rcd_db;
+#[path = "sqlitedb.rs"]
+pub mod sqlitedb;
 
 pub mod cdata {
     include!("../cdata.rs");
@@ -19,12 +20,11 @@ pub mod cdata {
         tonic::include_file_descriptor_set!("greeter_descriptor");
 }
 
-
 #[derive(Default)]
 pub struct SqlClientImpl {
-    root_folder: String,
-    database_name: String,
-    addr_port: String,
+    pub root_folder: String,
+    pub database_name: String,
+    pub addr_port: String,
 }
 
 impl SqlClientImpl {
@@ -65,7 +65,7 @@ impl SqlClient for SqlClientImpl {
         let conn = self.get_rcd_db();
         let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
-        
+
         if is_authenticated {
             let result = sqlitedb::create_database(&db_name, &self.root_folder);
             if !result.is_err() {
@@ -73,19 +73,19 @@ impl SqlClient for SqlClientImpl {
             }
         }
 
-        let auth_response = AuthResult{
+        let auth_response = AuthResult {
             is_authenticated: is_authenticated,
             user_name: String::from(""),
             token: String::from(""),
-            authentication_message: String::from("")
+            authentication_message: String::from(""),
         };
 
         let create_db_result = CreateUserDatabaseReply {
             authentication_result: Some(auth_response),
             is_created: is_database_created,
-            message: String::from("")
+            message: String::from(""),
         };
-        
+
         Ok(Response::new(create_db_result))
     }
 
