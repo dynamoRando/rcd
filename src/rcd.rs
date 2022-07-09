@@ -377,9 +377,8 @@ pub mod test_client_srv {
     extern crate tokio;
     use std::cell::RefCell;
     use std::ops::DerefMut;
-    use std::sync::{Arc, Mutex, mpsc};
+    use std::sync::{mpsc, Arc, Mutex};
     use std::{thread, time};
-    
 
     #[tokio::main]
     async fn check_if_online(test_message: &str) -> String {
@@ -422,27 +421,25 @@ pub mod test_client_srv {
 
         let test_message: &str = "test_client_srv";
         let (tx, rx) = mpsc::channel();
-        
+
         let service = rcd::get_service_from_config_file();
         println!("{:?}", service);
         service.start();
-        
+
         info!("starting client service");
 
-
         thread::spawn(move || {
-            
             service.start_client_service_alt();
         });
 
         let time = time::Duration::from_secs(5);
-        
+
         info!("sleeping for 5 seconds...");
 
         thread::sleep(time);
 
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
-     
+
         thread::spawn(move || {
             let res = check_if_online(test_message);
             tx.send(res).unwrap();
