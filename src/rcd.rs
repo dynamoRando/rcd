@@ -381,11 +381,13 @@ pub mod test_client_srv {
     use std::{thread, time};
 
     #[tokio::main]
-    async fn check_if_online(test_message: &str) -> String {
+    async fn check_if_online(test_message: &str, addr_port: &str) -> String {
         info!("check_if_online attempting to connect");
 
+        let default_addr_port = "http://[::1]:50051";
+
         // creating a channel ie connection to server
-        let channel = tonic::transport::Channel::from_static("http://[::1]:50051")
+        let channel = tonic::transport::Channel::from_static(addr_port)
             .connect()
             .await
             .unwrap();
@@ -438,10 +440,12 @@ pub mod test_client_srv {
 
         thread::sleep(time);
 
+        let client_addr_port = service.rcd_settings.client_service_addr_port;
+
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 
         thread::spawn(move || {
-            let res = check_if_online(test_message);
+            let res = check_if_online(test_message, &client_addr_port);
             tx.send(res).unwrap();
         })
         .join()
