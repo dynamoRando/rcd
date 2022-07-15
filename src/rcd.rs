@@ -382,15 +382,14 @@ pub mod test_client_srv {
 
     #[tokio::main]
     async fn check_if_online(test_message: &str, addr_port: &str) -> String {
-        info!("check_if_online attempting to connect");
+        let addr_port = format!("{}{}", String::from("http://"), addr_port);
+        info!("check_if_online attempting to connect {}", addr_port);
 
-        let default_addr_port = "http://[::1]:50051";
+        //let default_addr_port = "http://[::1]:50051";
 
-        // creating a channel ie connection to server
-        let channel = tonic::transport::Channel::from_static(addr_port)
-            .connect()
-            .await
-            .unwrap();
+        let endpoint = tonic::transport::Channel::builder(addr_port.parse().unwrap());
+        let channel = endpoint.connect().await.unwrap();
+
         // creating gRPC client from channel
         let mut client = SqlClientClient::new(channel);
 
@@ -425,7 +424,8 @@ pub mod test_client_srv {
         let (tx, rx) = mpsc::channel();
 
         let service = rcd::get_service_from_config_file();
-        println!("{:?}", service);
+        let client_address_port = service.rcd_settings.client_service_addr_port.clone();
+        println!("{:?}", &service);
         service.start();
 
         info!("starting client service");
@@ -440,12 +440,10 @@ pub mod test_client_srv {
 
         thread::sleep(time);
 
-        let client_addr_port = service.rcd_settings.client_service_addr_port;
-
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 
         thread::spawn(move || {
-            let res = check_if_online(test_message, &client_addr_port);
+            let res = check_if_online(test_message, &client_address_port);
             tx.send(res).unwrap();
         })
         .join()
