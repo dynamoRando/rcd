@@ -1,14 +1,8 @@
 #[cfg(test)]
 use crate::client_srv::SqlClientImpl;
 use config::Config;
-#[cfg(test)]
-use env_logger::{Builder, Target};
 use log::info;
-#[cfg(test)]
-use rusqlite::{Connection, Result};
 use std::env;
-#[cfg(test)]
-use std::fs;
 use std::path::Path;
 
 //use crate::cdata::sql_client_server::SqlClientServer;
@@ -247,151 +241,164 @@ fn get_config_from_settings_file() -> RcdSettings {
     return rcd_setting;
 }
 
-#[cfg(test)]
-fn init() {
-    let mut builder = Builder::from_default_env();
-    builder.target(Target::Stdout);
-    let _init = builder.is_test(true).try_init();
-}
+pub mod test_rcd {
+    #[allow(unused_imports)]
+    use crate::client_srv::SqlClientImpl;
+    #[allow(unused_imports)]
+    use config::Config;
+    #[allow(unused_imports)]
+    use env_logger::{Builder, Target};
+    #[allow(unused_imports)]
+    use log::info;
+    #[allow(unused_imports)]
+    use rusqlite::{Connection, Result};
+    #[allow(unused_imports)]
+    use std::env;
+    #[allow(unused_imports)]
+    use std::fs;
+    #[allow(unused_imports)]
+    use std::path::Path;
+    #[allow(unused_imports)]
+    use crate::rcd;
 
-#[test]
-fn test_read_settings_from_file() {
-    init();
-    let service = get_service_from_config_file();
-    let db_type = service.rcd_settings.database_type;
-    assert_eq!(db_type, DatabaseType::Sqlite);
-}
-
-#[test]
-fn test_read_settings_from_config() {
-    init();
-    let rcd_setting = RcdSettings {
-        admin_un: String::from("tester"),
-        admin_pw: String::from("123456"),
-        database_type: DatabaseType::Unknown,
-        backing_database_name: String::from(""),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
-    };
-
-    let service = get_service_from_config(rcd_setting);
-
-    assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
-}
-
-#[test]
-fn test_configure_backing_db() {
-    init();
-    // to see the output, run the test with the following
-    // cargo test -- --nocapture
-    // RUST_LOG=debug cargo test -- --nocapture
-
-    let rcd_setting = RcdSettings {
-        admin_un: String::from("tester"),
-        admin_pw: String::from("123456"),
-        database_type: DatabaseType::Sqlite,
-        backing_database_name: String::from("rcd_test.db"),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
-    };
-
-    let cwd = env::current_dir().unwrap();
-    let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+    #[cfg(test)]
+    pub fn init() {
+        let mut builder = Builder::from_default_env();
+        builder.target(Target::Stdout);
+        let _init = builder.is_test(true).try_init();
     }
 
-    assert!(!db_path.exists());
+    #[test]
+    fn test_read_settings_from_config() {
+        init();
+        let rcd_setting = rcd::RcdSettings {
+            admin_un: String::from("tester"),
+            admin_pw: String::from("123456"),
+            database_type: rcd::DatabaseType::Unknown,
+            backing_database_name: String::from(""),
+            client_service_addr_port: String::from("[::1]:50051"),
+            database_service_addr_port: String::from(""),
+        };
 
-    let service = get_service_from_config(rcd_setting);
-    service.start();
+        let service = rcd::get_service_from_config(rcd_setting);
 
-    assert!(db_path.exists());
-}
-
-#[test]
-fn test_hash() {
-    init();
-
-    info!("test_hash: running");
-
-    let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
-    let db_path = Path::new(&cwd).join(&backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+        assert_eq!(service.rcd_settings.database_type, rcd::DatabaseType::Unknown);
     }
 
-    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    #[test]
+    fn test_configure_backing_db() {
+        init();
+        // to see the output, run the test with the following
+        // cargo test -- --nocapture
+        // RUST_LOG=debug cargo test -- --nocapture
 
-    let db_conn = Connection::open(&db_path).unwrap();
+        let rcd_setting = rcd::RcdSettings {
+            admin_un: String::from("tester"),
+            admin_pw: String::from("123456"),
+            database_type: rcd::DatabaseType::Sqlite,
+            backing_database_name: String::from("rcd_test.db"),
+            client_service_addr_port: String::from("[::1]:50051"),
+            database_service_addr_port: String::from(""),
+        };
 
-    let un = String::from("tester");
-    let pw = String::from("1234");
+        let cwd = env::current_dir().unwrap();
+        let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
 
-    rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
 
-    info!("test_hash: has_login {}", &has_login);
+        assert!(!db_path.exists());
 
-    assert!(&has_login);
+        let service = rcd::get_service_from_config(rcd_setting);
+        service.start();
 
-    let is_valid = rcd_db::verify_login(&un, &pw, &db_conn);
-
-    info!("test_hash: is_valid {}", is_valid);
-
-    assert!(is_valid);
-}
-
-#[test]
-fn test_hash_false() {
-    init();
-    info!("test_hash_false: running");
-
-    let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
-    let db_path = Path::new(&cwd).join(&backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+        assert!(db_path.exists());
     }
 
-    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    #[test]
+    fn test_hash() {
+        init();
 
-    let db_conn = Connection::open(&db_path).unwrap();
+        info!("test_hash: running");
 
-    let un = String::from("tester_fail");
-    let pw = String::from("1234");
+        let cwd = env::current_dir().unwrap();
+        let backing_database_name = String::from("test.db");
+        let db_path = Path::new(&cwd).join(&backing_database_name);
 
-    rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
 
-    info!("test_hash_false: has_login {}", &has_login);
+        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
-    assert!(&has_login);
+        let db_conn = Connection::open(&db_path).unwrap();
 
-    let wrong_pw = String::from("43210");
+        let un = String::from("tester");
+        let pw = String::from("1234");
 
-    let is_valid = rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+        rcd::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
 
-    info!("test_hash_false: is_valid {}", is_valid);
+        info!("test_hash: has_login {}", &has_login);
 
-    assert!(!is_valid);
-}
+        assert!(&has_login);
 
-#[test]
-fn test_test_harness_value() {
-    let current = test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_current_port();
-    let next = test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_next_avail_port();
-    assert_eq!(current + 1, next);
+        let is_valid = rcd::rcd_db::verify_login(&un, &pw, &db_conn);
+
+        info!("test_hash: is_valid {}", is_valid);
+
+        assert!(is_valid);
+    }
+
+    #[test]
+    fn test_test_harness_value() {
+        let current = rcd::test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_current_port();
+        let next = rcd::test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_next_avail_port();
+        assert_eq!(current + 1, next);
+    }
+
+    #[test]
+    fn test_hash_false() {
+        init();
+        info!("test_hash_false: running");
+
+        let cwd = env::current_dir().unwrap();
+        let backing_database_name = String::from("test.db");
+        let db_path = Path::new(&cwd).join(&backing_database_name);
+
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
+
+        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+
+        let db_conn = Connection::open(&db_path).unwrap();
+
+        let un = String::from("tester_fail");
+        let pw = String::from("1234");
+
+        rcd::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
+
+        info!("test_hash_false: has_login {}", &has_login);
+
+        assert!(&has_login);
+
+        let wrong_pw = String::from("43210");
+
+        let is_valid = rcd::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+
+        info!("test_hash_false: is_valid {}", is_valid);
+
+        assert!(!is_valid);
+    }
 }
 
 pub mod test_client_srv {
@@ -502,5 +509,13 @@ pub mod test_client_srv {
             .unwrap()
             .get_next_avail_port();
         assert_eq!(current + 1, next);
+    }
+
+    #[test]
+    fn test_read_settings_from_file() {
+        rcd::test_rcd::init();
+        let service = rcd::get_service_from_config_file();
+        let db_type = service.rcd_settings.database_type;
+        assert_eq!(db_type, rcd::DatabaseType::Sqlite);
     }
 }
