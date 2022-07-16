@@ -1,34 +1,40 @@
 /// represents all the actions for admin'ing an rcd sqlite database
-use log::{debug, error, info, log_enabled, Level};
+use log::{info};
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
 #[path = "crypt.rs"]
 pub mod crypt;
 
+#[allow(dead_code)]
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
 (
     USERNAME VARCHAR(25) UNIQUE,
     HASH TEXT NOT NULL
 );";
 
+
+#[allow(dead_code)]
 #[derive(Debug)]
 struct User {
     username: String,
     hash: String,
 }
 
+#[allow(dead_code)]
 const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
 (
     ROLENAME VARCHAR(25) UNIQUE
 );";
 
+#[allow(dead_code)]
 const CREATE_USER_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER_ROLE
 (
     USERNAME VARCHAR(25) NOT NULL,
     ROLENAME VARCHAR(25) NOT NULL   
 );";
 
+#[allow(dead_code)]
 const CREATE_HOST_INFO_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_HOST_INFO
 (
     HOST_ID CHAR(36) NOT NULL,
@@ -36,6 +42,7 @@ const CREATE_HOST_INFO_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_HOST_INFO
     TOKEN BLOB NOT NULL
 );";
 
+#[allow(dead_code)]
 const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
 (
     HOST_ID CHAR(36) NOT NULL,
@@ -54,7 +61,7 @@ const USER_WITH_ROLE: &str = "SELECT count(*) AS TOTALCOUNT FROM RCD_USER_ROLE W
 const ADD_USER_TO_ROLE: &str =
     "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
 
-
+    #[allow(dead_code)]
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
     let _init = env_logger::try_init();
@@ -82,7 +89,7 @@ pub fn configure(root: &str, db_name: &str) {
     }
 }
 
-
+#[allow(dead_code)]
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     let conn = Connection::open(&db_path).unwrap();
 
@@ -95,6 +102,7 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     }
 }
 
+#[allow(dead_code)]
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
     let cmd =
@@ -114,6 +122,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     return Ok(has_login);
 }
 
+#[allow(dead_code)]
 pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
     let mut is_verified = false;
 
@@ -152,6 +161,7 @@ pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
     return is_verified;
 }
 
+#[allow(dead_code)]
 pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
@@ -166,6 +176,7 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
         .unwrap();
 }
 
+#[allow(dead_code)]
 pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Result<bool> {
     let mut login_is_in_role = false;
     let cmd = USER_WITH_ROLE;
@@ -185,6 +196,7 @@ pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Resu
     return Ok(login_is_in_role);
 }
 
+#[allow(dead_code)]
 pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
     let cmd = &String::from(ADD_USER_TO_ROLE);
     let mut statement = conn.prepare(cmd).unwrap();
@@ -193,6 +205,7 @@ pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
         .unwrap();
 }
 
+#[allow(dead_code)]
 pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
     let mut has_role = false;
 

@@ -37,6 +37,7 @@ pub mod test_harness;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RcdSettings {
     admin_un: String,
     admin_pw: String,
@@ -405,7 +406,7 @@ pub mod test_client_srv {
     extern crate tokio;
 
     #[cfg(test)]
-    use std::sync::{mpsc};
+    use std::sync::mpsc;
     #[cfg(test)]
     use std::{thread, time};
 
@@ -464,7 +465,7 @@ pub mod test_client_srv {
         info!("starting client service");
 
         thread::spawn(move || {
-            service.start_client_service_alt();
+            let _service = service.start_client_service_alt();
         });
 
         let time = time::Duration::from_secs(5);

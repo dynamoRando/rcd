@@ -5,19 +5,18 @@ use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
-use crate::rcd::client_srv::cdata::TestRequest;
 
 #[path = "rcd_db.rs"]
 pub mod rcd_db;
 #[path = "sqlitedb.rs"]
 pub mod sqlitedb;
 
+#[allow(dead_code)]
 pub mod cdata {
     include!("../cdata.rs");
 
-    // Add this
     pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
-        tonic::include_file_descriptor_set!("greeter_descriptor");
+    tonic::include_file_descriptor_set!("greeter_descriptor");
 }
 
 #[derive(Default)]
@@ -202,6 +201,7 @@ impl SqlClient for SqlClientImpl {
     }
 }
 
+#[allow(dead_code)]
 #[tokio::main]
 pub async fn start_service(
     address_port: &str,

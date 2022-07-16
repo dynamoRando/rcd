@@ -1,12 +1,14 @@
 use chrono::Utc;
+#[allow(unused_imports)]
 use tonic::{transport::Server, Request, Response, Status};
 use cdata::data_service_server::DataService;
+#[allow(unused_imports)]
 use cdata::data_service_server::DataServiceServer;
 
+#[allow(dead_code)]
 mod cdata {
     include!("../cdata.rs");
 
-    // Add this
     pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("greeter_descriptor");
 }
@@ -100,6 +102,7 @@ impl DataService for DataServiceImpl {
 
 }
 
+#[allow(dead_code)]
 #[cfg(test)]
 #[tokio::main]
 pub async fn start_service(address_port: &str) -> Result<(), Box<dyn std::error::Error>> {
