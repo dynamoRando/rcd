@@ -1,37 +1,39 @@
+#[cfg(test)]
 use crate::client_srv::SqlClientImpl;
 use config::Config;
+#[cfg(test)]
 use env_logger::{Builder, Target};
-use log::{error, info, trace, warn};
-use rusqlite::{named_params, Connection, Result};
+use log::info;
+#[cfg(test)]
+use rusqlite::{Connection, Result};
 use std::env;
-use std::ffi::OsString;
+#[cfg(test)]
 use std::fs;
 use std::path::Path;
-use std::rc::Rc;
-use std::{cmp::PartialEq, sync::Arc};
+
 //use crate::cdata::sql_client_server::SqlClientServer;
-use crate::client_srv::cdata::sql_client_server::SqlClientServer;
 //use crate::rcd::cdata::cdata::sql_client_server::SqlClientServer;
 //use crate::rcd::client_srv::cdata::sql_client_server::SqlClientServer;
-use std::{thread, time};
+
+#[cfg(test)]
+use crate::client_srv::cdata::sql_client_server::SqlClientServer;
 
 //use crate::client_srv::cdata::FILE_DESCRIPTOR_SET;
 //use crate::rcd::cdata::cdata::FILE_DESCRIPTOR_SET;
-use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
-
+//use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
+#[cfg(test)]
 use tonic::transport::Server;
 
 #[path = "rcd/client_srv.rs"]
 pub mod cdata;
-
-mod db_srv;
-mod rcd_db;
-
 #[path = "rcd/client_srv.rs"]
 pub mod client_srv;
-
+mod db_srv;
+mod rcd_db;
 #[path = "rcd/test_harness.rs"]
 pub mod test_harness;
+
+//https://users.rust-lang.org/t/unused-import-warning/20251
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
@@ -95,13 +97,14 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let item = client_srv::start_service(
+        let _item = client_srv::start_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,
         );
     }
 
+    /*
     #[tokio::main]
     pub async fn start_client_async(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         info!("start_client_service");
@@ -115,7 +118,9 @@ impl RcdService {
             &self.rcd_settings.backing_database_name,
         )
     }
+    */
 
+    #[cfg(test)]
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         let address_port = &self.rcd_settings.client_service_addr_port;
@@ -149,10 +154,12 @@ impl RcdService {
         Ok(())
     }
 
+    /*
     pub fn start_data_service(self: &Self) {
         info!("start_data_service");
         db_srv::start_service(&self.rcd_settings.database_service_addr_port);
     }
+    */
 }
 
 /// Configures the backing cds based on the type in the apps current working directory
@@ -196,6 +203,7 @@ pub fn get_service_from_config_file() -> RcdService {
     return service;
 }
 
+#[cfg(test)]
 /// Returns an RcdService from the supplied config (normally used in testing)
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     return RcdService {
@@ -237,10 +245,11 @@ fn get_config_from_settings_file() -> RcdSettings {
     return rcd_setting;
 }
 
+#[cfg(test)]
 fn init() {
     let mut builder = Builder::from_default_env();
     builder.target(Target::Stdout);
-    builder.is_test(true).try_init();
+    let _init = builder.is_test(true).try_init();
 }
 
 #[test]
@@ -384,21 +393,26 @@ fn test_test_harness_value() {
 }
 
 pub mod test_client_srv {
+    #[cfg(test)]
     use crate::cdata::sql_client_client::SqlClientClient;
+    #[cfg(test)]
     use crate::cdata::TestRequest;
+    #[cfg(test)]
     use crate::rcd;
-    use futures::future::lazy;
+    #[cfg(test)]
     use log::info;
     extern crate futures;
     extern crate tokio;
-    use std::cell::RefCell;
-    use std::env::current_exe;
-    use std::ops::DerefMut;
-    use std::sync::{mpsc, Arc, Mutex};
+
+    #[cfg(test)]
+    use std::sync::{mpsc};
+    #[cfg(test)]
     use std::{thread, time};
 
+    #[cfg(test)]
     use super::test_harness;
 
+    #[cfg(test)]
     #[tokio::main]
     async fn check_if_online(test_message: &str, addr_port: &str) -> String {
         let addr_port = format!("{}{}", String::from("http://"), addr_port);

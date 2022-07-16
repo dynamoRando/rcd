@@ -1,4 +1,3 @@
-use std::thread;
 mod rcd;
 
 #[path = "rcd/crypt.rs"] 

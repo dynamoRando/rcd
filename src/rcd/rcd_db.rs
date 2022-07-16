@@ -3,7 +3,7 @@ use log::{debug, error, info, log_enabled, Level};
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
-#[path = "crypt.rs"] 
+#[path = "crypt.rs"]
 pub mod crypt;
 
 const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
@@ -54,9 +54,10 @@ const USER_WITH_ROLE: &str = "SELECT count(*) AS TOTALCOUNT FROM RCD_USER_ROLE W
 const ADD_USER_TO_ROLE: &str =
     "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
 
+
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
-    env_logger::try_init();
+    let _init = env_logger::try_init();
 
     log::info!("cwd is {}", root);
     info!("db_name is {}", db_name);
@@ -80,6 +81,7 @@ pub fn configure(root: &str, db_name: &str) {
         }
     }
 }
+
 
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     let conn = Connection::open(&db_path).unwrap();
