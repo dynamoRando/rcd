@@ -30,6 +30,9 @@ mod rcd_db;
 #[path = "rcd/client_srv.rs"]
 pub mod client_srv;
 
+#[path = "rcd/test_harness.rs"]
+pub mod test_harness;
+
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
 pub struct RcdSettings {
@@ -367,6 +370,19 @@ fn test_hash_false() {
     assert!(!is_valid);
 }
 
+#[test]
+fn test_test_harness_value() {
+    let current = test_harness::TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_current_port();
+    let next = test_harness::TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_next_avail_port();
+    assert_eq!(current + 1, next);
+}
+
 pub mod test_client_srv {
     use crate::cdata::sql_client_client::SqlClientClient;
     use crate::cdata::TestRequest;
@@ -376,9 +392,12 @@ pub mod test_client_srv {
     extern crate futures;
     extern crate tokio;
     use std::cell::RefCell;
+    use std::env::current_exe;
     use std::ops::DerefMut;
     use std::sync::{mpsc, Arc, Mutex};
     use std::{thread, time};
+
+    use super::test_harness;
 
     #[tokio::main]
     async fn check_if_online(test_message: &str, addr_port: &str) -> String {
@@ -454,5 +473,18 @@ pub mod test_client_srv {
         println!("test_is_online: got: {} sent: {}", response, test_message);
 
         assert_eq!(response, test_message);
+    }
+
+    #[test]
+    fn test_test_harness_value() {
+        let current = test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_current_port();
+        let next = test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_next_avail_port();
+        assert_eq!(current + 1, next);
     }
 }
