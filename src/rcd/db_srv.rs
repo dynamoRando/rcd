@@ -1,17 +1,17 @@
 use chrono::Utc;
+#[allow(unused_imports)]
 use tonic::{transport::Server, Request, Response, Status};
 use cdata::data_service_server::DataService;
+#[allow(unused_imports)]
 use cdata::data_service_server::DataServiceServer;
 
+#[allow(dead_code)]
 mod cdata {
     include!("../cdata.rs");
 
-    // Add this
     pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
         tonic::include_file_descriptor_set!("greeter_descriptor");
 }
-
-
 
 
 #[derive(Default)]
@@ -35,73 +35,75 @@ impl DataService for DataServiceImpl {
     }
 
     async fn create_partial_database(&self,
-        request: Request<cdata::CreateDatabaseRequest>,
+        _request: Request<cdata::CreateDatabaseRequest>,
     ) -> Result<Response<cdata::CreateDatabaseResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn create_table_in_database(&self,
-        request: Request<cdata::CreateTableRequest>,
+        _request: Request<cdata::CreateTableRequest>,
     ) -> Result<Response<cdata::CreateTableResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn insert_row_into_table(&self,
-        request: Request<cdata::InsertRowRequest>,
+        _request: Request<cdata::InsertRowRequest>,
     ) -> Result<Response<cdata::InsertRowResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn update_row_in_table(&self,
-        request: Request<cdata::UpdateRowInTableRequest>,
+        _request: Request<cdata::UpdateRowInTableRequest>,
     ) -> Result<Response<cdata::UpdateRowInTableResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn get_rows_from_table(&self,
-        request: Request<cdata::GetRowsFromTableRequest>,
+        _request: Request<cdata::GetRowsFromTableRequest>,
     ) -> Result<Response<cdata::GetRowsFromTableResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn get_row_from_partial_database(&self,
-        request: Request<cdata::GetRowFromPartialDatabaseRequest>,
+        _request: Request<cdata::GetRowFromPartialDatabaseRequest>,
     ) -> Result<Response<cdata::GetRowFromPartialDatabaseResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn save_contract(&self,
-        request: Request<cdata::SaveContractRequest>,
+        _request: Request<cdata::SaveContractRequest>,
     ) -> Result<Response<cdata::SaveContractResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn accept_contract(&self,
-        request: Request<cdata::ParticipantAcceptsContractRequest>,
+        _request: Request<cdata::ParticipantAcceptsContractRequest>,
     ) -> Result<Response<cdata::ParticipantAcceptsContractResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn remove_row_from_partial_database(&self,
-        request: Request<cdata::RemoveRowFromPartialDatabaseRequest>,
+        _request: Request<cdata::RemoveRowFromPartialDatabaseRequest>,
     ) -> Result<Response<cdata::RemoveRowFromPartialDatabaseResult>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn update_row_data_hash_for_host(&self,
-        request: Request<cdata::UpdateRowDataHashForHostRequest>,
+        _request: Request<cdata::UpdateRowDataHashForHostRequest>,
     ) -> Result<Response<cdata::UpdateRowDataHashForHostResponse>, Status> {
         unimplemented!("not implemented");
     }
 
     async fn notify_host_of_removed_row(&self,
-        request: Request<cdata::NotifyHostOfRemovedRowRequest>,
+        _request: Request<cdata::NotifyHostOfRemovedRowRequest>,
     ) -> Result<Response<cdata::NotifyHostOfRemovedRowResponse>, Status> {
         unimplemented!("not implemented");
     }
 
 }
 
+#[allow(dead_code)]
+#[cfg(test)]
 #[tokio::main]
 pub async fn start_service(address_port: &str) -> Result<(), Box<dyn std::error::Error>> {
     let addr = address_port.parse().unwrap();

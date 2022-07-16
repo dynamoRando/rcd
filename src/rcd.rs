@@ -1,40 +1,38 @@
+#[cfg(test)]
 use crate::client_srv::SqlClientImpl;
 use config::Config;
-use env_logger::{Builder, Target};
-use log::{error, info, trace, warn};
-use rusqlite::{named_params, Connection, Result};
+use log::info;
 use std::env;
-use std::ffi::OsString;
-use std::fs;
 use std::path::Path;
-use std::rc::Rc;
-use std::{cmp::PartialEq, sync::Arc};
+
 //use crate::cdata::sql_client_server::SqlClientServer;
-use crate::client_srv::cdata::sql_client_server::SqlClientServer;
 //use crate::rcd::cdata::cdata::sql_client_server::SqlClientServer;
 //use crate::rcd::client_srv::cdata::sql_client_server::SqlClientServer;
-use std::{thread, time};
+
+#[cfg(test)]
+use crate::client_srv::cdata::sql_client_server::SqlClientServer;
 
 //use crate::client_srv::cdata::FILE_DESCRIPTOR_SET;
 //use crate::rcd::cdata::cdata::FILE_DESCRIPTOR_SET;
-use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
-
+//use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
+#[cfg(test)]
 use tonic::transport::Server;
 
 #[path = "rcd/client_srv.rs"]
 pub mod cdata;
-
-mod db_srv;
-mod rcd_db;
-
 #[path = "rcd/client_srv.rs"]
 pub mod client_srv;
-
+mod db_srv;
+mod rcd_db;
 #[path = "rcd/test_harness.rs"]
 pub mod test_harness;
 
+//https://users.rust-lang.org/t/unused-import-warning/20251
+// https://stackoverflow.com/questions/32900809/how-to-suppress-function-is-never-used-warning-for-a-function-used-by-tests
+
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct RcdSettings {
     admin_un: String,
     admin_pw: String,
@@ -95,13 +93,14 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let item = client_srv::start_service(
+        let _item = client_srv::start_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,
         );
     }
 
+    /*
     #[tokio::main]
     pub async fn start_client_async(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         info!("start_client_service");
@@ -115,7 +114,9 @@ impl RcdService {
             &self.rcd_settings.backing_database_name,
         )
     }
+    */
 
+    #[cfg(test)]
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         let address_port = &self.rcd_settings.client_service_addr_port;
@@ -149,10 +150,46 @@ impl RcdService {
         Ok(())
     }
 
+    #[allow(dead_code)]
+    #[cfg(test)]
+    #[tokio::main]
+    pub async fn start_client_service_at_addr(self: &Self, address_port: String) -> Result<(), Box<dyn std::error::Error>> {
+        let addr = address_port.parse().unwrap();
+        let database_name = &self.rcd_settings.backing_database_name;
+
+        let wd = env::current_dir().unwrap();
+        let root_folder = wd.to_str().unwrap();
+
+        let sql_client = SqlClientImpl {
+            root_folder: root_folder.to_string(),
+            database_name: database_name.to_string(),
+            addr_port: address_port.to_string(),
+        };
+
+        let sql_client_service = tonic_reflection::server::Builder::configure()
+            .register_encoded_file_descriptor_set(
+                crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET,
+            )
+            .build()
+            .unwrap();
+
+        println!("sql client server listening on {}", addr);
+
+        Server::builder()
+            .add_service(SqlClientServer::new(sql_client))
+            .add_service(sql_client_service) // Add this
+            .serve(addr)
+            .await?;
+
+        Ok(())
+    }
+
+    /*
     pub fn start_data_service(self: &Self) {
         info!("start_data_service");
         db_srv::start_service(&self.rcd_settings.database_service_addr_port);
     }
+    */
 }
 
 /// Configures the backing cds based on the type in the apps current working directory
@@ -196,6 +233,7 @@ pub fn get_service_from_config_file() -> RcdService {
     return service;
 }
 
+#[cfg(test)]
 /// Returns an RcdService from the supplied config (normally used in testing)
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     return RcdService {
@@ -237,170 +275,189 @@ fn get_config_from_settings_file() -> RcdSettings {
     return rcd_setting;
 }
 
-fn init() {
-    let mut builder = Builder::from_default_env();
-    builder.target(Target::Stdout);
-    builder.is_test(true).try_init();
-}
+pub mod test_rcd {
+    #[allow(unused_imports)]
+    use crate::client_srv::SqlClientImpl;
+    #[allow(unused_imports)]
+    use config::Config;
+    #[allow(unused_imports)]
+    use env_logger::{Builder, Target};
+    #[allow(unused_imports)]
+    use log::info;
+    #[allow(unused_imports)]
+    use rusqlite::{Connection, Result};
+    #[allow(unused_imports)]
+    use std::env;
+    #[allow(unused_imports)]
+    use std::fs;
+    #[allow(unused_imports)]
+    use std::path::Path;
+    #[allow(unused_imports)]
+    use crate::rcd;
 
-#[test]
-fn test_read_settings_from_file() {
-    init();
-    let service = get_service_from_config_file();
-    let db_type = service.rcd_settings.database_type;
-    assert_eq!(db_type, DatabaseType::Sqlite);
-}
-
-#[test]
-fn test_read_settings_from_config() {
-    init();
-    let rcd_setting = RcdSettings {
-        admin_un: String::from("tester"),
-        admin_pw: String::from("123456"),
-        database_type: DatabaseType::Unknown,
-        backing_database_name: String::from(""),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
-    };
-
-    let service = get_service_from_config(rcd_setting);
-
-    assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
-}
-
-#[test]
-fn test_configure_backing_db() {
-    init();
-    // to see the output, run the test with the following
-    // cargo test -- --nocapture
-    // RUST_LOG=debug cargo test -- --nocapture
-
-    let rcd_setting = RcdSettings {
-        admin_un: String::from("tester"),
-        admin_pw: String::from("123456"),
-        database_type: DatabaseType::Sqlite,
-        backing_database_name: String::from("rcd_test.db"),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
-    };
-
-    let cwd = env::current_dir().unwrap();
-    let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+    #[cfg(test)]
+    pub fn init() {
+        let mut builder = Builder::from_default_env();
+        builder.target(Target::Stdout);
+        let _init = builder.is_test(true).try_init();
     }
 
-    assert!(!db_path.exists());
+    #[test]
+    fn test_read_settings_from_config() {
+        init();
+        let rcd_setting = rcd::RcdSettings {
+            admin_un: String::from("tester"),
+            admin_pw: String::from("123456"),
+            database_type: rcd::DatabaseType::Unknown,
+            backing_database_name: String::from(""),
+            client_service_addr_port: String::from("[::1]:50051"),
+            database_service_addr_port: String::from(""),
+        };
 
-    let service = get_service_from_config(rcd_setting);
-    service.start();
+        let service = rcd::get_service_from_config(rcd_setting);
 
-    assert!(db_path.exists());
-}
-
-#[test]
-fn test_hash() {
-    init();
-
-    info!("test_hash: running");
-
-    let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
-    let db_path = Path::new(&cwd).join(&backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+        assert_eq!(service.rcd_settings.database_type, rcd::DatabaseType::Unknown);
     }
 
-    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    #[test]
+    fn test_configure_backing_db() {
+        init();
+        // to see the output, run the test with the following
+        // cargo test -- --nocapture
+        // RUST_LOG=debug cargo test -- --nocapture
 
-    let db_conn = Connection::open(&db_path).unwrap();
+        let rcd_setting = rcd::RcdSettings {
+            admin_un: String::from("tester"),
+            admin_pw: String::from("123456"),
+            database_type: rcd::DatabaseType::Sqlite,
+            backing_database_name: String::from("rcd_test.db"),
+            client_service_addr_port: String::from("[::1]:50051"),
+            database_service_addr_port: String::from(""),
+        };
 
-    let un = String::from("tester");
-    let pw = String::from("1234");
+        let cwd = env::current_dir().unwrap();
+        let db_path = Path::new(&cwd).join(&rcd_setting.backing_database_name);
 
-    rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
 
-    info!("test_hash: has_login {}", &has_login);
+        assert!(!db_path.exists());
 
-    assert!(&has_login);
+        let service = rcd::get_service_from_config(rcd_setting);
+        service.start();
 
-    let is_valid = rcd_db::verify_login(&un, &pw, &db_conn);
-
-    info!("test_hash: is_valid {}", is_valid);
-
-    assert!(is_valid);
-}
-
-#[test]
-fn test_hash_false() {
-    init();
-    info!("test_hash_false: running");
-
-    let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
-    let db_path = Path::new(&cwd).join(&backing_database_name);
-
-    if db_path.exists() {
-        fs::remove_file(&db_path).unwrap();
+        assert!(db_path.exists());
     }
 
-    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    #[test]
+    fn test_hash() {
+        init();
 
-    let db_conn = Connection::open(&db_path).unwrap();
+        info!("test_hash: running");
 
-    let un = String::from("tester_fail");
-    let pw = String::from("1234");
+        let cwd = env::current_dir().unwrap();
+        let backing_database_name = String::from("test.db");
+        let db_path = Path::new(&cwd).join(&backing_database_name);
 
-    rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = rcd_db::has_login(&un, &db_conn).unwrap();
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
 
-    info!("test_hash_false: has_login {}", &has_login);
+        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
-    assert!(&has_login);
+        let db_conn = Connection::open(&db_path).unwrap();
 
-    let wrong_pw = String::from("43210");
+        let un = String::from("tester");
+        let pw = String::from("1234");
 
-    let is_valid = rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+        rcd::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
 
-    info!("test_hash_false: is_valid {}", is_valid);
+        info!("test_hash: has_login {}", &has_login);
 
-    assert!(!is_valid);
-}
+        assert!(&has_login);
 
-#[test]
-fn test_test_harness_value() {
-    let current = test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_current_port();
-    let next = test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_next_avail_port();
-    assert_eq!(current + 1, next);
+        let is_valid = rcd::rcd_db::verify_login(&un, &pw, &db_conn);
+
+        info!("test_hash: is_valid {}", is_valid);
+
+        assert!(is_valid);
+    }
+
+    #[test]
+    fn test_test_harness_value() {
+        let current = rcd::test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_current_port();
+        let next = rcd::test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_next_avail_port();
+        assert_eq!(current + 1, next);
+    }
+
+    #[test]
+    fn test_hash_false() {
+        init();
+        info!("test_hash_false: running");
+
+        let cwd = env::current_dir().unwrap();
+        let backing_database_name = String::from("test.db");
+        let db_path = Path::new(&cwd).join(&backing_database_name);
+
+        if db_path.exists() {
+            fs::remove_file(&db_path).unwrap();
+        }
+
+        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+
+        let db_conn = Connection::open(&db_path).unwrap();
+
+        let un = String::from("tester_fail");
+        let pw = String::from("1234");
+
+        rcd::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
+
+        info!("test_hash_false: has_login {}", &has_login);
+
+        assert!(&has_login);
+
+        let wrong_pw = String::from("43210");
+
+        let is_valid = rcd::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+
+        info!("test_hash_false: is_valid {}", is_valid);
+
+        assert!(!is_valid);
+    }
 }
 
 pub mod test_client_srv {
+    #[cfg(test)]
     use crate::cdata::sql_client_client::SqlClientClient;
+    #[cfg(test)]
     use crate::cdata::TestRequest;
+    #[cfg(test)]
     use crate::rcd;
-    use futures::future::lazy;
+    #[cfg(test)]
     use log::info;
     extern crate futures;
     extern crate tokio;
-    use std::cell::RefCell;
-    use std::env::current_exe;
-    use std::ops::DerefMut;
-    use std::sync::{mpsc, Arc, Mutex};
+
+    #[cfg(test)]
+    use std::sync::mpsc;
+    #[cfg(test)]
     use std::{thread, time};
 
+    #[cfg(test)]
     use super::test_harness;
 
+    #[cfg(test)]
     #[tokio::main]
-    async fn check_if_online(test_message: &str, addr_port: &str) -> String {
+    async fn client_if_online(test_message: &str, addr_port: &str) -> String {
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("check_if_online attempting to connect {}", addr_port);
 
@@ -450,7 +507,7 @@ pub mod test_client_srv {
         info!("starting client service");
 
         thread::spawn(move || {
-            service.start_client_service_alt();
+            let _service = service.start_client_service_alt();
         });
 
         let time = time::Duration::from_secs(5);
@@ -462,7 +519,7 @@ pub mod test_client_srv {
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 
         thread::spawn(move || {
-            let res = check_if_online(test_message, &client_address_port);
+            let res = client_if_online(test_message, &client_address_port);
             tx.send(res).unwrap();
         })
         .join()
@@ -486,5 +543,13 @@ pub mod test_client_srv {
             .unwrap()
             .get_next_avail_port();
         assert_eq!(current + 1, next);
+    }
+
+    #[test]
+    fn test_read_settings_from_file() {
+        rcd::test_rcd::init();
+        let service = rcd::get_service_from_config_file();
+        let db_type = service.rcd_settings.database_type;
+        assert_eq!(db_type, rcd::DatabaseType::Sqlite);
     }
 }

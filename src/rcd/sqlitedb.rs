@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Result, Error};
 use std::path::Path;
 
