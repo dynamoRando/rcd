@@ -150,6 +150,40 @@ impl RcdService {
         Ok(())
     }
 
+    #[allow(dead_code)]
+    #[cfg(test)]
+    #[tokio::main]
+    pub async fn start_client_service_at_addr(self: &Self, address_port: String) -> Result<(), Box<dyn std::error::Error>> {
+        let addr = address_port.parse().unwrap();
+        let database_name = &self.rcd_settings.backing_database_name;
+
+        let wd = env::current_dir().unwrap();
+        let root_folder = wd.to_str().unwrap();
+
+        let sql_client = SqlClientImpl {
+            root_folder: root_folder.to_string(),
+            database_name: database_name.to_string(),
+            addr_port: address_port.to_string(),
+        };
+
+        let sql_client_service = tonic_reflection::server::Builder::configure()
+            .register_encoded_file_descriptor_set(
+                crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET,
+            )
+            .build()
+            .unwrap();
+
+        println!("sql client server listening on {}", addr);
+
+        Server::builder()
+            .add_service(SqlClientServer::new(sql_client))
+            .add_service(sql_client_service) // Add this
+            .serve(addr)
+            .await?;
+
+        Ok(())
+    }
+
     /*
     pub fn start_data_service(self: &Self) {
         info!("start_data_service");
