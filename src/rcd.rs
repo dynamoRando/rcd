@@ -30,6 +30,9 @@ mod rcd_db;
 #[path = "rcd/client_srv.rs"]
 pub mod client_srv;
 
+#[path = "rcd/test_harness.rs"]
+pub mod test_harness;
+
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
 pub struct RcdSettings {
@@ -367,6 +370,19 @@ fn test_hash_false() {
     assert!(!is_valid);
 }
 
+#[test]
+fn test_test_harness_value() {
+    let current = test_harness::TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_current_port();
+    let next = test_harness::TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_next_avail_port();
+    assert_eq!(current + 1, next);
+}
+
 pub mod test_client_srv {
     use crate::cdata::sql_client_client::SqlClientClient;
     use crate::cdata::TestRequest;
@@ -376,19 +392,23 @@ pub mod test_client_srv {
     extern crate futures;
     extern crate tokio;
     use std::cell::RefCell;
+    use std::env::current_exe;
     use std::ops::DerefMut;
     use std::sync::{mpsc, Arc, Mutex};
     use std::{thread, time};
 
-    #[tokio::main]
-    async fn check_if_online(test_message: &str) -> String {
-        info!("check_if_online attempting to connect");
+    use super::test_harness;
 
-        // creating a channel ie connection to server
-        let channel = tonic::transport::Channel::from_static("http://[::1]:50051")
-            .connect()
-            .await
-            .unwrap();
+    #[tokio::main]
+    async fn check_if_online(test_message: &str, addr_port: &str) -> String {
+        let addr_port = format!("{}{}", String::from("http://"), addr_port);
+        info!("check_if_online attempting to connect {}", addr_port);
+
+        //let default_addr_port = "http://[::1]:50051";
+
+        let endpoint = tonic::transport::Channel::builder(addr_port.parse().unwrap());
+        let channel = endpoint.connect().await.unwrap();
+
         // creating gRPC client from channel
         let mut client = SqlClientClient::new(channel);
 
@@ -423,7 +443,8 @@ pub mod test_client_srv {
         let (tx, rx) = mpsc::channel();
 
         let service = rcd::get_service_from_config_file();
-        println!("{:?}", service);
+        let client_address_port = service.rcd_settings.client_service_addr_port.clone();
+        println!("{:?}", &service);
         service.start();
 
         info!("starting client service");
@@ -441,7 +462,7 @@ pub mod test_client_srv {
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 
         thread::spawn(move || {
-            let res = check_if_online(test_message);
+            let res = check_if_online(test_message, &client_address_port);
             tx.send(res).unwrap();
         })
         .join()
@@ -452,5 +473,18 @@ pub mod test_client_srv {
         println!("test_is_online: got: {} sent: {}", response, test_message);
 
         assert_eq!(response, test_message);
+    }
+
+    #[test]
+    fn test_test_harness_value() {
+        let current = test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_current_port();
+        let next = test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_next_avail_port();
+        assert_eq!(current + 1, next);
     }
 }
