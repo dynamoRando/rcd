@@ -423,7 +423,7 @@ pub mod test_client_srv {
 
     #[cfg(test)]
     #[tokio::main]
-    async fn check_if_online(test_message: &str, addr_port: &str) -> String {
+    async fn client_if_online(test_message: &str, addr_port: &str) -> String {
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("check_if_online attempting to connect {}", addr_port);
 
@@ -485,7 +485,7 @@ pub mod test_client_srv {
         // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
 
         thread::spawn(move || {
-            let res = check_if_online(test_message, &client_address_port);
+            let res = client_if_online(test_message, &client_address_port);
             tx.send(res).unwrap();
         })
         .join()
