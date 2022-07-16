@@ -34,6 +34,7 @@ mod rcd_db;
 pub mod test_harness;
 
 //https://users.rust-lang.org/t/unused-import-warning/20251
+// https://stackoverflow.com/questions/32900809/how-to-suppress-function-is-never-used-warning-for-a-function-used-by-tests
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
