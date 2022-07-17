@@ -16,7 +16,7 @@ pub mod cdata {
     include!("../cdata.rs");
 
     pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
-    tonic::include_file_descriptor_set!("greeter_descriptor");
+        tonic::include_file_descriptor_set!("greeter_descriptor");
 }
 
 #[derive(Default)]
@@ -119,15 +119,18 @@ impl SqlClient for SqlClientImpl {
     ) -> Result<Response<cdata::ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
+        let rows_affected: u32 = 0;
+
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
         let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
+        let statement = message.sql_statement;
 
         if is_authenticated {
-            unimplemented!("not finished");
+            let rows_affected = sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
         }
 
         let auth_response = AuthResult {
@@ -137,7 +140,13 @@ impl SqlClient for SqlClientImpl {
             authentication_message: String::from(""),
         };
 
-        unimplemented!("");
+        let execute_write_reply = cdata::ExecuteWriteReply {
+            authentication_result: Some(auth_response),
+            is_successful: true,
+            total_rows_affected: rows_affected
+        };
+
+        Ok(Response::new(execute_write_reply))
     }
 
     async fn execute_cooperative_write(
