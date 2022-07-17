@@ -112,11 +112,31 @@ impl SqlClient for SqlClientImpl {
         unimplemented!("");
     }
 
+    #[allow(unused_variables)]
     async fn execute_write(
         &self,
         request: Request<cdata::ExecuteWriteRequest>,
     ) -> Result<Response<cdata::ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+
+        if is_authenticated {
+            unimplemented!("not finished");
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
         unimplemented!("");
     }
 
