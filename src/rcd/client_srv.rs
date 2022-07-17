@@ -130,6 +130,9 @@ impl SqlClient for SqlClientImpl {
         let statement = message.sql_statement;
 
         if is_authenticated {
+            // ideally in the future we would inspect the sql statement and determine
+            // if the table we were going to affect was a cooperative one and then act accordingly
+            // right now, we will just execute the write statement
             let rows_affected = sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
         }
 
