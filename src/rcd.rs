@@ -157,10 +157,11 @@ impl RcdService {
         self: &Self,
         address_port: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
+
+        println!("start_client_service_at_addr: {}", &address_port);
+
         let addr = address_port.parse().unwrap();
         let database_name = &self.rcd_settings.backing_database_name;
-
-        println!("start_client_service_at_addr: {}", addr);
 
         let wd = env::current_dir().unwrap();
         let root_folder = wd.to_str().unwrap();
@@ -553,7 +554,7 @@ pub mod test_client_srv {
         //RUST_LOG=debug RUST_BACKTRACE=1 cargo test -- --nocapture
         // https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
 
-        let test_db_name: &str = "test_create_user_db";
+        let test_db_name: &str = "test_create_user_db.db";
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
             .lock()
@@ -564,7 +565,7 @@ pub mod test_client_srv {
 
         let service = rcd::get_service_from_config_file();
         let client_address_port =
-            format!("{}{}", String::from("http://[::1]:"), port_num.to_string());
+            format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
