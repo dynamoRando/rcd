@@ -153,9 +153,14 @@ impl RcdService {
     #[allow(dead_code)]
     #[cfg(test)]
     #[tokio::main]
-    pub async fn start_client_service_at_addr(self: &Self, address_port: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn start_client_service_at_addr(
+        self: &Self,
+        address_port: String,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let addr = address_port.parse().unwrap();
         let database_name = &self.rcd_settings.backing_database_name;
+
+        println!("start_client_service_at_addr: {}", addr);
 
         let wd = env::current_dir().unwrap();
         let root_folder = wd.to_str().unwrap();
@@ -173,7 +178,7 @@ impl RcdService {
             .build()
             .unwrap();
 
-        println!("sql client server listening on {}", addr);
+        println!("start_client_service_at_addr: sql client server listening on {}", addr);
 
         Server::builder()
             .add_service(SqlClientServer::new(sql_client))
@@ -279,6 +284,8 @@ pub mod test_rcd {
     #[allow(unused_imports)]
     use crate::client_srv::SqlClientImpl;
     #[allow(unused_imports)]
+    use crate::rcd;
+    #[allow(unused_imports)]
     use config::Config;
     #[allow(unused_imports)]
     use env_logger::{Builder, Target};
@@ -292,8 +299,6 @@ pub mod test_rcd {
     use std::fs;
     #[allow(unused_imports)]
     use std::path::Path;
-    #[allow(unused_imports)]
-    use crate::rcd;
 
     #[cfg(test)]
     pub fn init() {
@@ -316,7 +321,10 @@ pub mod test_rcd {
 
         let service = rcd::get_service_from_config(rcd_setting);
 
-        assert_eq!(service.rcd_settings.database_type, rcd::DatabaseType::Unknown);
+        assert_eq!(
+            service.rcd_settings.database_type,
+            rcd::DatabaseType::Unknown
+        );
     }
 
     #[test]
@@ -433,13 +441,21 @@ pub mod test_rcd {
 
         assert!(!is_valid);
     }
+
+    #[test]
+    fn test_read_settings_from_file() {
+        rcd::test_rcd::init();
+        let service = rcd::get_service_from_config_file();
+        let db_type = service.rcd_settings.database_type;
+        assert_eq!(db_type, rcd::DatabaseType::Sqlite);
+    }
 }
 
 pub mod test_client_srv {
     #[cfg(test)]
     use crate::cdata::sql_client_client::SqlClientClient;
     #[cfg(test)]
-    use crate::cdata::TestRequest;
+    use crate::cdata::{CreateUserDatabaseReply, CreateUserDatabaseRequest, TestRequest};
     #[cfg(test)]
     use crate::rcd;
     #[cfg(test)]
@@ -459,7 +475,7 @@ pub mod test_client_srv {
     #[tokio::main]
     async fn client_if_online(test_message: &str, addr_port: &str) -> String {
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
-        info!("check_if_online attempting to connect {}", addr_port);
+        info!("client_if_online attempting to connect {}", addr_port);
 
         //let default_addr_port = "http://[::1]:50051";
 
@@ -533,6 +549,115 @@ pub mod test_client_srv {
     }
 
     #[test]
+    fn test_create_user_database() {
+        //RUST_LOG=debug RUST_BACKTRACE=1 cargo test -- --nocapture
+        // https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
+
+        let test_db_name: &str = "test_create_user_db";
+        let (tx, rx) = mpsc::channel();
+        let port_num = test_harness::TEST_SETTINGS
+            .lock()
+            .unwrap()
+            .get_next_avail_port();
+
+        //let default_addr_port = "http://[::1]:50051";
+
+        let service = rcd::get_service_from_config_file();
+        let client_address_port =
+            format!("{}{}", String::from("http://[::1]:"), port_num.to_string());
+        let target_client_address_port = client_address_port.clone();
+        println!("{:?}", &service);
+
+        service.start();
+
+        info!("starting client at {}", &client_address_port);
+        info!("starting client service");
+
+        thread::spawn(move || {
+            let _service = service.start_client_service_at_addr(client_address_port);
+        });
+
+        let time = time::Duration::from_secs(5);
+
+        info!("sleeping for 5 seconds...");
+
+        thread::sleep(time);
+
+        // https://stackoverflow.com/questions/62536566/how-can-i-create-a-tokio-runtime-inside-another-tokio-runtime-without-getting-th
+
+        thread::spawn(move || {
+            let res = client_create_user_database(test_db_name, &target_client_address_port);
+            tx.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
+
+        let response = rx.try_recv().unwrap();
+
+        println!("create_user_database: got: {}", response);
+
+        assert!(response);
+    }
+
+    #[cfg(test)]
+    #[tokio::main]
+    async fn client_create_user_database(db_name: &str, addr_port: &str) -> bool {
+        use crate::cdata::AuthRequest;
+
+        let addr_port = format!("{}{}", String::from("http://"), addr_port);
+        info!("client_create_user_database attempting to connect {}", addr_port);
+
+        //let default_addr_port = "http://[::1]:50051";
+
+        let endpoint = tonic::transport::Channel::builder(addr_port.parse().unwrap());
+        let channel = endpoint.connect().await.unwrap();
+
+        // creating gRPC client from channel
+        let mut client = SqlClientClient::new(channel);
+
+        info!("created channel and client");
+
+        /*
+        pub struct AuthRequest {
+        #[prost(string, tag="1")]
+        pub user_name: ::prost::alloc::string::String,
+        #[prost(string, tag="2")]
+        pub pw: ::prost::alloc::string::String,
+        #[prost(bytes="vec", tag="3")]
+        pub pw_hash: ::prost::alloc::vec::Vec<u8>,
+        #[prost(bytes="vec", tag="4")]
+        pub token: ::prost::alloc::vec::Vec<u8>,
+        }
+         */
+
+        let auth = AuthRequest {
+            user_name: String::from("tester"),
+            pw: String::from("123456"),
+            pw_hash: Vec::new(),
+            token: Vec::new(),
+        };
+
+        // creating a new Request
+        let request = tonic::Request::new(CreateUserDatabaseRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+        });
+        // sending request and waiting for response
+
+        info!("sending request");
+
+        let response = client
+            .create_user_database(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        return response.is_created;
+    }
+
+    #[test]
     fn test_test_harness_value() {
         let current = test_harness::TEST_SETTINGS
             .lock()
@@ -543,13 +668,5 @@ pub mod test_client_srv {
             .unwrap()
             .get_next_avail_port();
         assert_eq!(current + 1, next);
-    }
-
-    #[test]
-    fn test_read_settings_from_file() {
-        rcd::test_rcd::init();
-        let service = rcd::get_service_from_config_file();
-        let db_type = service.rcd_settings.database_type;
-        assert_eq!(db_type, rcd::DatabaseType::Sqlite);
     }
 }
