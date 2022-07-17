@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 config = "0.13.1"
-rusqlite = { version = "0.27.0", features = ["bundled"] }
+rusqlite = { version = "0.28.0", features = ["bundled"] }
 tonic = "0.7.1"
 tonic-reflection = "0.4.0"
 tokio = { version = "1.18.0", features = ["full"] }
 prost = "0.10.1"
-prost-types = "0.7.0"
+prost-types = "0.10.0"
 chrono = "0.4"
 futures = { version = "0.3.*" }
 sodiumoxide = "0.2.7"
