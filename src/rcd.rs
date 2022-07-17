@@ -157,7 +157,6 @@ impl RcdService {
         self: &Self,
         address_port: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
-
         println!("start_client_service_at_addr: {}", &address_port);
 
         let addr = address_port.parse().unwrap();
@@ -179,7 +178,10 @@ impl RcdService {
             .build()
             .unwrap();
 
-        println!("start_client_service_at_addr: sql client server listening on {}", addr);
+        println!(
+            "start_client_service_at_addr: sql client server listening on {}",
+            addr
+        );
 
         Server::builder()
             .add_service(SqlClientServer::new(sql_client))
@@ -564,8 +566,7 @@ pub mod test_client_srv {
         //let default_addr_port = "http://[::1]:50051";
 
         let service = rcd::get_service_from_config_file();
-        let client_address_port =
-            format!("{}{}", String::from("[::1]:"), port_num.to_string());
+        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
@@ -606,7 +607,10 @@ pub mod test_client_srv {
         use crate::cdata::AuthRequest;
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
-        info!("client_create_user_database attempting to connect {}", addr_port);
+        info!(
+            "client_create_user_database attempting to connect {}",
+            addr_port
+        );
 
         //let default_addr_port = "http://[::1]:50051";
 
