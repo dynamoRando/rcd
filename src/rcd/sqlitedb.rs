@@ -17,8 +17,7 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     return total_rows;
 }
 
-
-pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) {
+pub fn execute_read_example(db_name: &str, cwd: &str, cmd: &str) {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
     let mut statement = conn.prepare(cmd).unwrap();
