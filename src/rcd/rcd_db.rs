@@ -1,5 +1,5 @@
 /// represents all the actions for admin'ing an rcd sqlite database
-use log::{info};
+use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
@@ -15,48 +15,7 @@ struct User {
     username: String,
     hash: String,
 }
-
 #[allow(dead_code)]
-const CREATE_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_ROLE
-(
-    ROLENAME VARCHAR(25) UNIQUE
-);";
-
-#[allow(dead_code)]
-const CREATE_USER_ROLE_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER_ROLE
-(
-    USERNAME VARCHAR(25) NOT NULL,
-    ROLENAME VARCHAR(25) NOT NULL   
-);";
-
-#[allow(dead_code)]
-const CREATE_HOST_INFO_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_HOST_INFO
-(
-    HOST_ID CHAR(36) NOT NULL,
-    HOST_NAME VARCHAR(50) NOT NULL,
-    TOKEN BLOB NOT NULL
-);";
-
-#[allow(dead_code)]
-const CREATE_CONTRACTS_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_CONTRACTS
-(
-    HOST_ID CHAR(36) NOT NULL,
-    CONTRACT_ID CHAR(36) NOT NULL,
-    CONTRACT_VERSION_ID CHAR(36) NOT NULL,
-    DATABASE_NAME VARCHAR(50) NOT NULL,
-    DATABASE_ID CHAR(36) NOT NULL,
-    DESCRIPTION VARCHAR(255),
-    GENERATED_DATE_UTC DATETIME,
-    CONTRACT_STATUS INT
-);";
-
-const ADD_LOGIN: &str = "INSERT INTO RCD_USER (USERNAME, HASH) VALUES (:username, :hash);";
-const GET_LOGIN: &str = "SELECT USERNAME, HASH FROM RCD_USER WHERE USERNAME = :un";
-const USER_WITH_ROLE: &str = "SELECT count(*) AS TOTALCOUNT FROM RCD_USER_ROLE WHERE USERNAME = :username AND ROLENAME = :rolename;";
-const ADD_USER_TO_ROLE: &str =
-    "INSERT INTO RCD_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);";
-
-    #[allow(dead_code)]
 /// Configures an rcd backing store in sqlite
 pub fn configure(root: &str, db_name: &str) {
     let _init = env_logger::try_init();
@@ -78,7 +37,7 @@ pub fn configure(root: &str, db_name: &str) {
         let db_has_role = has_role_name(&String::from("SysAdmin"), &db_conn).unwrap();
 
         if !db_has_role {
-            let statement = String::from("INSERT INTO RCD_ROLE (ROLENAME) VALUES ('SysAdmin');");
+            let statement = String::from("INSERT INTO CDS_ROLE (ROLENAME) VALUES ('SysAdmin');");
             execute_write(&statement, &db_conn);
         }
     }
@@ -101,7 +60,7 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
     let cmd =
-        &String::from("SELECT count(*) AS USERCOUNT FROM RCD_USER WHERE USERNAME = :username");
+        &String::from("SELECT count(*) AS USERCOUNT FROM CDS_USER WHERE USERNAME = :username");
 
     let mut statement = conn.prepare(cmd).unwrap();
 
@@ -121,7 +80,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
     let mut is_verified = false;
 
-    let cmd = &String::from(GET_LOGIN);
+    let cmd = &String::from(sql_text::CDS::text_get_user());
 
     let mut statement = conn.prepare(cmd).unwrap();
 
@@ -164,7 +123,7 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
     info!("un and pw: {} {}", login, pw);
 
     let login_hash = crypt::hash(&pw);
-    let cmd = &String::from(ADD_LOGIN);
+    let cmd = &String::from(sql_text::CDS::text_add_user());
     let mut statement = conn.prepare(cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":hash": login_hash.0 })
@@ -174,7 +133,7 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
 #[allow(dead_code)]
 pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Result<bool> {
     let mut login_is_in_role = false;
-    let cmd = USER_WITH_ROLE;
+    let cmd = &sql_text::CDS::text_get_user_role();
     let mut statement = conn.prepare(cmd).unwrap();
 
     let params = [(":username", login), (":rolename", role_name)];
@@ -193,7 +152,7 @@ pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Resu
 
 #[allow(dead_code)]
 pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
-    let cmd = &String::from(ADD_USER_TO_ROLE);
+    let cmd = &String::from(&sql_text::CDS::text_add_user_role());
     let mut statement = conn.prepare(cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":rolename": role_name })
@@ -204,8 +163,7 @@ pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
 pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
     let mut has_role = false;
 
-    let cmd =
-        &String::from("SELECT count(*) AS ROLECOUNT FROM RCD_ROLE WHERE ROLENAME = :rolename");
+    let cmd = &String::from(&sql_text::CDS::text_get_role());
     let mut statement = conn.prepare(cmd).unwrap();
 
     let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
@@ -226,21 +184,26 @@ fn execute_write(statement: &str, conn: &Connection) {
     conn.execute(statement, []).unwrap();
 }
 fn create_user_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_user_table(), []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_user_table(), [])
+        .unwrap();
 }
 
 fn create_role_table(conn: &Connection) {
-    conn.execute(CREATE_ROLE_TABLE, []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_role_table(), [])
+        .unwrap();
 }
 
 fn create_user_role_table(conn: &Connection) {
-    conn.execute(CREATE_USER_ROLE_TABLE, []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_user_role_table(), [])
+        .unwrap();
 }
 
 fn create_host_info_table(conn: &Connection) {
-    conn.execute(CREATE_HOST_INFO_TABLE, []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_host_info_table(), [])
+        .unwrap();
 }
 
 fn create_contracts_table(conn: &Connection) {
-    conn.execute(CREATE_CONTRACTS_TABLE, []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_cds_contracts_table(), [])
+        .unwrap();
 }

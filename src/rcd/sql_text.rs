@@ -14,50 +14,145 @@ impl CDS {
             "CREATE TABLE IF NOT EXISTS CDS_USER
         (
             USERNAME VARCHAR(25) UNIQUE,
-            BYTELENGTH INT NOT NULL,
-            SALT BLOB NOT NULL,
-            HASH BLOB NOT NULL,
-            WORKFACTOR INT NOT NULL
+            HASH BLOB NOT NULL
         );",
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn text_add_user() -> String {
+        return String::from("INSERT INTO CDS_USER (USERNAME, HASH) VALUES (:username, :hash);");
+    }
+
+    #[allow(dead_code)]
+    pub fn text_get_user() -> String {
+        return String::from("SELECT USERNAME, HASH FROM CDS_USER WHERE USERNAME = :un");
+    }
+
+    #[allow(dead_code)]
+    pub fn text_get_user_role() -> String {
+        return String::from("SELECT count(*) AS TOTALCOUNT FROM CDS_USER_ROLE WHERE USERNAME = :username AND ROLENAME = :rolename;");
+    }
+
+    #[allow(dead_code)]
+    pub fn text_add_user_role() -> String {
+        return String::from(
+            "INSERT INTO CDS_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);",
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn text_get_role() -> String {
+        return String::from(
+            "SELECT count(*) AS ROLECOUNT FROM CDS_ROLE WHERE ROLENAME = :rolename",
         );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for storing roles of the CDS.
     pub fn text_create_role_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_ROLE
+                (
+                    ROLENAME VARCHAR(25) UNIQUE
+                );",
+        );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for xref users to roles.
     pub fn text_create_user_role_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_USER_ROLE
+            (
+                USERNAME VARCHAR(25) NOT NULL,
+                ROLENAME VARCHAR(25) NOT NULL   
+            );",
+        );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for storing unique identifier to participants.
     pub fn text_create_host_info_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_HOST_INFO
+         (
+             HOST_ID CHAR(36) NOT NULL,
+             HOST_NAME VARCHAR(50) NOT NULL,
+             TOKEN BLOB NOT NULL
+         );",
+        );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for hosts that this CDS is cooperating with.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_hosts_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_HOSTS
+        (
+            HOST_ID CHAR(36) NOT NULL,
+            HOST_NAME VARCHAR(50),
+            TOKEN BLOB,
+            IP4ADDRESS VARCHAR(25),
+            IP6ADDRESS VARCHAR(25),
+            PORT INT,
+            LAST_COMMUNICATION_UTC DATETIME
+        );",
+        );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for holding schema information for partial databases participating with a remote host.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_CONTRACTS
+        (
+            HOST_ID CHAR(36) NOT NULL,
+            CONTRACT_ID CHAR(36) NOT NULL,
+            CONTRACT_VERSION_ID CHAR(36) NOT NULL,
+            DATABASE_NAME VARCHAR(50) NOT NULL,
+            DATABASE_ID CHAR(36) NOT NULL,
+            DESCRIPTION VARCHAR(255),
+            GENERATED_DATE_UTC DATETIME,
+            CONTRACT_STATUS INT
+        );",
+        );
     }
 
     #[allow(dead_code)]
     /// Returns create table statement for holding the tables in the partial database.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_tables_table() -> String {
-        unimplemented!();
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS CDS_CONTRACTS_TABLES
+        (
+            DATABASE_ID CHAR(36) NOT NULL,
+            DATABASE_NAME VARCHAR(50) NOT NULL,
+            TABLE_ID CHAR(36) NOT NULL,
+            TABLE_NAME VARCHAR(50) NOT NULL
+        );",
+        );
+    }
+
+    #[allow(dead_code)]
+    /// Returns create table statement for holding the schema for the tables in the partial database.
+    /// This is used for partial databases and their contracts.
+    pub fn text_create_cds_contracts_tables_schemas_table() -> String {
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS {TableNames.CDS.CONTRACTS_TABLE_SCHEMAS}
+        (
+            TABLE_ID CHAR(36) NOT NULL,
+            COLUMN_ID CHAR(36) NOT NULL,
+            COLUMN_NAME VARCHAR(50) NOT NULL,
+            COLUMN_TYPE INT NOT NULL,
+            COLUMN_LENGTH INT NOT NULL,
+            COLUMN_ORDINAL INT NOT NULL,
+            IS_NULLABLE INT
+        );",
+        );
     }
 }
+
+impl COOP {}

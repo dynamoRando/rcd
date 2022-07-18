@@ -152,17 +152,5 @@ fn create_contracts_table(conn: &Connection) {
 
 #[allow(dead_code, unused_variables)]
 fn create_data_host_tables(conn: &Connection) {
-    let cmd = String::from(
-        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
-        (
-            CONTRACT_ID CHAR(36) NOT NULL,
-            GENERATED_DATE_UTC DATETIME NOT NULL,
-            DESCRIPTION VARCHAR(255),
-            RETIRED_DATE_UTC DATETIME,
-            VERSION_ID CHAR(36) NOT NULL,
-            REMOTE_DELETE_BEHAVIOR INT
-        );",
-    );
-
-    conn.execute(&cmd, []).unwrap();
+    unimplemented!();
 }
