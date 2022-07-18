@@ -6,13 +6,8 @@ use std::path::Path;
 #[path = "crypt.rs"]
 pub mod crypt;
 
-#[allow(dead_code)]
-const CREATE_USER_TABLE: &str = "CREATE TABLE IF NOT EXISTS RCD_USER 
-(
-    USERNAME VARCHAR(25) UNIQUE,
-    HASH TEXT NOT NULL
-);";
-
+#[path = "sql_text.rs"]
+pub mod sql_text;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -231,7 +226,7 @@ fn execute_write(statement: &str, conn: &Connection) {
     conn.execute(statement, []).unwrap();
 }
 fn create_user_table(conn: &Connection) {
-    conn.execute(CREATE_USER_TABLE, []).unwrap();
+    conn.execute(&sql_text::CDS::text_create_user_table(), []).unwrap();
 }
 
 fn create_role_table(conn: &Connection) {

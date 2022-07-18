@@ -8,6 +8,9 @@ use table::Table;
 #[path = "table.rs"]
 mod table;
 
+#[path = "sql_text.rs"]
+mod sql_text;
+
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
     Connection::open(&db_path)
@@ -88,5 +91,78 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
 
 #[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
-    unimplemented!("enable_cooperative_features not implemented");
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+
+    create_remotes_table(&conn);
+    create_participant_table(&conn);
+    create_contracts_table(&conn);
+    create_data_host_tables(&conn);
+}
+
+#[allow(dead_code, unused_variables)]
+fn create_remotes_table(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_REMOTES
+    (
+        TABLENAME VARCHAR(255) NOT NULL,
+        LOGICAL_STORAGE_POLICY INT NOT NULL
+    );",
+    );
+
+    conn.execute(&cmd, []).unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+fn create_participant_table(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_PARTICIPANT
+    (
+        INTERNAL_PARTICIPANT_ID CHAR(36) NOT NULL,
+        ALIAS VARCHAR(50) NOT NULL,
+        IP4ADDRESS VARCHAR(25),
+        IP6ADDRESS VARCHAR(25),
+        PORT INT,
+        CONTRACT_STATUS INT,
+        ACCEPTED_CONTRACT_VERSION_ID CHAR(36),
+        TOKEN BLOB NOT NULL,
+        PARTICIPANT_ID CHAR(36)
+    );",
+    );
+
+    conn.execute(&cmd, []).unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+fn create_contracts_table(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+        (
+            CONTRACT_ID CHAR(36) NOT NULL,
+            GENERATED_DATE_UTC DATETIME NOT NULL,
+            DESCRIPTION VARCHAR(255),
+            RETIRED_DATE_UTC DATETIME,
+            VERSION_ID CHAR(36) NOT NULL,
+            REMOTE_DELETE_BEHAVIOR INT
+        );",
+    );
+
+    conn.execute(&cmd, []).unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+fn create_data_host_tables(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+        (
+            CONTRACT_ID CHAR(36) NOT NULL,
+            GENERATED_DATE_UTC DATETIME NOT NULL,
+            DESCRIPTION VARCHAR(255),
+            RETIRED_DATE_UTC DATETIME,
+            VERSION_ID CHAR(36) NOT NULL,
+            REMOTE_DELETE_BEHAVIOR INT
+        );",
+    );
+
+    conn.execute(&cmd, []).unwrap();
 }
