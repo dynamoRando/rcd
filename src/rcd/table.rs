@@ -1,37 +1,35 @@
 #[allow(dead_code)]
 pub struct Data {
     pub data_string: String,
-    pub data_byte: Vec<u8>
+    pub data_byte: Vec<u8>,
 }
 
 #[allow(dead_code)]
 pub struct Value {
     pub data: Option<Data>,
-    pub col: Column
+    pub col: Column,
 }
 
 impl Value {
     #[allow(dead_code)]
     pub fn is_null(&self) -> bool {
-        return self.data.is_none()
+        return self.data.is_none();
     }
 }
 
 #[allow(dead_code)]
 pub struct Row {
-    pub vals: Vec<Value>
+    pub vals: Vec<Value>,
 }
 
 impl Row {
     #[allow(dead_code)]
     pub fn new() -> Self {
-        Self {
-            vals: Vec::new()
-        }
+        Self { vals: Vec::new() }
     }
 
     #[allow(dead_code)]
-    pub fn add_value(&mut self, value: Value){
+    pub fn add_value(&mut self, value: Value) {
         self.vals.push(value);
     }
 }
@@ -41,7 +39,7 @@ impl Row {
 pub struct Column {
     pub name: String,
     pub is_nullable: bool,
-    pub idx: usize
+    pub idx: usize,
 }
 
 #[allow(dead_code)]
@@ -49,7 +47,7 @@ pub struct Table {
     pub num_cols: usize,
     pub name: String,
     pub cols: Vec<Column>,
-    pub rows: Vec<Row>
+    pub rows: Vec<Row>,
 }
 
 impl Table {
@@ -63,12 +61,12 @@ impl Table {
     }
 
     #[allow(dead_code)]
-    pub fn set_name(&mut self, name: &str){
+    pub fn set_name(&mut self, name: &str) {
         self.name = name.to_string();
     }
 
     #[allow(dead_code)]
-    pub fn set_num_cols(&mut self, total_cols: usize){
+    pub fn set_num_cols(&mut self, total_cols: usize) {
         self.num_cols = total_cols;
     }
 
@@ -89,7 +87,7 @@ impl Table {
     }
 
     #[allow(dead_code)]
-    pub fn add_row(&mut self, row: Row){
+    pub fn add_row(&mut self, row: Row) {
         self.rows.push(row);
     }
 
@@ -101,5 +99,19 @@ impl Table {
             }
         }
         return None;
+    }
+
+    #[allow(dead_code)]
+    pub fn debug(&self) {
+        for row in &self.rows {
+            for val in &row.vals {
+                print!(
+                    "Col: {} Value {} ",
+                    val.col.name,
+                    &val.data.as_ref().unwrap().data_string
+                );
+            }
+            println!();
+        }
     }
 }
