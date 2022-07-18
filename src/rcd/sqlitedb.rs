@@ -1,9 +1,9 @@
+use log::info;
+use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
-use rusqlite::types::{Type};
 use std::path::Path;
 use table::Table;
-use log::{info};
 
 #[path = "table.rs"]
 mod table;
@@ -61,7 +61,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
                 Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
                 Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
                 Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                _ => String::from("")
+                _ => String::from(""),
             };
 
             let string_value = string_value;
@@ -84,4 +84,9 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
     }
 
     return table;
+}
+
+#[allow(unused_variables)]
+pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
+    unimplemented!("enable_cooperative_features not implemented");
 }

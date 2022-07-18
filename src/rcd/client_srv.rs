@@ -93,7 +93,32 @@ impl SqlClient for SqlClientImpl {
         request: Request<cdata::EnableCoooperativeFeaturesRequest>,
     ) -> Result<Response<cdata::EnableCoooperativeFeaturesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+
+        if is_authenticated {
+            sqlitedb::enable_coooperative_features(&db_name, &self.root_folder);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let enable_cooperative_features_reply = cdata::EnableCoooperativeFeaturesReply {
+            authentication_result: Some(auth_response),
+            is_successful: true,
+            message: String::from(""),
+        };
+
+        Ok(Response::new(enable_cooperative_features_reply))
     }
 
     async fn execute_read(
@@ -146,7 +171,7 @@ impl SqlClient for SqlClientImpl {
         let execute_write_reply = cdata::ExecuteWriteReply {
             authentication_result: Some(auth_response),
             is_successful: true,
-            total_rows_affected: rows_affected
+            total_rows_affected: rows_affected,
         };
 
         Ok(Response::new(execute_write_reply))
