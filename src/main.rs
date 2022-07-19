@@ -1,6 +1,5 @@
 #[path = "rcd.rs"]
 pub mod rcd;
-
 #[path = "rcd/crypt.rs"] 
 pub mod crypt;
 #[path = "rcd/db_srv.rs"] 

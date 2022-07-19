@@ -9,6 +9,7 @@ use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
+use conv::{ValueFrom, UnwrapOk};
 
 #[derive(Default)]
 pub struct SqlClientImpl {
@@ -127,20 +128,29 @@ impl SqlClient for SqlClientImpl {
         let db_name = message.database_name;
         let sql = message.sql_statement;
 
-        let mut result_table = Vec::new();
+        let result_table = Vec::new();
 
-        if is_authenticated {
-            let table = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
-            result_table = table.to_cdata_rows();
-        }
-
-        let statement_result_set = StatementResultset {
-            is_error: false,
+        let mut statement_result_set = StatementResultset {
+            is_error: true,
             result_message: String::from(""),
             number_of_rows_affected: 0,
             rows: result_table,
-            execution_error_message: String::from("")
+            execution_error_message: String::from(""),
         };
+
+        if is_authenticated {
+            let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+
+            if query_result.is_ok() {
+                let result_rows = query_result.unwrap().to_cdata_rows();
+                statement_result_set.number_of_rows_affected = u64::value_from(result_rows.len()).unwrap_ok();
+                statement_result_set.rows = result_rows;
+                statement_result_set.is_error = false;
+            } else {
+                statement_result_set.execution_error_message =
+                    query_result.unwrap_err().to_string();
+            }
+        }
 
         let mut statement_results = Vec::new();
         statement_results.push(statement_result_set);
@@ -154,8 +164,8 @@ impl SqlClient for SqlClientImpl {
 
         let execute_read_reply = ExecuteReadReply {
             authentication_result: Some(auth_response),
-            total_resultsets: 0,
-            results: statement_results
+            total_resultsets: 1,
+            results: statement_results,
         };
 
         Ok(Response::new(execute_read_reply))
@@ -190,7 +200,8 @@ impl SqlClient for SqlClientImpl {
             // ideally in the future we would inspect the sql statement and determine
             // if the table we were going to affect was a cooperative one and then act accordingly
             // right now, we will just execute the write statement
-            let rows_affected =  crate::sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
+            let rows_affected =
+                crate::sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
         }
 
         let auth_response = AuthResult {

@@ -1,10 +1,12 @@
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Data {
     pub data_string: String,
     pub data_byte: Vec<u8>,
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Value {
     pub data: Option<Data>,
     pub col: Column,
@@ -18,6 +20,7 @@ impl Value {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Row {
     pub vals: Vec<Value>,
 }
@@ -35,7 +38,7 @@ impl Row {
 }
 
 #[allow(dead_code)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Column {
     pub name: String,
     pub is_nullable: bool,
@@ -43,6 +46,7 @@ pub struct Column {
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Table {
     pub num_cols: usize,
     pub name: String,

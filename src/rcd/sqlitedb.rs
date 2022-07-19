@@ -21,9 +21,9 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
 }
 
 #[allow(dead_code)]
-pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
+pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = Connection::open(&db_path)?;
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let col_names = statement.column_names();
@@ -45,7 +45,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
         table.add_column(c);
     }
 
-    let mut rows = statement.query([]).unwrap();
+    let mut rows = statement.query([])?;
 
     while let Some(row) = rows.next().unwrap() {
         println!("reading row..");
@@ -81,7 +81,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
         table.add_row(data_row);
     }
 
-    return table;
+    return Ok(table);
 }
 
 #[allow(unused_variables)]
