@@ -5,27 +5,12 @@ use log::info;
 use std::env;
 use std::path::Path;
 
-//use crate::cdata::sql_client_server::SqlClientServer;
-//use crate::rcd::cdata::cdata::sql_client_server::SqlClientServer;
-//use crate::rcd::client_srv::cdata::sql_client_server::SqlClientServer;
-
 #[cfg(test)]
-use crate::client_srv::cdata::sql_client_server::SqlClientServer;
-
-//use crate::client_srv::cdata::FILE_DESCRIPTOR_SET;
-//use crate::rcd::cdata::cdata::FILE_DESCRIPTOR_SET;
-//use crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET;
+use crate::cdata::sql_client_server::SqlClientServer;
+#[allow(unused_imports)]
+use crate::cdata::FILE_DESCRIPTOR_SET;
 #[cfg(test)]
 use tonic::transport::Server;
-
-#[path = "rcd/client_srv.rs"]
-pub mod cdata;
-#[path = "rcd/client_srv.rs"]
-pub mod client_srv;
-mod db_srv;
-mod rcd_db;
-#[path = "rcd/test_harness.rs"]
-pub mod test_harness;
 
 //https://users.rust-lang.org/t/unused-import-warning/20251
 // https://stackoverflow.com/questions/32900809/how-to-suppress-function-is-never-used-warning-for-a-function-used-by-tests
@@ -34,12 +19,12 @@ pub mod test_harness;
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct RcdSettings {
-    admin_un: String,
-    admin_pw: String,
-    database_type: DatabaseType,
-    backing_database_name: String,
-    client_service_addr_port: String,
-    database_service_addr_port: String,
+    pub admin_un: String,
+    pub admin_pw: String,
+    pub database_type: DatabaseType,
+    pub backing_database_name: String,
+    pub client_service_addr_port: String,
+    pub database_service_addr_port: String,
 }
 
 /// Represents the type of backing database rcd is hosting
@@ -74,7 +59,7 @@ impl DatabaseType {
 
 #[derive(Debug, Clone)]
 pub struct RcdService {
-    rcd_settings: RcdSettings,
+    pub rcd_settings: RcdSettings,
 }
 
 impl RcdService {
@@ -93,7 +78,7 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let _item = client_srv::start_service(
+        let _item = crate::client_srv::start_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,
@@ -134,7 +119,7 @@ impl RcdService {
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
             .register_encoded_file_descriptor_set(
-                crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET,
+                FILE_DESCRIPTOR_SET,
             )
             .build()
             .unwrap();
@@ -173,7 +158,7 @@ impl RcdService {
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
             .register_encoded_file_descriptor_set(
-                crate::rcd::client_srv::cdata::FILE_DESCRIPTOR_SET,
+                crate::cdata::FILE_DESCRIPTOR_SET,
             )
             .build()
             .unwrap();
@@ -213,8 +198,8 @@ fn configure_backing_store(
 
     match db_type {
         DatabaseType::Sqlite => {
-            rcd_db::configure(cwd.to_str().unwrap(), db_location);
-            rcd_db::configure_admin(admin_un, admin_pw, db_location)
+            crate::rcd_db::configure(cwd.to_str().unwrap(), db_location);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, db_location)
         }
         DatabaseType::Mysql => do_nothing(),
         DatabaseType::Postgres => do_nothing(),
@@ -375,21 +360,21 @@ pub mod test_rcd {
             fs::remove_file(&db_path).unwrap();
         }
 
-        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+        crate::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
         let db_conn = Connection::open(&db_path).unwrap();
 
         let un = String::from("tester");
         let pw = String::from("1234");
 
-        rcd::rcd_db::create_login(&un, &pw, &db_conn);
-        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
+        crate::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
 
         info!("test_hash: has_login {}", &has_login);
 
         assert!(&has_login);
 
-        let is_valid = rcd::rcd_db::verify_login(&un, &pw, &db_conn);
+        let is_valid = crate::rcd_db::verify_login(&un, &pw, &db_conn);
 
         info!("test_hash: is_valid {}", is_valid);
 
@@ -398,11 +383,11 @@ pub mod test_rcd {
 
     #[test]
     fn test_test_harness_value() {
-        let current = rcd::test_harness::TEST_SETTINGS
+        let current = crate::test_harness::TEST_SETTINGS
             .lock()
             .unwrap()
             .get_current_port();
-        let next = rcd::test_harness::TEST_SETTINGS
+        let next = crate::test_harness::TEST_SETTINGS
             .lock()
             .unwrap()
             .get_next_avail_port();
@@ -422,15 +407,15 @@ pub mod test_rcd {
             fs::remove_file(&db_path).unwrap();
         }
 
-        rcd::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+        crate::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
 
         let db_conn = Connection::open(&db_path).unwrap();
 
         let un = String::from("tester_fail");
         let pw = String::from("1234");
 
-        rcd::rcd_db::create_login(&un, &pw, &db_conn);
-        let has_login = rcd::rcd_db::has_login(&un, &db_conn).unwrap();
+        crate::rcd_db::create_login(&un, &pw, &db_conn);
+        let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
 
         info!("test_hash_false: has_login {}", &has_login);
 
@@ -438,7 +423,7 @@ pub mod test_rcd {
 
         let wrong_pw = String::from("43210");
 
-        let is_valid = rcd::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+        let is_valid = crate::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
 
         info!("test_hash_false: is_valid {}", is_valid);
 
@@ -472,7 +457,7 @@ pub mod test_client_srv {
     use std::{thread, time};
 
     #[cfg(test)]
-    use super::test_harness;
+    use crate::test_harness;
 
     #[cfg(test)]
     #[tokio::main]

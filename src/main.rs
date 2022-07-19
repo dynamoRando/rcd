@@ -1,4 +1,5 @@
-mod rcd;
+#[path = "rcd.rs"]
+pub mod rcd;
 
 #[path = "rcd/crypt.rs"] 
 pub mod crypt;
@@ -10,7 +11,14 @@ pub mod rcd_db;
 pub mod client_srv;
 #[path = "rcd/sqlitedb.rs"] 
 pub mod sqlitedb;
+#[path="cdata.rs"]
 pub mod cdata;
+#[path = "rcd/table.rs"]
+pub mod table;
+#[path = "rcd/sql_text.rs"]
+pub mod sql_text;
+#[path = "rcd/test_harness.rs"]
+pub mod test_harness;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

@@ -3,13 +3,8 @@ use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
 use std::path::Path;
-use table::Table;
-
-#[path = "table.rs"]
-mod table;
-
-#[path = "sql_text.rs"]
-mod sql_text;
+#[allow(unused_imports)]
+use crate::table::{Table, Row, Column, Data, Value};
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -37,7 +32,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
     let mut curr_idx = 0;
 
     for name in col_names {
-        let c = table::Column {
+        let c = Column {
             name: name.to_string(),
             is_nullable: false,
             idx: curr_idx,
@@ -54,7 +49,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
 
     while let Some(row) = rows.next().unwrap() {
         println!("reading row..");
-        let mut data_row = table::Row::new();
+        let mut data_row = Row::new();
 
         for i in 0..total_columns {
             let dt = row.get_ref_unwrap(i).data_type();
@@ -70,12 +65,12 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Table {
             let string_value = string_value;
             let col = table.get_column_by_index(i).unwrap();
 
-            let data_item = table::Data {
+            let data_item = Data {
                 data_string: string_value,
                 data_byte: Vec::new(),
             };
 
-            let data_value = table::Value {
+            let data_value = Value {
                 data: Some(data_item),
                 col: col,
             };

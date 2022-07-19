@@ -1,6 +1,3 @@
-#[path = "../cdata.rs"]
-mod cdata;
-
 #[allow(dead_code)]
 pub struct Data {
     pub data_string: String,
@@ -119,7 +116,7 @@ impl Table {
     }
 
     #[allow(dead_code)]
-    pub fn to_cdata_rows() -> Vec<cdata::Row> {
+    pub fn to_cdata_rows(&self) -> Vec<crate::cdata::Row> {
         unimplemented!("to_cdata_rows not implemented");
     }
 }

@@ -2,12 +2,7 @@
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-
-#[path = "crypt.rs"]
-pub mod crypt;
-
-#[path = "sql_text.rs"]
-pub mod sql_text;
+use crate::sql_text::CDS;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -80,7 +75,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
     let mut is_verified = false;
 
-    let cmd = &String::from(sql_text::CDS::text_get_user());
+    let cmd = &String::from(CDS::text_get_user());
 
     let mut statement = conn.prepare(cmd).unwrap();
 
@@ -106,7 +101,7 @@ pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
                 padded[i] = val.clone();
             });
 
-        if crypt::verify(padded, pw) {
+        if crate::crypt::verify(padded, pw) {
             is_verified = true;
             break;
         }
@@ -122,8 +117,8 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
 
     info!("un and pw: {} {}", login, pw);
 
-    let login_hash = crypt::hash(&pw);
-    let cmd = &String::from(sql_text::CDS::text_add_user());
+    let login_hash = crate::crypt::hash(&pw);
+    let cmd = &String::from(CDS::text_add_user());
     let mut statement = conn.prepare(cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":hash": login_hash.0 })
@@ -133,7 +128,7 @@ pub fn create_login(login: &str, pw: &str, conn: &Connection) {
 #[allow(dead_code)]
 pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Result<bool> {
     let mut login_is_in_role = false;
-    let cmd = &sql_text::CDS::text_get_user_role();
+    let cmd = &CDS::text_get_user_role();
     let mut statement = conn.prepare(cmd).unwrap();
 
     let params = [(":username", login), (":rolename", role_name)];
@@ -152,7 +147,7 @@ pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Resu
 
 #[allow(dead_code)]
 pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
-    let cmd = &String::from(&sql_text::CDS::text_add_user_role());
+    let cmd = &String::from(&CDS::text_add_user_role());
     let mut statement = conn.prepare(cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":rolename": role_name })
@@ -163,7 +158,7 @@ pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
 pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
     let mut has_role = false;
 
-    let cmd = &String::from(&sql_text::CDS::text_get_role());
+    let cmd = &String::from(&CDS::text_get_role());
     let mut statement = conn.prepare(cmd).unwrap();
 
     let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
@@ -184,26 +179,26 @@ fn execute_write(statement: &str, conn: &Connection) {
     conn.execute(statement, []).unwrap();
 }
 fn create_user_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_user_table(), [])
+    conn.execute(&CDS::text_create_user_table(), [])
         .unwrap();
 }
 
 fn create_role_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_role_table(), [])
+    conn.execute(&CDS::text_create_role_table(), [])
         .unwrap();
 }
 
 fn create_user_role_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_user_role_table(), [])
+    conn.execute(&CDS::text_create_user_role_table(), [])
         .unwrap();
 }
 
 fn create_host_info_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_host_info_table(), [])
+    conn.execute(&CDS::text_create_host_info_table(), [])
         .unwrap();
 }
 
 fn create_contracts_table(conn: &Connection) {
-    conn.execute(&sql_text::CDS::text_create_cds_contracts_table(), [])
+    conn.execute(&CDS::text_create_cds_contracts_table(), [])
         .unwrap();
 }

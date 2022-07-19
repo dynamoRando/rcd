@@ -1,23 +1,14 @@
-use cdata::sql_client_server::{SqlClient, SqlClientServer};
-use cdata::AuthResult;
-use cdata::CreateUserDatabaseReply;
+use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
+use crate::cdata::AuthResult;
+use crate::cdata::CreateUserDatabaseReply;
+use crate::cdata::FILE_DESCRIPTOR_SET;
+use crate::cdata::*;
+#[allow(unused_imports)]
+use crate::sqlitedb::*;
 use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
-
-#[path = "rcd_db.rs"]
-pub mod rcd_db;
-#[path = "sqlitedb.rs"]
-pub mod sqlitedb;
-
-#[allow(dead_code)]
-pub mod cdata {
-    include!("../cdata.rs");
-
-    pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
-        tonic::include_file_descriptor_set!("greeter_descriptor");
-}
 
 #[derive(Default)]
 pub struct SqlClientImpl {
@@ -37,13 +28,13 @@ impl SqlClientImpl {
 impl SqlClient for SqlClientImpl {
     async fn is_online(
         &self,
-        request: Request<cdata::TestRequest>,
-    ) -> Result<Response<cdata::TestReply>, Status> {
+        request: Request<TestRequest>,
+    ) -> Result<Response<TestReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
         let item = request.into_inner().request_echo_message;
 
-        let response = cdata::TestReply {
+        let response = TestReply {
             reply_time_utc: String::from(Utc::now().to_rfc2822()),
             reply_echo_message: String::from(item),
         };
@@ -52,8 +43,8 @@ impl SqlClient for SqlClientImpl {
 
     async fn create_user_database(
         &self,
-        request: Request<cdata::CreateUserDatabaseRequest>,
-    ) -> Result<Response<cdata::CreateUserDatabaseReply>, Status> {
+        request: Request<CreateUserDatabaseRequest>,
+    ) -> Result<Response<CreateUserDatabaseReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
         let mut is_database_created = false;
@@ -62,11 +53,11 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
 
         if is_authenticated {
-            let result = sqlitedb::create_database(&db_name, &self.root_folder);
+            let result = crate::sqlitedb::create_database(&db_name, &self.root_folder);
             if !result.is_err() {
                 is_database_created = true;
             }
@@ -90,19 +81,19 @@ impl SqlClient for SqlClientImpl {
 
     async fn enable_coooperative_features(
         &self,
-        request: Request<cdata::EnableCoooperativeFeaturesRequest>,
-    ) -> Result<Response<cdata::EnableCoooperativeFeaturesReply>, Status> {
+        request: Request<EnableCoooperativeFeaturesRequest>,
+    ) -> Result<Response<EnableCoooperativeFeaturesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
 
         if is_authenticated {
-            sqlitedb::enable_coooperative_features(&db_name, &self.root_folder);
+            crate::sqlitedb::enable_coooperative_features(&db_name, &self.root_folder);
         }
 
         let auth_response = AuthResult {
@@ -112,7 +103,7 @@ impl SqlClient for SqlClientImpl {
             authentication_message: String::from(""),
         };
 
-        let enable_cooperative_features_reply = cdata::EnableCoooperativeFeaturesReply {
+        let enable_cooperative_features_reply = EnableCoooperativeFeaturesReply {
             authentication_result: Some(auth_response),
             is_successful: true,
             message: String::from(""),
@@ -121,18 +112,59 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
+    #[allow(unused_variables, unused_assignments)]
     async fn execute_read(
         &self,
-        request: Request<cdata::ExecuteReadRequest>,
-    ) -> Result<Response<cdata::ExecuteReadReply>, Status> {
+        request: Request<ExecuteReadRequest>,
+    ) -> Result<Response<ExecuteReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let sql = message.sql_statement;
+
+        let mut result_table = Vec::new();
+
+        if is_authenticated {
+            let table = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+            result_table = table.to_cdata_rows();
+        }
+
+        let statement_result_set = StatementResultset {
+            is_error: false,
+            result_message: String::from(""),
+            number_of_rows_affected: 0,
+            rows: result_table,
+            execution_error_message: String::from("")
+        };
+
+        let mut statement_results = Vec::new();
+        statement_results.push(statement_result_set);
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let execute_read_reply = ExecuteReadReply {
+            authentication_result: Some(auth_response),
+            total_resultsets: 0,
+            results: statement_results
+        };
+
+        Ok(Response::new(execute_read_reply))
     }
 
     async fn execute_cooperative_read(
         &self,
-        request: Request<cdata::ExecuteCooperativeReadRequest>,
-    ) -> Result<Response<cdata::ExecuteCooperativeReadReply>, Status> {
+        request: Request<ExecuteCooperativeReadRequest>,
+    ) -> Result<Response<ExecuteCooperativeReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
@@ -140,8 +172,8 @@ impl SqlClient for SqlClientImpl {
     #[allow(unused_variables)]
     async fn execute_write(
         &self,
-        request: Request<cdata::ExecuteWriteRequest>,
-    ) -> Result<Response<cdata::ExecuteWriteReply>, Status> {
+        request: Request<ExecuteWriteRequest>,
+    ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
         let rows_affected: u32 = 0;
@@ -150,7 +182,7 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
         let statement = message.sql_statement;
 
@@ -158,7 +190,7 @@ impl SqlClient for SqlClientImpl {
             // ideally in the future we would inspect the sql statement and determine
             // if the table we were going to affect was a cooperative one and then act accordingly
             // right now, we will just execute the write statement
-            let rows_affected = sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
+            let rows_affected =  crate::sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
         }
 
         let auth_response = AuthResult {
@@ -168,7 +200,7 @@ impl SqlClient for SqlClientImpl {
             authentication_message: String::from(""),
         };
 
-        let execute_write_reply = cdata::ExecuteWriteReply {
+        let execute_write_reply = ExecuteWriteReply {
             authentication_result: Some(auth_response),
             is_successful: true,
             total_rows_affected: rows_affected,
@@ -179,80 +211,80 @@ impl SqlClient for SqlClientImpl {
 
     async fn execute_cooperative_write(
         &self,
-        request: Request<cdata::ExecuteCooperativeWriteRequest>,
-    ) -> Result<Response<cdata::ExecuteCooperativeWriteReply>, Status> {
+        request: Request<ExecuteCooperativeWriteRequest>,
+    ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn has_table(
         &self,
-        request: Request<cdata::HasTableRequest>,
-    ) -> Result<Response<cdata::HasTableReply>, Status> {
+        request: Request<HasTableRequest>,
+    ) -> Result<Response<HasTableReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn set_logical_storage_policy(
         &self,
-        request: Request<cdata::SetLogicalStoragePolicyRequest>,
-    ) -> Result<Response<cdata::SetLogicalStoragePolicyReply>, Status> {
+        request: Request<SetLogicalStoragePolicyRequest>,
+    ) -> Result<Response<SetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn get_logical_storage_policy(
         &self,
-        request: Request<cdata::GetLogicalStoragePolicyRequest>,
-    ) -> Result<Response<cdata::GetLogicalStoragePolicyReply>, Status> {
+        request: Request<GetLogicalStoragePolicyRequest>,
+    ) -> Result<Response<GetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn generate_contract(
         &self,
-        request: Request<cdata::GenerateContractRequest>,
-    ) -> Result<Response<cdata::GenerateContractReply>, Status> {
+        request: Request<GenerateContractRequest>,
+    ) -> Result<Response<GenerateContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn add_participant(
         &self,
-        request: Request<cdata::AddParticipantRequest>,
-    ) -> Result<Response<cdata::AddParticipantReply>, Status> {
+        request: Request<AddParticipantRequest>,
+    ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn send_participant_contract(
         &self,
-        request: Request<cdata::SendParticipantContractRequest>,
-    ) -> Result<Response<cdata::SendParticipantContractReply>, Status> {
+        request: Request<SendParticipantContractRequest>,
+    ) -> Result<Response<SendParticipantContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn review_pending_contracts(
         &self,
-        request: Request<cdata::ViewPendingContractsRequest>,
-    ) -> Result<Response<cdata::ViewPendingContractsReply>, Status> {
+        request: Request<ViewPendingContractsRequest>,
+    ) -> Result<Response<ViewPendingContractsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn accept_pending_contract(
         &self,
-        request: Request<cdata::AcceptPendingContractRequest>,
-    ) -> Result<Response<cdata::AcceptPendingContractReply>, Status> {
+        request: Request<AcceptPendingContractRequest>,
+    ) -> Result<Response<AcceptPendingContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
 
     async fn reject_pending_contract(
         &self,
-        request: Request<cdata::RejectPendingContractRequest>,
-    ) -> Result<Response<cdata::RejectPendingContractReply>, Status> {
+        request: Request<RejectPendingContractRequest>,
+    ) -> Result<Response<RejectPendingContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         unimplemented!("");
     }
@@ -277,7 +309,7 @@ pub async fn start_service(
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(cdata::FILE_DESCRIPTOR_SET)
+        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
         .build()
         .unwrap();
 
