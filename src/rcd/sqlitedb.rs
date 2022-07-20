@@ -47,7 +47,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 
     let mut rows = statement.query([])?;
 
-    while let Some(row) = rows.next().unwrap() {
+    while let Some(row) = rows.next()? {
         println!("reading row..");
         let mut data_row = Row::new();
 
@@ -93,6 +93,7 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
     create_participant_table(&conn);
     create_contracts_table(&conn);
     create_data_host_tables(&conn);
+    populate_data_host_tables(&conn);
 }
 
 #[allow(dead_code, unused_variables)]
@@ -147,5 +148,10 @@ fn create_contracts_table(conn: &Connection) {
 
 #[allow(dead_code, unused_variables)]
 fn create_data_host_tables(conn: &Connection) {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_variables)]
+fn populate_data_host_tables(conn: &Connection) {
     unimplemented!();
 }

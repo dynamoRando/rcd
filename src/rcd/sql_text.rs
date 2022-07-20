@@ -155,4 +155,46 @@ impl CDS {
     }
 }
 
-impl COOP {}
+impl COOP {
+    #[allow(dead_code)]
+    /// Returns create table statement for storing the database id when we 1st enable cooperative features
+    pub fn text_create_data_host_table() -> String {
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS COOP_DATA_HOST
+        (
+           DATABASE_ID CHAR(36) NOT NULL,
+           DATABASE_NAME VARCHAR(500) NOT NULL
+        );
+        ",
+        );
+    }
+
+    #[allow(dead_code)]
+    /// Returns create table statement for storing the table ids generated when we start setting logical
+    /// storage policies on tables. This should align with COOP_REMOTES.
+    pub fn text_create_data_host_tables_table() -> String {
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS COOP_DATA_TABLES
+            (
+                TABLE_ID CHAR(36) NOT NULL,
+                TABLE_NAME VARCHAR(500) NOT NULL
+            );
+            ",
+        );
+    }
+
+    #[allow(dead_code)]
+    /// Returns create table statement for storing the column ids generated when we start setting logical
+    /// storage policies on tables. This should align with the actual schema of the table in the datbase.
+    pub fn text_create_data_host_tables_columns_table() -> String {
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS COOP_DATA_HOST_TABLE_COLUMNS
+            (
+                TABLE_ID CHAR(36) NOT NULL,
+                COLUMN_ID CHAR(36) NOT NULL,
+                COLUMN_NAME VARCHAR(500) NOT NULL
+            )
+            ",
+        );
+    }
+}
