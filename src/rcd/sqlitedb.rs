@@ -1,10 +1,13 @@
+use crate::sql_text;
+#[allow(unused_imports)]
+use crate::table::{Column, Data, Row, Table, Value};
+#[allow(unused_imports)]
+use guid_create::GUID;
 use log::info;
 use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
 use std::path::Path;
-#[allow(unused_imports)]
-use crate::table::{Table, Row, Column, Data, Value};
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -93,7 +96,7 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
     create_participant_table(&conn);
     create_contracts_table(&conn);
     create_data_host_tables(&conn);
-    populate_data_host_tables(&conn);
+    populate_data_host_tables(db_name, &conn);
 }
 
 #[allow(dead_code, unused_variables)]
@@ -152,6 +155,40 @@ fn create_data_host_tables(conn: &Connection) {
 }
 
 #[allow(dead_code, unused_variables)]
-fn populate_data_host_tables(conn: &Connection) {
+fn populate_data_host_tables(db_name: &str, conn: &Connection) {
+    populate_database_id(db_name, conn);
     unimplemented!();
+}
+
+#[allow(dead_code, unused_variables)]
+fn populate_database_id(db_name: &str, conn: &Connection) {
+    let cmd = sql_text::COOP::text_get_count_from_data_host();
+    let has_database_id = has_any_rows(cmd, conn);
+
+    if !has_database_id {
+        let cmd = sql_text::COOP::text_add_database_id_to_host();
+        let db_id = GUID::rand();
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {":database_id": db_id.to_string(), ":database_name" : db_name})
+            .unwrap();
+    }
+}
+
+#[allow(dead_code, unused_variables)]
+fn has_any_rows(cmd: String, conn: &Connection) -> bool {
+    let mut has_rows = false;
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows = statement.query_map([], |row| row.get(0)).unwrap();
+
+    for item in rows {
+        let count: u64 = item.unwrap();
+        if count > 0 {
+            has_rows = true;
+        }
+    }
+
+    return has_rows;
 }

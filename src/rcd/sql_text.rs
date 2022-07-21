@@ -197,4 +197,21 @@ impl COOP {
             ",
         );
     }
+
+    #[allow(dead_code)]
+    pub fn text_get_count_from_data_host() -> String {
+        return String::from("SELECT COUNT(*) COUNT FROM COOP_DATA_HOST");
+    }
+
+    #[allow(dead_code)]
+    /// adds the generated database_id and database_name to the COOP_DATA_HOST table
+    /// # Params: 
+    /// - ":database_id"
+    /// - ":database_name"
+    pub fn text_add_database_id_to_host() -> String {
+        return String::from(
+            "INSERT INTO COOP_DATA_HOST
+        (DATABASE_ID, DATABASE_NAME) VALUES (:database_id, :database_name);",
+        );
+    }
 }
