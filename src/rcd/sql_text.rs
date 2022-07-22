@@ -141,7 +141,7 @@ impl CDS {
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_tables_schemas_table() -> String {
         return String::from(
-            "CREATE TABLE IF NOT EXISTS {TableNames.CDS.CONTRACTS_TABLE_SCHEMAS}
+            "CREATE TABLE IF NOT EXISTS CDS_CONTRACTS_TABLE_SCHEMAS}
         (
             TABLE_ID CHAR(36) NOT NULL,
             COLUMN_ID CHAR(36) NOT NULL,
@@ -205,13 +205,40 @@ impl COOP {
 
     #[allow(dead_code)]
     /// adds the generated database_id and database_name to the COOP_DATA_HOST table
-    /// # Params: 
+    /// # Params:
     /// - ":database_id"
     /// - ":database_name"
     pub fn text_add_database_id_to_host() -> String {
         return String::from(
             "INSERT INTO COOP_DATA_HOST
         (DATABASE_ID, DATABASE_NAME) VALUES (:database_id, :database_name);",
+        );
+    }
+
+    #[allow(dead_code)]
+    /// Returns create table statement for storing the logcial storage policy for each table
+    pub fn text_create_data_remotes_table() -> String {
+        return String::from(
+            "CREATE TABLE IF NOT EXISTS COOP_REMOTES
+        (
+            TABLENAME VARCHAR(255) NOT NULL,
+            LOGICAL_STORAGE_POLICY INT NOT NULL
+        );
+        ;",
+        );
+    }
+
+    #[allow(dead_code)]
+    pub fn text_get_logical_storage_policy_tables() -> String {
+        return String::from(
+            "
+        SELECT
+            TABLENAME,
+            LOGICAL_STORAGE_POLICY  
+        FROM
+            COOP_REMOTES
+            ;
+        ",
         );
     }
 }

@@ -1,6 +1,6 @@
-use crate::sql_text;
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
+use crate::{rcd_enum::LogicalStoragePolicy, sql_text};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -100,7 +100,7 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables)]
-/// Creates the COOP_REMOTES table if it does not exist. This holds 
+/// Creates the COOP_REMOTES table if it does not exist. This holds
 /// the logical storage policy for every table in the database.
 fn create_remotes_table(conn: &Connection) {
     let cmd = String::from(
@@ -157,17 +157,18 @@ fn create_contracts_table(conn: &Connection) {
 
 #[allow(dead_code, unused_variables)]
 /// Creates the COOP_DATA_HOST_* tables if they do not exist in the current database. These tables are used
-/// to store schema information and the database_id that we send to participants of this database. This 
+/// to store schema information and the database_id that we send to participants of this database. This
 /// data is usually contained at the participant in the database contract.
 fn create_data_host_tables(conn: &Connection) {
     unimplemented!();
 }
 
 #[allow(dead_code, unused_variables)]
-/// Populates the COOP_DATA_HOST_* tables with the needed information such as database_id and 
-/// the current database schema, if applicable. 
+/// Populates the COOP_DATA_HOST_* tables with the needed information such as database_id and
+/// the current database schema, if applicable.
 fn populate_data_host_tables(db_name: &str, conn: &Connection) {
     populate_database_id(db_name, conn);
+
     unimplemented!();
 }
 
@@ -206,4 +207,10 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
     }
 
     return has_rows;
+}
+
+#[allow(dead_code, unused_variables)]
+fn get_remote_status_for_tables() -> Vec<(String, LogicalStoragePolicy)> {
+    let cmd = sql_text::COOP::text_get_logical_storage_policy_tables();
+    unimplemented!();
 }
