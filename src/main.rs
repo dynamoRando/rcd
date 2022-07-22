@@ -18,6 +18,8 @@ pub mod table;
 pub mod sql_text;
 #[path = "rcd/test_harness.rs"]
 pub mod test_harness;
+#[path = "rcd/rcd_enum.rs"]
+pub mod rcd_enum;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

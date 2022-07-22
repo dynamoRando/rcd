@@ -100,6 +100,8 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Creates the COOP_REMOTES table if it does not exist. This holds 
+/// the logical storage policy for every table in the database.
 fn create_remotes_table(conn: &Connection) {
     let cmd = String::from(
         "CREATE TABLE IF NOT EXISTS COOP_REMOTES
@@ -113,6 +115,8 @@ fn create_remotes_table(conn: &Connection) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Creates the COOP_PARTICIPANT table if it does not exist. This holds
+/// the participant information that are cooperating with this database.
 fn create_participant_table(conn: &Connection) {
     let cmd = String::from(
         "CREATE TABLE IF NOT EXISTS COOP_PARTICIPANT
@@ -133,6 +137,8 @@ fn create_participant_table(conn: &Connection) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Creates the COOP_DATABASE_CONTRACT table if it does not exist. This holds
+/// all the contracts we have generated for this database.
 fn create_contracts_table(conn: &Connection) {
     let cmd = String::from(
         "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -150,17 +156,24 @@ fn create_contracts_table(conn: &Connection) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Creates the COOP_DATA_HOST_* tables if they do not exist in the current database. These tables are used
+/// to store schema information and the database_id that we send to participants of this database. This 
+/// data is usually contained at the participant in the database contract.
 fn create_data_host_tables(conn: &Connection) {
     unimplemented!();
 }
 
 #[allow(dead_code, unused_variables)]
+/// Populates the COOP_DATA_HOST_* tables with the needed information such as database_id and 
+/// the current database schema, if applicable. 
 fn populate_data_host_tables(db_name: &str, conn: &Connection) {
     populate_database_id(db_name, conn);
     unimplemented!();
 }
 
 #[allow(dead_code, unused_variables)]
+/// Checks the COOP_DATA_HOST table to see if a database id has been generated and if not, creates a saves one.
+/// This is the id we will use to identify this database as having cooperative tables to participants
 fn populate_database_id(db_name: &str, conn: &Connection) {
     let cmd = sql_text::COOP::text_get_count_from_data_host();
     let has_database_id = has_any_rows(cmd, conn);
@@ -176,6 +189,8 @@ fn populate_database_id(db_name: &str, conn: &Connection) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
+/// created has also populated any data in it.
 fn has_any_rows(cmd: String, conn: &Connection) -> bool {
     let mut has_rows = false;
 
