@@ -230,7 +230,7 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
         table_policies.push(status.unwrap());
     }
 
-    unimplemented!();
+    return table_policies;
 }
 
 fn row_to_table_policy_tuple(
