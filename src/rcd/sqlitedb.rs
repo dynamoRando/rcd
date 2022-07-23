@@ -259,8 +259,6 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         let schema = get_schema_of_table(table_name.to_string(), &conn);
         save_schema_to_data_host_tables(table_id.to_string(), &schema, &conn);
     }
-
-    unimplemented!();
 }
 
 #[allow(dead_code, unused_variables)]
