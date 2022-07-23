@@ -243,10 +243,10 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         // we want to be transparent about all the tables in the database
 
         let table_name = &status.0;
+        let table_id = GUID::rand();
 
         let statement = sql_text::COOP::text_get_count_from_data_host_tables_for_table(&table_name);
         if !has_any_rows(statement, &conn) {
-            let table_id = GUID::rand();
             let cmd = sql_text::COOP::text_add_table_to_data_host_table(
                 table_name.to_string(),
                 table_id.to_string(),
@@ -257,7 +257,7 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
 
         // need to get schema and save it to the table
         let schema = get_schema_of_table(table_name.to_string(), &conn);
-        save_schema_to_data_host_tables(&schema);
+        save_schema_to_data_host_tables(table_id.to_string(), &schema, &conn);
     }
 
     unimplemented!();
@@ -329,6 +329,14 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
 }
 
 #[allow(dead_code, unused_variables, unused_assignments)]
+/// Returns a table describing the schema of the table
+/// # Columns:
+/// 1. columnId
+/// 2. name
+/// 3. type
+/// 4. NotNull
+/// 5. defaultValue
+/// 6. IsPK
 fn get_schema_of_table(table_name: String, conn: &Connection) -> Table {
     let mut cmd = String::from("PRAGMA table_info(\"{:table_name}\")");
     cmd = cmd.replace(":table_name", &table_name);
@@ -337,6 +345,61 @@ fn get_schema_of_table(table_name: String, conn: &Connection) -> Table {
 }
 
 #[allow(dead_code, unused_variables, unused_assignments)]
-fn save_schema_to_data_host_tables(schema: &Table){
+fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Connection) {
+    /*
+    Columns:
+        columnId
+        name
+        type
+        NotNull
+        defaultValue
+        IsPK
+     */
+
+    let rows = &schema.rows;
+    for row in rows {
+        if row.vals[1].col.name == "name" {
+            let col_name = &row.vals[1].data.as_ref().unwrap().data_string;
+
+            let mut col_check = String::from(
+                "SELECT 
+                    COUNT(*) COUNT
+                FROM 
+                    COOP_DATA_COLUMNS
+                WHERE
+                    COLUMN_NAME = :col_name
+            ;",
+            );
+
+            col_check = col_check.replace("col_name", &col_name);
+            if !has_any_rows(col_check, conn) {
+                // we need to add the column schema to the data host tables
+                let col_id = GUID::rand();
+
+                let mut cmd = String::from(
+                    "
+                    INSERT INTO COOP_DATA_COLUMNS
+                    (
+                        TABLE_ID,
+                        COLUMN_ID,
+                        COLUMN_NAME
+                    )
+                    VALUES
+                    (
+                        :table_id,
+                        :col_id,
+                        :col_name
+                    )
+                ;",
+                );
+
+                cmd = cmd.replace(":table_id", &table_id);
+                cmd = cmd.replace(":col_id", &col_id.to_string());
+                cmd = cmd.replace(":col_name", &col_name);
+                conn.execute(&cmd, []).unwrap();
+            }
+        }
+    }
+
     unimplemented!();
 }
