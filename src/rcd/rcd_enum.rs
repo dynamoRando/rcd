@@ -54,7 +54,7 @@ pub enum LogicalStoragePolicy {
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl LogicalStoragePolicy {
     #[allow(dead_code)]
-    fn from_i64(value: i64) -> LogicalStoragePolicy {
+    pub fn from_i64(value: i64) -> LogicalStoragePolicy {
         match value {
             0 => LogicalStoragePolicy::None,
             1 => LogicalStoragePolicy::HostOnly,
@@ -85,7 +85,7 @@ pub enum ContractStatus {
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl ContractStatus {
     #[allow(dead_code)]
-    fn from_i64(value: i64) -> ContractStatus {
+    pub fn from_i64(value: i64) -> ContractStatus {
         match value {
             0 => ContractStatus::Unknown,
             1 => ContractStatus::NotSent,

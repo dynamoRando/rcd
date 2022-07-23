@@ -1,6 +1,10 @@
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
-use crate::{rcd_enum::LogicalStoragePolicy, sql_text};
+#[allow(unused_imports)]
+use crate::{
+    rcd_enum::{self, LogicalStoragePolicy},
+    sql_text, table,
+};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -168,6 +172,7 @@ fn create_data_host_tables(conn: &Connection) {
 /// the current database schema, if applicable.
 fn populate_data_host_tables(db_name: &str, conn: &Connection) {
     populate_database_id(db_name, conn);
+    let table_statues = get_remote_status_for_tables(conn);
 
     unimplemented!();
 }
@@ -210,7 +215,27 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 }
 
 #[allow(dead_code, unused_variables)]
-fn get_remote_status_for_tables() -> Vec<(String, LogicalStoragePolicy)> {
+fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStoragePolicy)> {
     let cmd = sql_text::COOP::text_get_logical_storage_policy_tables();
+    let mut table_policies: Vec<(String, rcd_enum::LogicalStoragePolicy)> = Vec::new();
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let statuses = statement
+        .query_and_then([], |row| {
+            row_to_table_policy_tuple(row.get(0).unwrap(), row.get(1).unwrap())
+        })
+        .unwrap();
+
+    for status in statuses {
+        table_policies.push(status.unwrap());
+    }
+
     unimplemented!();
+}
+
+fn row_to_table_policy_tuple(
+    table_name: String,
+    policy: i64,
+) -> Result<(String, LogicalStoragePolicy)> {
+    Ok((table_name, LogicalStoragePolicy::from_i64(policy)))
 }
