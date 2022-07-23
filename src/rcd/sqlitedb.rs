@@ -175,7 +175,7 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
     let table_statues = get_remote_status_for_tables(conn);
 
     if table_statues.len() == 0 {
-        // we need to get a list of all the tables in the database and 
+        // we need to get a list of all the tables in the database and
         // default the statuses to none
     }
 
@@ -226,10 +226,10 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
     let mut table_policies: Vec<(String, rcd_enum::LogicalStoragePolicy)> = Vec::new();
     let mut statement = conn.prepare(&cmd).unwrap();
 
-    let row_to_tuple = | table_name: String, policy: i64 | -> Result<(String, LogicalStoragePolicy)>
-    {
-        Ok((table_name, LogicalStoragePolicy::from_i64(policy)))
-    };
+    let row_to_tuple =
+        |table_name: String, policy: i64| -> Result<(String, LogicalStoragePolicy)> {
+            Ok((table_name, LogicalStoragePolicy::from_i64(policy)))
+        };
 
     let statuses = statement
         .query_and_then([], |row| {
