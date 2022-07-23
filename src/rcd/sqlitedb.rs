@@ -400,6 +400,4 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
             }
         }
     }
-
-    unimplemented!();
 }
