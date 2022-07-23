@@ -199,6 +199,19 @@ impl COOP {
     }
 
     #[allow(dead_code)]
+    /// Returns SQL statement for getting the count of tables in the cooperative data table tables (this is for contracts)
+    /// for the specified table name
+    /// # Params:
+    /// - ":table_name"
+    pub fn text_get_count_from_data_host_tables_for_table(table_name: &str) -> String {
+        let mut statement = String::from(
+            "SELECT count(*) tablecount FROM COOP_DATA_TABLES WHERE TABLE_NAME = :table_name",
+        );
+        statement = statement.replace(&String::from(":table_name"), &table_name);
+        return statement;
+    }
+
+    #[allow(dead_code)]
     pub fn text_get_count_from_data_host() -> String {
         return String::from("SELECT COUNT(*) COUNT FROM COOP_DATA_HOST");
     }
