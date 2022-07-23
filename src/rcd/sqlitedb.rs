@@ -174,11 +174,16 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
     populate_database_id(db_name, conn);
     let table_statues = get_remote_status_for_tables(conn);
 
+    if table_statues.len() == 0 {
+        // we need to get a list of all the tables in the database and 
+        // default the statuses to none
+    }
+
     unimplemented!();
 }
 
 #[allow(dead_code, unused_variables)]
-/// Checks the COOP_DATA_HOST table to see if a database id has been generated and if not, creates a saves one.
+/// Checks the COOP_DATA_HOST table to see if a database id has been generated and if not, creates and saves one.
 /// This is the id we will use to identify this database as having cooperative tables to participants
 fn populate_database_id(db_name: &str, conn: &Connection) {
     let cmd = sql_text::COOP::text_get_count_from_data_host();
@@ -215,6 +220,7 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Queries the COOP_REMOTES table for the table name and policy for each table in the database
 fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStoragePolicy)> {
     let cmd = sql_text::COOP::text_get_logical_storage_policy_tables();
     let mut table_policies: Vec<(String, rcd_enum::LogicalStoragePolicy)> = Vec::new();
