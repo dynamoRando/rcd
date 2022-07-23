@@ -225,7 +225,14 @@ fn create_contracts_table(conn: &Connection) {
 /// to store schema information and the database_id that we send to participants of this database. This
 /// data is usually contained at the participant in the database contract.
 fn create_data_host_tables(conn: &Connection) {
-    unimplemented!();
+    let mut cmd = sql_text::COOP::text_create_data_host_table();
+    conn.execute(&cmd, []).unwrap();
+    cmd = sql_text::COOP::text_create_data_host_tables_table();
+    conn.execute(&cmd, []).unwrap();
+    cmd = sql_text::COOP::text_create_data_host_tables_columns_table();
+    conn.execute(&cmd, []).unwrap();
+    cmd = sql_text::COOP::text_create_data_remotes_table();
+    conn.execute(&cmd, []).unwrap();
 }
 
 #[allow(dead_code, unused_variables)]
