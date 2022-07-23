@@ -27,6 +27,67 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     return total_rows;
 }
 
+pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Table> {
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let total_columns = statement.column_count();
+    let col_names = statement.column_names();
+    let mut table = Table::new();
+
+    let mut curr_idx = 0;
+
+    for name in col_names {
+        let c = Column {
+            name: name.to_string(),
+            is_nullable: false,
+            idx: curr_idx,
+        };
+
+        curr_idx = curr_idx + 1;
+
+        info!("adding col {}", c.name);
+
+        table.add_column(c);
+    }
+
+    let mut rows = statement.query([])?;
+
+    while let Some(row) = rows.next()? {
+        println!("reading row..");
+        let mut data_row = Row::new();
+
+        for i in 0..total_columns {
+            let dt = row.get_ref_unwrap(i).data_type();
+
+            let string_value: String = match dt {
+                Type::Blob => String::from(""),
+                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                _ => String::from(""),
+            };
+
+            let string_value = string_value;
+            let col = table.get_column_by_index(i).unwrap();
+
+            let data_item = Data {
+                data_string: string_value,
+                data_byte: Vec::new(),
+            };
+
+            let data_value = Value {
+                data: Some(data_item),
+                col: col,
+            };
+
+            data_row.add_value(data_value);
+        }
+
+        table.add_row(data_row);
+    }
+
+    return Ok(table);
+}
+
 #[allow(dead_code)]
 pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -181,10 +242,22 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         // we add tables even if the logical storage policy is NONE, because in rcd
         // we want to be transparent about all the tables in the database
 
-        let statement = sql_text::COOP::text_get_count_from_data_host_tables_for_table(&status.0);
-        if has_any_rows(statement, &conn) {
-            // we need to get the schema for the current table and add it
+        let table_name = &status.0;
+
+        let statement = sql_text::COOP::text_get_count_from_data_host_tables_for_table(&table_name);
+        if !has_any_rows(statement, &conn) {
+            let table_id = GUID::rand();
+            let cmd = sql_text::COOP::text_add_table_to_data_host_table(
+                table_name.to_string(),
+                table_id.to_string(),
+            );
+            let mut statement = conn.prepare(&cmd).unwrap();
+            statement.execute([]).unwrap();
         }
+
+        // need to get schema and save it to the table
+        let schema = get_schema_of_table(table_name.to_string(), &conn);
+        save_schema_to_data_host_tables(&schema);
     }
 
     unimplemented!();
@@ -253,4 +326,17 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
     }
 
     return table_policies;
+}
+
+#[allow(dead_code, unused_variables, unused_assignments)]
+fn get_schema_of_table(table_name: String, conn: &Connection) -> Table {
+    let mut cmd = String::from("PRAGMA table_info(\"{:table_name}\")");
+    cmd = cmd.replace(":table_name", &table_name);
+
+    return execute_read_on_connection(cmd, conn).unwrap();
+}
+
+#[allow(dead_code, unused_variables, unused_assignments)]
+fn save_schema_to_data_host_tables(schema: &Table){
+    unimplemented!();
 }

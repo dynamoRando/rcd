@@ -1,3 +1,4 @@
+
 #[allow(dead_code)]
 /// Anything in CDS is in the Cooperative Data Store.
 pub struct CDS {}
@@ -207,6 +208,18 @@ impl COOP {
         let mut statement = String::from(
             "SELECT count(*) tablecount FROM COOP_DATA_TABLES WHERE TABLE_NAME = :table_name",
         );
+        statement = statement.replace(&String::from(":table_name"), &table_name);
+        return statement;
+    }
+
+    #[allow(dead_code)]
+    /// Returns SQL statement for adding a table name and id to the cooperative data table.
+    /// # Params:
+    /// - ":table_id"
+    /// - ":table_name"
+    pub fn text_add_table_to_data_host_table(table_name: String, table_id: String) -> String {
+        let mut statement = String::from("INSERT INTO COOP_DATA_TABLES ( TABLE_ID, TABLE_NAME ) VALUES (:table_id, :table_name);");
+        statement = statement.replace(&String::from(":table_id"), &table_id);
         statement = statement.replace(&String::from(":table_name"), &table_name);
         return statement;
     }
