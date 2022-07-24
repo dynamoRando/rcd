@@ -654,7 +654,7 @@ pub mod tests {
 
                 let response = rx.try_recv().unwrap();
 
-                println!("create_enable_cooperative_features: got: {}", response);
+                println!("create_db_enable_coop_read_write: got: {}", response);
 
                 assert!(response);
             }
