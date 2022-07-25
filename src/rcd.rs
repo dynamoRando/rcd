@@ -52,6 +52,17 @@ impl DatabaseType {
             _ => panic!("Unknown value: {}", value),
         }
     }
+
+    #[allow(dead_code)]
+    fn to_u32(db_type: DatabaseType) -> u32 {
+        match db_type {
+            DatabaseType::Unknown => 0,
+            DatabaseType::Sqlite => 1,
+            DatabaseType::Mysql => 2,
+            DatabaseType::Postgres => 3,
+            DatabaseType::Sqlserver => 4,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -615,8 +626,6 @@ pub mod tests {
 
             #[test]
             pub fn test() {
-                unimplemented!("test is boilerplate - still needs to be re-written.");
-
                 let test_db_name: &str = "test_create_db_read_write.db";
                 let (tx, rx) = mpsc::channel();
                 let port_num = test_harness::TEST_SETTINGS
@@ -662,7 +671,15 @@ pub mod tests {
             #[cfg(test)]
             #[tokio::main]
             async fn client(db_name: &str, addr_port: &str) -> bool {
-                use crate::cdata::{AuthRequest, EnableCoooperativeFeaturesRequest};
+                use crate::{
+                    cdata::{
+                        AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
+                        ExecuteWriteRequest,
+                    },
+                    rcd::DatabaseType,
+                };
+
+                let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
                 let addr_port = format!("{}{}", String::from("http://"), addr_port);
                 info!(
@@ -713,7 +730,74 @@ pub mod tests {
                 println!("RESPONSE={:?}", coop_response);
                 info!("response back");
 
-                return coop_response.is_successful;
+                let enable_coop_features = coop_response.is_successful;
+
+                let create_table_statement = String::from(
+                    "
+                    DROP TABLE IF EXISTS Employee;
+                    CREATE TABLE IF NOT EXISTS Employeee (Id INT, Name TEXT);
+                    ",
+                );
+
+                assert!(enable_coop_features);
+
+                let execute_write_request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: create_table_statement,
+                    database_type: database_type,
+                });
+
+                let execute_write_reply = client
+                    .execute_write(execute_write_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_write_reply);
+                info!("response back");
+
+                assert!(execute_write_reply.is_successful);
+
+                let add_record_statement =
+                    String::from("INSERT INTO Employee (Id, Name) VALUES (1, 'Randy')");
+
+                let execute_write_request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: add_record_statement,
+                    database_type: database_type,
+                });
+
+                let execute_write_reply = client
+                    .execute_write(execute_write_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_write_reply);
+                info!("response back");
+
+                assert!(execute_write_reply.is_successful);
+
+                let read_record_statement = String::from("SELECT * FROM Employee");
+
+                let execute_read_request = tonic::Request::new(ExecuteReadRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: read_record_statement,
+                    database_type: database_type,
+                });
+
+                let execute_read_reply = client
+                    .execute_read(execute_read_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_read_reply);
+                info!("response back");
+
+                let resultsets = &execute_read_reply.results[0];
+
+                return resultsets.is_error;
             }
         }
 
