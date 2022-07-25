@@ -734,8 +734,8 @@ pub mod tests {
 
                 let create_table_statement = String::from(
                     "
-                    DROP TABLE IF EXISTS Employee;
-                    CREATE TABLE IF NOT EXISTS Employeee (Id INT, Name TEXT);
+                    DROP TABLE IF EXISTS EMPLOYEE;
+                    CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);
                     ",
                 );
 
@@ -759,7 +759,7 @@ pub mod tests {
                 assert!(execute_write_reply.is_successful);
 
                 let add_record_statement =
-                    String::from("INSERT INTO Employee (Id, Name) VALUES (1, 'Randy')");
+                    String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
                 let execute_write_request = tonic::Request::new(ExecuteWriteRequest {
                     authentication: Some(auth.clone()),
@@ -778,7 +778,7 @@ pub mod tests {
 
                 assert!(execute_write_reply.is_successful);
 
-                let read_record_statement = String::from("SELECT * FROM Employee");
+                let read_record_statement = String::from("SELECT * FROM EMPLOYEE");
 
                 let execute_read_request = tonic::Request::new(ExecuteReadRequest {
                     authentication: Some(auth.clone()),

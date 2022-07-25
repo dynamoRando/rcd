@@ -25,10 +25,8 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     println!("{:?}", db_path);
     println!("{:?}", cmd);
 
-    let mut statement = conn.prepare(cmd).unwrap();
-    let total_rows = statement.execute([]).unwrap();
-
-    return total_rows;
+    let result = conn.execute(&cmd, []).unwrap();
+    return result;
 }
 
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Table> {
