@@ -81,12 +81,6 @@ impl Table {
 
     #[allow(dead_code)]
     pub fn add_column(&mut self, column: Column) {
-        let current_num_columns = self.cols.len();
-
-        if current_num_columns > self.num_cols {
-            panic!("adding a column exceeds table capacity");
-        }
-
         self.cols.push(column);
     }
 

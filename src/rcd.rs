@@ -732,31 +732,46 @@ pub mod tests {
 
                 let enable_coop_features = coop_response.is_successful;
 
-                let create_table_statement = String::from(
-                    "
-                    DROP TABLE IF EXISTS EMPLOYEE;
-                    CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);
-                    ",
-                );
+                let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
                 assert!(enable_coop_features);
 
-                let execute_write_request = tonic::Request::new(ExecuteWriteRequest {
+                let execute_write_drop_request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: drop_table_statement,
+                    database_type: database_type,
+                });
+
+                let execute_write_drop_reply = client
+                    .execute_write(execute_write_drop_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_write_drop_reply);
+                info!("response back");
+
+                assert!(execute_write_drop_reply.is_successful);
+
+                let create_table_statement =
+                    String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
+
+                let execute_write_create_request = tonic::Request::new(ExecuteWriteRequest {
                     authentication: Some(auth.clone()),
                     database_name: db_name.to_string(),
                     sql_statement: create_table_statement,
                     database_type: database_type,
                 });
 
-                let execute_write_reply = client
-                    .execute_write(execute_write_request)
+                let execute_write_create_reply = client
+                    .execute_write(execute_write_create_request)
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={:?}", execute_write_reply);
+                println!("RESPONSE={:?}", execute_write_create_reply);
                 info!("response back");
 
-                assert!(execute_write_reply.is_successful);
+                assert!(execute_write_create_reply.is_successful);
 
                 let add_record_statement =
                     String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
@@ -778,7 +793,7 @@ pub mod tests {
 
                 assert!(execute_write_reply.is_successful);
 
-                let read_record_statement = String::from("SELECT * FROM EMPLOYEE");
+                let read_record_statement = String::from("SELECT Id, Name FROM EMPLOYEE");
 
                 let execute_read_request = tonic::Request::new(ExecuteReadRequest {
                     authentication: Some(auth.clone()),

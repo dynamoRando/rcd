@@ -24,7 +24,7 @@
             "name": "Run Test Debugger",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/deps/rcd-bcbc6b3a50664507",
+            "program": "${workspaceFolder}/target/debug/deps/rcd-945ac5b16be5a9c8",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

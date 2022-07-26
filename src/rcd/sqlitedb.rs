@@ -22,10 +22,11 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
-    println!("{:?}", db_path);
-    println!("{:?}", cmd);
+    let result = match conn.execute(&cmd, []) {
+        Ok(updated) => updated,
+        Err(err) => panic!("{:?}", err),
+    };
 
-    let result = conn.execute(&cmd, []).unwrap();
     return result;
 }
 
@@ -54,7 +55,6 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
     let mut rows = statement.query([])?;
 
     while let Some(row) = rows.next()? {
-        println!("reading row..");
         let mut data_row = Row::new();
 
         for i in 0..total_columns {
@@ -118,7 +118,6 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let mut rows = statement.query([])?;
 
     while let Some(row) = rows.next()? {
-        println!("reading row..");
         let mut data_row = Row::new();
 
         for i in 0..total_columns {
