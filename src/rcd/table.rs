@@ -113,8 +113,30 @@ impl Table {
         }
     }
 
-    #[allow(dead_code)]
+    #[allow(dead_code, unused_variables)]
     pub fn to_cdata_rows(&self) -> Vec<crate::cdata::Row> {
+        let result: Vec<crate::cdata::Row> = Vec::new();
+        let idx = 0;
+
+        for t_row in &self.rows {
+            let c_values: Vec<crate::cdata::RowValue> = Vec::new();
+            let c_remote_data: crate::cdata::RowRemoteMetadata = crate::cdata::RowRemoteMetadata {
+                is_hash_out_of_sync_with_host: false,
+                is_local_deleted: false,
+                is_remote_deleted: false,
+                is_remote_out_of_sync_with_host: false,
+            };
+
+            let c_row = crate::cdata::Row {
+                row_id: idx,
+                table_id: 0,
+                database_id: String::from(""),
+                values: c_values,
+                is_remoteable: false,
+                remote_metadata: Some(c_remote_data),
+            };
+        }
+
         unimplemented!("to_cdata_rows not implemented");
     }
 }
