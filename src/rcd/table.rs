@@ -120,6 +120,11 @@ impl Table {
 
         for t_row in &self.rows {
             let c_values: Vec<crate::cdata::RowValue> = Vec::new();
+
+            for t_val in &t_row.vals {
+                t_val.
+            }
+
             let c_remote_data: crate::cdata::RowRemoteMetadata = crate::cdata::RowRemoteMetadata {
                 is_hash_out_of_sync_with_host: false,
                 is_local_deleted: false,
