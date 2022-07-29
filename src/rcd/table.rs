@@ -43,6 +43,7 @@ pub struct Column {
     pub name: String,
     pub is_nullable: bool,
     pub idx: usize,
+    pub data_type: String,
 }
 
 #[allow(dead_code)]

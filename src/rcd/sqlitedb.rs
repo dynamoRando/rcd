@@ -43,6 +43,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
             name: name.to_string(),
             is_nullable: false,
             idx: curr_idx,
+            data_type: String::from("")
         };
 
         curr_idx = curr_idx + 1;
