@@ -1,6 +1,3 @@
-pub(crate) const FILE_DESCRIPTOR_SET: &[u8] =
-tonic::include_file_descriptor_set!("greeter_descriptor");
-
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SendParticipantContractRequest {
     #[prost(message, optional, tag="1")]
