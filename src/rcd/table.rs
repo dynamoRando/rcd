@@ -51,7 +51,7 @@ pub struct Column {
     pub is_nullable: bool,
     pub idx: usize,
     pub data_type: String,
-    pub is_primary_key: bool
+    pub is_primary_key: bool,
 }
 
 impl Column {
@@ -168,7 +168,7 @@ impl Table {
 
                 let mut c_bin_data = &t_val.data.as_ref().unwrap().data_byte;
                 let c_str_data = &t_val.data.as_ref().unwrap().data_string;
-                let c_str_bin_data = c_str_data.as_bytes().to_vec(); 
+                let c_str_bin_data = c_str_data.as_bytes().to_vec();
 
                 if c_bin_data.len() == 0 {
                     c_bin_data = &c_str_bin_data;
@@ -178,7 +178,7 @@ impl Table {
 
                 let c_val: crate::cdata::RowValue = crate::cdata::RowValue {
                     column: Some(c_col_schema_item),
-                    is_null_value: false,
+                    is_null_value: if c_bd.len() > 0 { false } else { true },
                     value: c_bd,
                 };
             }
