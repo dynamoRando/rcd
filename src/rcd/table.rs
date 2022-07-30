@@ -51,6 +51,7 @@ pub struct Column {
     pub is_nullable: bool,
     pub idx: usize,
     pub data_type: String,
+    pub is_primary_key: bool
 }
 
 impl Column {
@@ -162,7 +163,7 @@ impl Table {
                     is_nullable: t_col_item.is_nullable,
                     ordinal: t_col_item.idx as u32,
                     table_id: GUID::rand().to_string(),
-                    is_primary_key: false,
+                    is_primary_key: t_col_item.is_primary_key,
                 };
 
                 let mut c_bin_data = &t_val.data.as_ref().unwrap().data_byte;

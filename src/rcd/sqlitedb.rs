@@ -43,6 +43,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
             is_nullable: false,
             idx: col_idx,
             data_type: col.decl_type().unwrap().to_string(),
+            is_primary_key: false,
         };
 
         info!("adding col {}", c.name);
@@ -105,6 +106,7 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
             is_nullable: false,
             idx: col_idx,
             data_type: col.decl_type().unwrap().to_string(),
+            is_primary_key: false,
         };
 
         info!("adding col {}", c.name);
