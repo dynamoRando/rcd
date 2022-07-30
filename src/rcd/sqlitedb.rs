@@ -165,6 +165,11 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables)]
+pub fn set_logical_storage_policy(db_name: &str, cwd: &str, policy: LogicalStoragePolicy) -> Result<bool> {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_variables)]
 /// Creates the COOP_REMOTES table if it does not exist. This holds
 /// the logical storage policy for every table in the database.
 fn create_remotes_table(conn: &Connection) {

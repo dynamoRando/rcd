@@ -2,6 +2,7 @@ use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::*;
+use crate::rcd_enum::LogicalStoragePolicy;
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
 use chrono::Utc;
@@ -240,7 +241,38 @@ impl SqlClient for SqlClientImpl {
         request: Request<SetLogicalStoragePolicyRequest>,
     ) -> Result<Response<SetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        let mut policy_is_set = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let policy_num = message.policy_mode;
+        let policy = LogicalStoragePolicy::from_i64(policy_num as i64);
+
+        if is_authenticated {
+            policy_is_set =
+                crate::sqlitedb::set_logical_storage_policy(&db_name, &self.root_folder, policy).unwrap();
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let set_policy_reply = SetLogicalStoragePolicyReply {
+            authentication_result: Some(auth_response),  
+            is_successful: policy_is_set,
+            message: String::from(""),
+        };
+
+        Ok(Response::new(set_policy_reply))
+
     }
 
     async fn get_logical_storage_policy(
