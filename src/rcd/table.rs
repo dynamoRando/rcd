@@ -146,11 +146,11 @@ impl Table {
 
     #[allow(dead_code, unused_variables)]
     pub fn to_cdata_rows(&self) -> Vec<crate::cdata::Row> {
-        let result: Vec<crate::cdata::Row> = Vec::new();
+        let mut result: Vec<crate::cdata::Row> = Vec::new();
         let mut idx = 0;
 
         for t_row in &self.rows {
-            let c_values: Vec<crate::cdata::RowValue> = Vec::new();
+            let mut c_values: Vec<crate::cdata::RowValue> = Vec::new();
 
             for t_val in &t_row.vals {
                 let t_col_item = &t_val.col;
@@ -181,6 +181,8 @@ impl Table {
                     is_null_value: if c_bd.len() > 0 { false } else { true },
                     value: c_bd,
                 };
+
+                c_values.push(c_val);
             }
 
             let c_remote_data: crate::cdata::RowRemoteMetadata = crate::cdata::RowRemoteMetadata {
@@ -199,9 +201,11 @@ impl Table {
                 remote_metadata: Some(c_remote_data),
             };
 
+            result.push(c_row);
+
             idx = idx + 1;
         }
 
-        unimplemented!("to_cdata_rows not implemented");
+        return result;
     }
 }
