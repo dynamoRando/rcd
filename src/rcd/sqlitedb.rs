@@ -306,20 +306,23 @@ fn populate_database_id(db_name: &str, conn: &Connection) {
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
 /// created has also populated any data in it.
 fn has_any_rows(cmd: String, conn: &Connection) -> bool {
-    let mut has_rows = false;
+    return total_count(cmd, conn) > 0
+}
+
+#[allow(dead_code, unused_variables)]
+/// Takes a SELECT COUNT(*) SQL statement and returns the value
+fn total_count(cmd: String, conn: &Connection) -> u32 {
+    let mut count: u32 = 0;
 
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
 
     for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            has_rows = true;
-        }
+        count = item.unwrap();
     }
 
-    return has_rows;
+    return count;
 }
 
 #[allow(dead_code, unused_variables)]
