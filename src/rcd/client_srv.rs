@@ -6,10 +6,10 @@ use crate::rcd_enum::LogicalStoragePolicy;
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
 use chrono::Utc;
+use conv::{UnwrapOk, ValueFrom};
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
-use conv::{ValueFrom, UnwrapOk};
 
 #[derive(Default)]
 pub struct SqlClientImpl {
@@ -143,7 +143,8 @@ impl SqlClient for SqlClientImpl {
 
             if query_result.is_ok() {
                 let result_rows = query_result.unwrap().to_cdata_rows();
-                statement_result_set.number_of_rows_affected = u64::value_from(result_rows.len()).unwrap_ok();
+                statement_result_set.number_of_rows_affected =
+                    u64::value_from(result_rows.len()).unwrap_ok();
                 statement_result_set.rows = result_rows;
                 statement_result_set.is_error = false;
             } else {
@@ -252,10 +253,16 @@ impl SqlClient for SqlClientImpl {
         let db_name = message.database_name;
         let policy_num = message.policy_mode;
         let policy = LogicalStoragePolicy::from_i64(policy_num as i64);
+        let table_name = message.table_name;
 
         if is_authenticated {
-            policy_is_set =
-                crate::sqlitedb::set_logical_storage_policy(&db_name, &self.root_folder, policy).unwrap();
+            policy_is_set = crate::sqlitedb::set_logical_storage_policy(
+                &db_name,
+                &self.root_folder,
+                table_name,
+                policy,
+            )
+            .unwrap();
         }
 
         let auth_response = AuthResult {
@@ -266,13 +273,12 @@ impl SqlClient for SqlClientImpl {
         };
 
         let set_policy_reply = SetLogicalStoragePolicyReply {
-            authentication_result: Some(auth_response),  
+            authentication_result: Some(auth_response),
             is_successful: policy_is_set,
             message: String::from(""),
         };
 
         Ok(Response::new(set_policy_reply))
-
     }
 
     async fn get_logical_storage_policy(

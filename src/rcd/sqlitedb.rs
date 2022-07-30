@@ -165,7 +165,17 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables)]
-pub fn set_logical_storage_policy(db_name: &str, cwd: &str, policy: LogicalStoragePolicy) -> Result<bool> {
+pub fn set_logical_storage_policy(
+    db_name: &str,
+    cwd: &str,
+    table_name: String,
+    policy: LogicalStoragePolicy,
+) -> Result<bool> {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+
+    // insert or update on the coop tables
+
     unimplemented!();
 }
 
