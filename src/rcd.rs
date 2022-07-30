@@ -878,12 +878,15 @@ pub mod tests {
             #[cfg(test)]
             #[tokio::main]
             async fn client(db_name: &str, addr_port: &str) -> bool {
+                #[allow(unused_imports)]
+                use log::Log;
+
                 use crate::{
                     cdata::{
                         AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
-                        ExecuteWriteRequest,
+                        ExecuteWriteRequest, SetLogicalStoragePolicyRequest,
                     },
-                    rcd::DatabaseType,
+                    rcd::DatabaseType, rcd_enum::LogicalStoragePolicy,
                 };
 
                 let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1020,6 +1023,23 @@ pub mod tests {
                 let resultsets = &execute_read_reply.results[0];
 
                 assert!(!resultsets.is_error);
+
+                let policy = LogicalStoragePolicy::ParticpantOwned;
+
+                let set_logical_policy_request = tonic::Request::new(SetLogicalStoragePolicyRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(), 
+                    table_name: String::from("EMPLOYEE"),
+                    policy_mode: LogicalStoragePolicy::to_u32(policy),
+                });
+
+                let set_policy_reply = client
+                .set_logical_storage_policy(set_logical_policy_request)
+                .await
+                .unwrap()
+                .into_inner();
+            println!("RESPONSE={:?}", set_policy_reply);
+            info!("response back");
 
                 unimplemented!("test not written");
             }

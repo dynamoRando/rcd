@@ -64,6 +64,17 @@ impl LogicalStoragePolicy {
             _ => panic!("Unknown value: {}", value),
         }
     }
+
+    #[allow(dead_code)]
+    pub fn to_u32(policy: LogicalStoragePolicy) -> u32 {
+        match policy {
+            LogicalStoragePolicy::None => 0,
+            LogicalStoragePolicy::HostOnly => 1,
+            LogicalStoragePolicy::ParticpantOwned => 2,
+            LogicalStoragePolicy::Shared => 3,
+            LogicalStoragePolicy::Mirror => 4
+        }
+    }
 }
 
 /// Determines where status of a contract between a host and a participant.
@@ -97,7 +108,6 @@ impl ContractStatus {
     }
 }
 
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ColumnType {
     Unknown = 0,
@@ -109,7 +119,7 @@ pub enum ColumnType {
     Varchar = 6,
     Binary = 7,
     Varbinary = 8,
-    Text = 9
+    Text = 9,
 }
 
 impl ColumnType {
@@ -133,7 +143,7 @@ impl ColumnType {
             return Some(ColumnType::Varchar);
         }
 
-        if string_data_type.contains("char"){
+        if string_data_type.contains("char") {
             return Some(ColumnType::Char);
         }
 
@@ -148,7 +158,7 @@ impl ColumnType {
         if string_data_type.contains("varbinary") {
             return Some(ColumnType::Varbinary);
         }
- 
+
         if string_data_type.contains("binary") {
             return Some(ColumnType::Binary);
         }
@@ -156,7 +166,7 @@ impl ColumnType {
         if string_data_type.contains("text") {
             return Some(ColumnType::Text);
         }
-        
+
         return None;
     }
 
@@ -189,7 +199,7 @@ impl ColumnType {
             ColumnType::Varchar => 6,
             ColumnType::Binary => 7,
             ColumnType::Varbinary => 8,
-            ColumnType::Text => 9
+            ColumnType::Text => 9,
         }
     }
 }
