@@ -174,7 +174,9 @@ pub fn set_logical_storage_policy(
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
-    // insert or update on the coop tables
+    if has_table(table_name, &conn) {
+        // insert or update on the coop tables
+    }
 
     unimplemented!();
 }
@@ -420,4 +422,9 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
             }
         }
     }
+}
+
+#[allow(unused_variables, dead_code)]
+fn has_table(table_name: String, conn: &Connection) -> bool {
+    unimplemented!();
 }
