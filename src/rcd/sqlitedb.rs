@@ -426,5 +426,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 
 #[allow(unused_variables, dead_code)]
 fn has_table(table_name: String, conn: &Connection) -> bool {
-    unimplemented!();
+    let mut cmd = String::from("SELECT count(*) AS TABLECOUNT FROM sqlite_master WHERE type='table' AND name='table_name'");
+    cmd = cmd.replace("table_name", &table_name);
+    return has_any_rows(cmd, conn);
 }
