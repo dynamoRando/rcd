@@ -96,3 +96,100 @@ impl ContractStatus {
         }
     }
 }
+
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum ColumnType {
+    Unknown = 0,
+    Int = 1,
+    Bit = 2,
+    Char = 3,
+    DateTime = 4,
+    Decimal = 5,
+    Varchar = 6,
+    Binary = 7,
+    Varbinary = 8,
+    Text = 9
+}
+
+impl ColumnType {
+    #[allow(dead_code)]
+    pub fn try_parse(desc: &str) -> Option<ColumnType> {
+        let string_data_type = desc.to_lowercase();
+
+        if string_data_type.len() == 0 {
+            return Some(ColumnType::Unknown);
+        }
+
+        if string_data_type.contains("int") {
+            return Some(ColumnType::Int);
+        }
+
+        if string_data_type.contains("bit") {
+            return Some(ColumnType::Bit);
+        }
+
+        if string_data_type.contains("varchar") {
+            return Some(ColumnType::Varchar);
+        }
+
+        if string_data_type.contains("char"){
+            return Some(ColumnType::Char);
+        }
+
+        if string_data_type.contains("datetime") {
+            return Some(ColumnType::DateTime);
+        }
+
+        if string_data_type.contains("decimal") {
+            return Some(ColumnType::Decimal);
+        }
+
+        if string_data_type.contains("varbinary") {
+            return Some(ColumnType::Varbinary);
+        }
+ 
+        if string_data_type.contains("binary") {
+            return Some(ColumnType::Binary);
+        }
+
+        if string_data_type.contains("text") {
+            return Some(ColumnType::Text);
+        }
+        
+        return None;
+    }
+
+    #[allow(dead_code)]
+    pub fn from_u32(value: u32) -> ColumnType {
+        match value {
+            0 => ColumnType::Unknown,
+            1 => ColumnType::Int,
+            2 => ColumnType::Bit,
+            3 => ColumnType::Char,
+            4 => ColumnType::DateTime,
+            5 => ColumnType::Decimal,
+            6 => ColumnType::Varchar,
+            7 => ColumnType::Binary,
+            8 => ColumnType::Varbinary,
+            9 => ColumnType::Text,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn to_u32(col_type: ColumnType) -> u32 {
+        match col_type {
+            ColumnType::Unknown => 0,
+            ColumnType::Int => 1,
+            ColumnType::Bit => 2,
+            ColumnType::Char => 3,
+            ColumnType::DateTime => 4,
+            ColumnType::Decimal => 5,
+            ColumnType::Varchar => 6,
+            ColumnType::Binary => 7,
+            ColumnType::Varbinary => 8,
+            ColumnType::Text => 9
+        }
+    }
+}

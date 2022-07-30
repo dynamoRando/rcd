@@ -1,4 +1,9 @@
-use crate::cdata::RowValue;
+#[allow(unused_imports)]
+use crate::{cdata::RowValue, rcd_enum::ColumnType};
+#[allow(unused_imports)]
+use conv::UnwrapOrInvalid;
+use guid_create::GUID;
+use substring::Substring;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -46,6 +51,28 @@ pub struct Column {
     pub is_nullable: bool,
     pub idx: usize,
     pub data_type: String,
+}
+
+impl Column {
+    pub fn data_type_to_enum_u32(&self) -> u32 {
+        let ct = ColumnType::try_parse(&self.data_type).unwrap();
+        return ColumnType::to_u32(ct);
+    }
+
+    pub fn data_type_len(&self) -> u32 {
+        let str_data_type: String = self.data_type.clone();
+        let idx_first_paren = str_data_type.find("(");
+
+        if idx_first_paren.is_none() {
+            return 0;
+        } else {
+            let idx_first = idx_first_paren.unwrap();
+            let idx_last = str_data_type.find(")").unwrap();
+            let str_length = str_data_type.substring(idx_first, idx_last);
+            let length: u32 = str_length.parse().unwrap();
+            return length;
+        }
+    }
 }
 
 #[allow(dead_code)]
@@ -125,14 +152,33 @@ impl Table {
             let c_values: Vec<crate::cdata::RowValue> = Vec::new();
 
             for t_val in &t_row.vals {
+                let t_col_item = &t_val.col;
 
-                let c_bin_data = t_val.data.unwrap().data_byte;
-                let c_str_data = t_val.data.unwrap().data_string;
+                let c_col_schema_item = crate::cdata::ColumnSchema {
+                    column_name: t_col_item.name.to_string(),
+                    column_type: t_col_item.data_type_to_enum_u32(),
+                    column_length: t_col_item.data_type_len(),
+                    column_id: GUID::rand().to_string(),
+                    is_nullable: t_col_item.is_nullable,
+                    ordinal: t_col_item.idx as u32,
+                    table_id: GUID::rand().to_string(),
+                    is_primary_key: false,
+                };
+
+                let mut c_bin_data = &t_val.data.as_ref().unwrap().data_byte;
+                let c_str_data = &t_val.data.as_ref().unwrap().data_string;
+                let c_str_bin_data = c_str_data.as_bytes().to_vec(); 
+
+                if c_bin_data.len() == 0 {
+                    c_bin_data = &c_str_bin_data;
+                }
+
+                let c_bd = c_bin_data.to_vec();
 
                 let c_val: crate::cdata::RowValue = crate::cdata::RowValue {
-                    column: None,
+                    column: Some(c_col_schema_item),
                     is_null_value: false,
-                    value: None,
+                    value: c_bd,
                 };
             }
 
