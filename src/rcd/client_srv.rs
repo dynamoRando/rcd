@@ -1,7 +1,6 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-use crate::cdata::FILE_DESCRIPTOR_SET;
 use crate::cdata::*;
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
@@ -320,7 +319,6 @@ pub async fn start_service(
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
         .build()
         .unwrap();
 

@@ -1,3 +1,5 @@
+use crate::cdata::RowValue;
+
 #[allow(dead_code)]
 #[derive(Debug)]
 pub struct Data {
@@ -117,13 +119,21 @@ impl Table {
     #[allow(dead_code, unused_variables)]
     pub fn to_cdata_rows(&self) -> Vec<crate::cdata::Row> {
         let result: Vec<crate::cdata::Row> = Vec::new();
-        let idx = 0;
+        let mut idx = 0;
 
         for t_row in &self.rows {
             let c_values: Vec<crate::cdata::RowValue> = Vec::new();
 
             for t_val in &t_row.vals {
-                
+
+                let c_bin_data = t_val.data.unwrap().data_byte;
+                let c_str_data = t_val.data.unwrap().data_string;
+
+                let c_val: crate::cdata::RowValue = crate::cdata::RowValue {
+                    column: None,
+                    is_null_value: false,
+                    value: None,
+                };
             }
 
             let c_remote_data: crate::cdata::RowRemoteMetadata = crate::cdata::RowRemoteMetadata {
@@ -141,6 +151,8 @@ impl Table {
                 is_remoteable: false,
                 remote_metadata: Some(c_remote_data),
             };
+
+            idx = idx + 1;
         }
 
         unimplemented!("to_cdata_rows not implemented");

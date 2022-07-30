@@ -33,20 +33,17 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Table> {
     let mut statement = conn.prepare(&cmd).unwrap();
     let total_columns = statement.column_count();
-    let col_names = statement.column_names();
+    let cols = statement.columns();
     let mut table = Table::new();
 
-    let mut curr_idx = 0;
-
-    for name in col_names {
+    for col in cols {
+        let col_idx = statement.column_index(col.name()).unwrap();
         let c = Column {
-            name: name.to_string(),
+            name: col.name().to_string(),
             is_nullable: false,
-            idx: curr_idx,
-            data_type: String::from("")
+            idx: col_idx,
+            data_type: col.decl_type().unwrap().to_string(),
         };
-
-        curr_idx = curr_idx + 1;
 
         info!("adding col {}", c.name);
 
@@ -97,19 +94,18 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let conn = Connection::open(&db_path)?;
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
-    let col_names = statement.column_names();
+    let cols = statement.columns();
     let mut table = Table::new();
 
-    let mut curr_idx = 0;
+    for col in cols {
+        let col_idx = statement.column_index(col.name()).unwrap();
 
-    for name in col_names {
         let c = Column {
-            name: name.to_string(),
+            name: col.name().to_string(),
             is_nullable: false,
-            idx: curr_idx,
+            idx: col_idx,
+            data_type: col.decl_type().unwrap().to_string(),
         };
-
-        curr_idx = curr_idx + 1;
 
         info!("adding col {}", c.name);
 

@@ -7,8 +7,6 @@ use std::path::Path;
 
 #[cfg(test)]
 use crate::cdata::sql_client_server::SqlClientServer;
-#[allow(unused_imports)]
-use crate::cdata::FILE_DESCRIPTOR_SET;
 #[cfg(test)]
 use tonic::transport::Server;
 
@@ -110,7 +108,6 @@ impl RcdService {
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
-            .register_encoded_file_descriptor_set(FILE_DESCRIPTOR_SET)
             .build()
             .unwrap();
 
@@ -147,7 +144,6 @@ impl RcdService {
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
-            .register_encoded_file_descriptor_set(crate::cdata::FILE_DESCRIPTOR_SET)
             .build()
             .unwrap();
 
