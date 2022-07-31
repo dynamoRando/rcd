@@ -6,6 +6,7 @@ use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -13,6 +14,27 @@ use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
 use std::path::Path;
+
+/*
+    "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+    (
+        CONTRACT_ID CHAR(36) NOT NULL,
+        GENERATED_DATE_UTC DATETIME NOT NULL,
+        DESCRIPTION VARCHAR(255),
+        RETIRED_DATE_UTC DATETIME,
+        VERSION_ID CHAR(36) NOT NULL,
+        REMOTE_DELETE_BEHAVIOR INT
+    );",
+*/
+#[allow(dead_code, unused_variables)]
+pub struct DatabaseContract {
+    pub contract_id: GUID,
+    pub generated_date: NaiveDateTime,
+    pub description: String,
+    pub retired_date: Option<NaiveDateTime>,
+    pub version_id: GUID,
+    pub remote_delete_behavior: u32,
+}
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -34,6 +56,10 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
 }
 
 #[allow(unused_variables, dead_code)]
+/// Attempts to generate a contract for the user database. This will first validate if all user
+/// tables have a logical storage policy set. If not it will return a generate contract error.
+/// If there is no existing contract, it will generate one. If there is an already existing active contract,
+/// it will retire that contract and generate a new one.
 pub fn generate_contract(
     db_name: &str,
     cwd: &str,
@@ -41,8 +67,24 @@ pub fn generate_contract(
     desc: &str,
     remote_delete_behavior: RemoteDeleteBehavior,
 ) -> Result<bool, RcdGenerateContractError> {
-    let policies = get_logical_storage_policy_all_tables(db_name, cwd);
+    /*
+       First, we should check to see if there is a logical storage policy
+       defined on all user tables. If any are not set, then this should return
+       a RcdGenerateContractError.
 
+       We need to see if there are other database contracts.
+       If there are none, then this is the first contract ever.
+
+       If there are existing contracts, we need to find the active one
+       and retire it, then generate the current one.
+    */
+
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);
+
+    // check to see if all user tables have a logical storage policy set
+    // if any don't, return an error.
     if policies.iter().any(|p| p.1 == LogicalStoragePolicy::None) {
         let mut missing_policies = String::from("policy not set for ");
 
@@ -57,17 +99,14 @@ pub fn generate_contract(
         return Err(error);
     }
 
-    /*
-       First, we should check to see if there is a logical storage policy
-       defined on all user tables. If any are not set, then this should return
-       a RcdGenerateContractError.
-
-       We need to see if there are other database contracts.
-       If there are none, then this is the first contract ever.
-
-       If there are existing contracts, we need to find the active one
-       and retire it, then generate the current one.
-    */
+    let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
+    if !has_any_rows(cmd, &conn) {
+        // this is the first contract
+    } else {
+        // there are other contracts, we need to find the active one and retire it
+        // then generate a new contract
+        let contracts = get_all_database_contracts(&conn);
+    }
 
     unimplemented!();
 }
@@ -220,6 +259,9 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables, unused_assignments)]
+/// Returns the logical storage policy for the specified table. If the table does not exist in the database, it will
+/// return an error. If the table exist but does not have a logical storage policy defined for it, it will default
+/// to `LogicalStoragePolicy::None`
 pub fn get_logical_storage_policy(
     db_name: &str,
     cwd: &str,
@@ -448,6 +490,8 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Runs any SQL statement that returns a single value and attempts
+/// to return the result as a u32
 fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     let mut value: u32 = 0;
     let mut statement = conn.prepare(&cmd).unwrap();
@@ -578,7 +622,9 @@ fn has_table(table_name: String, conn: &Connection) -> bool {
 }
 
 #[allow(unused_variables, dead_code)]
-fn get_logical_storage_policy_all_tables(
+/// Returns a vector of tuples representing the name of the user table and the logical storage policy
+/// attached to it.
+fn get_logical_storage_policy_for_all_user_tables(
     db_name: &str,
     cwd: &str,
 ) -> Vec<(String, LogicalStoragePolicy)> {
@@ -610,6 +656,111 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
         for val in row.vals {
             let name = val.data.unwrap().data_string;
             result.push(name);
+        }
+    }
+
+    return result;
+}
+
+#[allow(unused_variables, dead_code, unused_assignments)]
+fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
+    let mut result: Vec<DatabaseContract> = Vec::new();
+
+    /*
+        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+        (
+            CONTRACT_ID CHAR(36) NOT NULL,
+            GENERATED_DATE_UTC DATETIME NOT NULL,
+            DESCRIPTION VARCHAR(255),
+            RETIRED_DATE_UTC DATETIME,
+            VERSION_ID CHAR(36) NOT NULL,
+            REMOTE_DELETE_BEHAVIOR INT
+        );",
+    */
+
+    let cmd = String::from(
+        "SELECT 
+            CONTRACT_ID,
+            GENERATED_DATE_UTC,
+            DESCRIPTION,
+            RETIRED_DATE_UTC,
+            VERSION_ID,
+            REMOTE_DELETE_BEHAVIOR
+        FROM
+            COOP_DATABASE_CONTRACT
+            ;
+            ",
+    );
+
+    let table = execute_read_on_connection(cmd, conn).unwrap();
+
+    for row in table.rows {
+        for val in &row.vals {
+            let mut cid = GUID::rand();
+            let mut gen_date = Local::now();
+            let mut desc = String::from("");
+            let mut is_retired = false;
+            let mut ret_date = Local::now();
+            let mut vid = GUID::rand();
+            let mut delete_behavior: u32 = 0;
+
+            if val.col.name == "CONTRACT_ID" {
+                let vcid = val.data.as_ref().unwrap().data_string.clone();
+                let tcid = GUID::parse(&vcid).unwrap();
+                cid = tcid;
+            }
+
+            if val.col.name == "GENERATED_DATE_UTC" {
+                let vgen_date = val.data.as_ref().unwrap().data_string.clone();
+                let tgen_date = DateTime::parse_from_str(&vgen_date, "%Y-%m-%d")
+                    .unwrap()
+                    .naive_local();
+                gen_date = Local.from_local_datetime(&tgen_date).unwrap();
+            }
+
+            if val.col.name == "DESCRIPTION" {
+                let vdesc = val.data.as_ref().unwrap().data_string.clone();
+                desc = vdesc.clone();
+            }
+
+            if val.col.name == "RETIRED_DATE_UTC" {
+                if val.is_null() {
+                    is_retired = false;
+                } else {
+                    is_retired = true;
+                    let vret_date = val.data.as_ref().unwrap().data_string.clone();
+                    let tret_date = DateTime::parse_from_str(&vret_date, "%Y-%m-%d")
+                        .unwrap()
+                        .naive_local();
+                    ret_date = Local.from_local_datetime(&tret_date).unwrap();
+                }
+            }
+
+            if val.col.name == "VERSION_ID" {
+                let vvid = val.data.as_ref().unwrap().data_string.clone();
+                let tvid = GUID::parse(&vvid).unwrap();
+                vid = tvid;
+            }
+
+            if val.col.name == "REMOTE_DELETE_BEHAVIOR" {
+                let vbehavior = val.data.as_ref().unwrap().data_string.clone();
+                delete_behavior = vbehavior.parse().unwrap();
+            }
+
+            let item = DatabaseContract {
+                contract_id: cid,
+                generated_date: gen_date.naive_local(),
+                description: desc,
+                retired_date: if is_retired {
+                    Some(ret_date.naive_utc())
+                } else {
+                    None
+                },
+                version_id: vid,
+                remote_delete_behavior: delete_behavior,
+            };
+
+            result.push(item);
         }
     }
 
