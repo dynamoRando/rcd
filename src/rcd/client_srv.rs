@@ -2,7 +2,7 @@ use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::*;
-use crate::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
+use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
 use chrono::Utc;
@@ -353,6 +353,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(get_policy_reply))
     }
 
+    #[allow(unused_variables)]
     async fn generate_contract(
         &self,
         request: Request<GenerateContractRequest>,
@@ -370,16 +371,27 @@ impl SqlClient for SqlClientImpl {
         let i_remote_delete_behavior = message.remote_delete_behavior;
         let host_name = message.host_name;
 
+        let mut reply_message = String::from("");
+
         if is_authenticated {
-            is_successful = crate::sqlitedb::generate_contract(
+            let result = crate::sqlitedb::generate_contract(
                 &db_name,
                 &self.root_folder,
                 &host_name,
                 &desc,
                 RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
-            )
-            .unwrap();
-        }
+            );
+
+            match result {
+                Ok(r) => is_successful = r,
+                Err(e) => {
+                    is_successful = false;
+                    if let RcdGenerateContractError::NotAllTablesSet(msg) = e {
+                        reply_message = msg;
+                    }
+                }
+            }
+        };
 
         let auth_response = AuthResult {
             is_authenticated: is_authenticated,
@@ -391,7 +403,7 @@ impl SqlClient for SqlClientImpl {
         let generate_contract_reply = GenerateContractReply {
             authentication_result: Some(auth_response),
             is_successful: is_successful,
-            message: String::from(""),
+            message: reply_message,
         };
 
         Ok(Response::new(generate_contract_reply))

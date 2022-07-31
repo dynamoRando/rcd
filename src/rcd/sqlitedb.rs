@@ -41,6 +41,22 @@ pub fn generate_contract(
     desc: &str,
     remote_delete_behavior: RemoteDeleteBehavior,
 ) -> Result<bool, RcdGenerateContractError> {
+    let policies = get_logical_storage_policy_all_tables(db_name, cwd);
+
+    if policies.iter().any(|p| p.1 == LogicalStoragePolicy::None) {
+        let mut missing_policies = String::from("policy not set for ");
+
+        for p in policies {
+            if p.1 == LogicalStoragePolicy::None {
+                let message = format!("table {}, ", p.0);
+                missing_policies.push_str(&message);
+            }
+        }
+
+        let error = RcdGenerateContractError::NotAllTablesSet(missing_policies);
+        return Err(error);
+    }
+
     /*
        First, we should check to see if there is a logical storage policy
        defined on all user tables. If any are not set, then this should return
@@ -229,12 +245,15 @@ pub fn get_logical_storage_policy(
             let i_policy = get_scalar_as_u32(cmd.clone(), &conn);
             policy = LogicalStoragePolicy::from_i64(i_policy as i64);
         } else {
-            let error_message = format!(
-                "logical storage policy not saved in COOP_REMOTES for table {} in db {}",
-                table_name, db_name
-            );
-            let err = RcdDbError::LogicalStoragePolicyNotSet(error_message);
-            return Err(err);
+            /*
+                let error_message = format!(
+                    "logical storage policy not saved in COOP_REMOTES for table {} in db {}",
+                    table_name, db_name
+                );
+                let err = RcdDbError::LogicalStoragePolicyNotSet(error_message);
+                return Err(err);
+            */
+            return Ok(LogicalStoragePolicy::None);
         }
     } else {
         let error_message = format!("table {} not found in db {}", table_name, db_name);
@@ -562,14 +581,13 @@ fn has_table(table_name: String, conn: &Connection) -> bool {
 fn get_logical_storage_policy_all_tables(
     db_name: &str,
     cwd: &str,
-    table_name: String,
 ) -> Vec<(String, LogicalStoragePolicy)> {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
     let mut result: Vec<(String, LogicalStoragePolicy)> = Vec::new();
 
-    let table_names = get_all_table_names_in_db(&conn);
+    let table_names = get_all_user_table_names_in_db(&conn);
 
     for table_name in &table_names {
         let l_policy = get_logical_storage_policy(db_name, cwd, table_name.to_string()).unwrap();
@@ -581,10 +599,10 @@ fn get_logical_storage_policy_all_tables(
 }
 
 #[allow(unused_variables, dead_code)]
-fn get_all_table_names_in_db(conn: &Connection) -> Vec<String> {
+fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
     let mut result: Vec<String> = Vec::new();
     let cmd = String::from(
-        "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%'",
+        "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'COOP_%'",
     );
     let names = execute_read_on_connection(cmd, conn).unwrap();
 
