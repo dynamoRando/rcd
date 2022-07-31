@@ -6,7 +6,7 @@ use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
-use chrono::{DateTime, Local, NaiveDateTime, TimeZone};
+use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -36,6 +36,22 @@ pub struct DatabaseContract {
     pub remote_delete_behavior: u32,
 }
 
+impl DatabaseContract {
+    /// Marks this contract as retired in the database with today's UTC date
+    #[allow(unused_variables, dead_code, unused_assignments)]
+    pub fn retire(&self, conn: &Connection) {
+        let mut cmd = String::from("UPDATE COOP_DATABASE_CONTRACT SET RETIRED_DATE_UTC = ':retire_date' WHERE VERSION_ID = ':vid'");
+        cmd = cmd.replace(":retire_date", &Utc::now().to_string());
+        cmd = cmd.replace(":vid", &self.version_id.to_string());
+        execute_write_on_connection(cmd, conn);
+    }
+
+    /// Checks if the contract has a retired date or not
+    pub fn is_retired(&self) -> bool {
+        return !self.retired_date.is_none();
+    }
+}
+
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
     Connection::open(&db_path)
@@ -53,6 +69,10 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     };
 
     return result;
+}
+
+pub fn execute_write_on_connection(cmd: String, conn: &Connection) {
+    conn.execute(&cmd, []).unwrap();
 }
 
 #[allow(unused_variables, dead_code)]
