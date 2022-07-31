@@ -50,6 +50,120 @@ impl DatabaseContract {
     pub fn is_retired(&self) -> bool {
         return !self.retired_date.is_none();
     }
+
+    #[allow(unused_variables, dead_code, unused_assignments)]
+    pub fn save(&self, conn: &Connection) {
+        let mut cmd = String::from(
+            "SELECT COUNT(*) TOTALCOUNT FROM COOP_DATABASE_CONTRACT WHERE VERSION_ID = ':vid'",
+        );
+        cmd = cmd.replace(":vid", &self.version_id.to_string());
+        if has_any_rows(cmd, conn) {
+            // this is an update
+            if self.is_retired() {
+                let mut cmd = String::from(
+                    "
+                UPDATE COOP_DATABASE_CONTRACT 
+                SET 
+                    CONTRACT_ID = ':cid',
+                    GENERATED_DATE_UTC = ':gen_date',
+                    DESCRIPTION = ':desc',
+                    RETIRED_DATE_UTC = ':ret_date',
+                    REMOTE_DELETE_BEHAVIOR = ':remote_behavior'
+                WHERE
+                    VERSION_ID = ':vid'",
+                );
+                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
+                cmd = cmd.replace(":desc", &&self.description);
+                let ret = &self.retired_date.unwrap().to_string();
+                cmd = cmd.replace(":ret_date", ret);
+                cmd = cmd.replace(":vid", &self.version_id.to_string());
+                cmd = cmd.replace(":remote_behavior", &self.remote_delete_behavior.to_string());
+                execute_write_on_connection(cmd, conn);
+            } else {
+                let mut cmd = String::from(
+                    "
+                UPDATE COOP_DATABASE_CONTRACT 
+                SET 
+                    CONTRACT_ID = ':cid',
+                    GENERATED_DATE_UTC = ':gen_date',
+                    DESCRIPTION = ':desc',
+                    REMOTE_DELETE_BEHAVIOR = ':remote_behavior'
+                WHERE
+                    VERSION_ID = ':vid'",
+                );
+                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
+                cmd = cmd.replace(":desc", &&self.description);
+                cmd = cmd.replace(":vid", &self.version_id.to_string());
+                cmd = cmd.replace(":remote_behavior", &self.remote_delete_behavior.to_string());
+                execute_write_on_connection(cmd, conn);
+            }
+        } else {
+            // this is an insert
+            if self.is_retired() {
+                let mut cmd = String::from(
+                    "
+                INSERT INTO COOP_DATABASE_CONTRACT
+                (
+                    CONTRACT_ID,
+                    GENERATED_DATE_UTC,
+                    DESCRIPTION,
+                    RETIRED_DATE_UTC,
+                    VERSION_ID,
+                    REMOTE_DELETE_BEHAVIOR
+                )
+                VALUES
+                (
+                    ':cid',
+                    ':gen_date',
+                    ':desc',
+                    ':ret_date',
+                    ':vid',
+                    ':remote_behavior'
+                );
+                ",
+                );
+                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
+                cmd = cmd.replace(":desc", &&self.description);
+                let ret = &self.retired_date.unwrap().to_string();
+                cmd = cmd.replace(":ret_date", ret);
+                cmd = cmd.replace(":vid", &self.version_id.to_string());
+                cmd = cmd.replace(":remote_behavior", &self.remote_delete_behavior.to_string());
+                execute_write_on_connection(cmd, conn);
+            } else {
+                let mut cmd = String::from(
+                    "
+                INSERT INTO COOP_DATABASE_CONTRACT
+                (
+                    CONTRACT_ID,
+                    GENERATED_DATE_UTC,
+                    DESCRIPTION,
+                    VERSION_ID,
+                    REMOTE_DELETE_BEHAVIOR
+                )
+                VALUES
+                (
+                    ':cid',
+                    ':gen_date',
+                    ':desc',
+                    ':vid',
+                    ':remote_behavior'
+                );
+                ",
+                );
+
+                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
+                cmd = cmd.replace(":desc", &&self.description);
+                let ret = &self.retired_date.unwrap().to_string();
+                cmd = cmd.replace(":vid", &self.version_id.to_string());
+                cmd = cmd.replace(":remote_behavior", &self.remote_delete_behavior.to_string());
+                execute_write_on_connection(cmd, conn);
+            }
+        }
+    }
 }
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
@@ -122,13 +236,37 @@ pub fn generate_contract(
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
     if !has_any_rows(cmd, &conn) {
         // this is the first contract
+        let contract = DatabaseContract {
+            contract_id: GUID::rand(),
+            generated_date: Utc::now().naive_local(),
+            description: desc.to_string(),
+            retired_date: None,
+            version_id: GUID::rand(),
+            remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
+        };
+        contract.save(&conn);
     } else {
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
-    }
+        for con in contracts {
+            if !con.is_retired() {
+                con.retire(&conn);
+                con.save(&conn);
+            }
+        }
 
-    unimplemented!();
+        let new_contract = DatabaseContract {
+            contract_id: GUID::rand(),
+            generated_date: Utc::now().naive_local(),
+            description: desc.to_string(),
+            retired_date: None,
+            version_id: GUID::rand(),
+            remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
+        };
+        new_contract.save(&conn);
+    }
+    Ok(true)
 }
 
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Table> {
