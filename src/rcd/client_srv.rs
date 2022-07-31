@@ -286,7 +286,40 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetLogicalStoragePolicyRequest>,
     ) -> Result<Response<GetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+        let mut policy = LogicalStoragePolicy::None;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+
+        if is_authenticated {
+            let i_policy = crate::sqlitedb::get_logical_storage_policy(
+                &db_name,
+                &self.root_folder,
+                table_name,
+            )
+            .unwrap();
+
+            policy = LogicalStoragePolicy::from_i64(i_policy as i64);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let get_policy_reply = GetLogicalStoragePolicyReply {
+            authentication_result: Some(auth_response),
+            policy_mode: LogicalStoragePolicy::to_u32(policy),
+        };
+
+        Ok(Response::new(get_policy_reply))
     }
 
     async fn generate_contract(

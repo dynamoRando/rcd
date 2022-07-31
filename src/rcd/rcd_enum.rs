@@ -1,3 +1,5 @@
+use std::{error::Error, fmt};
+
 /// Determines how a host will respond to a particpant's delete action.
 /// # Types
 /// * 0 - Unknown
@@ -201,5 +203,23 @@ impl ColumnType {
             ColumnType::Varbinary => 8,
             ColumnType::Text => 9,
         }
+    }
+}
+
+
+
+#[derive(Debug)]
+pub enum RcdDbError {
+    General(String),
+    DbNotFound(String),
+    TableNotFound(String),
+    LogicalStoragePolicyNotSet(String)
+}
+
+impl Error for RcdDbError {}
+
+impl fmt::Display for RcdDbError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "RcdDbError")
     }
 }

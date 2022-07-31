@@ -659,7 +659,10 @@ pub mod tests {
 
                 let response = rx.try_recv().unwrap();
 
-                println!("create_db_enable_coop_read_write: got: is_error: {}", response);
+                println!(
+                    "create_db_enable_coop_read_write: got: is_error: {}",
+                    response
+                );
 
                 assert!(!response);
             }
@@ -812,13 +815,14 @@ pub mod tests {
             }
         }
 
-        pub mod set_logical_storage_policy {
+        pub mod get_set_logical_storage_policy {
             #[cfg(test)]
             use crate::cdata::sql_client_client::SqlClientClient;
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
             use crate::rcd;
+            use crate::rcd_enum::LogicalStoragePolicy;
             #[cfg(test)]
             use log::info;
             extern crate futures;
@@ -844,6 +848,8 @@ pub mod tests {
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
                 println!("{:?}", &service);
+                let policy = LogicalStoragePolicy::ParticpantOwned;
+                let i_policy = LogicalStoragePolicy::to_u32(policy);
 
                 service.start();
 
@@ -861,7 +867,7 @@ pub mod tests {
                 thread::sleep(time);
 
                 thread::spawn(move || {
-                    let res = client(test_db_name, &target_client_address_port);
+                    let res = client(test_db_name, &target_client_address_port, i_policy);
                     tx.send(res).unwrap();
                 })
                 .join()
@@ -869,24 +875,27 @@ pub mod tests {
 
                 let response = rx.try_recv().unwrap();
 
-                println!("create_db_enable_coop_read_write: got: is_error: {}", response);
+                println!(
+                    "get_set_logical_storage_policy: got: policy_num: {}",
+                    response
+                );
 
-                assert!(!response);
-                unimplemented!("test not fully written");
+                assert_eq!(i_policy, response);
             }
 
             #[cfg(test)]
             #[tokio::main]
-            async fn client(db_name: &str, addr_port: &str) -> bool {
+            async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
                 #[allow(unused_imports)]
                 use log::Log;
 
                 use crate::{
                     cdata::{
                         AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
-                        ExecuteWriteRequest, SetLogicalStoragePolicyRequest,
+                        ExecuteWriteRequest, GetLogicalStoragePolicyRequest,
+                        SetLogicalStoragePolicyRequest,
                     },
-                    rcd::DatabaseType, rcd_enum::LogicalStoragePolicy,
+                    rcd::DatabaseType,
                 };
 
                 let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1024,24 +1033,40 @@ pub mod tests {
 
                 assert!(!resultsets.is_error);
 
-                let policy = LogicalStoragePolicy::ParticpantOwned;
-
-                let set_logical_policy_request = tonic::Request::new(SetLogicalStoragePolicyRequest {
-                    authentication: Some(auth.clone()),
-                    database_name: db_name.to_string(), 
-                    table_name: String::from("EMPLOYEE"),
-                    policy_mode: LogicalStoragePolicy::to_u32(policy),
-                });
+                let set_logical_policy_request =
+                    tonic::Request::new(SetLogicalStoragePolicyRequest {
+                        authentication: Some(auth.clone()),
+                        database_name: db_name.to_string(),
+                        table_name: String::from("EMPLOYEE"),
+                        policy_mode: policy_num,
+                    });
 
                 let set_policy_reply = client
-                .set_logical_storage_policy(set_logical_policy_request)
-                .await
-                .unwrap()
-                .into_inner();
-            println!("RESPONSE={:?}", set_policy_reply);
-            info!("response back");
+                    .set_logical_storage_policy(set_logical_policy_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", set_policy_reply);
+                info!("response back");
 
-                unimplemented!("test not written");
+                let get_logical_storage_policy_request =
+                    tonic::Request::new(GetLogicalStoragePolicyRequest {
+                        authentication: Some(auth.clone()),
+                        database_name: db_name.to_string(),
+                        table_name: String::from("EMPLOYEE"),
+                    });
+
+                let get_policy_reply = client
+                    .get_logical_storage_policy(get_logical_storage_policy_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+
+                println!("RESPONSE={:?}", set_policy_reply);
+                info!("response back");
+
+                let i_res_policy = get_policy_reply.policy_mode;
+                return i_res_policy;
             }
         }
 

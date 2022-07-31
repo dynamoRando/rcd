@@ -2,7 +2,7 @@
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
-    rcd_enum::{self, LogicalStoragePolicy},
+    rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
 #[allow(unused_imports)]
@@ -43,7 +43,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
         let empty_string = String::from("");
         let col_type = match col.decl_type() {
             Some(c) => c,
-            None => &empty_string
+            None => &empty_string,
         };
 
         let c = Column {
@@ -173,12 +173,54 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code, unused_variables, unused_assignments)]
+pub fn get_logical_storage_policy(
+    db_name: &str,
+    cwd: &str,
+    table_name: String,
+) -> Result<LogicalStoragePolicy, RcdDbError> {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    let mut policy = LogicalStoragePolicy::None;
+
+    if has_table(table_name.clone(), &conn) {
+        // insert or update on the coop tables
+        let mut cmd = String::from(
+            "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
+        );
+        cmd = cmd.replace(":table_name", &table_name.clone());
+        if has_any_rows(cmd, &conn) {
+            // then we have a record for the policy of the table
+            let mut cmd = String::from(
+                "SELECT LOGICAL_STORAGE_POLICY FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
+            );
+
+            cmd = cmd.replace(":table_name", &table_name);
+            let i_policy = get_scalar_as_u32(cmd.clone(), &conn);
+            policy = LogicalStoragePolicy::from_i64(i_policy as i64);
+        } else {
+            let error_message = format!(
+                "logical storage policy not saved in COOP_REMOTES for table {} in db {}",
+                table_name, db_name
+            );
+            let err = RcdDbError::LogicalStoragePolicyNotSet(error_message);
+            return Err(err);
+        }
+    } else {
+        let error_message = format!("table {} not found in db {}", table_name, db_name);
+        let err = RcdDbError::TableNotFound(error_message);
+        return Err(err);
+    }
+
+    return Ok(policy);
+}
+
+#[allow(dead_code, unused_variables, unused_assignments)]
 pub fn set_logical_storage_policy(
     db_name: &str,
     cwd: &str,
     table_name: String,
     policy: LogicalStoragePolicy,
-) -> Result<bool> {
+) -> Result<bool, RcdDbError> {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
@@ -219,9 +261,12 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             execute_write(db_name, cwd, &cmd);
         }
+    } else {
+        let error_message = format!("table {} not in {}", table_name, db_name);
+        let err = RcdDbError::TableNotFound(error_message);
+        return Err(err);
     }
-
-    unimplemented!();
+    return Ok(true);
 }
 
 #[allow(dead_code, unused_variables)]
@@ -353,9 +398,8 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 }
 
 #[allow(dead_code, unused_variables)]
-/// Takes a SELECT COUNT(*) SQL statement and returns the value
-fn total_count(cmd: String, conn: &Connection) -> u32 {
-    let mut count: u32 = 0;
+fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
+    let mut value: u32 = 0;
 
     // println!("total count cmd {}", cmd);
 
@@ -364,10 +408,16 @@ fn total_count(cmd: String, conn: &Connection) -> u32 {
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
 
     for item in rows {
-        count = item.unwrap();
+        value = item.unwrap();
     }
 
-    return count;
+    return value;
+}
+
+#[allow(dead_code, unused_variables)]
+/// Takes a SELECT COUNT(*) SQL statement and returns the value
+fn total_count(cmd: String, conn: &Connection) -> u32 {
+    return get_scalar_as_u32(cmd, conn);
 }
 
 #[allow(dead_code, unused_variables)]
