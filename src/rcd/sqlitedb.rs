@@ -400,11 +400,7 @@ fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 #[allow(dead_code, unused_variables)]
 fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     let mut value: u32 = 0;
-
-    // println!("total count cmd {}", cmd);
-
     let mut statement = conn.prepare(&cmd).unwrap();
-
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
 
     for item in rows {
