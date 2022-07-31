@@ -22,6 +22,8 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
+    // println!("cmd: {}", cmd);
+
     let result = match conn.execute(&cmd, []) {
         Ok(updated) => updated,
         Err(err) => panic!("{:?}", err),
@@ -38,11 +40,17 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
 
     for col in cols {
         let col_idx = statement.column_index(col.name()).unwrap();
+        let empty_string = String::from("");
+        let col_type = match col.decl_type() {
+            Some(c) => c,
+            None => &empty_string
+        };
+
         let c = Column {
             name: col.name().to_string(),
             is_nullable: false,
             idx: col_idx,
-            data_type: col.decl_type().unwrap().to_string(),
+            data_type: col_type.to_string(),
             is_primary_key: false,
         };
 
@@ -164,7 +172,7 @@ pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
     populate_data_host_tables(db_name, &conn);
 }
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_assignments)]
 pub fn set_logical_storage_policy(
     db_name: &str,
     cwd: &str,
@@ -174,8 +182,43 @@ pub fn set_logical_storage_policy(
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
 
-    if has_table(table_name, &conn) {
+    if has_table(table_name.clone(), &conn) {
         // insert or update on the coop tables
+        let mut cmd = String::from(
+            "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
+        );
+        cmd = cmd.replace(":table_name", &table_name.clone());
+        if has_any_rows(cmd, &conn) {
+            // then this is an update
+            let mut cmd = String::from(
+                "UPDATE COOP_REMOTES
+            SET LOGICAL_STORAGE_POLICY = :policy
+            WHERE TABLENAME = ':table_name';
+            ",
+            );
+
+            cmd = cmd.replace(":table_name", &table_name);
+            cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
+            execute_write(db_name, cwd, &cmd);
+        } else {
+            // then this is an insert
+            let mut cmd = String::from(
+                "INSERT INTO COOP_REMOTES
+            (
+                TABLENAME,
+                LOGICAL_STORAGE_POLICY  
+            )
+            VALUES
+            (
+                ':table_name',
+                :policy
+            );",
+            );
+
+            cmd = cmd.replace(":table_name", &table_name);
+            cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
+            execute_write(db_name, cwd, &cmd);
+        }
     }
 
     unimplemented!();
@@ -306,13 +349,15 @@ fn populate_database_id(db_name: &str, conn: &Connection) {
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
 /// created has also populated any data in it.
 fn has_any_rows(cmd: String, conn: &Connection) -> bool {
-    return total_count(cmd, conn) > 0
+    return total_count(cmd, conn) > 0;
 }
 
 #[allow(dead_code, unused_variables)]
 /// Takes a SELECT COUNT(*) SQL statement and returns the value
 fn total_count(cmd: String, conn: &Connection) -> u32 {
     let mut count: u32 = 0;
+
+    // println!("total count cmd {}", cmd);
 
     let mut statement = conn.prepare(&cmd).unwrap();
 
@@ -429,7 +474,9 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 
 #[allow(unused_variables, dead_code)]
 fn has_table(table_name: String, conn: &Connection) -> bool {
-    let mut cmd = String::from("SELECT count(*) AS TABLECOUNT FROM sqlite_master WHERE type='table' AND name='table_name'");
-    cmd = cmd.replace("table_name", &table_name);
+    let mut cmd = String::from(
+        "SELECT count(*) AS TABLECOUNT FROM sqlite_master WHERE type='table' AND name=':table_name'",
+    );
+    cmd = cmd.replace(":table_name", &table_name);
     return has_any_rows(cmd, conn);
 }

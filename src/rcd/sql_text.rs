@@ -206,7 +206,7 @@ impl COOP {
     /// - ":table_name"
     pub fn text_get_count_from_data_host_tables_for_table(table_name: &str) -> String {
         let mut statement = String::from(
-            "SELECT count(*) tablecount FROM COOP_DATA_TABLES WHERE TABLE_NAME = :table_name",
+            "SELECT count(*) tablecount FROM COOP_DATA_TABLES WHERE TABLE_NAME = ':table_name'",
         );
         statement = statement.replace(&String::from(":table_name"), &table_name);
         return statement;
@@ -218,7 +218,7 @@ impl COOP {
     /// - ":table_id"
     /// - ":table_name"
     pub fn text_add_table_to_data_host_table(table_name: String, table_id: String) -> String {
-        let mut statement = String::from("INSERT INTO COOP_DATA_TABLES ( TABLE_ID, TABLE_NAME ) VALUES (:table_id, :table_name);");
+        let mut statement = String::from("INSERT INTO COOP_DATA_TABLES ( TABLE_ID, TABLE_NAME ) VALUES (':table_id', ':table_name');");
         statement = statement.replace(&String::from(":table_id"), &table_id);
         statement = statement.replace(&String::from(":table_name"), &table_name);
         return statement;
