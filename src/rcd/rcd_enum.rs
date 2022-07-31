@@ -20,13 +20,23 @@ pub enum RemoteDeleteBehavior {
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl RemoteDeleteBehavior {
     #[allow(dead_code)]
-    fn from_i64(value: i64) -> RemoteDeleteBehavior {
+    pub fn from_i64(value: i64) -> RemoteDeleteBehavior {
         match value {
             0 => RemoteDeleteBehavior::Unknown,
             1 => RemoteDeleteBehavior::Ignore,
             2 => RemoteDeleteBehavior::AutoDelete,
             3 => RemoteDeleteBehavior::UpdateStatusOnly,
             _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn to_u32(behavior: RemoteDeleteBehavior) -> u32 {
+        match behavior {
+            RemoteDeleteBehavior::Unknown => 0,
+            RemoteDeleteBehavior::Ignore => 1,
+            RemoteDeleteBehavior::AutoDelete => 2,
+            RemoteDeleteBehavior::UpdateStatusOnly => 3,
         }
     }
 }
@@ -206,8 +216,6 @@ impl ColumnType {
     }
 }
 
-
-
 #[derive(Debug)]
 pub enum RcdDbError {
     General(String),
@@ -221,5 +229,19 @@ impl Error for RcdDbError {}
 impl fmt::Display for RcdDbError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "RcdDbError")
+    }
+}
+
+#[derive(Debug)]
+pub enum RcdGenerateContractError {
+    General(String),
+    NotAllTablesSet(String)
+}
+
+impl Error for RcdGenerateContractError {}
+
+impl fmt::Display for RcdGenerateContractError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "RcdGenerateContractError")
     }
 }

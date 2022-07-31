@@ -1,3 +1,4 @@
+use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
@@ -30,6 +31,30 @@ pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
     };
 
     return result;
+}
+
+#[allow(unused_variables, dead_code)]
+pub fn generate_contract(
+    db_name: &str,
+    cwd: &str,
+    host_name: &str,
+    desc: &str,
+    remote_delete_behavior: RemoteDeleteBehavior,
+) -> Result<bool, RcdGenerateContractError> {
+
+    /*
+        First, we should check to see if there is a logical storage policy
+        defined on all user tables. If any are not set, then this should return
+        a RcdGenerateContractError.
+        
+        We need to see if there are other database contracts.
+        If there are none, then this is the first contract ever.
+
+        If there are existing contracts, we need to find the active one 
+        and retire it, then generate the current one.
+     */
+
+    unimplemented!();
 }
 
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Table> {

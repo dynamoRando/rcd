@@ -2,7 +2,7 @@ use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::*;
-use crate::rcd_enum::LogicalStoragePolicy;
+use crate::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
 use chrono::Utc;
@@ -249,7 +249,7 @@ impl SqlClient for SqlClientImpl {
             has_table = crate::sqlitedb::has_table_client_service(
                 &db_name,
                 &self.root_folder,
-                table_name.as_str()
+                table_name.as_str(),
             )
         }
 
@@ -358,7 +358,43 @@ impl SqlClient for SqlClientImpl {
         request: Request<GenerateContractRequest>,
     ) -> Result<Response<GenerateContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+        let mut is_successful = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let desc = message.description;
+        let i_remote_delete_behavior = message.remote_delete_behavior;
+        let host_name = message.host_name;
+
+        if is_authenticated {
+            is_successful = crate::sqlitedb::generate_contract(
+                &db_name,
+                &self.root_folder,
+                &host_name,
+                &desc,
+                RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
+            )
+            .unwrap();
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let generate_contract_reply = GenerateContractReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_successful,
+            message: String::from(""),
+        };
+
+        Ok(Response::new(generate_contract_reply))
     }
 
     async fn add_participant(
