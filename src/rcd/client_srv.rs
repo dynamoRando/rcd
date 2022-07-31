@@ -234,7 +234,38 @@ impl SqlClient for SqlClientImpl {
         request: Request<HasTableRequest>,
     ) -> Result<Response<HasTableReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        let mut has_table = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+
+        if is_authenticated {
+            has_table = crate::sqlitedb::has_table_client_service(
+                &db_name,
+                &self.root_folder,
+                table_name.as_str()
+            )
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let has_table_reply = HasTableReply {
+            authentication_result: Some(auth_response),
+            has_table: has_table,
+        };
+
+        Ok(Response::new(has_table_reply))
     }
 
     async fn set_logical_storage_policy(

@@ -1102,6 +1102,191 @@ pub mod tests {
             }
         }
 
+        pub mod has_table {
+            #[cfg(test)]
+            use crate::cdata::sql_client_client::SqlClientClient;
+            #[cfg(test)]
+            use crate::cdata::CreateUserDatabaseRequest;
+            #[cfg(test)]
+            use crate::rcd;
+            #[cfg(test)]
+            use log::info;
+            extern crate futures;
+            extern crate tokio;
+            #[cfg(test)]
+            use crate::test_harness;
+            #[cfg(test)]
+            use std::sync::mpsc;
+            #[cfg(test)]
+            use std::{thread, time};
+
+            #[test]
+            pub fn test() {
+                let test_db_name: &str = "test_create_has_table.db";
+                let (tx, rx) = mpsc::channel();
+                let port_num = test_harness::TEST_SETTINGS
+                    .lock()
+                    .unwrap()
+                    .get_next_avail_port();
+
+                let service = rcd::get_service_from_config_file();
+                let client_address_port =
+                    format!("{}{}", String::from("[::1]:"), port_num.to_string());
+                let target_client_address_port = client_address_port.clone();
+                println!("{:?}", &service);
+
+                service.start();
+
+                info!("starting client at {}", &client_address_port);
+                info!("starting client service");
+
+                thread::spawn(move || {
+                    let _service = service.start_client_service_at_addr(client_address_port);
+                });
+
+                let time = time::Duration::from_secs(5);
+
+                info!("sleeping for 5 seconds...");
+
+                thread::sleep(time);
+
+                thread::spawn(move || {
+                    let res = client(test_db_name, &target_client_address_port);
+                    tx.send(res).unwrap();
+                })
+                .join()
+                .unwrap();
+
+                let response = rx.try_recv().unwrap();
+
+                println!("has table: got: {}", response);
+
+                assert!(response);
+            }
+
+            #[cfg(test)]
+            #[tokio::main]
+            async fn client(db_name: &str, addr_port: &str) -> bool {
+                #[allow(unused_imports)]
+                use log::Log;
+
+                use crate::{
+                    cdata::{
+                        AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteWriteRequest,
+                        HasTableRequest,
+                    },
+                    rcd::DatabaseType,
+                };
+
+                let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+
+                let addr_port = format!("{}{}", String::from("http://"), addr_port);
+                info!("has_table attempting to connect {}", addr_port);
+
+                let endpoint = tonic::transport::Channel::builder(addr_port.parse().unwrap());
+                let channel = endpoint.connect().await.unwrap();
+                let mut client = SqlClientClient::new(channel);
+
+                info!("created channel and client");
+
+                let auth = AuthRequest {
+                    user_name: String::from("tester"),
+                    pw: String::from("123456"),
+                    pw_hash: Vec::new(),
+                    token: Vec::new(),
+                };
+
+                let request = tonic::Request::new(CreateUserDatabaseRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                });
+
+                info!("sending request");
+
+                let response = client
+                    .create_user_database(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                assert!(response.is_created);
+
+                let enable_coop_request = tonic::Request::new(EnableCoooperativeFeaturesRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                });
+
+                let coop_response = client
+                    .enable_coooperative_features(enable_coop_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", coop_response);
+                info!("response back");
+
+                let enable_coop_features = coop_response.is_successful;
+
+                let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
+
+                assert!(enable_coop_features);
+
+                let execute_write_drop_request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: drop_table_statement,
+                    database_type: database_type,
+                });
+
+                let execute_write_drop_reply = client
+                    .execute_write(execute_write_drop_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_write_drop_reply);
+                info!("response back");
+
+                assert!(execute_write_drop_reply.is_successful);
+
+                let create_table_statement =
+                    String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
+
+                let execute_write_create_request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    sql_statement: create_table_statement,
+                    database_type: database_type,
+                });
+
+                let execute_write_create_reply = client
+                    .execute_write(execute_write_create_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", execute_write_create_reply);
+                info!("response back");
+
+                assert!(execute_write_create_reply.is_successful);
+
+                let has_table_request = tonic::Request::new(HasTableRequest {
+                    authentication: Some(auth.clone()),
+                    database_name: db_name.to_string(),
+                    table_name: String::from("EMPLOYEE"),
+                });
+
+                let has_table_reply = client
+                    .has_table(has_table_request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", has_table_reply);
+                info!("response back");
+
+                return has_table_reply.has_table;
+            }
+        }
+
         #[test]
         fn get_harness_value() {
             let current = crate::test_harness::TEST_SETTINGS

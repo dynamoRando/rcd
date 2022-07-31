@@ -98,6 +98,13 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
 }
 
 #[allow(dead_code)]
+pub fn has_table_client_service(db_name: &str, cwd: &str, table_name: &str) -> bool {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    return has_table(table_name.to_string(), &conn);
+}
+
+#[allow(dead_code)]
 pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path)?;
