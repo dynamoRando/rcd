@@ -1,5 +1,7 @@
 #[cfg(test)]
 use crate::client_srv::SqlClientImpl;
+#[allow(unused_imports)]
+use crate::db_srv::DataServiceImpl;
 use config::Config;
 use log::info;
 use std::env;
@@ -7,6 +9,9 @@ use std::path::Path;
 
 #[cfg(test)]
 use crate::cdata::sql_client_server::SqlClientServer;
+#[cfg(test)]
+#[allow(unused_imports)]
+use crate::cdata::data_service_client::DataServiceClient;
 #[cfg(test)]
 use tonic::transport::Server;
 
@@ -84,7 +89,20 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let _item = crate::client_srv::start_service(
+        let _item = crate::client_srv::start_client_service(
+            &self.rcd_settings.client_service_addr_port,
+            &cwd,
+            &self.rcd_settings.backing_database_name,
+        );
+    }
+
+    pub fn start_db_service(&self) {
+        info!("start_db_service");
+
+        let wd = env::current_dir().unwrap();
+        let cwd = wd.to_str().unwrap();
+
+        let _item = crate::db_srv::start_db_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,

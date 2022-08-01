@@ -452,7 +452,7 @@ impl SqlClient for SqlClientImpl {
 
 #[allow(dead_code)]
 #[tokio::main]
-pub async fn start_service(
+pub async fn start_client_service(
     address_port: &str,
     root_folder: &str,
     database_name: &str,
