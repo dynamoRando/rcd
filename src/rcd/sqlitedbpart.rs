@@ -27,3 +27,9 @@ pub fn create_partial_database(db_name: &str, cwd: &str) -> Result<Connection, E
     let db_path = Path::new(&cwd).join(&db_part_name);
     Connection::open(&db_path)
 }
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn get_db_id(db_name: &str) -> String {
+    unimplemented!();
+}
+

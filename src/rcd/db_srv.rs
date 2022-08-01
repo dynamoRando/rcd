@@ -43,11 +43,54 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(response))
     }
 
+    #[allow(dead_code, unused_variables, unused_assignments)]
     async fn create_partial_database(
         &self,
-        _request: Request<CreateDatabaseRequest>,
+        request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
-        unimplemented!("not implemented");
+
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let host_id = a.user_name;
+        let host_token = a.token.as_bytes();
+        let mut is_authenticated = false;
+        let mut is_part_db_created = false;
+        let db_name = message.database_name;
+        let mut db_id = String::from("");
+
+        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if is_authenticated {
+            let result = crate::sqlitedbpart::create_partial_database(&db_name, &self.root_folder);
+            if !result.is_err() {
+                is_part_db_created = true;
+                db_id = crate::sqlitedbpart::get_db_id(&db_name.as_str());
+            }
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let create_db_result = CreateDatabaseResult {
+            authentication_result: Some(auth_response),
+            is_successful: is_authenticated,
+            database_name: db_name,   
+            result_message: String::from(""),
+            database_id: db_id,
+        };
+
+        Ok(Response::new(create_db_result))
     }
 
     async fn create_table_in_database(

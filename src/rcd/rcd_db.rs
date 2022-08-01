@@ -28,6 +28,7 @@ pub fn configure(root: &str, db_name: &str) {
         create_user_role_table(&db_conn);
         create_host_info_table(&db_conn);
         create_contracts_table(&db_conn);
+        create_cds_hosts_table(&db_conn);
 
         let db_has_role = has_role_name(&String::from("SysAdmin"), &db_conn).unwrap();
 
@@ -69,6 +70,28 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     }
 
     return Ok(has_login);
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn verify_host_by_id(host_id: &str, token: Vec<u8>) -> bool {
+    /*
+        "CREATE TABLE IF NOT EXISTS CDS_HOSTS
+        (
+            HOST_ID CHAR(36) NOT NULL,
+            HOST_NAME VARCHAR(50),
+            TOKEN BLOB,
+            IP4ADDRESS VARCHAR(25),
+            IP6ADDRESS VARCHAR(25),
+            PORT INT,
+            LAST_COMMUNICATION_UTC DATETIME
+        );",
+    */
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn verify_host_by_name(host_name: &str, token: Vec<u8>) -> bool {
+    unimplemented!();
 }
 
 #[allow(dead_code)]
@@ -200,5 +223,10 @@ fn create_host_info_table(conn: &Connection) {
 
 fn create_contracts_table(conn: &Connection) {
     conn.execute(&CDS::text_create_cds_contracts_table(), [])
+        .unwrap();
+}
+
+fn create_cds_hosts_table(conn: &Connection) {
+    conn.execute(&&CDS::text_create_cds_hosts_table(), [])
         .unwrap();
 }
