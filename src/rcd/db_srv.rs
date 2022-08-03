@@ -51,7 +51,6 @@ impl DataService for DataServiceImpl {
 
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
         let host_id = a.user_name;
         let host_token = a.token.as_bytes();
         let mut is_authenticated = false;
@@ -95,9 +94,57 @@ impl DataService for DataServiceImpl {
 
     async fn create_table_in_database(
         &self,
-        _request: Request<CreateTableRequest>,
+        request: Request<CreateTableRequest>,
     ) -> Result<Response<CreateTableResult>, Status> {
-        unimplemented!("not implemented");
+
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let host_id = a.user_name;
+        let host_token = a.token;
+        let mut is_authenticated = false;
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+        let table_schema = message.columns;
+        let mut table_is_created = false;
+        let mut table_id = String::from("");
+        let mut db_id = String::from("");
+
+        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if is_authenticated {
+            let result = 
+            crate::sqlitedbpart::create_table_in_partial_database(&db_name, &self.root_folder, &table_name, table_schema);
+            if !result.is_err() {
+                table_is_created = true;
+                table_id = crate::sqlitedbpart::get_table_id(&db_name, &table_name);
+                db_id = crate::sqlitedbpart::get_db_id(&db_name.as_str());
+            }
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let create_table_result = CreateTableResult {
+            authentication_result: Some(auth_response),
+            is_successful: table_is_created,
+            database_name: db_name,   
+            result_message: String::from(""),
+            table_id: table_id,
+            table_name: table_name,
+            database_id: db_id,
+        };
+
+        Ok(Response::new(create_table_result))
     }
 
     async fn insert_row_into_table(

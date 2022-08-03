@@ -1,3 +1,4 @@
+use crate::cdata::ColumnSchema;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -30,6 +31,26 @@ pub fn create_partial_database(db_name: &str, cwd: &str) -> Result<Connection, E
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub fn get_db_id(db_name: &str) -> String {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn get_table_id(db_name: &str, table_name: &str) -> String {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn create_table_in_partial_database(db_name: &str, cwd: &str, table_name: &str, schema: Vec<ColumnSchema>) -> Result<bool> {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn add_row_to_partial_database(db_name: &str, table_name: &str, row_data: Table) -> String {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn update_row_in_partial_database(db_name: &str, table_name: &str, row_data: Table) -> String {
     unimplemented!();
 }
 
