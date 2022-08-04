@@ -1,184 +1,37 @@
+mod client_srv;
+mod crypt;
+mod db_srv;
+mod rcd_db;
+mod rcd_enum;
+mod sql_text;
+mod sqlitedb;
+mod sqlitedbpart;
+mod table;
+mod test_harness;
+mod cdata;
+mod rcd_settings;
+mod rcd_service;
+
 #[cfg(test)]
-use crate::client_srv::SqlClientImpl;
+use client_srv::SqlClientImpl;
 #[allow(unused_imports)]
-use crate::db_srv::DataServiceImpl;
+use db_srv::DataServiceImpl;
 use config::Config;
 use log::info;
 use std::env;
 use std::path::Path;
-
 #[cfg(test)]
-use crate::cdata::sql_client_server::SqlClientServer;
+use cdata::sql_client_server::SqlClientServer;
 #[cfg(test)]
 #[allow(unused_imports)]
 use crate::cdata::data_service_client::DataServiceClient;
 #[cfg(test)]
 use tonic::transport::Server;
 
-/// Represents settings for rcd that can be passed in on a test case
-#[derive(Debug, Clone)]
-#[allow(dead_code)]
-pub struct RcdSettings {
-    pub admin_un: String,
-    pub admin_pw: String,
-    pub database_type: DatabaseType,
-    pub backing_database_name: String,
-    pub client_service_addr_port: String,
-    pub database_service_addr_port: String,
-}
 
-/// Represents the type of backing database rcd is hosting
-/// # Types
-/// * 0 - Unknown
-/// * 1 - Sqlite
-/// * 2 - Mysql
-/// * 3 - Postgres
-/// * 4 - Sqlserver
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum DatabaseType {
-    Unknown = 0,
-    Sqlite = 1,
-    Mysql = 2,
-    Postgres = 3,
-    Sqlserver = 4,
-}
+use crate::rcd_enum::DatabaseType;
+use crate::rcd_service::RcdService;
 
-// https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
-impl DatabaseType {
-    fn from_i64(value: i64) -> DatabaseType {
-        match value {
-            0 => DatabaseType::Unknown,
-            1 => DatabaseType::Sqlite,
-            2 => DatabaseType::Mysql,
-            3 => DatabaseType::Postgres,
-            4 => DatabaseType::Sqlserver,
-            _ => panic!("Unknown value: {}", value),
-        }
-    }
-
-    #[allow(dead_code)]
-    fn to_u32(db_type: DatabaseType) -> u32 {
-        match db_type {
-            DatabaseType::Unknown => 0,
-            DatabaseType::Sqlite => 1,
-            DatabaseType::Mysql => 2,
-            DatabaseType::Postgres => 3,
-            DatabaseType::Sqlserver => 4,
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct RcdService {
-    pub rcd_settings: RcdSettings,
-}
-
-impl RcdService {
-    pub fn start(self: &Self) {
-        configure_backing_store(
-            self.rcd_settings.database_type,
-            &self.rcd_settings.backing_database_name,
-            &self.rcd_settings.admin_un,
-            &self.rcd_settings.admin_pw,
-        );
-    }
-
-    pub fn start_client_service(self: &Self) {
-        info!("start_client_service");
-
-        let wd = env::current_dir().unwrap();
-        let cwd = wd.to_str().unwrap();
-
-        let _item = crate::client_srv::start_client_service(
-            &self.rcd_settings.client_service_addr_port,
-            &cwd,
-            &self.rcd_settings.backing_database_name,
-        );
-    }
-
-    pub fn start_db_service(&self) {
-        info!("start_db_service");
-
-        let wd = env::current_dir().unwrap();
-        let cwd = wd.to_str().unwrap();
-
-        let _item = crate::db_srv::start_db_service(
-            &self.rcd_settings.client_service_addr_port,
-            &cwd,
-            &self.rcd_settings.backing_database_name,
-        );
-    }
-
-    #[cfg(test)]
-    #[tokio::main]
-    pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
-        let address_port = &self.rcd_settings.client_service_addr_port;
-        let addr = address_port.parse().unwrap();
-        let database_name = &self.rcd_settings.backing_database_name;
-
-        let wd = env::current_dir().unwrap();
-        let root_folder = wd.to_str().unwrap();
-
-        let sql_client = SqlClientImpl {
-            root_folder: root_folder.to_string(),
-            database_name: database_name.to_string(),
-            addr_port: address_port.to_string(),
-        };
-
-        let sql_client_service = tonic_reflection::server::Builder::configure()
-            .build()
-            .unwrap();
-
-        println!("sql client server listening on {}", addr);
-
-        Server::builder()
-            .add_service(SqlClientServer::new(sql_client))
-            .add_service(sql_client_service) // Add this
-            .serve(addr)
-            .await?;
-
-        Ok(())
-    }
-
-    #[allow(dead_code)]
-    #[cfg(test)]
-    #[tokio::main]
-    pub async fn start_client_service_at_addr(
-        self: &Self,
-        address_port: String,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        println!("start_client_service_at_addr: {}", &address_port);
-
-        let addr = address_port.parse().unwrap();
-        let database_name = &self.rcd_settings.backing_database_name;
-
-        let wd = env::current_dir().unwrap();
-        let root_folder = wd.to_str().unwrap();
-
-        let sql_client = SqlClientImpl {
-            root_folder: root_folder.to_string(),
-            database_name: database_name.to_string(),
-            addr_port: address_port.to_string(),
-        };
-
-        let sql_client_service = tonic_reflection::server::Builder::configure()
-            .build()
-            .unwrap();
-
-        println!(
-            "start_client_service_at_addr: sql client server listening on {}",
-            addr
-        );
-
-        Server::builder()
-            .add_service(SqlClientServer::new(sql_client))
-            .add_service(sql_client_service) // Add this
-            .serve(addr)
-            .await?;
-
-        Ok(())
-    }
-}
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(
@@ -260,8 +113,6 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::TestRequest;
             #[cfg(test)]
-            use crate::rcd;
-            #[cfg(test)]
             use log::info;
             extern crate futures;
             extern crate tokio;
@@ -306,7 +157,7 @@ pub mod tests {
                 let test_message: &str = "test_client_srv";
                 let (tx, rx) = mpsc::channel();
 
-                let service = rcd::get_service_from_config_file();
+                let service = crate::get_service_from_config_file();
                 let client_address_port = service.rcd_settings.client_service_addr_port.clone();
                 println!("{:?}", &service);
                 service.start();
@@ -344,8 +195,6 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
-            #[cfg(test)]
             use log::info;
             extern crate futures;
             extern crate tokio;
@@ -365,7 +214,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = crate::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -451,7 +300,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = crate::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -537,8 +386,6 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
-            #[cfg(test)]
             use log::info;
             extern crate futures;
             extern crate tokio;
@@ -558,7 +405,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = crate::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -657,8 +504,6 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
-            #[cfg(test)]
             use log::info;
             extern crate futures;
             extern crate tokio;
@@ -678,7 +523,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = crate::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -724,7 +569,7 @@ pub mod tests {
                         AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
                         ExecuteWriteRequest,
                     },
-                    rcd::DatabaseType,
+                    lib::DatabaseType,
                 };
 
                 let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -870,7 +715,7 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
+            use crate::lib;
             #[cfg(test)]
             use crate::rcd_enum::LogicalStoragePolicy;
             #[cfg(test)]
@@ -893,7 +738,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = lib::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -945,7 +790,7 @@ pub mod tests {
                         ExecuteWriteRequest, GetLogicalStoragePolicyRequest,
                         SetLogicalStoragePolicyRequest,
                     },
-                    rcd::DatabaseType,
+                    lib::DatabaseType,
                 };
 
                 let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1126,7 +971,7 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
+            use crate::lib;
             #[cfg(test)]
             use log::info;
             extern crate futures;
@@ -1147,7 +992,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = lib::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -1193,7 +1038,7 @@ pub mod tests {
                         AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteWriteRequest,
                         HasTableRequest,
                     },
-                    rcd::DatabaseType,
+                    lib::DatabaseType,
                 };
 
                 let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1311,7 +1156,7 @@ pub mod tests {
             #[cfg(test)]
             use crate::cdata::CreateUserDatabaseRequest;
             #[cfg(test)]
-            use crate::rcd;
+            use crate::lib;
             #[cfg(test)]
             use log::info;
             extern crate futures;
@@ -1332,7 +1177,7 @@ pub mod tests {
                     .unwrap()
                     .get_next_avail_port();
 
-                let service = rcd::get_service_from_config_file();
+                let service = lib::get_service_from_config_file();
                 let client_address_port =
                     format!("{}{}", String::from("[::1]:"), port_num.to_string());
                 let target_client_address_port = client_address_port.clone();
@@ -1378,7 +1223,7 @@ pub mod tests {
                         AuthRequest, EnableCoooperativeFeaturesRequest, ExecuteWriteRequest,
                         GenerateContractRequest,
                     },
-                    rcd::DatabaseType,
+                    lib::DatabaseType,
                     rcd_enum::RemoteDeleteBehavior,
                 };
 
@@ -1514,7 +1359,7 @@ pub mod tests {
         #[allow(unused_imports)]
         use crate::client_srv::SqlClientImpl;
         #[allow(unused_imports)]
-        use crate::rcd;
+        use crate::lib;
         #[allow(unused_imports)]
         use config::Config;
         #[allow(unused_imports)]
@@ -1543,22 +1388,22 @@ pub mod tests {
         fn read_settings_from_config() {
             // ARRANGE
             init();
-            let rcd_setting = rcd::RcdSettings {
+            let rcd_setting = lib::RcdSettings {
                 admin_un: String::from("tester"),
                 admin_pw: String::from("123456"),
-                database_type: rcd::DatabaseType::Unknown,
+                database_type: lib::DatabaseType::Unknown,
                 backing_database_name: String::from(""),
                 client_service_addr_port: String::from("[::1]:50051"),
                 database_service_addr_port: String::from(""),
             };
 
             // ACT
-            let service = rcd::get_service_from_config(rcd_setting);
+            let service = lib::get_service_from_config(rcd_setting);
 
             // ASSERT
             assert_eq!(
                 service.rcd_settings.database_type,
-                rcd::DatabaseType::Unknown
+                lib::DatabaseType::Unknown
             );
         }
 
@@ -1571,10 +1416,10 @@ pub mod tests {
             // RUST_LOG=debug cargo test -- --nocapture
 
             // ARRANGE
-            let rcd_setting = rcd::RcdSettings {
+            let rcd_setting = lib::RcdSettings {
                 admin_un: String::from("tester"),
                 admin_pw: String::from("123456"),
-                database_type: rcd::DatabaseType::Sqlite,
+                database_type: lib::DatabaseType::Sqlite,
                 backing_database_name: String::from("rcd_test.db"),
                 client_service_addr_port: String::from("[::1]:50051"),
                 database_service_addr_port: String::from(""),
@@ -1588,7 +1433,7 @@ pub mod tests {
             }
 
             // ACT
-            let service = rcd::get_service_from_config(rcd_setting);
+            let service = lib::get_service_from_config(rcd_setting);
             service.start();
 
             // ASSERT
@@ -1692,9 +1537,9 @@ pub mod tests {
         /// Attempts to read a value from the Settings.toml file
         fn read_settings_from_file() {
             init();
-            let service = rcd::get_service_from_config_file();
+            let service = lib::get_service_from_config_file();
             let db_type = service.rcd_settings.database_type;
-            assert_eq!(db_type, rcd::DatabaseType::Sqlite);
+            assert_eq!(db_type, lib::DatabaseType::Sqlite);
         }
     }
 }
