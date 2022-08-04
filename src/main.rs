@@ -22,6 +22,8 @@ pub mod sqlitedbpart;
 pub mod table;
 #[path = "rcd/test_harness.rs"]
 pub mod test_harness;
+#[path = "rcd/database_contract.rs"]
+pub mod database_contract;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

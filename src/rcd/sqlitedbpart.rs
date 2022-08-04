@@ -54,3 +54,7 @@ pub fn update_row_in_partial_database(db_name: &str, table_name: &str, row_data:
     unimplemented!();
 }
 
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn save_contract(db_name: &str, table_name: &str, row_data: Table) -> String {
+    unimplemented!();
+}
