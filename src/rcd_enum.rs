@@ -265,7 +265,7 @@ pub enum DatabaseType {
 
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl DatabaseType {
-    fn from_i64(value: i64) -> DatabaseType {
+    pub fn from_i64(value: i64) -> DatabaseType {
         match value {
             0 => DatabaseType::Unknown,
             1 => DatabaseType::Sqlite,
@@ -277,7 +277,7 @@ impl DatabaseType {
     }
 
     #[allow(dead_code)]
-    fn to_u32(db_type: DatabaseType) -> u32 {
+    pub fn to_u32(db_type: DatabaseType) -> u32 {
         match db_type {
             DatabaseType::Unknown => 0,
             DatabaseType::Sqlite => 1,

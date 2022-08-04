@@ -1,8 +1,8 @@
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
-    lib::hello();
-    let service = lib::get_service_from_config_file();
+    rcd::hello();
+    let service = rcd::get_service_from_config_file();
     println!("{:?}", service);
     service.start();
 

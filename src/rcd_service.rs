@@ -1,3 +1,10 @@
+use crate::{rcd_settings::RcdSettings, configure_backing_store};
+use log::info;
+use std::env;
+use crate::client_srv::SqlClientImpl;
+use crate::cdata::sql_client_server::SqlClientServer;
+use tonic::transport::Server;
+
 #[derive(Debug, Clone)]
 pub struct RcdService {
     pub rcd_settings: RcdSettings,
@@ -39,7 +46,6 @@ impl RcdService {
         );
     }
 
-    #[cfg(test)]
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         let address_port = &self.rcd_settings.client_service_addr_port;
@@ -71,7 +77,6 @@ impl RcdService {
     }
 
     #[allow(dead_code)]
-    #[cfg(test)]
     #[tokio::main]
     pub async fn start_client_service_at_addr(
         self: &Self,
