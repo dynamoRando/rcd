@@ -7,7 +7,6 @@ mod sql_text;
 mod sqlitedb;
 mod sqlitedbpart;
 mod table;
-mod test_harness;
 pub mod cdata;
 pub mod rcd_settings;
 mod rcd_service;

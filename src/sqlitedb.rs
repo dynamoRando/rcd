@@ -255,6 +255,11 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 }
 
 #[allow(unused_variables)]
+pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
+    unimplemented!();
+}
+
+#[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
