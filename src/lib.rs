@@ -11,6 +11,7 @@ pub mod cdata;
 pub mod rcd_settings;
 mod rcd_service;
 mod database_contract;
+mod database_participant;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;

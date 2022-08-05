@@ -261,7 +261,7 @@ pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_
     let mut is_added = false;
 
     if !has_participant_by_alias(alias, &conn){
-
+        
     }
     
 
