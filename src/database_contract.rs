@@ -165,7 +165,6 @@ impl DatabaseContract {
                 cmd = cmd.replace("cid", &self.contract_id.to_string());
                 cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
                 cmd = cmd.replace(":desc", &&self.description);
-                let ret = &self.retired_date.unwrap().to_string();
                 cmd = cmd.replace(":vid", &self.version_id.to_string());
                 cmd = cmd.replace(":remote_behavior", &self.remote_delete_behavior.to_string());
                 execute_write_on_connection(cmd, conn);
