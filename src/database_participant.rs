@@ -38,6 +38,7 @@ use std::path::Path;
     );",
 */
 
+#[derive(Clone)]
 #[allow(dead_code)]
 pub struct DatabaseParticipant {
     pub internal_id: GUID,
@@ -52,6 +53,80 @@ pub struct DatabaseParticipant {
 }
 
 impl DatabaseParticipant {
+    #[allow(dead_code)]
+    pub fn get(alias: &str, conn: &Connection) -> DatabaseParticipant {
+        let mut cmd = String::from(
+            "
+            SELECT 
+                INTERNAL_PARTICIPANT_ID,
+                ALIAS,
+                IP4ADDRESS,
+                IP6ADDRESS,
+                PORT,
+                CONTRACT_STATUS,
+                ACCEPTED_CONTRACT_VERSION_ID,
+                TOKEN,
+                PARTICIPANT_ID
+            FROM
+                COOP_PARTICIPANT
+            WHERE
+                ALIAS = ':alias'
+            ;
+            ",
+        );
+        cmd = cmd.replace(":alias", &alias);
+
+        let row_to_participant = |internal_id: String,
+                                  alias: String,
+                                  ip4addr: String,
+                                  ip6addr: String,
+                                  port: u32,
+                                  contract_status: u32,
+                                  accepted_contract_version_id: String,
+                                  token: Vec<u8>,
+                                  id: String|
+         -> Result<DatabaseParticipant> {
+            let participant = DatabaseParticipant {
+                internal_id: GUID::parse(&internal_id).unwrap(),
+                alias: alias,
+                ip4addr: ip4addr,
+                ip6addr: ip6addr,
+                db_port: port,
+                contract_status: ContractStatus::from_i64(contract_status as i64),
+                accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+                token: token,
+                id: GUID::parse(&id).unwrap(),
+            };
+
+            Ok(participant)
+        };
+
+        let mut results: Vec<DatabaseParticipant> = Vec::new();
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        let participants = statement
+            .query_and_then(&[(":alias", &alias)], |row| {
+                row_to_participant(
+                    row.get(0).unwrap(),
+                    row.get(1).unwrap(),
+                    row.get(2).unwrap(),
+                    row.get(3).unwrap(),
+                    row.get(4).unwrap(),
+                    row.get(5).unwrap(),
+                    row.get(6).unwrap(),
+                    row.get(7).unwrap(),
+                    row.get(8).unwrap(),
+                )
+            })
+            .unwrap();
+
+        for participant in participants {
+            results.push(participant.unwrap());
+        }
+
+        return results.first().unwrap().clone();
+    }
+
     pub fn exists(alias: &str, conn: &Connection) -> bool {
         let mut cmd =
             String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
