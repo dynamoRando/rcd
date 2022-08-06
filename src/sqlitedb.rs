@@ -1,10 +1,12 @@
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
+use crate::database_participant::DatabaseParticipant;
+use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, ContractStatus};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
+    defaults,
 };
 use chrono::{DateTime, Local, TimeZone, Utc};
 #[allow(unused_imports)]
@@ -254,18 +256,32 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     return Ok(table);
 }
 
-#[allow(unused_variables, unused_mut)]
+#[allow(unused_variables, unused_mut, unused_assignments)]
 pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
     let mut is_added = false;
 
-    if !has_participant_by_alias(alias, &conn){
-        
+    if DatabaseParticipant::exists(&alias, &conn) {
+        is_added = false;
     }
-    
+    else {
+        let participant = DatabaseParticipant{
+            internal_id: GUID::rand(),
+            alias: alias.to_string(),
+            ip4addr: ip4addr.to_string(),
+            ip6addr: String::from(""),
+            db_port: db_port,
+            contract_status: ContractStatus::NotSent,
+            accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            token: Vec::new()
+        };
+        participant.save(&conn);
+        is_added = true;
+    }
 
-    unimplemented!();
+    return is_added;
 }
 
 #[allow(unused_variables)]
@@ -787,12 +803,4 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
     }
 
     return result;
-}
-
-
-#[allow(unused_variables, dead_code)]
-fn has_participant_by_alias(alias: &str, conn: &Connection) -> bool {
-    let mut cmd = String::from("SELECT COUNT(*) PARTICIPANTCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias';");
-    cmd = cmd.replace(":alias", &alias);
-    return has_any_rows(cmd, conn);
 }

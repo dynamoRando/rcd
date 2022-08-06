@@ -84,7 +84,7 @@ impl LogicalStoragePolicy {
             LogicalStoragePolicy::HostOnly => 1,
             LogicalStoragePolicy::ParticpantOwned => 2,
             LogicalStoragePolicy::Shared => 3,
-            LogicalStoragePolicy::Mirror => 4
+            LogicalStoragePolicy::Mirror => 4,
         }
     }
 }
@@ -116,6 +116,17 @@ impl ContractStatus {
             3 => ContractStatus::Accepted,
             4 => ContractStatus::Rejected,
             _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn to_u32(status: ContractStatus) -> u32 {
+        match status {
+            ContractStatus::Unknown => 0,
+            ContractStatus::NotSent => 1,
+            ContractStatus::Pending => 2,
+            ContractStatus::Accepted => 3,
+            ContractStatus::Rejected => 4,
         }
     }
 }
@@ -221,7 +232,7 @@ pub enum RcdDbError {
     General(String),
     DbNotFound(String),
     TableNotFound(String),
-    LogicalStoragePolicyNotSet(String)
+    LogicalStoragePolicyNotSet(String),
 }
 
 impl Error for RcdDbError {}
@@ -235,7 +246,7 @@ impl fmt::Display for RcdDbError {
 #[derive(Debug)]
 pub enum RcdGenerateContractError {
     General(String),
-    NotAllTablesSet(String)
+    NotAllTablesSet(String),
 }
 
 impl Error for RcdGenerateContractError {}
@@ -245,7 +256,6 @@ impl fmt::Display for RcdGenerateContractError {
         write!(f, "RcdGenerateContractError")
     }
 }
-
 
 /// Represents the type of backing database rcd is hosting
 /// # Types
