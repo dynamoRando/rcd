@@ -13,6 +13,8 @@ mod rcd_service;
 mod database_contract;
 mod database_participant;
 pub mod defaults;
+mod host_info;
+mod remote_db_srv;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;

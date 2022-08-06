@@ -252,6 +252,23 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     return Ok(table);
 }
 
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
+    unimplemented!();
+}
+
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn get_participant_by_alias(db_name: &str, cwd: &str, alias: &str) -> DatabaseParticipant {
+    unimplemented!();
+}
+
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn has_participant(db_name: &str, cwd: &str, alias: &str) -> bool {
+    let conn = &get_connection(db_name, cwd);
+    return DatabaseParticipant::exists(alias, conn);
+}
+
+
 #[allow(unused_variables, unused_mut, unused_assignments)]
 pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
     let conn = get_connection(db_name, cwd);

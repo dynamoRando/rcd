@@ -2,7 +2,7 @@
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-use crate::sql_text::CDS;
+use crate::{sql_text::CDS, host_info::HostInfo};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -37,6 +37,11 @@ pub fn configure(root: &str, db_name: &str) {
             execute_write(&statement, &db_conn);
         }
     }
+}
+
+#[allow(dead_code)]
+pub fn get_host_info() -> HostInfo {
+    unimplemented!();
 }
 
 #[allow(dead_code)]

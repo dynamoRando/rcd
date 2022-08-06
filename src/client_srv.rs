@@ -1,10 +1,10 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-use crate::{cdata::*, sqlitedb};
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
+use crate::{cdata::*, rcd_db, remote_db_srv, sqlitedb};
 use chrono::Utc;
 use conv::{UnwrapOk, ValueFrom};
 use rusqlite::{Connection, Result};
@@ -414,7 +414,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        
+
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
@@ -429,7 +429,8 @@ impl SqlClient for SqlClientImpl {
         let mut is_successful = false;
 
         if is_authenticated {
-            is_successful = sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
+            is_successful =
+                sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
         };
 
         let auth_response = AuthResult {
@@ -453,7 +454,48 @@ impl SqlClient for SqlClientImpl {
         request: Request<SendParticipantContractRequest>,
     ) -> Result<Response<SendParticipantContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let participant_alias = message.participant_alias;
+
+        let cwd = &self.root_folder;
+
+        let reply_message = String::from("");
+        let mut is_successful = false;
+
+        if is_authenticated {
+            if sqlitedb::has_participant(&db_name, cwd, &participant_alias) {
+                let participant =
+                    sqlitedb::get_participant_by_alias(&db_name, cwd, &participant_alias);
+                let active_contract = sqlitedb::get_active_contract(&db_name, cwd);
+                let host_info = rcd_db::get_host_info();
+                is_successful = remote_db_srv::send_participant_contract(
+                    participant,
+                    host_info,
+                    active_contract,
+                );
+            }
+        };
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let send_participant_contract_reply = SendParticipantContractReply {
+            authentication_result: Some(auth_response),
+            is_sent: is_successful,
+            message: reply_message,
+        };
+
+        Ok(Response::new(send_participant_contract_reply))
     }
 
     async fn review_pending_contracts(
@@ -505,11 +547,10 @@ pub async fn start_client_service(
 
     println!("sql client server listening on {}", addr);
 
-    Server::builder()
-        .add_service(SqlClientServer::new(sql_client))
-        .add_service(sql_client_service) // Add this
-        .serve(addr)
-        .await?;
+    Server::builder().add_service(SqlClientServer::new(sql_client))
+            .add_service(sql_client_service) // Add this
+            .serve(addr)
+            .await?;
 
     Ok(())
 }
