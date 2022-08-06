@@ -1,12 +1,13 @@
+use crate::database_contract::DatabaseContract;
 use crate::database_participant::DatabaseParticipant;
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, ContractStatus};
+use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
+    defaults,
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
-    defaults,
 };
 use chrono::{DateTime, Local, TimeZone, Utc};
 #[allow(unused_imports)]
@@ -16,7 +17,6 @@ use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
 use std::path::Path;
-use crate::database_contract::DatabaseContract;
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -24,8 +24,7 @@ pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
 }
 
 pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     // println!("cmd: {}", cmd);
 
@@ -65,8 +64,7 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);
 
     // check to see if all user tables have a logical storage policy set
@@ -188,15 +186,13 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
 
 #[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, cwd: &str, table_name: &str) -> bool {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     return has_table(table_name.to_string(), &conn);
 }
 
 #[allow(dead_code)]
 pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path)?;
+    let conn = get_connection(db_name, cwd);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let cols = statement.columns();
@@ -258,15 +254,13 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 
 #[allow(unused_variables, unused_mut, unused_assignments)]
 pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     let mut is_added = false;
 
     if DatabaseParticipant::exists(&alias, &conn) {
         is_added = false;
-    }
-    else {
-        let participant = DatabaseParticipant{
+    } else {
+        let participant = DatabaseParticipant {
             internal_id: GUID::rand(),
             alias: alias.to_string(),
             ip4addr: ip4addr.to_string(),
@@ -275,7 +269,7 @@ pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_
             contract_status: ContractStatus::NotSent,
             accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
-            token: Vec::new()
+            token: Vec::new(),
         };
         participant.save(&conn);
         is_added = true;
@@ -286,8 +280,7 @@ pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_
 
 #[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     create_remotes_table(&conn);
     create_participant_table(&conn);
@@ -305,8 +298,7 @@ pub fn get_logical_storage_policy(
     cwd: &str,
     table_name: String,
 ) -> Result<LogicalStoragePolicy, RcdDbError> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     let mut policy = LogicalStoragePolicy::None;
 
     if has_table(table_name.clone(), &conn) {
@@ -351,8 +343,7 @@ pub fn set_logical_storage_policy(
     table_name: String,
     policy: LogicalStoragePolicy,
 ) -> Result<bool, RcdDbError> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     if has_table(table_name.clone(), &conn) {
         // insert or update on the coop tables
@@ -666,8 +657,7 @@ fn get_logical_storage_policy_for_all_user_tables(
     db_name: &str,
     cwd: &str,
 ) -> Vec<(String, LogicalStoragePolicy)> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     let mut result: Vec<(String, LogicalStoragePolicy)> = Vec::new();
 
@@ -803,4 +793,10 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
     }
 
     return result;
+}
+
+pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    return conn;
 }
