@@ -254,6 +254,20 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     return Ok(table);
 }
 
+#[allow(unused_variables, unused_mut)]
+pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    let mut is_added = false;
+
+    if !has_participant_by_alias(alias, &conn){
+        
+    }
+    
+
+    unimplemented!();
+}
+
 #[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -773,4 +787,12 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
     }
 
     return result;
+}
+
+
+#[allow(unused_variables, dead_code)]
+fn has_participant_by_alias(alias: &str, conn: &Connection) -> bool {
+    let mut cmd = String::from("SELECT COUNT(*) PARTICIPANTCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias';");
+    cmd = cmd.replace(":alias", &alias);
+    return has_any_rows(cmd, conn);
 }

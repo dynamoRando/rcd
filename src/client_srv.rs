@@ -1,7 +1,7 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-use crate::cdata::*;
+use crate::{cdata::*, sqlitedb};
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
@@ -414,7 +414,38 @@ impl SqlClient for SqlClientImpl {
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+        
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let db_name = message.database_name;
+        let alias = message.alias;
+        let ip4addr = message.ip4_address;
+        let db_port: u32 = message.port;
+
+        let reply_message = String::from("");
+        let mut is_successful = false;
+
+        if is_authenticated {
+            is_successful = sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
+        };
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let add_participant_reply = AddParticipantReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_successful,
+            message: reply_message,
+        };
+
+        Ok(Response::new(add_participant_reply))
     }
 
     async fn send_participant_contract(
