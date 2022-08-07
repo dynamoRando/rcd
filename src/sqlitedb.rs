@@ -1,5 +1,6 @@
 use crate::database_contract::DatabaseContract;
 use crate::database_participant::DatabaseParticipant;
+use crate::query_parser;
 use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
@@ -9,7 +10,7 @@ use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
-use chrono::{DateTime, Local, TimeZone, Utc};
+use chrono::{TimeZone, Utc};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -88,7 +89,7 @@ pub fn generate_contract(
         // this is the first contract
         let contract = DatabaseContract {
             contract_id: GUID::rand(),
-            generated_date: Utc::now().naive_local(),
+            generated_date: Utc::now(),
             description: desc.to_string(),
             retired_date: None,
             version_id: GUID::rand(),
@@ -108,7 +109,7 @@ pub fn generate_contract(
 
         let new_contract = DatabaseContract {
             contract_id: GUID::rand(),
-            generated_date: Utc::now().naive_local(),
+            generated_date: Utc::now(),
             description: desc.to_string(),
             retired_date: None,
             version_id: GUID::rand(),
@@ -190,6 +191,76 @@ pub fn has_table_client_service(db_name: &str, cwd: &str, table_name: &str) -> b
     return has_table(table_name.to_string(), &conn);
 }
 
+#[allow(dead_code, unused_variables)]
+pub fn has_cooperative_tables_mock(db_name: &str, cwd: &str, cmd: &str) -> bool {
+    return false;
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn get_cooperative_tables(db_name: &str, cwd: &str, cmd: &str) -> Vec<String> {
+    let mut cooperative_tables: Vec<String> = Vec::new();
+
+    let tables = query_parser::get_table_names(&cmd);
+
+    for table in &tables {
+        let result = get_logical_storage_policy(db_name, cwd, table.to_string());
+
+        if !result.is_err() {
+            let policy = result.unwrap();
+            match policy {
+                LogicalStoragePolicy::Mirror => {
+                    cooperative_tables.push(table.clone());
+                }
+                LogicalStoragePolicy::ParticpantOwned => {
+                    cooperative_tables.push(table.clone());
+                }
+                LogicalStoragePolicy::Shared => {
+                    cooperative_tables.push(table.clone());
+                }
+                _ => {}
+            }
+        } else {
+            break;
+        }
+    }
+
+    return cooperative_tables;
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn has_cooperative_tables(db_name: &str, cwd: &str, cmd: &str) -> bool {
+    let mut has_cooperative_tables = false;
+
+    let tables = query_parser::get_table_names(&cmd);
+
+    for table in tables {
+        let result = get_logical_storage_policy(db_name, cwd, table);
+
+        if !result.is_err() {
+            let policy = result.unwrap();
+            match policy {
+                LogicalStoragePolicy::Mirror => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                LogicalStoragePolicy::ParticpantOwned => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                LogicalStoragePolicy::Shared => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                _ => {}
+            }
+        } else {
+            break;
+        }
+    }
+
+    return has_cooperative_tables;
+}
+
 #[allow(dead_code)]
 pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     let conn = get_connection(db_name, cwd);
@@ -267,7 +338,6 @@ pub fn has_participant(db_name: &str, cwd: &str, alias: &str) -> bool {
     let conn = &get_connection(db_name, cwd);
     return DatabaseParticipant::exists(alias, conn);
 }
-
 
 #[allow(unused_variables, unused_mut, unused_assignments)]
 pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
@@ -742,10 +812,10 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
     for row in table.rows {
         for val in &row.vals {
             let mut cid = GUID::rand();
-            let mut gen_date = Local::now();
+            let mut gen_date = Utc::now();
             let mut desc = String::from("");
             let mut is_retired = false;
-            let mut ret_date = Local::now();
+            let mut ret_date = Utc::now();
             let mut vid = GUID::rand();
             let mut delete_behavior: u32 = 0;
 
@@ -757,10 +827,10 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
 
             if val.col.name == "GENERATED_DATE_UTC" {
                 let vgen_date = val.data.as_ref().unwrap().data_string.clone();
-                let tgen_date = DateTime::parse_from_str(&vgen_date, "%Y-%m-%d")
-                    .unwrap()
-                    .naive_local();
-                gen_date = Local.from_local_datetime(&tgen_date).unwrap();
+                // println!("{}", vgen_date);
+                let tgen_date =
+                    Utc::datetime_from_str(&Utc, &vgen_date, defaults::DATETIME_STRING_FORMAT);
+                gen_date = tgen_date.unwrap();
             }
 
             if val.col.name == "DESCRIPTION" {
@@ -772,12 +842,19 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
                 if val.is_null() {
                     is_retired = false;
                 } else {
-                    is_retired = true;
                     let vret_date = val.data.as_ref().unwrap().data_string.clone();
-                    let tret_date = DateTime::parse_from_str(&vret_date, "%Y-%m-%d")
-                        .unwrap()
-                        .naive_local();
-                    ret_date = Local.from_local_datetime(&tret_date).unwrap();
+                    if vret_date.len() > 0 {
+                        // println!("{}", vret_date);
+                        let tret_date = Utc::datetime_from_str(
+                            &Utc,
+                            &vret_date,
+                            defaults::DATETIME_STRING_FORMAT,
+                        );
+                        ret_date = tret_date.unwrap();
+                        is_retired = true;
+                    } else {
+                        is_retired = false;
+                    }
                 }
             }
 
@@ -794,13 +871,9 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
 
             let item = DatabaseContract {
                 contract_id: cid,
-                generated_date: gen_date.naive_local(),
+                generated_date: gen_date,
                 description: desc,
-                retired_date: if is_retired {
-                    Some(ret_date.naive_utc())
-                } else {
-                    None
-                },
+                retired_date: if is_retired { Some(ret_date) } else { None },
                 version_id: vid,
                 remote_delete_behavior: delete_behavior,
             };

@@ -139,17 +139,25 @@ impl SqlClient for SqlClientImpl {
         };
 
         if is_authenticated {
-            let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
-
-            if query_result.is_ok() {
-                let result_rows = query_result.unwrap().to_cdata_rows();
-                statement_result_set.number_of_rows_affected =
-                    u64::value_from(result_rows.len()).unwrap_ok();
-                statement_result_set.rows = result_rows;
-                statement_result_set.is_error = false;
+            if sqlitedb::has_cooperative_tables_mock(&db_name, &self.root_folder, &sql) {
+                unimplemented!();
+                // we would need to get a list of participants for each of the cooperative tables
+                
+                // and then send a request to each participant for row data that fit the query
+                // and finally we would need to assemble those results into a table to be returned
             } else {
-                statement_result_set.execution_error_message =
-                    query_result.unwrap_err().to_string();
+                let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+
+                if query_result.is_ok() {
+                    let result_rows = query_result.unwrap().to_cdata_rows();
+                    statement_result_set.number_of_rows_affected =
+                        u64::value_from(result_rows.len()).unwrap_ok();
+                    statement_result_set.rows = result_rows;
+                    statement_result_set.is_error = false;
+                } else {
+                    statement_result_set.execution_error_message =
+                        query_result.unwrap_err().to_string();
+                }
             }
         }
 
@@ -547,10 +555,11 @@ pub async fn start_client_service(
 
     println!("sql client server listening on {}", addr);
 
-    Server::builder().add_service(SqlClientServer::new(sql_client))
-            .add_service(sql_client_service) // Add this
-            .serve(addr)
-            .await?;
+    Server::builder()
+        .add_service(SqlClientServer::new(sql_client))
+        .add_service(sql_client_service) // Add this
+        .serve(addr)
+        .await?;
 
     Ok(())
 }

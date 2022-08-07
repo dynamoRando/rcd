@@ -37,9 +37,9 @@ use crate::sqlitedb::{execute_write_on_connection, has_any_rows};
 #[allow(dead_code, unused_variables)]
 pub struct DatabaseContract {
     pub contract_id: GUID,
-    pub generated_date: NaiveDateTime,
+    pub generated_date: DateTime<Utc>,
     pub description: String,
-    pub retired_date: Option<NaiveDateTime>,
+    pub retired_date: Option<DateTime<Utc>>,
     pub version_id: GUID,
     pub remote_delete_behavior: u32,
 }
@@ -80,7 +80,7 @@ impl DatabaseContract {
                 WHERE
                     VERSION_ID = ':vid'",
                 );
-                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":cid", &self.contract_id.to_string());
                 cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
                 cmd = cmd.replace(":desc", &&self.description);
                 let ret = &self.retired_date.unwrap().to_string();
@@ -100,7 +100,7 @@ impl DatabaseContract {
                 WHERE
                     VERSION_ID = ':vid'",
                 );
-                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":cid", &self.contract_id.to_string());
                 cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
                 cmd = cmd.replace(":desc", &&self.description);
                 cmd = cmd.replace(":vid", &self.version_id.to_string());
@@ -132,7 +132,7 @@ impl DatabaseContract {
                 );
                 ",
                 );
-                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":cid", &self.contract_id.to_string());
                 cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
                 cmd = cmd.replace(":desc", &&self.description);
                 let ret = &self.retired_date.unwrap().to_string();
@@ -162,7 +162,8 @@ impl DatabaseContract {
                 ",
                 );
 
-                cmd = cmd.replace("cid", &self.contract_id.to_string());
+                cmd = cmd.replace(":cid", &self.contract_id.to_string());
+                println!("{}", &self.generated_date);
                 cmd = cmd.replace(":gen_date", &self.generated_date.to_string());
                 cmd = cmd.replace(":desc", &&self.description);
                 cmd = cmd.replace(":vid", &self.version_id.to_string());

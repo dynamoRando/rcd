@@ -7,7 +7,7 @@ use std::{error::Error, fmt};
 /// * 2 - AutoDelete - If the host discovers that the participant has deleted the row, it will update the reference row with
 /// the delete data then logically delete the row.
 /// * 3 - UpdateStatusOnly - If the host discovers that the particpant has deleted the row then update the reference row
-/// with the delete data but do not perform a logical delete on the row (Note: The row can still be manually deelted
+/// with the delete data but do not perform a logical delete on the row (Note: The row can still be manually deleted
 /// on the host side at a later time.)
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RemoteDeleteBehavior {
@@ -47,12 +47,11 @@ impl RemoteDeleteBehavior {
 /// * 1 - HostOnly - Data is only kept at the host.
 /// * 2 - ParticpantOwned - Data is kept at the participant. Hashes of the data are kept at the host. If the participant
 /// changes the data, the hash will no longer match unless the host has configured the table to accept changes.
-/// * 3 - UpdateStatusOnly - If the host discovers that the particpant has deleted the row then update the reference row
-/// * 4 - Shared - Data is at the host, and changes are automatically pushed to the participant. If data is deleted at the host,
+/// * 3 - Shared - Data is at the host, and changes are automatically pushed to the participant. If data is deleted at the host,
 /// it is not automatically deleted at the participant but rather a record marker showing it's been deleted is sent to the
 /// participant, which the participant can act on or ignore (note: the marker will still exist.) This is a 'soft' delete
 /// at the participant.
-/// * 5 - Mirror - This is basically SQL replication - whatever changes happen at the host will automatically be replicated
+/// * 4 - Mirror - This is basically SQL replication - whatever changes happen at the host will automatically be replicated
 /// at the participant. Deletes are permanent.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LogicalStoragePolicy {
