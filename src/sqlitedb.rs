@@ -65,6 +65,8 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
+    println!("generate contract: start");
+
     let conn = get_connection(db_name, cwd);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);
 
@@ -87,6 +89,7 @@ pub fn generate_contract(
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
     if !has_any_rows(cmd, &conn) {
         // this is the first contract
+        println!("generate contract: first_contract");
         let contract = DatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
@@ -100,13 +103,18 @@ pub fn generate_contract(
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
+        println!("generate contract: retire contracts");
+        println!("generate contract: retire contracts count: {}", contracts.len().to_string());
         for con in contracts {
             if !con.is_retired() {
+                println!("generate contract: retire contract {}", &con.contract_id.to_string());
                 con.retire(&conn);
+                println!("generate contract: save retired contract {}", &con.contract_id.to_string());
                 con.save(&conn);
             }
         }
 
+        println!("generate contract: retired. create new contract");
         let new_contract = DatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
@@ -197,6 +205,28 @@ pub fn has_cooperative_tables_mock(db_name: &str, cwd: &str, cmd: &str) -> bool 
 }
 
 #[allow(dead_code, unused_variables)]
+pub fn get_participants_for_table(
+    db_name: &str,
+    cwd: &str,
+    table_name: &str,
+) -> Vec<DatabaseParticipant> {
+    unimplemented!();
+
+    /*
+     internal const string CREATE_SHADOW_TABLE = $@"
+        CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS} 
+        (
+            PARTICIPANT_ID CHAR(36) NOT NULL,
+            IS_PARTICIPANT_DELETED INT,
+            PARTICIPANT_DELETE_DATE_UTC DATETIME,
+            DATA_HASH_LENGTH INT,
+            DATA_HASH BLOB
+        );
+        ";
+     */
+}
+
+#[allow(dead_code)]
 pub fn get_cooperative_tables(db_name: &str, cwd: &str, cmd: &str) -> Vec<String> {
     let mut cooperative_tables: Vec<String> = Vec::new();
 

@@ -1,8 +1,8 @@
-use crate::{rcd_settings::RcdSettings, configure_backing_store};
+use crate::cdata::sql_client_server::SqlClientServer;
+use crate::client_srv::SqlClientImpl;
+use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use log::info;
 use std::env;
-use crate::client_srv::SqlClientImpl;
-use crate::cdata::sql_client_server::SqlClientServer;
 use tonic::transport::Server;
 
 #[derive(Debug, Clone)]
@@ -11,6 +11,12 @@ pub struct RcdService {
 }
 
 impl RcdService {
+    pub fn cwd(&self) -> String {
+        let wd = env::current_dir().unwrap();
+        let cwd = wd.to_str().unwrap();
+        return cwd.to_string();
+    }
+
     pub fn start(self: &Self) {
         configure_backing_store(
             self.rcd_settings.database_type,

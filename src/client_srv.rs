@@ -1,6 +1,8 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
+#[allow(unused_imports)]
+use crate::rcd_db::get_host_info;
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
@@ -113,7 +115,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
-    #[allow(unused_variables, unused_assignments)]
+    #[allow(unused_variables, unused_assignments, unreachable_code)]
     async fn execute_read(
         &self,
         request: Request<ExecuteReadRequest>,
@@ -142,7 +144,20 @@ impl SqlClient for SqlClientImpl {
             if sqlitedb::has_cooperative_tables_mock(&db_name, &self.root_folder, &sql) {
                 unimplemented!();
                 // we would need to get a list of participants for each of the cooperative tables
-                
+                let cooperative_tables =
+                    sqlitedb::get_cooperative_tables(&db_name, &self.root_folder, &sql);
+
+                for ct in &cooperative_tables {
+                    let participants_for_table =
+                        sqlitedb::get_participants_for_table(&db_name, &self.root_folder, ct.as_str());
+                    for participant in &participants_for_table {
+                        // we would need to get rows for that table from the participant
+                        let host_info = rcd_db::get_host_info();
+                        let remote_data_result = remote_db_srv::get_row_from_participant(participant.clone(), host_info, &db_name, &ct);
+                        unimplemented!();
+                    }
+                }
+
                 // and then send a request to each participant for row data that fit the query
                 // and finally we would need to assemble those results into a table to be returned
             } else {
