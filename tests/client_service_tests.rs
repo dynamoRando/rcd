@@ -1033,6 +1033,9 @@ pub mod generate_contract {
 
         service.start();
 
+        let cwd = service.cwd();
+        test_harness::delete_test_database(test_db_name, &cwd);
+
         info!("starting client at {}", &client_address_port);
         info!("starting client service");
 
@@ -1055,7 +1058,7 @@ pub mod generate_contract {
 
         let response = rx.try_recv().unwrap();
 
-        println!("generate_contract_negative: got: {}", response);
+        println!("generate_contract: got: {}", response);
 
         assert!(response);
     }
