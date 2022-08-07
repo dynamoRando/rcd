@@ -212,6 +212,8 @@ pub fn get_participants_for_table(
 ) -> Vec<DatabaseParticipant> {
     unimplemented!();
 
+    // note - we will need another table to track the remote row id 
+
     /*
      internal const string CREATE_SHADOW_TABLE = $@"
         CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS} 
