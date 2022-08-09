@@ -10,7 +10,7 @@ use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
-use chrono::{TimeZone, Utc};
+use chrono::{Utc};
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -357,12 +357,14 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
 pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
-    unimplemented!();
+    let conn = &get_connection(db_name, cwd);
+    return DatabaseContract::get_active_contract(conn);
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
 pub fn get_participant_by_alias(db_name: &str, cwd: &str, alias: &str) -> DatabaseParticipant {
-    unimplemented!();
+    let conn = get_connection(db_name, cwd);
+    return DatabaseParticipant::get(alias, &conn);
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
@@ -811,110 +813,7 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
 
 #[allow(unused_variables, dead_code, unused_assignments)]
 fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
-    let mut result: Vec<DatabaseContract> = Vec::new();
-
-    /*
-        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
-        (
-            CONTRACT_ID CHAR(36) NOT NULL,
-            GENERATED_DATE_UTC DATETIME NOT NULL,
-            DESCRIPTION VARCHAR(255),
-            RETIRED_DATE_UTC DATETIME,
-            VERSION_ID CHAR(36) NOT NULL,
-            REMOTE_DELETE_BEHAVIOR INT
-        );",
-    */
-
-    let cmd = String::from(
-        "SELECT 
-            CONTRACT_ID,
-            GENERATED_DATE_UTC,
-            DESCRIPTION,
-            RETIRED_DATE_UTC,
-            VERSION_ID,
-            REMOTE_DELETE_BEHAVIOR
-        FROM
-            COOP_DATABASE_CONTRACT
-            ;
-            ",
-    );
-
-    let table = execute_read_on_connection(cmd, conn).unwrap();
-
-    for row in table.rows {
-        for val in &row.vals {
-            let mut cid = GUID::rand();
-            let mut gen_date = Utc::now();
-            let mut desc = String::from("");
-            let mut is_retired = false;
-            let mut ret_date = Utc::now();
-            let mut vid = GUID::rand();
-            let mut delete_behavior: u32 = 0;
-
-            if val.col.name == "CONTRACT_ID" {
-                let vcid = val.data.as_ref().unwrap().data_string.clone();
-                let tcid = GUID::parse(&vcid).unwrap();
-                cid = tcid;
-            }
-
-            if val.col.name == "GENERATED_DATE_UTC" {
-                let vgen_date = val.data.as_ref().unwrap().data_string.clone();
-                // println!("{}", vgen_date);
-                let tgen_date =
-                    Utc::datetime_from_str(&Utc, &vgen_date, defaults::DATETIME_STRING_FORMAT);
-                gen_date = tgen_date.unwrap();
-            }
-
-            if val.col.name == "DESCRIPTION" {
-                let vdesc = val.data.as_ref().unwrap().data_string.clone();
-                desc = vdesc.clone();
-            }
-
-            if val.col.name == "RETIRED_DATE_UTC" {
-                if val.is_null() {
-                    is_retired = false;
-                } else {
-                    let vret_date = val.data.as_ref().unwrap().data_string.clone();
-                    if vret_date.len() > 0 {
-                        // println!("{}", vret_date);
-                        let tret_date = Utc::datetime_from_str(
-                            &Utc,
-                            &vret_date,
-                            defaults::DATETIME_STRING_FORMAT,
-                        );
-                        ret_date = tret_date.unwrap();
-                        is_retired = true;
-                    } else {
-                        is_retired = false;
-                    }
-                }
-            }
-
-            if val.col.name == "VERSION_ID" {
-                let vvid = val.data.as_ref().unwrap().data_string.clone();
-                let tvid = GUID::parse(&vvid).unwrap();
-                vid = tvid;
-            }
-
-            if val.col.name == "REMOTE_DELETE_BEHAVIOR" {
-                let vbehavior = val.data.as_ref().unwrap().data_string.clone();
-                delete_behavior = vbehavior.parse().unwrap();
-            }
-
-            let item = DatabaseContract {
-                contract_id: cid,
-                generated_date: gen_date,
-                description: desc,
-                retired_date: if is_retired { Some(ret_date) } else { None },
-                version_id: vid,
-                remote_delete_behavior: delete_behavior,
-            };
-
-            result.push(item);
-        }
-    }
-
-    return result;
+    return DatabaseContract::get_all(conn);
 }
 
 pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
