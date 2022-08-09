@@ -1,8 +1,8 @@
+use crate::{host_info::HostInfo, sql_text::CDS};
 /// represents all the actions for admin'ing an rcd sqlite database
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-use crate::{sql_text::CDS, host_info::HostInfo};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -41,6 +41,11 @@ pub fn configure(root: &str, db_name: &str) {
 
 #[allow(dead_code)]
 pub fn get_host_info() -> HostInfo {
+    unimplemented!();
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn generate_host_info(host_name: &str, conn: &Connection) -> HostInfo {
     unimplemented!();
 }
 
@@ -207,13 +212,11 @@ fn execute_write(statement: &str, conn: &Connection) {
     conn.execute(statement, []).unwrap();
 }
 fn create_user_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_table(), [])
-        .unwrap();
+    conn.execute(&CDS::text_create_user_table(), []).unwrap();
 }
 
 fn create_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_role_table(), [])
-        .unwrap();
+    conn.execute(&CDS::text_create_role_table(), []).unwrap();
 }
 
 fn create_user_role_table(conn: &Connection) {

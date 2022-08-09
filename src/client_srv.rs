@@ -403,6 +403,7 @@ impl SqlClient for SqlClientImpl {
                 &host_name,
                 &desc,
                 RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
+                &self.database_name
             );
 
             match result {

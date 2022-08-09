@@ -1,6 +1,5 @@
 use crate::database_contract::DatabaseContract;
 use crate::database_participant::DatabaseParticipant;
-use crate::query_parser;
 use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
@@ -10,7 +9,8 @@ use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
-use chrono::{Utc};
+use crate::{query_parser, rcd_db};
+use chrono::Utc;
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -52,6 +52,7 @@ pub fn generate_contract(
     host_name: &str,
     desc: &str,
     remote_delete_behavior: RemoteDeleteBehavior,
+    rcd_db_name: &str,
 ) -> Result<bool, RcdGenerateContractError> {
     /*
        First, we should check to see if there is a logical storage policy
@@ -66,6 +67,9 @@ pub fn generate_contract(
     */
 
     println!("generate contract: start");
+
+    let rcd_db_conn = get_rcd_db(rcd_db_name, cwd);
+    rcd_db::generate_host_info(host_name, &rcd_db_conn);
 
     let conn = get_connection(db_name, cwd);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);
@@ -104,12 +108,21 @@ pub fn generate_contract(
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
         println!("generate contract: retire contracts");
-        println!("generate contract: retire contracts count: {}", contracts.len().to_string());
+        println!(
+            "generate contract: retire contracts count: {}",
+            contracts.len().to_string()
+        );
         for con in contracts {
             if !con.is_retired() {
-                println!("generate contract: retire contract {}", &con.contract_id.to_string());
+                println!(
+                    "generate contract: retire contract {}",
+                    &con.contract_id.to_string()
+                );
                 con.retire(&conn);
-                println!("generate contract: save retired contract {}", &con.contract_id.to_string());
+                println!(
+                    "generate contract: save retired contract {}",
+                    &con.contract_id.to_string()
+                );
                 con.save(&conn);
             }
         }
@@ -212,20 +225,20 @@ pub fn get_participants_for_table(
 ) -> Vec<DatabaseParticipant> {
     unimplemented!();
 
-    // note - we will need another table to track the remote row id 
+    // note - we will need another table to track the remote row id
 
     /*
-     internal const string CREATE_SHADOW_TABLE = $@"
-        CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS} 
-        (
-            PARTICIPANT_ID CHAR(36) NOT NULL,
-            IS_PARTICIPANT_DELETED INT,
-            PARTICIPANT_DELETE_DATE_UTC DATETIME,
-            DATA_HASH_LENGTH INT,
-            DATA_HASH BLOB
-        );
-        ";
-     */
+    internal const string CREATE_SHADOW_TABLE = $@"
+       CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS}
+       (
+           PARTICIPANT_ID CHAR(36) NOT NULL,
+           IS_PARTICIPANT_DELETED INT,
+           PARTICIPANT_DELETE_DATE_UTC DATETIME,
+           DATA_HASH_LENGTH INT,
+           DATA_HASH BLOB
+       );
+       ";
+    */
 }
 
 #[allow(dead_code)]
@@ -820,4 +833,9 @@ pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
     let db_path = Path::new(&cwd).join(&db_name);
     let conn = Connection::open(&db_path).unwrap();
     return conn;
+}
+
+fn get_rcd_db(db_name: &str, cwd: &str) -> Connection {
+    let db_path = Path::new(cwd).join(db_name);
+    return Connection::open(&db_path).unwrap();
 }
