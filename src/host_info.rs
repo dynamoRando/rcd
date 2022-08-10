@@ -50,7 +50,7 @@ impl HostInfo {
     }
 
     pub fn exists(conn: &Connection) -> bool {
-        let cmd = String::from("SELECT COUNT(*) FROM CDS_HOST_INFO");
+        let cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_HOST_INFO");
         return has_any_rows(cmd, conn);
     }
 
