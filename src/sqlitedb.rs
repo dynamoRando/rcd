@@ -69,7 +69,7 @@ pub fn generate_contract(
     println!("generate contract: start");
 
     let rcd_db_conn = get_rcd_db(rcd_db_name, cwd);
-    rcd_db::generate_host_info(host_name, &rcd_db_conn);
+    rcd_db::generate_and_get_host_info(host_name, &rcd_db_conn);
 
     let conn = get_connection(db_name, cwd);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);

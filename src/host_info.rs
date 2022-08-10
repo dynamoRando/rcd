@@ -1,4 +1,7 @@
-use rusqlite::{Connection, Result};
+use guid_create::GUID;
+use rusqlite::{named_params, Connection, Result};
+
+use crate::{crypt, sqlitedb::has_any_rows};
 
 /*
 "CREATE TABLE IF NOT EXISTS CDS_HOST_INFO
@@ -17,7 +20,41 @@ pub struct HostInfo {
 }
 
 impl HostInfo {
-    pub fn get(conn: Connection) -> HostInfo {
+    pub fn generate(host_name: &str, conn: &Connection) {
+        let id = GUID::rand();
+
+        let token_gen = GUID::rand();
+        let token = crypt::hash(&token_gen.to_string());
+
+        let cmd = String::from(
+            "
+            INSERT INTO CDS_HOST_INFO
+            (
+                HOST_ID,
+                HOST_NAME,
+                TOKEN
+            )
+            VALUES
+            (
+                :id,
+                :name,
+                :token
+            );",
+        );
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(
+                named_params! {":id" : id.to_string(), ":name" : host_name, ":token" : token.0 },
+            )
+            .unwrap();
+    }
+
+    pub fn exists(conn: &Connection) -> bool {
+        let cmd = String::from("SELECT COUNT(*) FROM CDS_HOST_INFO");
+        return has_any_rows(cmd, conn);
+    }
+
+    pub fn get(conn: &Connection) -> HostInfo {
         let cmd = String::from(
             "
         SELECT 

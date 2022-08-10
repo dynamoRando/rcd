@@ -1,12 +1,14 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
+use crate::host_info::HostInfo;
 #[allow(unused_imports)]
-use crate::rcd_db::get_host_info;
+use crate::cdata::{RejectPendingContractRequest, RejectPendingContractReply};
+#[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
-use crate::{cdata::*, rcd_db, remote_db_srv, sqlitedb};
+use crate::{cdata::*, remote_db_srv, sqlitedb};
 use chrono::Utc;
 use conv::{UnwrapOk, ValueFrom};
 use rusqlite::{Connection, Result};
@@ -129,7 +131,7 @@ impl SqlClient for SqlClientImpl {
         let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
         let sql = message.sql_statement;
-
+        let rcd_db_conn = self.get_rcd_db();
         let result_table = Vec::new();
 
         let mut statement_result_set = StatementResultset {
@@ -148,12 +150,20 @@ impl SqlClient for SqlClientImpl {
                     sqlitedb::get_cooperative_tables(&db_name, &self.root_folder, &sql);
 
                 for ct in &cooperative_tables {
-                    let participants_for_table =
-                        sqlitedb::get_participants_for_table(&db_name, &self.root_folder, ct.as_str());
+                    let participants_for_table = sqlitedb::get_participants_for_table(
+                        &db_name,
+                        &self.root_folder,
+                        ct.as_str(),
+                    );
                     for participant in &participants_for_table {
                         // we would need to get rows for that table from the participant
-                        let host_info = rcd_db::get_host_info();
-                        let remote_data_result = remote_db_srv::get_row_from_participant(participant.clone(), host_info, &db_name, &ct);
+                        let host_info = HostInfo::get(&rcd_db_conn);
+                        let remote_data_result = remote_db_srv::get_row_from_participant(
+                            participant.clone(),
+                            host_info,
+                            &db_name,
+                            &ct,
+                        );
                         unimplemented!();
                     }
                 }
@@ -403,7 +413,7 @@ impl SqlClient for SqlClientImpl {
                 &host_name,
                 &desc,
                 RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
-                &self.database_name
+                &self.database_name,
             );
 
             match result {
@@ -486,7 +496,7 @@ impl SqlClient for SqlClientImpl {
         let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
-
+        let rcd_db_conn = self.get_rcd_db();
         let cwd = &self.root_folder;
 
         let reply_message = String::from("");
@@ -497,7 +507,7 @@ impl SqlClient for SqlClientImpl {
                 let participant =
                     sqlitedb::get_participant_by_alias(&db_name, cwd, &participant_alias);
                 let active_contract = sqlitedb::get_active_contract(&db_name, cwd);
-                let host_info = rcd_db::get_host_info();
+                let host_info = HostInfo::get(&rcd_db_conn);
                 is_successful = remote_db_srv::send_participant_contract(
                     participant,
                     host_info,
@@ -538,12 +548,12 @@ impl SqlClient for SqlClientImpl {
         unimplemented!("");
     }
 
+    #[allow(unused_variables)]
     async fn reject_pending_contract(
         &self,
-        request: Request<RejectPendingContractRequest>,
-    ) -> Result<Response<RejectPendingContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+        request: tonic::Request<RejectPendingContractRequest>,
+    ) -> Result<tonic::Response<RejectPendingContractReply>, tonic::Status> {
+        unimplemented!();
     }
 }
 

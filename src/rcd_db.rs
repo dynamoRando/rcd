@@ -39,14 +39,13 @@ pub fn configure(root: &str, db_name: &str) {
     }
 }
 
-#[allow(dead_code)]
-pub fn get_host_info() -> HostInfo {
-    unimplemented!();
-}
-
 #[allow(dead_code, unused_variables)]
-pub fn generate_host_info(host_name: &str, conn: &Connection) -> HostInfo {
-    unimplemented!();
+pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInfo {
+    if !HostInfo::exists(conn) {
+        HostInfo::generate(host_name, conn);
+    }
+
+    return HostInfo::get(conn);
 }
 
 #[allow(dead_code)]
