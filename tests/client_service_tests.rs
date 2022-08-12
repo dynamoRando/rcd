@@ -82,6 +82,7 @@ pub mod create_user_database {
     use log::info;
     use rcd::cdata::sql_client_client::SqlClientClient;
     use rcd::get_service_from_config_file;
+    use rcd::rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -131,44 +132,14 @@ pub mod create_user_database {
     #[cfg(test)]
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
-        use rcd::cdata::AuthRequest;
-        use rcd::cdata::CreateUserDatabaseRequest;
-
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!(
             "client_create_user_database attempting to connect {}",
             addr_port
         );
 
-        let endpoint = tonic::transport::Channel::builder(addr_port.parse().unwrap());
-        let channel = endpoint.connect().await.unwrap();
-        let mut client = SqlClientClient::new(channel);
-
-        info!("created channel and client");
-
-        let auth = AuthRequest {
-            user_name: String::from("tester"),
-            pw: String::from("123456"),
-            pw_hash: Vec::new(),
-            token: Vec::new(),
-        };
-
-        let request = tonic::Request::new(CreateUserDatabaseRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-        });
-
-        info!("sending request");
-
-        let response = client
-            .create_user_database(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
-
-        return response.is_created;
+        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        return rcd_client.create_user_database(db_name).await.unwrap();
     }
 
     #[test]

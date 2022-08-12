@@ -16,6 +16,8 @@ pub mod defaults;
 mod host_info;
 mod remote_db_srv;
 mod query_parser;
+pub mod rcd_client;
+pub mod rcd_db_srv_client;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
