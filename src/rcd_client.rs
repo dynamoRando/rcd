@@ -1,10 +1,14 @@
-use crate::cdata::CreateUserDatabaseRequest;
 use crate::cdata::{sql_client_client::SqlClientClient, AuthRequest};
+use crate::cdata::{
+    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
+    ExecuteWriteRequest, GenerateContractRequest, GetLogicalStoragePolicyRequest, HasTableRequest,
+    SetLogicalStoragePolicyRequest, StatementResultset,
+};
+use crate::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
 use log::info;
 use std::error::Error;
 use tonic::transport::Channel;
 
-#[allow(dead_code)]
 pub struct RcdClient {
     addr_port: String,
     user_name: String,
@@ -12,7 +16,6 @@ pub struct RcdClient {
 }
 
 impl RcdClient {
-    #[allow(dead_code)]
     pub fn new(addr_port: String, user_name: String, pw: String) -> RcdClient {
         return RcdClient {
             addr_port: addr_port,
@@ -21,7 +24,200 @@ impl RcdClient {
         };
     }
 
-    #[allow(dead_code)]
+    pub async fn generate_contract(
+        self: &Self,
+        db_name: &str,
+        host_name: &str,
+        desc: &str,
+        remote_delete_behavior: RemoteDeleteBehavior,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GenerateContractRequest {
+            authentication: Some(auth),
+            host_name: host_name.to_string(),
+            description: desc.to_string(),
+            database_name: db_name.to_string(),
+            remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .generate_contract(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    pub async fn has_table(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(HasTableRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.has_table(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.has_table)
+    }
+
+    pub async fn get_logical_storage_policy(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<LogicalStoragePolicy, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetLogicalStoragePolicyRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .get_logical_storage_policy(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
+
+        Ok(policy)
+    }
+
+    pub async fn set_logical_storage_policy(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        policy: LogicalStoragePolicy,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(SetLogicalStoragePolicyRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            policy_mode: LogicalStoragePolicy::to_u32(policy),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .set_logical_storage_policy(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    pub async fn execute_write(
+        self: &Self,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ExecuteWriteRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.execute_write(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    pub async fn execute_read(
+        self: &Self,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<StatementResultset, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ExecuteReadRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.execute_read(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.results[0].clone())
+    }
+
+    pub async fn enable_cooperative_features(
+        self: &Self,
+        db_name: &str,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(EnableCoooperativeFeaturesRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .enable_coooperative_features(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
     pub async fn create_user_database(self: &Self, db_name: &str) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -51,7 +247,6 @@ impl RcdClient {
         return SqlClientClient::new(channel);
     }
 
-    #[allow(dead_code)]
     fn gen_auth_request(&self) -> AuthRequest {
         let auth = AuthRequest {
             user_name: self.user_name.clone(),
