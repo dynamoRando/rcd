@@ -1,5 +1,6 @@
-use crate::{host_info::HostInfo, sql_text::CDS};
 /// represents all the actions for admin'ing an rcd sqlite database
+
+use crate::{host_info::HostInfo, sql_text::CDS};
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
@@ -40,6 +41,8 @@ pub fn configure(root: &str, db_name: &str) {
 }
 
 #[allow(dead_code, unused_variables)]
+/// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
+/// Will always return the current `HostInfo`
 pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInfo {
     if !HostInfo::exists(conn) {
         HostInfo::generate(host_name, conn);
@@ -49,6 +52,7 @@ pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInf
 }
 
 #[allow(dead_code)]
+/// Creates an admin login if one does not already exist and adds it to the `SysAdmin` role
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     let conn = Connection::open(&db_path).unwrap();
 

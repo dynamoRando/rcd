@@ -16,6 +16,7 @@ use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
+/// Implements the `SQLClient` definition from the protobuff file
 pub struct SqlClientImpl {
     pub root_folder: String,
     pub database_name: String,

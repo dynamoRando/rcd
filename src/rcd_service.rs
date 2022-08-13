@@ -1,5 +1,5 @@
 use crate::cdata::sql_client_server::SqlClientServer;
-use crate::client_srv::SqlClientImpl;
+use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use log::info;
 use std::env;
@@ -32,7 +32,7 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let _item = crate::client_srv::start_client_service(
+        let _item = crate::sqlclient_srv::start_client_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,
@@ -45,7 +45,7 @@ impl RcdService {
         let wd = env::current_dir().unwrap();
         let cwd = wd.to_str().unwrap();
 
-        let _item = crate::db_srv::start_db_service(
+        let _item = crate::data_srv::start_db_service(
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,

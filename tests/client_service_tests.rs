@@ -80,7 +80,7 @@ pub mod is_online {
 pub mod create_user_database {
     use log::info;
     use rcd::get_service_from_config_file;
-    use rcd::rcd_client::RcdClient;
+    use rcd::rcd_sql_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -136,8 +136,8 @@ pub mod create_user_database {
             addr_port
         );
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
-        return rcd_client.create_user_database(db_name).await.unwrap();
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        return client.create_user_database(db_name).await.unwrap();
     }
 
     #[test]
@@ -192,12 +192,12 @@ pub mod create_user_database {
             addr_port
         );
 
-        let rcd_client = RcdClient::new(
+        let client = RcdClient::new(
             addr_port,
             String::from("wrong_user"),
             String::from("123456"),
         );
-        return rcd_client.create_user_database(db_name).await.unwrap();
+        return client.create_user_database(db_name).await.unwrap();
     }
 }
 
@@ -259,7 +259,7 @@ pub mod enable_coooperative_features {
     #[cfg(test)]
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
-        use rcd::rcd_client::RcdClient;
+        use rcd::rcd_sql_client::RcdClient;
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!(
@@ -267,8 +267,8 @@ pub mod enable_coooperative_features {
             addr_port
         );
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
-        return rcd_client
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        return client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
@@ -338,7 +338,7 @@ pub mod create_db_enable_coop_read_write {
     #[tokio::main]
     #[allow(unused_assignments)]
     async fn client(db_name: &str, addr_port: &str) -> bool {
-        use rcd::{rcd_client::RcdClient, rcd_enum::DatabaseType};
+        use rcd::{rcd_sql_client::RcdClient, rcd_enum::DatabaseType};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -348,12 +348,12 @@ pub mod create_db_enable_coop_read_write {
             addr_port
         );
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
-        let is_db_created = rcd_client.create_user_database(db_name).await.unwrap();
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        let is_db_created = client.create_user_database(db_name).await.unwrap();
 
         assert!(is_db_created);
 
-        let enable_coop_features = rcd_client
+        let enable_coop_features = client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
@@ -361,7 +361,7 @@ pub mod create_db_enable_coop_read_write {
 
         assert!(enable_coop_features);
         let mut execute_write_drop_is_successful = false;
-        execute_write_drop_is_successful = rcd_client
+        execute_write_drop_is_successful = client
             .execute_write(db_name, &drop_table_statement, database_type)
             .await
             .unwrap();
@@ -372,7 +372,7 @@ pub mod create_db_enable_coop_read_write {
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
         let mut execute_write_create_reply_is_successful = false;
-        execute_write_create_reply_is_successful = rcd_client
+        execute_write_create_reply_is_successful = client
             .execute_write(db_name, &create_table_statement, database_type)
             .await
             .unwrap();
@@ -383,7 +383,7 @@ pub mod create_db_enable_coop_read_write {
             String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
         let mut execute_write_add_record_is_successful = false;
-        execute_write_add_record_is_successful = rcd_client
+        execute_write_add_record_is_successful = client
             .execute_write(db_name, &add_record_statement, database_type)
             .await
             .unwrap();
@@ -391,7 +391,7 @@ pub mod create_db_enable_coop_read_write {
         assert!(execute_write_add_record_is_successful);
 
         let read_record_statement = String::from("SELECT Id, Name FROM EMPLOYEE");
-        let read_reply = rcd_client
+        let read_reply = client
             .execute_read(db_name, &read_record_statement, database_type)
             .await
             .unwrap();
@@ -464,7 +464,7 @@ pub mod get_set_logical_storage_policy {
         #[allow(unused_imports)]
         use log::Log;
 
-        use rcd::{rcd_client::RcdClient, rcd_enum::DatabaseType};
+        use rcd::{rcd_sql_client::RcdClient, rcd_enum::DatabaseType};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -474,13 +474,13 @@ pub mod get_set_logical_storage_policy {
             addr_port
         );
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
 
-        let create_db_is_successful = rcd_client.create_user_database(db_name).await.unwrap();
+        let create_db_is_successful = client.create_user_database(db_name).await.unwrap();
 
         assert!(create_db_is_successful);
 
-        let enable_coop_features_is_successful = rcd_client
+        let enable_coop_features_is_successful = client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
@@ -489,7 +489,7 @@ pub mod get_set_logical_storage_policy {
 
         assert!(enable_coop_features_is_successful);
 
-        let drop_table_is_successful = rcd_client
+        let drop_table_is_successful = client
             .execute_write(db_name, &drop_table_statement, database_type)
             .await
             .unwrap();
@@ -499,7 +499,7 @@ pub mod get_set_logical_storage_policy {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        let create_table_is_successful = rcd_client
+        let create_table_is_successful = client
             .execute_write(db_name, &create_table_statement, database_type)
             .await
             .unwrap();
@@ -509,7 +509,7 @@ pub mod get_set_logical_storage_policy {
         let add_record_statement =
             String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
-        let execute_write_is_successful = rcd_client
+        let execute_write_is_successful = client
             .execute_write(db_name, &add_record_statement, database_type)
             .await
             .unwrap();
@@ -518,14 +518,14 @@ pub mod get_set_logical_storage_policy {
 
         let read_record_statement = String::from("SELECT Id, Name FROM EMPLOYEE");
 
-        let result = rcd_client
+        let result = client
             .execute_read(db_name, &read_record_statement, database_type)
             .await
             .unwrap();
 
         assert!(!result.is_error);
 
-        let _set_policy_is_successful = rcd_client
+        let _set_policy_is_successful = client
             .set_logical_storage_policy(
                 db_name,
                 "EMPLOYEE",
@@ -534,7 +534,7 @@ pub mod get_set_logical_storage_policy {
             .await
             .unwrap();
 
-        let policy_response = rcd_client
+        let policy_response = client
             .get_logical_storage_policy(db_name, "EMPLOYEE")
             .await
             .unwrap();
@@ -602,24 +602,24 @@ pub mod has_table {
         #[allow(unused_imports)]
         use log::Log;
 
-        use rcd::{rcd_client::RcdClient, rcd_enum::DatabaseType};
+        use rcd::{rcd_sql_client::RcdClient, rcd_enum::DatabaseType};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
 
-        rcd_client.create_user_database(db_name).await.unwrap();
-        rcd_client
+        client.create_user_database(db_name).await.unwrap();
+        client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
 
         let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
-        rcd_client
+        client
             .execute_write(db_name, &drop_table_statement, database_type)
             .await
             .unwrap();
@@ -627,12 +627,12 @@ pub mod has_table {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        rcd_client
+        client
             .execute_write(db_name, &create_table_statement, database_type)
             .await
             .unwrap();
 
-        return rcd_client.has_table(db_name, "EMPLOYEE").await.unwrap();
+        return client.has_table(db_name, "EMPLOYEE").await.unwrap();
     }
 }
 
@@ -735,7 +735,7 @@ pub mod generate_contract {
     #[cfg(test)]
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
-        use rcd::rcd_client::RcdClient;
+        use rcd::rcd_sql_client::RcdClient;
         use rcd::rcd_enum::LogicalStoragePolicy;
         use rcd::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
@@ -744,13 +744,13 @@ pub mod generate_contract {
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
-        rcd_client.create_user_database(db_name).await.unwrap();
-        rcd_client
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        client.create_user_database(db_name).await.unwrap();
+        client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
-        rcd_client
+        client
             .execute_write(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type)
             .await
             .unwrap();
@@ -758,21 +758,21 @@ pub mod generate_contract {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        rcd_client
+        client
             .execute_write(db_name, &create_table_statement, database_type)
             .await
             .unwrap();
 
         let logical_storage_policy = LogicalStoragePolicy::ParticpantOwned;
 
-        rcd_client
+        client
             .set_logical_storage_policy(db_name, "EMPLOYEE", logical_storage_policy)
             .await
             .unwrap();
 
         let behavior = RemoteDeleteBehavior::Ignore;
 
-        return rcd_client
+        return client
             .generate_contract(db_name, "tester", "desc", behavior)
             .await
             .unwrap();
@@ -781,20 +781,20 @@ pub mod generate_contract {
     #[cfg(test)]
     #[tokio::main]
     async fn client_negative(db_name: &str, addr_port: &str) -> bool {
-        use rcd::{rcd_client::RcdClient, rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd::{rcd_sql_client::RcdClient, rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
-        let rcd_client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
-        rcd_client.create_user_database(db_name).await.unwrap();
-        rcd_client
+        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        client.create_user_database(db_name).await.unwrap();
+        client
             .enable_cooperative_features(db_name)
             .await
             .unwrap();
-        rcd_client
+        client
             .execute_write(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type)
             .await
             .unwrap();
@@ -802,14 +802,14 @@ pub mod generate_contract {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        rcd_client
+        client
             .execute_write(db_name, &create_table_statement, database_type)
             .await
             .unwrap();
 
         let behavior = RemoteDeleteBehavior::Ignore;
 
-        return rcd_client
+        return client
             .generate_contract(db_name, "tester", "desc", behavior)
             .await
             .unwrap();

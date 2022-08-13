@@ -9,8 +9,13 @@ use log::info;
 use std::error::Error;
 use tonic::transport::Channel;
 
+/// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the 
+/// `SQLClient` service and is used to talk to an rcd instance as a client 
+/// (and not as another `rcd` instance, aka a DataService client service. For that, use the `rcd_data_client` module).
 pub struct RcdClient {
+    /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://[::1]:50051`
     addr_port: String,
+    /// The user name you will identify yourself to the `rcd` instance
     user_name: String,
     pw: String,
 }

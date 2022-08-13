@@ -12,6 +12,7 @@ use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
+/// Implements the `DataService` definition from the protobuff file
 pub struct DataServiceImpl {
     pub root_folder: String,
     pub database_name: String,

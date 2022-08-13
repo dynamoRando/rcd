@@ -1,6 +1,5 @@
 use guid_create::GUID;
 use rusqlite::{named_params, Connection, Result};
-
 use crate::{crypt, sqlitedb::has_any_rows};
 
 /*
@@ -13,6 +12,8 @@ use crate::{crypt, sqlitedb::has_any_rows};
  */
 
 #[derive(Clone)]
+/// Represents the information about an `rcd` instance. This data is used to identify a particular
+/// `rcd` instances to others. From the perspective of *participants*, this is the *host*.
 pub struct HostInfo {
     pub id: String,
     pub name: String,
