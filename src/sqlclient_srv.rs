@@ -493,11 +493,11 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let rcd_db_conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &rcd_db_conn);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
-        let rcd_db_conn = self.get_rcd_db();
+        
         let cwd = &self.root_folder;
 
         let reply_message = String::from("");
