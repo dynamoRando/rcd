@@ -30,6 +30,16 @@ impl RemoteDeleteBehavior {
         }
     }
 
+    pub fn from_u32(value: u32) -> RemoteDeleteBehavior {
+        match value {
+            0 => RemoteDeleteBehavior::Unknown,
+            1 => RemoteDeleteBehavior::Ignore,
+            2 => RemoteDeleteBehavior::AutoDelete,
+            3 => RemoteDeleteBehavior::UpdateStatusOnly,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn to_u32(behavior: RemoteDeleteBehavior) -> u32 {
         match behavior {
@@ -76,6 +86,17 @@ impl LogicalStoragePolicy {
         }
     }
 
+    pub fn from_u32(value: u32) -> LogicalStoragePolicy {
+        match value {
+            0 => LogicalStoragePolicy::None,
+            1 => LogicalStoragePolicy::HostOnly,
+            2 => LogicalStoragePolicy::ParticpantOwned,
+            3 => LogicalStoragePolicy::Shared,
+            4 => LogicalStoragePolicy::Mirror,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn to_u32(policy: LogicalStoragePolicy) -> u32 {
         match policy {
@@ -108,6 +129,17 @@ pub enum ContractStatus {
 impl ContractStatus {
     #[allow(dead_code)]
     pub fn from_i64(value: i64) -> ContractStatus {
+        match value {
+            0 => ContractStatus::Unknown,
+            1 => ContractStatus::NotSent,
+            2 => ContractStatus::Pending,
+            3 => ContractStatus::Accepted,
+            4 => ContractStatus::Rejected,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn from_u32(value: u32) -> ContractStatus {
         match value {
             0 => ContractStatus::Unknown,
             1 => ContractStatus::NotSent,
@@ -275,6 +307,17 @@ pub enum DatabaseType {
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl DatabaseType {
     pub fn from_i64(value: i64) -> DatabaseType {
+        match value {
+            0 => DatabaseType::Unknown,
+            1 => DatabaseType::Sqlite,
+            2 => DatabaseType::Mysql,
+            3 => DatabaseType::Postgres,
+            4 => DatabaseType::Sqlserver,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn from_u32(value: u32) -> DatabaseType {
         match value {
             0 => DatabaseType::Unknown,
             1 => DatabaseType::Sqlite,
