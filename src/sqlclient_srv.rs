@@ -1,9 +1,9 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-use crate::host_info::HostInfo;
 #[allow(unused_imports)]
-use crate::cdata::{RejectPendingContractRequest, RejectPendingContractReply};
+use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
+use crate::host_info::HostInfo;
 #[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -497,7 +497,7 @@ impl SqlClient for SqlClientImpl {
         let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &rcd_db_conn);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
-        
+
         let cwd = &self.root_folder;
 
         let reply_message = String::from("");
@@ -513,7 +513,8 @@ impl SqlClient for SqlClientImpl {
                     participant,
                     host_info,
                     active_contract,
-                );
+                )
+                .await;
             }
         };
 
