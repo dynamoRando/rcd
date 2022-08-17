@@ -1,4 +1,3 @@
-
 #[allow(dead_code)]
 /// Anything in CDS is in the Cooperative Data Store.
 pub struct CDS {}

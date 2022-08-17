@@ -12,6 +12,7 @@ use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
+/// Implements the `DataService` definition from the protobuff file
 pub struct DataServiceImpl {
     pub root_folder: String,
     pub database_name: String,
@@ -179,7 +180,7 @@ impl DataService for DataServiceImpl {
         &self,
         _request: Request<SaveContractRequest>,
     ) -> Result<Response<SaveContractResult>, Status> {
-        unimplemented!("not implemented");
+        unimplemented!("save contract not implemented");
     }
 
     async fn accept_contract(

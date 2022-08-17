@@ -58,3 +58,12 @@ pub fn update_row_in_partial_database(db_name: &str, table_name: &str, row_data:
 pub fn save_contract(db_name: &str, table_name: &str, row_data: Table) -> String {
     unimplemented!();
 }
+
+#[allow(dead_code, unused_variables, unused_assignments)]
+pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
+    let mut db_part_name = db_name.replace(".db", "");
+    db_part_name = db_part_name.replace(".dbpart", "");
+    db_part_name = format!("{}{}", db_name, String::from(".dbpart"));
+    let conn = Connection::open(&db_part_name).unwrap();
+    return conn;
+}

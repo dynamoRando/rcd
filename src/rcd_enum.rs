@@ -7,7 +7,7 @@ use std::{error::Error, fmt};
 /// * 2 - AutoDelete - If the host discovers that the participant has deleted the row, it will update the reference row with
 /// the delete data then logically delete the row.
 /// * 3 - UpdateStatusOnly - If the host discovers that the particpant has deleted the row then update the reference row
-/// with the delete data but do not perform a logical delete on the row (Note: The row can still be manually deelted
+/// with the delete data but do not perform a logical delete on the row (Note: The row can still be manually deleted
 /// on the host side at a later time.)
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum RemoteDeleteBehavior {
@@ -21,6 +21,16 @@ pub enum RemoteDeleteBehavior {
 impl RemoteDeleteBehavior {
     #[allow(dead_code)]
     pub fn from_i64(value: i64) -> RemoteDeleteBehavior {
+        match value {
+            0 => RemoteDeleteBehavior::Unknown,
+            1 => RemoteDeleteBehavior::Ignore,
+            2 => RemoteDeleteBehavior::AutoDelete,
+            3 => RemoteDeleteBehavior::UpdateStatusOnly,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn from_u32(value: u32) -> RemoteDeleteBehavior {
         match value {
             0 => RemoteDeleteBehavior::Unknown,
             1 => RemoteDeleteBehavior::Ignore,
@@ -47,12 +57,11 @@ impl RemoteDeleteBehavior {
 /// * 1 - HostOnly - Data is only kept at the host.
 /// * 2 - ParticpantOwned - Data is kept at the participant. Hashes of the data are kept at the host. If the participant
 /// changes the data, the hash will no longer match unless the host has configured the table to accept changes.
-/// * 3 - UpdateStatusOnly - If the host discovers that the particpant has deleted the row then update the reference row
-/// * 4 - Shared - Data is at the host, and changes are automatically pushed to the participant. If data is deleted at the host,
+/// * 3 - Shared - Data is at the host, and changes are automatically pushed to the participant. If data is deleted at the host,
 /// it is not automatically deleted at the participant but rather a record marker showing it's been deleted is sent to the
 /// participant, which the participant can act on or ignore (note: the marker will still exist.) This is a 'soft' delete
 /// at the participant.
-/// * 5 - Mirror - This is basically SQL replication - whatever changes happen at the host will automatically be replicated
+/// * 4 - Mirror - This is basically SQL replication - whatever changes happen at the host will automatically be replicated
 /// at the participant. Deletes are permanent.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum LogicalStoragePolicy {
@@ -77,6 +86,17 @@ impl LogicalStoragePolicy {
         }
     }
 
+    pub fn from_u32(value: u32) -> LogicalStoragePolicy {
+        match value {
+            0 => LogicalStoragePolicy::None,
+            1 => LogicalStoragePolicy::HostOnly,
+            2 => LogicalStoragePolicy::ParticpantOwned,
+            3 => LogicalStoragePolicy::Shared,
+            4 => LogicalStoragePolicy::Mirror,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
     #[allow(dead_code)]
     pub fn to_u32(policy: LogicalStoragePolicy) -> u32 {
         match policy {
@@ -84,7 +104,7 @@ impl LogicalStoragePolicy {
             LogicalStoragePolicy::HostOnly => 1,
             LogicalStoragePolicy::ParticpantOwned => 2,
             LogicalStoragePolicy::Shared => 3,
-            LogicalStoragePolicy::Mirror => 4
+            LogicalStoragePolicy::Mirror => 4,
         }
     }
 }
@@ -116,6 +136,28 @@ impl ContractStatus {
             3 => ContractStatus::Accepted,
             4 => ContractStatus::Rejected,
             _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn from_u32(value: u32) -> ContractStatus {
+        match value {
+            0 => ContractStatus::Unknown,
+            1 => ContractStatus::NotSent,
+            2 => ContractStatus::Pending,
+            3 => ContractStatus::Accepted,
+            4 => ContractStatus::Rejected,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn to_u32(status: ContractStatus) -> u32 {
+        match status {
+            ContractStatus::Unknown => 0,
+            ContractStatus::NotSent => 1,
+            ContractStatus::Pending => 2,
+            ContractStatus::Accepted => 3,
+            ContractStatus::Rejected => 4,
         }
     }
 }
@@ -221,7 +263,7 @@ pub enum RcdDbError {
     General(String),
     DbNotFound(String),
     TableNotFound(String),
-    LogicalStoragePolicyNotSet(String)
+    LogicalStoragePolicyNotSet(String),
 }
 
 impl Error for RcdDbError {}
@@ -235,7 +277,7 @@ impl fmt::Display for RcdDbError {
 #[derive(Debug)]
 pub enum RcdGenerateContractError {
     General(String),
-    NotAllTablesSet(String)
+    NotAllTablesSet(String),
 }
 
 impl Error for RcdGenerateContractError {}
@@ -245,7 +287,6 @@ impl fmt::Display for RcdGenerateContractError {
         write!(f, "RcdGenerateContractError")
     }
 }
-
 
 /// Represents the type of backing database rcd is hosting
 /// # Types
@@ -266,6 +307,17 @@ pub enum DatabaseType {
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl DatabaseType {
     pub fn from_i64(value: i64) -> DatabaseType {
+        match value {
+            0 => DatabaseType::Unknown,
+            1 => DatabaseType::Sqlite,
+            2 => DatabaseType::Mysql,
+            3 => DatabaseType::Postgres,
+            4 => DatabaseType::Sqlserver,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn from_u32(value: u32) -> DatabaseType {
         match value {
             0 => DatabaseType::Unknown,
             1 => DatabaseType::Sqlite,

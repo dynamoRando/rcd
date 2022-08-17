@@ -1,6 +1,6 @@
-mod client_srv;
+mod sqlclient_srv;
 mod crypt;
-mod db_srv;
+mod data_srv;
 pub mod rcd_db;
 pub mod rcd_enum;
 mod sql_text;
@@ -12,6 +12,12 @@ pub mod rcd_settings;
 mod rcd_service;
 mod database_contract;
 mod database_participant;
+pub mod defaults;
+mod host_info;
+mod remote_db_srv;
+mod query_parser;
+pub mod rcd_sql_client;
+pub mod rcd_data_client;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;

@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
-use std::sync::Mutex;
+use std::fs;
+use std::{sync::Mutex, path::Path};
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
@@ -25,5 +26,14 @@ impl TestSettings {
     #[allow(dead_code)]
     pub fn get_current_port(&self) -> u32{
         return self.max_port;
+    }
+}
+
+#[allow(dead_code)]
+pub fn delete_test_database(db_name: &str, cwd: &str) {
+    let db_path = Path::new(&cwd).join(db_name);
+
+    if db_path.exists() {
+        fs::remove_file(&db_path).unwrap();
     }
 }

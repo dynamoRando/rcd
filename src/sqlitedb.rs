@@ -1,12 +1,16 @@
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
+use crate::database_contract::DatabaseContract;
+use crate::database_participant::DatabaseParticipant;
+use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
+    defaults,
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
     sql_text, table,
 };
-use chrono::{DateTime, Local, TimeZone, Utc};
+use crate::{query_parser, rcd_db};
+use chrono::Utc;
 #[allow(unused_imports)]
 use guid_create::GUID;
 use log::info;
@@ -14,7 +18,6 @@ use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
 use std::path::Path;
-use crate::database_contract::DatabaseContract;
 
 pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
     let db_path = Path::new(&cwd).join(&db_name);
@@ -22,8 +25,7 @@ pub fn create_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
 }
 
 pub fn execute_write(db_name: &str, cwd: &str, cmd: &str) -> usize {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     // println!("cmd: {}", cmd);
 
@@ -50,6 +52,7 @@ pub fn generate_contract(
     host_name: &str,
     desc: &str,
     remote_delete_behavior: RemoteDeleteBehavior,
+    rcd_db_name: &str,
 ) -> Result<bool, RcdGenerateContractError> {
     /*
        First, we should check to see if there is a logical storage policy
@@ -63,8 +66,12 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    println!("generate contract: start");
+
+    let rcd_db_conn = get_rcd_db(rcd_db_name, cwd);
+    rcd_db::generate_and_get_host_info(host_name, &rcd_db_conn);
+
+    let conn = get_connection(db_name, cwd);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, cwd);
 
     // check to see if all user tables have a logical storage policy set
@@ -86,9 +93,10 @@ pub fn generate_contract(
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
     if !has_any_rows(cmd, &conn) {
         // this is the first contract
+        println!("generate contract: first_contract");
         let contract = DatabaseContract {
             contract_id: GUID::rand(),
-            generated_date: Utc::now().naive_local(),
+            generated_date: Utc::now(),
             description: desc.to_string(),
             retired_date: None,
             version_id: GUID::rand(),
@@ -99,16 +107,30 @@ pub fn generate_contract(
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
+        println!("generate contract: retire contracts");
+        println!(
+            "generate contract: retire contracts count: {}",
+            contracts.len().to_string()
+        );
         for con in contracts {
             if !con.is_retired() {
+                println!(
+                    "generate contract: retire contract {}",
+                    &con.contract_id.to_string()
+                );
                 con.retire(&conn);
+                println!(
+                    "generate contract: save retired contract {}",
+                    &con.contract_id.to_string()
+                );
                 con.save(&conn);
             }
         }
 
+        println!("generate contract: retired. create new contract");
         let new_contract = DatabaseContract {
             contract_id: GUID::rand(),
-            generated_date: Utc::now().naive_local(),
+            generated_date: Utc::now(),
             description: desc.to_string(),
             retired_date: None,
             version_id: GUID::rand(),
@@ -186,15 +208,107 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
 
 #[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, cwd: &str, table_name: &str) -> bool {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     return has_table(table_name.to_string(), &conn);
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn has_cooperative_tables_mock(db_name: &str, cwd: &str, cmd: &str) -> bool {
+    return false;
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn get_participants_for_table(
+    db_name: &str,
+    cwd: &str,
+    table_name: &str,
+) -> Vec<DatabaseParticipant> {
+    unimplemented!();
+
+    // note - we will need another table to track the remote row id
+
+    /*
+    internal const string CREATE_SHADOW_TABLE = $@"
+       CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS}
+       (
+           PARTICIPANT_ID CHAR(36) NOT NULL,
+           IS_PARTICIPANT_DELETED INT,
+           PARTICIPANT_DELETE_DATE_UTC DATETIME,
+           DATA_HASH_LENGTH INT,
+           DATA_HASH BLOB
+       );
+       ";
+    */
+}
+
+#[allow(dead_code)]
+pub fn get_cooperative_tables(db_name: &str, cwd: &str, cmd: &str) -> Vec<String> {
+    let mut cooperative_tables: Vec<String> = Vec::new();
+
+    let tables = query_parser::get_table_names(&cmd);
+
+    for table in &tables {
+        let result = get_logical_storage_policy(db_name, cwd, table.to_string());
+
+        if !result.is_err() {
+            let policy = result.unwrap();
+            match policy {
+                LogicalStoragePolicy::Mirror => {
+                    cooperative_tables.push(table.clone());
+                }
+                LogicalStoragePolicy::ParticpantOwned => {
+                    cooperative_tables.push(table.clone());
+                }
+                LogicalStoragePolicy::Shared => {
+                    cooperative_tables.push(table.clone());
+                }
+                _ => {}
+            }
+        } else {
+            break;
+        }
+    }
+
+    return cooperative_tables;
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn has_cooperative_tables(db_name: &str, cwd: &str, cmd: &str) -> bool {
+    let mut has_cooperative_tables = false;
+
+    let tables = query_parser::get_table_names(&cmd);
+
+    for table in tables {
+        let result = get_logical_storage_policy(db_name, cwd, table);
+
+        if !result.is_err() {
+            let policy = result.unwrap();
+            match policy {
+                LogicalStoragePolicy::Mirror => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                LogicalStoragePolicy::ParticpantOwned => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                LogicalStoragePolicy::Shared => {
+                    has_cooperative_tables = true;
+                    break;
+                }
+                _ => {}
+            }
+        } else {
+            break;
+        }
+    }
+
+    return has_cooperative_tables;
 }
 
 #[allow(dead_code)]
 pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path)?;
+    let conn = get_connection(db_name, cwd);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let cols = statement.columns();
@@ -254,24 +368,53 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
     return Ok(table);
 }
 
-#[allow(unused_variables, unused_mut)]
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
+    let conn = &get_connection(db_name, cwd);
+    return DatabaseContract::get_active_contract(conn);
+}
+
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn get_participant_by_alias(db_name: &str, cwd: &str, alias: &str) -> DatabaseParticipant {
+    let conn = get_connection(db_name, cwd);
+    return DatabaseParticipant::get(alias, &conn);
+}
+
+#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn has_participant(db_name: &str, cwd: &str, alias: &str) -> bool {
+    let conn = &get_connection(db_name, cwd);
+    return DatabaseParticipant::exists(alias, conn);
+}
+
+#[allow(unused_variables, unused_mut, unused_assignments)]
 pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_port: u32) -> bool {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     let mut is_added = false;
 
-    if !has_participant_by_alias(alias, &conn){
-        
+    if DatabaseParticipant::exists(&alias, &conn) {
+        is_added = false;
+    } else {
+        let participant = DatabaseParticipant {
+            internal_id: GUID::rand(),
+            alias: alias.to_string(),
+            ip4addr: ip4addr.to_string(),
+            ip6addr: String::from(""),
+            db_port: db_port,
+            contract_status: ContractStatus::NotSent,
+            accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            token: Vec::new(),
+        };
+        participant.save(&conn);
+        is_added = true;
     }
-    
 
-    unimplemented!();
+    return is_added;
 }
 
 #[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, cwd: &str) {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     create_remotes_table(&conn);
     create_participant_table(&conn);
@@ -289,8 +432,7 @@ pub fn get_logical_storage_policy(
     cwd: &str,
     table_name: String,
 ) -> Result<LogicalStoragePolicy, RcdDbError> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
     let mut policy = LogicalStoragePolicy::None;
 
     if has_table(table_name.clone(), &conn) {
@@ -335,8 +477,7 @@ pub fn set_logical_storage_policy(
     table_name: String,
     policy: LogicalStoragePolicy,
 ) -> Result<bool, RcdDbError> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     if has_table(table_name.clone(), &conn) {
         // insert or update on the coop tables
@@ -650,8 +791,7 @@ fn get_logical_storage_policy_for_all_user_tables(
     db_name: &str,
     cwd: &str,
 ) -> Vec<(String, LogicalStoragePolicy)> {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
+    let conn = get_connection(db_name, cwd);
 
     let mut result: Vec<(String, LogicalStoragePolicy)> = Vec::new();
 
@@ -686,113 +826,16 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
 
 #[allow(unused_variables, dead_code, unused_assignments)]
 fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
-    let mut result: Vec<DatabaseContract> = Vec::new();
-
-    /*
-        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
-        (
-            CONTRACT_ID CHAR(36) NOT NULL,
-            GENERATED_DATE_UTC DATETIME NOT NULL,
-            DESCRIPTION VARCHAR(255),
-            RETIRED_DATE_UTC DATETIME,
-            VERSION_ID CHAR(36) NOT NULL,
-            REMOTE_DELETE_BEHAVIOR INT
-        );",
-    */
-
-    let cmd = String::from(
-        "SELECT 
-            CONTRACT_ID,
-            GENERATED_DATE_UTC,
-            DESCRIPTION,
-            RETIRED_DATE_UTC,
-            VERSION_ID,
-            REMOTE_DELETE_BEHAVIOR
-        FROM
-            COOP_DATABASE_CONTRACT
-            ;
-            ",
-    );
-
-    let table = execute_read_on_connection(cmd, conn).unwrap();
-
-    for row in table.rows {
-        for val in &row.vals {
-            let mut cid = GUID::rand();
-            let mut gen_date = Local::now();
-            let mut desc = String::from("");
-            let mut is_retired = false;
-            let mut ret_date = Local::now();
-            let mut vid = GUID::rand();
-            let mut delete_behavior: u32 = 0;
-
-            if val.col.name == "CONTRACT_ID" {
-                let vcid = val.data.as_ref().unwrap().data_string.clone();
-                let tcid = GUID::parse(&vcid).unwrap();
-                cid = tcid;
-            }
-
-            if val.col.name == "GENERATED_DATE_UTC" {
-                let vgen_date = val.data.as_ref().unwrap().data_string.clone();
-                let tgen_date = DateTime::parse_from_str(&vgen_date, "%Y-%m-%d")
-                    .unwrap()
-                    .naive_local();
-                gen_date = Local.from_local_datetime(&tgen_date).unwrap();
-            }
-
-            if val.col.name == "DESCRIPTION" {
-                let vdesc = val.data.as_ref().unwrap().data_string.clone();
-                desc = vdesc.clone();
-            }
-
-            if val.col.name == "RETIRED_DATE_UTC" {
-                if val.is_null() {
-                    is_retired = false;
-                } else {
-                    is_retired = true;
-                    let vret_date = val.data.as_ref().unwrap().data_string.clone();
-                    let tret_date = DateTime::parse_from_str(&vret_date, "%Y-%m-%d")
-                        .unwrap()
-                        .naive_local();
-                    ret_date = Local.from_local_datetime(&tret_date).unwrap();
-                }
-            }
-
-            if val.col.name == "VERSION_ID" {
-                let vvid = val.data.as_ref().unwrap().data_string.clone();
-                let tvid = GUID::parse(&vvid).unwrap();
-                vid = tvid;
-            }
-
-            if val.col.name == "REMOTE_DELETE_BEHAVIOR" {
-                let vbehavior = val.data.as_ref().unwrap().data_string.clone();
-                delete_behavior = vbehavior.parse().unwrap();
-            }
-
-            let item = DatabaseContract {
-                contract_id: cid,
-                generated_date: gen_date.naive_local(),
-                description: desc,
-                retired_date: if is_retired {
-                    Some(ret_date.naive_utc())
-                } else {
-                    None
-                },
-                version_id: vid,
-                remote_delete_behavior: delete_behavior,
-            };
-
-            result.push(item);
-        }
-    }
-
-    return result;
+    return DatabaseContract::get_all(conn);
 }
 
+pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
+    let db_path = Path::new(&cwd).join(&db_name);
+    let conn = Connection::open(&db_path).unwrap();
+    return conn;
+}
 
-#[allow(unused_variables, dead_code)]
-fn has_participant_by_alias(alias: &str, conn: &Connection) -> bool {
-    let mut cmd = String::from("SELECT COUNT(*) PARTICIPANTCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias';");
-    cmd = cmd.replace(":alias", &alias);
-    return has_any_rows(cmd, conn);
+fn get_rcd_db(db_name: &str, cwd: &str) -> Connection {
+    let db_path = Path::new(cwd).join(db_name);
+    return Connection::open(&db_path).unwrap();
 }

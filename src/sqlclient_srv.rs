@@ -1,10 +1,14 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-use crate::{cdata::*, sqlitedb};
+#[allow(unused_imports)]
+use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
+use crate::host_info::HostInfo;
+#[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::sqlitedb::*;
+use crate::{cdata::*, remote_db_srv, sqlitedb};
 use chrono::Utc;
 use conv::{UnwrapOk, ValueFrom};
 use rusqlite::{Connection, Result};
@@ -12,10 +16,12 @@ use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
+/// Implements the `SQLClient` definition from the protobuff file
 pub struct SqlClientImpl {
     pub root_folder: String,
     pub database_name: String,
     pub addr_port: String,
+    pub own_db_addr_port: String,
 }
 
 impl SqlClientImpl {
@@ -113,7 +119,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
-    #[allow(unused_variables, unused_assignments)]
+    #[allow(unused_variables, unused_assignments, unreachable_code)]
     async fn execute_read(
         &self,
         request: Request<ExecuteReadRequest>,
@@ -127,7 +133,7 @@ impl SqlClient for SqlClientImpl {
         let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
         let db_name = message.database_name;
         let sql = message.sql_statement;
-
+        let rcd_db_conn = self.get_rcd_db();
         let result_table = Vec::new();
 
         let mut statement_result_set = StatementResultset {
@@ -139,17 +145,46 @@ impl SqlClient for SqlClientImpl {
         };
 
         if is_authenticated {
-            let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+            if sqlitedb::has_cooperative_tables_mock(&db_name, &self.root_folder, &sql) {
+                unimplemented!();
+                // we would need to get a list of participants for each of the cooperative tables
+                let cooperative_tables =
+                    sqlitedb::get_cooperative_tables(&db_name, &self.root_folder, &sql);
 
-            if query_result.is_ok() {
-                let result_rows = query_result.unwrap().to_cdata_rows();
-                statement_result_set.number_of_rows_affected =
-                    u64::value_from(result_rows.len()).unwrap_ok();
-                statement_result_set.rows = result_rows;
-                statement_result_set.is_error = false;
+                for ct in &cooperative_tables {
+                    let participants_for_table = sqlitedb::get_participants_for_table(
+                        &db_name,
+                        &self.root_folder,
+                        ct.as_str(),
+                    );
+                    for participant in &participants_for_table {
+                        // we would need to get rows for that table from the participant
+                        let host_info = HostInfo::get(&rcd_db_conn);
+                        let remote_data_result = remote_db_srv::get_row_from_participant(
+                            participant.clone(),
+                            host_info,
+                            &db_name,
+                            &ct,
+                        );
+                        unimplemented!();
+                    }
+                }
+
+                // and then send a request to each participant for row data that fit the query
+                // and finally we would need to assemble those results into a table to be returned
             } else {
-                statement_result_set.execution_error_message =
-                    query_result.unwrap_err().to_string();
+                let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+
+                if query_result.is_ok() {
+                    let result_rows = query_result.unwrap().to_cdata_rows();
+                    statement_result_set.number_of_rows_affected =
+                        u64::value_from(result_rows.len()).unwrap_ok();
+                    statement_result_set.rows = result_rows;
+                    statement_result_set.is_error = false;
+                } else {
+                    statement_result_set.execution_error_message =
+                        query_result.unwrap_err().to_string();
+                }
             }
         }
 
@@ -380,6 +415,7 @@ impl SqlClient for SqlClientImpl {
                 &host_name,
                 &desc,
                 RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
+                &self.database_name,
             );
 
             match result {
@@ -414,7 +450,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        
+
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
@@ -429,7 +465,8 @@ impl SqlClient for SqlClientImpl {
         let mut is_successful = false;
 
         if is_authenticated {
-            is_successful = sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
+            is_successful =
+                sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
         };
 
         let auth_response = AuthResult {
@@ -453,7 +490,50 @@ impl SqlClient for SqlClientImpl {
         request: Request<SendParticipantContractRequest>,
     ) -> Result<Response<SendParticipantContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let rcd_db_conn = self.get_rcd_db();
+        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &rcd_db_conn);
+        let db_name = message.database_name;
+        let participant_alias = message.participant_alias;
+
+        let cwd = &self.root_folder;
+
+        let reply_message = String::from("");
+        let mut is_successful = false;
+
+        if is_authenticated {
+            if sqlitedb::has_participant(&db_name, cwd, &participant_alias) {
+                let participant =
+                    sqlitedb::get_participant_by_alias(&db_name, cwd, &participant_alias);
+                let active_contract = sqlitedb::get_active_contract(&db_name, cwd);
+                let host_info = HostInfo::get(&rcd_db_conn);
+                is_successful = remote_db_srv::send_participant_contract(
+                    participant,
+                    host_info,
+                    active_contract,
+                    self.own_db_addr_port.clone(),
+                )
+                .await;
+            }
+        };
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let send_participant_contract_reply = SendParticipantContractReply {
+            authentication_result: Some(auth_response),
+            is_sent: is_successful,
+            message: reply_message,
+        };
+
+        Ok(Response::new(send_participant_contract_reply))
     }
 
     async fn review_pending_contracts(
@@ -472,12 +552,12 @@ impl SqlClient for SqlClientImpl {
         unimplemented!("");
     }
 
+    #[allow(unused_variables)]
     async fn reject_pending_contract(
         &self,
-        request: Request<RejectPendingContractRequest>,
-    ) -> Result<Response<RejectPendingContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+        request: tonic::Request<RejectPendingContractRequest>,
+    ) -> Result<tonic::Response<RejectPendingContractReply>, tonic::Status> {
+        unimplemented!();
     }
 }
 
@@ -487,6 +567,7 @@ pub async fn start_client_service(
     address_port: &str,
     root_folder: &str,
     database_name: &str,
+    own_db_addr_port: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // https://betterprogramming.pub/building-a-grpc-server-with-rust-be2c52f0860e
     let addr = address_port.parse().unwrap();
@@ -497,6 +578,7 @@ pub async fn start_client_service(
         root_folder: root_folder.to_string(),
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
+        own_db_addr_port: own_db_addr_port.to_string()
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()

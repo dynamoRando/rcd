@@ -22,6 +22,7 @@ lazy_static = "1.4.0"
 conv = "0.3.3"
 guid-create = "0.2.0"
 substring = "1.4.5"
+endianness = "0.2.0"
 
 [build-dependencies]
 tonic-build = "0.7.2"

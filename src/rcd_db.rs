@@ -1,8 +1,9 @@
 /// represents all the actions for admin'ing an rcd sqlite database
+
+use crate::{host_info::HostInfo, sql_text::CDS};
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-use crate::sql_text::CDS;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -39,7 +40,19 @@ pub fn configure(root: &str, db_name: &str) {
     }
 }
 
+#[allow(dead_code, unused_variables)]
+/// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
+/// Will always return the current `HostInfo`
+pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInfo {
+    if !HostInfo::exists(conn) {
+        HostInfo::generate(host_name, conn);
+    }
+
+    return HostInfo::get(conn);
+}
+
 #[allow(dead_code)]
+/// Creates an admin login if one does not already exist and adds it to the `SysAdmin` role
 pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     let conn = Connection::open(&db_path).unwrap();
 
@@ -202,13 +215,11 @@ fn execute_write(statement: &str, conn: &Connection) {
     conn.execute(statement, []).unwrap();
 }
 fn create_user_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_table(), [])
-        .unwrap();
+    conn.execute(&CDS::text_create_user_table(), []).unwrap();
 }
 
 fn create_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_role_table(), [])
-        .unwrap();
+    conn.execute(&CDS::text_create_role_table(), []).unwrap();
 }
 
 fn create_user_role_table(conn: &Connection) {
