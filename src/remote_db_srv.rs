@@ -18,8 +18,7 @@ pub async fn send_participant_contract(
     contract: DatabaseContract,
     own_db_addr_port: String,
 ) -> bool {
-    // need to finish this message
-
+    
     let message_info = get_message_info(host_info, own_db_addr_port);
     let contract = contract.to_cdata_contract();
 
