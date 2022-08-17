@@ -1,10 +1,11 @@
+use chrono::Utc;
+use endianness::*;
+use guid_create::GUID;
 use log::info;
 use tonic::transport::Channel;
-use guid_create::GUID;
-use chrono::Utc;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{SaveContractRequest, MessageInfo};
+use crate::cdata::{MessageInfo, SaveContractRequest};
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, database_contract::DatabaseContract,
     database_participant::DatabaseParticipant, host_info::HostInfo,
@@ -20,9 +21,10 @@ pub async fn send_participant_contract(
     // need to finish this message
 
     let message_info = get_message_info(host_info, own_db_addr_port);
+    let contract = contract.to_cdata_contract();
 
     let request = tonic::Request::new(SaveContractRequest {
-        contract: None,
+        contract: Some(contract),
         message_info: Some(message_info),
     });
 
@@ -67,20 +69,31 @@ async fn get_client(participant: DatabaseParticipant) -> DataServiceClient<Chann
 }
 
 fn get_message_info(host_info: HostInfo, own_db_addr_port: String) -> MessageInfo {
-
     let mut addresses: Vec<String> = Vec::new();
 
     addresses.push(host_info.id);
     addresses.push(host_info.name);
     addresses.push(own_db_addr_port);
 
+    let is_little_endian = is_little_endian();
 
     let message_info = MessageInfo {
-        is_little_endian: false,
+        is_little_endian: is_little_endian,
         message_addresses: addresses,
         message_generated_time_utc: Utc::now().to_string(),
-        message_guid: GUID::rand().to_string()
+        message_guid: GUID::rand().to_string(),
     };
 
-    return message_info
+    return message_info;
+}
+
+fn is_little_endian() -> bool {
+    let v = vec![0, 128, 128, 0];
+
+    let result = match read_i32(&v, ByteOrder::LittleEndian) {
+        Ok(_n) => true,
+        Err(_err) => false,
+    };
+
+    return result;
 }

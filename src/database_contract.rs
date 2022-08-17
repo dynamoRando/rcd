@@ -22,6 +22,8 @@ use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Error, Result};
 #[allow(unused_imports)]
 use std::path::Path;
+#[allow(unused_imports)]
+use crate::cdata::Contract;
 
 /*
     "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -47,6 +49,12 @@ pub struct DatabaseContract {
 }
 
 impl DatabaseContract {
+
+    #[allow(dead_code)]
+    pub fn to_cdata_contract(&self) -> Contract {
+        unimplemented!()
+    }
+
     pub fn get_active_contract(conn: &Connection) -> DatabaseContract {
         let cmd = String::from(
             "
