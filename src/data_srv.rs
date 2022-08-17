@@ -180,7 +180,7 @@ impl DataService for DataServiceImpl {
         &self,
         _request: Request<SaveContractRequest>,
     ) -> Result<Response<SaveContractResult>, Status> {
-        unimplemented!("not implemented");
+        unimplemented!("save contract not implemented");
     }
 
     async fn accept_contract(

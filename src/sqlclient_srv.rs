@@ -21,6 +21,7 @@ pub struct SqlClientImpl {
     pub root_folder: String,
     pub database_name: String,
     pub addr_port: String,
+    pub own_db_addr_port: String,
 }
 
 impl SqlClientImpl {
@@ -513,6 +514,7 @@ impl SqlClient for SqlClientImpl {
                     participant,
                     host_info,
                     active_contract,
+                    self.own_db_addr_port.clone(),
                 )
                 .await;
             }
@@ -565,6 +567,7 @@ pub async fn start_client_service(
     address_port: &str,
     root_folder: &str,
     database_name: &str,
+    own_db_addr_port: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // https://betterprogramming.pub/building-a-grpc-server-with-rust-be2c52f0860e
     let addr = address_port.parse().unwrap();
@@ -575,6 +578,7 @@ pub async fn start_client_service(
         root_folder: root_folder.to_string(),
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
+        own_db_addr_port: own_db_addr_port.to_string()
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()

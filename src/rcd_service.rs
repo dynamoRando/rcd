@@ -36,6 +36,7 @@ impl RcdService {
             &self.rcd_settings.client_service_addr_port,
             &cwd,
             &self.rcd_settings.backing_database_name,
+            &self.rcd_settings.database_service_addr_port,
         );
     }
 
@@ -55,6 +56,7 @@ impl RcdService {
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
         let address_port = &self.rcd_settings.client_service_addr_port;
+        let own_db_addr_port = &self.rcd_settings.database_service_addr_port;
         let addr = address_port.parse().unwrap();
         let database_name = &self.rcd_settings.backing_database_name;
 
@@ -65,6 +67,7 @@ impl RcdService {
             root_folder: root_folder.to_string(),
             database_name: database_name.to_string(),
             addr_port: address_port.to_string(),
+            own_db_addr_port: own_db_addr_port.to_string()
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
@@ -92,6 +95,7 @@ impl RcdService {
 
         let addr = address_port.parse().unwrap();
         let database_name = &self.rcd_settings.backing_database_name;
+        let own_db_addr_port = &self.rcd_settings.database_service_addr_port;
 
         let wd = env::current_dir().unwrap();
         let root_folder = wd.to_str().unwrap();
@@ -100,6 +104,7 @@ impl RcdService {
             root_folder: root_folder.to_string(),
             database_name: database_name.to_string(),
             addr_port: address_port.to_string(),
+            own_db_addr_port: own_db_addr_port.to_string(),
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
