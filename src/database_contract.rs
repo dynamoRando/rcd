@@ -1,4 +1,8 @@
+use crate::cdata::Contract;
+use crate::cdata::{DatabaseSchema, Host};
 use crate::defaults;
+use crate::host_info::HostInfo;
+use crate::rcd_enum::ContractStatus;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 use crate::sqlitedb::execute_read_on_connection;
@@ -22,8 +26,6 @@ use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Error, Result};
 #[allow(unused_imports)]
 use std::path::Path;
-#[allow(unused_imports)]
-use crate::cdata::Contract;
 
 /*
     "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -49,10 +51,34 @@ pub struct DatabaseContract {
 }
 
 impl DatabaseContract {
+    pub fn to_cdata_contract(
+        &self,
+        host_info: &HostInfo,
+        host_ip4_addr: &str,
+        host_ip6_addr: &str,
+        host_db_port: u32,
+        contract_status: ContractStatus,
+        db_schema: DatabaseSchema,
+    ) -> Contract {
+        let c_host_info = Host {
+            host_guid: host_info.id.clone(),
+            host_name: host_info.name.clone(),
+            ip4_address: host_ip4_addr.to_string(),
+            ip6_address: host_ip6_addr.to_string(),
+            database_port_number: host_db_port,
+            token: host_info.token.clone(),
+        };
 
-    #[allow(dead_code)]
-    pub fn to_cdata_contract(&self) -> Contract {
-        unimplemented!()
+        let contract = Contract {
+            contract_guid: String::from(""),
+            description: String::from(""),
+            contract_version: String::from(""),
+            host_info: Some(c_host_info),
+            schema: Some(db_schema),
+            status: ContractStatus::to_u32(contract_status),
+        };
+
+        return contract;
     }
 
     pub fn get_active_contract(conn: &Connection) -> DatabaseContract {
