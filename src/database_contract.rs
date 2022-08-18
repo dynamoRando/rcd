@@ -51,7 +51,6 @@ pub struct DatabaseContract {
 }
 
 impl DatabaseContract {
-    #[allow(dead_code, unused_variables)]
     pub fn to_cdata_contract(
         &self,
         host_info: &HostInfo,
@@ -79,7 +78,7 @@ impl DatabaseContract {
             status: ContractStatus::to_u32(contract_status),
         };
 
-        unimplemented!()
+        return contract;
     }
 
     pub fn get_active_contract(conn: &Connection) -> DatabaseContract {
