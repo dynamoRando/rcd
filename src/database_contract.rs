@@ -1,5 +1,6 @@
-use crate::cdata::{Host, DatabaseSchema};
-use crate::{defaults};
+use crate::cdata::Contract;
+use crate::cdata::{DatabaseSchema, Host};
+use crate::defaults;
 use crate::host_info::HostInfo;
 use crate::rcd_enum::ContractStatus;
 #[allow(unused_imports)]
@@ -25,7 +26,6 @@ use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Error, Result};
 #[allow(unused_imports)]
 use std::path::Path;
-use crate::cdata::Contract;
 
 /*
     "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -51,24 +51,23 @@ pub struct DatabaseContract {
 }
 
 impl DatabaseContract {
-
     #[allow(dead_code, unused_variables)]
-    pub fn to_cdata_contract(&self, 
-        host_info: &HostInfo, 
-        host_ip4_addr: &str, 
-        host_ip6_addr: &str, 
-        host_db_port: u32, 
+    pub fn to_cdata_contract(
+        &self,
+        host_info: &HostInfo,
+        host_ip4_addr: &str,
+        host_ip6_addr: &str,
+        host_db_port: u32,
         contract_status: ContractStatus,
-        db_schema: DatabaseSchema
+        db_schema: DatabaseSchema,
     ) -> Contract {
-
         let c_host_info = Host {
-           host_guid: host_info.id.clone(),
-           host_name: host_info.name.clone(),
-           ip4_address: host_ip4_addr.to_string(),
-           ip6_address: host_ip6_addr.to_string(),
-           database_port_number: host_db_port,
-           token: host_info.token.clone(),
+            host_guid: host_info.id.clone(),
+            host_name: host_info.name.clone(),
+            ip4_address: host_ip4_addr.to_string(),
+            ip6_address: host_ip6_addr.to_string(),
+            database_port_number: host_db_port,
+            token: host_info.token.clone(),
         };
 
         let contract = Contract {

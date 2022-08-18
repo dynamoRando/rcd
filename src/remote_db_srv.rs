@@ -5,7 +5,7 @@ use log::info;
 use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{MessageInfo, SaveContractRequest, DatabaseSchema};
+use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest};
 use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, database_contract::DatabaseContract,
@@ -18,15 +18,14 @@ pub async fn send_participant_contract(
     host_info: HostInfo,
     contract: DatabaseContract,
     own_db_addr_port: String,
-    db_schema: DatabaseSchema
+    db_schema: DatabaseSchema,
 ) -> bool {
-
     let message_info = get_message_info(&host_info, own_db_addr_port.clone());
 
     let contract = contract.to_cdata_contract(
-        &host_info, 
-        own_db_addr_port.as_str().clone(), 
-        "", 
+        &host_info,
+        own_db_addr_port.as_str().clone(),
+        "",
         0,
         ContractStatus::Pending,
         db_schema,

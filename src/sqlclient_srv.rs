@@ -580,7 +580,7 @@ pub async fn start_client_service(
         root_folder: root_folder.to_string(),
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
-        own_db_addr_port: own_db_addr_port.to_string()
+        own_db_addr_port: own_db_addr_port.to_string(),
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()
