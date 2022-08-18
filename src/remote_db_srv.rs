@@ -5,7 +5,8 @@ use log::info;
 use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{MessageInfo, SaveContractRequest};
+use crate::cdata::{MessageInfo, SaveContractRequest, DatabaseSchema};
+use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, database_contract::DatabaseContract,
     database_participant::DatabaseParticipant, host_info::HostInfo,
@@ -17,10 +18,19 @@ pub async fn send_participant_contract(
     host_info: HostInfo,
     contract: DatabaseContract,
     own_db_addr_port: String,
+    db_schema: DatabaseSchema
 ) -> bool {
-    
-    let message_info = get_message_info(host_info, own_db_addr_port);
-    let contract = contract.to_cdata_contract();
+
+    let message_info = get_message_info(&host_info, own_db_addr_port.clone());
+
+    let contract = contract.to_cdata_contract(
+        &host_info, 
+        own_db_addr_port.as_str().clone(), 
+        "", 
+        0,
+        ContractStatus::Pending,
+        db_schema,
+    );
 
     let request = tonic::Request::new(SaveContractRequest {
         contract: Some(contract),
@@ -67,11 +77,11 @@ async fn get_client(participant: DatabaseParticipant) -> DataServiceClient<Chann
     return DataServiceClient::new(channel);
 }
 
-fn get_message_info(host_info: HostInfo, own_db_addr_port: String) -> MessageInfo {
+fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
     let mut addresses: Vec<String> = Vec::new();
 
-    addresses.push(host_info.id);
-    addresses.push(host_info.name);
+    addresses.push(host_info.id.clone());
+    addresses.push(host_info.name.clone());
     addresses.push(own_db_addr_port);
 
     let is_little_endian = is_little_endian();

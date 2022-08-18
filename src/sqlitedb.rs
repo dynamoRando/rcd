@@ -1,3 +1,4 @@
+use crate::cdata::DatabaseSchema;
 use crate::database_contract::DatabaseContract;
 use crate::database_participant::DatabaseParticipant;
 use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
@@ -372,6 +373,11 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
     let conn = &get_connection(db_name, cwd);
     return DatabaseContract::get_active_contract(conn);
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
+    unimplemented!()
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]

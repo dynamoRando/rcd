@@ -509,12 +509,14 @@ impl SqlClient for SqlClientImpl {
                 let participant =
                     sqlitedb::get_participant_by_alias(&db_name, cwd, &participant_alias);
                 let active_contract = sqlitedb::get_active_contract(&db_name, cwd);
+                let db_schema = sqlitedb::get_db_schema(&db_name, cwd);
                 let host_info = HostInfo::get(&rcd_db_conn);
                 is_successful = remote_db_srv::send_participant_contract(
                     participant,
                     host_info,
                     active_contract,
                     self.own_db_addr_port.clone(),
+                    db_schema,
                 )
                 .await;
             }
