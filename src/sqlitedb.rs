@@ -375,8 +375,39 @@ pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
     return DatabaseContract::get_active_contract(conn);
 }
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
 pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
+    let conn = &get_connection(&db_name, cwd);
+    
+    let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
+    let db_id = get_scalar_as_string(cmd, conn);
+
+    let db_schema = DatabaseSchema {
+        database_id: db_id.clone(),
+        database_name: db_name.to_string(),
+        tables: Vec::new(),
+    };
+
+    cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
+
+    let row_to_tuple = | table_id: String, table_name: String | -> Result<(String, String)> {
+        Ok((table_id, table_name))
+    };
+
+    let tables_in_db: Vec<String, String> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    
+    let tables = statement
+    .query_and_then([], |row| {
+        row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
+    })
+    .unwrap();
+
+    for table in tables {
+        tables_in_db.push(table.unwrap());
+    }
+
     unimplemented!()
 }
 
@@ -663,6 +694,20 @@ pub fn has_any_rows(cmd: String, conn: &Connection) -> bool {
 /// to return the result as a u32
 fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     let mut value: u32 = 0;
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let rows = statement.query_map([], |row| row.get(0)).unwrap();
+
+    for item in rows {
+        value = item.unwrap();
+    }
+
+    return value;
+}
+
+/// Runs any SQL statement that returns a single vlaue and attempts
+/// to return the result as a u32
+fn get_scalar_as_string(cmd: String, conn: &Connection) -> String {
+    let mut value = String::from("");
     let mut statement = conn.prepare(&cmd).unwrap();
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
 

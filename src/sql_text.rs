@@ -141,7 +141,7 @@ impl CDS {
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_tables_schemas_table() -> String {
         return String::from(
-            "CREATE TABLE IF NOT EXISTS CDS_CONTRACTS_TABLE_SCHEMAS}
+            "CREATE TABLE IF NOT EXISTS CDS_CONTRACTS_TABLE_SCHEMAS
         (
             TABLE_ID CHAR(36) NOT NULL,
             COLUMN_ID CHAR(36) NOT NULL,
