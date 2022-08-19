@@ -394,7 +394,7 @@ pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
         Ok((table_id, table_name))
     };
 
-    let tables_in_db: Vec<String, String> = Vec::new();
+    let mut tables_in_db: Vec<(String, String)> = Vec::new();
 
     let mut statement = conn.prepare(&cmd).unwrap();
     
