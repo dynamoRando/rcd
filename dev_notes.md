@@ -12,27 +12,50 @@ Just a bunch of things removed from places in code.
 These snippets are from attempts to try and spawn a testing verison of the client service.
 
 ```rust
-    #[tokio::main]
-    pub async fn start_client_async(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
-        info!("start_client_service");
+#[tokio::main]
+pub async fn start_client_async(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
+    info!("start_client_service");
 
-        let wd = env::current_dir().unwrap();
-        let cwd = wd.to_str().unwrap();
+    let wd = env::current_dir().unwrap();
+    let cwd = wd.to_str().unwrap();
 
-        client_srv::start_service(
-            &self.rcd_settings.client_service_addr_port,
-            &cwd,
-            &self.rcd_settings.backing_database_name,
-        )
-    }
+    client_srv::start_service(
+        &self.rcd_settings.client_service_addr_port,
+        &cwd,
+        &self.rcd_settings.backing_database_name,
+    )
+}
 
 ```    
 ```rust
-    pub fn start_data_service(self: &Self) {
-        info!("start_data_service");
-        db_srv::start_service(&self.rcd_settings.database_service_addr_port);
-    }
+pub fn start_data_service(self: &Self) {
+    info!("start_data_service");
+    db_srv::start_service(&self.rcd_settings.database_service_addr_port);
+}
 ```    
+
+#### Using Sqlite
+
+```rust
+let mut statement = conn.prepare(&cmd).unwrap();
+
+let row_to_tuple =
+    |table_name: String, policy: i64| -> Result<(String, LogicalStoragePolicy)> {
+        Ok((table_name, LogicalStoragePolicy::from_i64(policy)))
+    };
+
+let statuses = statement
+    .query_and_then([], |row| {
+        row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
+    })
+    .unwrap();
+
+for status in statuses {
+    table_policies.push(status.unwrap());
+}
+
+return table_policies;
+```
 
 ## Tests
 To run and get output, try:
