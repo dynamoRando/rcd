@@ -42,7 +42,7 @@ pub mod is_online {
 
     #[test]
     fn test() {
-        let test_message: &str = "test_client_srv";
+        let test_message: &str = "is_online";
         let (tx, rx) = mpsc::channel();
 
         let root_dir = super::test_harness::get_test_temp_dir(test_message);
@@ -89,7 +89,7 @@ pub mod create_user_database {
 
     #[test]
     fn test() {
-        let test_name = "test_create_user_db";
+        let test_name = "create_user_database_positive";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = super::test_harness::TEST_SETTINGS
@@ -150,7 +150,7 @@ pub mod create_user_database {
     #[test]
     fn negative_test() {
 
-        let test_name = "test_creat_user_db_false";
+        let test_name = "create_user_database_negative";
         let test_db_name = format!("{}{}", test_name, ".db");
         
         let (tx, rx) = mpsc::channel();
@@ -228,7 +228,7 @@ pub mod enable_coooperative_features {
 
     #[test]
     fn test() {
-        let test_name = "test_enable_coop";
+        let test_name = "enable_coooperative_features";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -304,7 +304,7 @@ pub mod create_db_enable_coop_read_write {
 
     #[test]
     pub fn test() {
-        let test_name = "test_create_db_read_write";
+        let test_name = "create_db_enable_coop_read_write";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -319,7 +319,7 @@ pub mod create_db_enable_coop_read_write {
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
-        service.start();
+        service.start_at_dir(&root_dir);
 
         info!("starting client at {}", &client_address_port);
         info!("starting client service");
@@ -426,7 +426,7 @@ pub mod get_set_logical_storage_policy {
 
     #[test]
     pub fn test() {
-        let test_name = "tesT_cretae_db_read_write";
+        let test_name = "get_set_logical_storage_policy";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -443,7 +443,7 @@ pub mod get_set_logical_storage_policy {
         let policy = LogicalStoragePolicy::ParticpantOwned;
         let i_policy = LogicalStoragePolicy::to_u32(policy);
 
-        service.start();
+        service.start_at_dir(&root_dir);
 
         info!("starting client at {}", &client_address_port);
         info!("starting client service");
@@ -570,7 +570,7 @@ pub mod has_table {
 
     #[test]
     pub fn test() {
-        let test_name = "test_create_has_table";
+        let test_name = "has_table";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -585,7 +585,7 @@ pub mod has_table {
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
-        service.start();
+        service.start_at_dir(&root_dir);
 
         info!("starting client at {}", &client_address_port);
         info!("starting client service");
@@ -660,7 +660,7 @@ pub mod generate_contract {
 
     #[test]
     pub fn test() {
-        let test_name = "test_gen_contract_positive";
+        let test_name = "generate_contract_positive";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -709,7 +709,7 @@ pub mod generate_contract {
 
     #[test]
     pub fn negative_test() {
-        let test_name = "test_gen_contract_negative";
+        let test_name = "generate_contract_negative";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS

@@ -1,4 +1,4 @@
-use crate::cdata::data_service_server::{DataService, DataServiceServer};
+use crate::cdata::data_service_server::{DataServiceServer};
 use crate::cdata::sql_client_server::SqlClientServer;
 use crate::configure_backing_store_at_dir;
 use crate::data_srv::DataServiceImpl;

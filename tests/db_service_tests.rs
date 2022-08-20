@@ -2,8 +2,7 @@ mod test_harness;
 
 pub mod save_contract {
     use log::info;
-    use rcd::get_service_from_config_file;
-    use rcd::rcd_sql_client::RcdClient;
+    use std::fs;
     use std::path::Path;
     use std::sync::mpsc;
     use std::{thread, time};
@@ -30,21 +29,35 @@ pub mod save_contract {
             and we will need to also kick off two clients, one for each
         */
 
-        let test_db_name = "generate_and_save_contract.db";
+        let test_name = "save_contract";
+        let test_db_name = format!("{}{}", test_name, ".db");
 
         let (tx, rx) = mpsc::channel();
 
-        let root_dir = super::test_harness::get_test_temp_dir(test_db_name);
+        let root_dir = super::test_harness::get_test_temp_dir(&test_name);
         let main_path = Path::new(&root_dir).join("main");
+
+        if main_path.exists() {
+            fs::remove_dir_all(&main_path).unwrap();
+        }
+
+        fs::create_dir_all(&main_path).unwrap();
 
         let main_dir = main_path.as_os_str().to_str().unwrap();
 
         let participant_path = Path::new(&root_dir).join("participant");
+
+        if participant_path.exists() {
+            fs::remove_dir_all(&participant_path).unwrap();
+        }
+
+        fs::create_dir_all(&participant_path).unwrap();
+
         let participant_dir = participant_path.as_os_str().to_str().unwrap();
 
-        let main_client_addr_port = main_service_start(test_db_name, main_dir.to_string());
+        let main_client_addr_port = main_service_start(&test_db_name, main_dir.to_string());
         let participant_client_addr_port =
-            participant_service_start(test_db_name, participant_dir.to_string());
+            participant_service_start(&test_db_name, participant_dir.to_string());
 
         let time = time::Duration::from_secs(5);
 
@@ -53,7 +66,7 @@ pub mod save_contract {
         thread::sleep(time);
 
         thread::spawn(move || {
-            let res = main_service_client(test_db_name, &main_client_addr_port);
+            let res = main_service_client(&test_db_name, &main_client_addr_port);
             tx.send(res).unwrap();
         })
         .join()
