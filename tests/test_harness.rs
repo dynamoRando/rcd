@@ -26,6 +26,35 @@ pub fn get_test_temp_dir(test_name: &str) -> String {
     return path.as_path().to_str().unwrap().to_string();
 }
 
+/// returns a tuple for the root directory, the "main" directory, and the "participant" directory 
+/// in the temp folder
+#[allow(dead_code)]
+pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, String, String) {
+    let root_dir = get_test_temp_dir(&test_name);
+
+    let main_path = Path::new(&root_dir).join("main");
+
+    if main_path.exists() {
+        fs::remove_dir_all(&main_path).unwrap();
+    }
+
+    fs::create_dir_all(&main_path).unwrap();
+
+    let main_dir = main_path.as_os_str().to_str().unwrap();
+
+    let participant_path = Path::new(&root_dir).join("participant");
+
+    if participant_path.exists() {
+        fs::remove_dir_all(&participant_path).unwrap();
+    }
+
+    fs::create_dir_all(&participant_path).unwrap();
+
+    let participant_dir = participant_path.as_os_str().to_str().unwrap();
+
+    return (root_dir, main_dir.to_string(), participant_dir.to_string());
+}
+
 #[allow(dead_code)]
 pub struct TestSettings {
     max_port: u32,
