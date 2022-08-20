@@ -1,7 +1,7 @@
-use crate::cdata::DatabaseSchema;
+use crate::cdata::{ColumnSchema, DatabaseSchema, TableSchema};
 use crate::database_contract::DatabaseContract;
 use crate::database_participant::DatabaseParticipant;
-use crate::rcd_enum::{ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
+use crate::rcd_enum::{ColumnType, ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
@@ -378,11 +378,11 @@ pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
 #[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
 pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
     let conn = &get_connection(&db_name, cwd);
-    
+
     let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
     let db_id = get_scalar_as_string(cmd, conn);
 
-    let db_schema = DatabaseSchema {
+    let mut db_schema = DatabaseSchema {
         database_id: db_id.clone(),
         database_name: db_name.to_string(),
         tables: Vec::new(),
@@ -390,25 +390,96 @@ pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
 
     cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
 
-    let row_to_tuple = | table_id: String, table_name: String | -> Result<(String, String)> {
+    let row_to_tuple = |table_id: String, table_name: String| -> Result<(String, String)> {
         Ok((table_id, table_name))
     };
 
     let mut tables_in_db: Vec<(String, String)> = Vec::new();
 
     let mut statement = conn.prepare(&cmd).unwrap();
-    
+
     let tables = statement
-    .query_and_then([], |row| {
-        row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
-    })
-    .unwrap();
+        .query_and_then([], |row| {
+            row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
+        })
+        .unwrap();
 
     for table in tables {
         tables_in_db.push(table.unwrap());
     }
 
-    unimplemented!()
+    for t in &tables_in_db {
+        let mut policy = get_logical_storage_policy(db_name, cwd, t.1.clone()).unwrap();
+
+        let mut ts = TableSchema {
+            table_name: t.1.clone(),
+            table_id: t.0.clone(),
+            database_id: db_id.clone(),
+            database_name: db_name.to_string(),
+            columns: Vec::new(),
+            logical_storage_policy: LogicalStoragePolicy::to_u32(policy),
+        };
+
+        let mut schema = get_schema_of_table(t.1.to_string(), conn);
+
+        // # Columns:
+        // 1. columnId
+        // 2. name
+        // 3. type
+        // 4. NotNull
+        // 5. defaultValue
+        // 6. IsPK
+
+        for row in schema.rows {
+            let mut cs = ColumnSchema {
+                column_id: String::from(""),
+                column_name: String::from(""),
+                column_type: 0,
+                column_length: 0,
+                is_nullable: false,
+                ordinal: 0,
+                table_id: t.0.to_string(),
+                is_primary_key: false,
+            };
+
+            for val in row.vals {
+                if val.col.name == "columnId" {
+                    let item = val.data.clone().unwrap();
+                    cs.ordinal = item.data_string.parse().unwrap();
+                }
+
+                if val.col.name == "name" {
+                    let item = val.data.clone().unwrap();
+                    cs.column_name = item.data_string.parse().unwrap();
+                }
+
+                if val.col.name == "type" {
+                    let item = val.data.clone().unwrap();
+                    let ct = ColumnType::data_type_to_enum_u32(item.data_string.clone());
+                    let len = ColumnType::data_type_len(item.data_string.clone());
+
+                    cs.column_type = ct;
+                    cs.column_length = len;
+                }
+
+                if val.col.name == "NotNull" {
+                    let item = val.data.clone().unwrap();
+                    cs.is_nullable = item.data_string.parse().unwrap();
+                }
+
+                if val.col.name == "IsPK" {
+                    let item = val.data.clone().unwrap();
+                    cs.is_primary_key = item.data_string.parse().unwrap();
+                }
+            }
+
+            ts.columns.push(cs);
+        }
+
+        db_schema.tables.push(ts);
+    }
+
+    return db_schema;
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]

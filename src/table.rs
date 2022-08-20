@@ -6,14 +6,14 @@ use guid_create::GUID;
 use substring::Substring;
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Data {
     pub data_string: String,
     pub data_byte: Vec<u8>,
 }
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Value {
     pub data: Option<Data>,
     pub col: Column,

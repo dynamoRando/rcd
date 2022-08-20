@@ -1,5 +1,7 @@
 use std::{error::Error, fmt};
 
+use substring::Substring;
+
 /// Determines how a host will respond to a particpant's delete action.
 /// # Types
 /// * 0 - Unknown
@@ -177,6 +179,25 @@ pub enum ColumnType {
 }
 
 impl ColumnType {
+    pub fn data_type_to_enum_u32(desc: String) -> u32 {
+        let ct = ColumnType::try_parse(&desc).unwrap();
+        return ColumnType::to_u32(ct);
+    }
+
+    pub fn data_type_len(desc: String) -> u32 {   
+        let idx_first_paren = desc.find("(");
+
+        if idx_first_paren.is_none() {
+            return 0;
+        } else {
+            let idx_first = idx_first_paren.unwrap();
+            let idx_last = desc.find(")").unwrap();
+            let str_length = desc.substring(idx_first, idx_last);
+            let length: u32 = str_length.parse().unwrap();
+            return length;
+        }
+    }
+
     #[allow(dead_code)]
     pub fn try_parse(desc: &str) -> Option<ColumnType> {
         let string_data_type = desc.to_lowercase();
