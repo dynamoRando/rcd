@@ -2,6 +2,8 @@ use lazy_static::lazy_static;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
+use log::info;
+use std::{thread};
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
@@ -9,6 +11,54 @@ use std::{path::Path, sync::Mutex};
 
 lazy_static! {
     pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings { max_port: 6000 });
+}
+
+ /// returns a tuple for the addr_port of the client service and the db service
+ #[allow(dead_code)]
+ pub fn start_service(test_db_name: &str, root_dir: String) -> (String, String) {
+    let client_port_num = TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_next_avail_port();
+
+    let db_port_num = TEST_SETTINGS
+        .lock()
+        .unwrap()
+        .get_next_avail_port();
+
+    let service = rcd::get_service_from_config_file();
+
+    let client_address_port =
+        format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
+    let target_client_address_port = client_address_port.clone();
+
+    let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num.to_string());
+    let target_db_address_port = db_address_port.clone();
+
+    println!("{:?}", &service);
+
+    service.start_at_dir(root_dir.as_str());
+
+    let cwd = service.cwd();
+    delete_test_database(test_db_name, &cwd);
+
+    info!("starting main client at {}", &client_address_port);
+    info!("starting client service");
+
+    let dir = root_dir.clone();
+
+    thread::spawn(move || {
+        let d = dir.clone();
+        let e = d.clone();
+        service
+            .start_client_service_at_addr(client_address_port, d)
+            .unwrap();
+            service
+            .start_db_service_at_addr(db_address_port, e)
+            .unwrap();
+    });
+
+    return (target_client_address_port, target_db_address_port);
 }
 
 #[allow(dead_code)]
