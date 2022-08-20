@@ -1,4 +1,5 @@
 use crate::cdata::sql_client_server::SqlClientServer;
+use crate::configure_backing_store_at_dir;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use log::info;
@@ -8,13 +9,28 @@ use tonic::transport::Server;
 #[derive(Debug, Clone)]
 pub struct RcdService {
     pub rcd_settings: RcdSettings,
+    pub root_dir: String,
 }
 
 impl RcdService {
     pub fn cwd(&self) -> String {
-        let wd = env::current_dir().unwrap();
-        let cwd = wd.to_str().unwrap();
-        return cwd.to_string();
+        if self.root_dir == "" {
+            let wd = env::current_dir().unwrap();
+            let cwd = wd.to_str().unwrap();
+            return cwd.to_string();
+        } else {
+            return self.root_dir.clone();
+        }
+    }
+
+    pub fn start_at_dir(self: &Self, root_dir: String) {
+        configure_backing_store_at_dir(
+            self.rcd_settings.database_type,
+            &self.rcd_settings.backing_database_name,
+            &self.rcd_settings.admin_un,
+            &self.rcd_settings.admin_pw,
+            &root_dir,
+        );
     }
 
     pub fn start(self: &Self) {
@@ -67,7 +83,7 @@ impl RcdService {
             root_folder: root_folder.to_string(),
             database_name: database_name.to_string(),
             addr_port: address_port.to_string(),
-            own_db_addr_port: own_db_addr_port.to_string()
+            own_db_addr_port: own_db_addr_port.to_string(),
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()

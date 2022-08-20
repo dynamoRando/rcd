@@ -1,30 +1,30 @@
-mod sqlclient_srv;
+pub mod cdata;
 mod crypt;
 mod data_srv;
-pub mod rcd_db;
-pub mod rcd_enum;
-mod sql_text;
-mod sqlitedb;
-mod sqlitedbpart;
-mod table;
-pub mod cdata;
-pub mod rcd_settings;
-mod rcd_service;
 mod database_contract;
 mod database_participant;
 pub mod defaults;
 mod host_info;
-mod remote_db_srv;
 mod query_parser;
-pub mod rcd_sql_client;
 pub mod rcd_data_client;
+pub mod rcd_db;
+pub mod rcd_enum;
+mod rcd_service;
+pub mod rcd_settings;
+pub mod rcd_sql_client;
+mod remote_db_srv;
+mod sql_text;
+mod sqlclient_srv;
+mod sqlitedb;
+mod sqlitedbpart;
+mod table;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
 use crate::rcd_settings::RcdSettings;
+use config::Config;
 use std::env;
 use std::path::Path;
-use config::Config;
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(
@@ -49,6 +49,29 @@ fn configure_backing_store(
     }
 }
 
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store_at_dir(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+    root_dir: &str,
+) {
+    let _db_path = Path::new(root_dir).join(&backing_db_name);
+    let db_location = _db_path.as_os_str().to_str().unwrap();
+
+    match db_type {
+        DatabaseType::Sqlite => {
+            crate::rcd_db::configure(root_dir, db_location);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, db_location)
+        }
+        DatabaseType::Mysql => do_nothing(),
+        DatabaseType::Postgres => do_nothing(),
+        DatabaseType::Sqlserver => do_nothing(),
+        _ => panic!("Unknown db type"),
+    }
+}
+
 fn do_nothing() {
     println!("do nothing");
 }
@@ -63,6 +86,7 @@ pub fn get_service_from_config_file() -> RcdService {
     let settings = get_config_from_settings_file();
     let service = RcdService {
         rcd_settings: settings,
+        root_dir: String::from("")
     };
     return service;
 }
@@ -71,6 +95,7 @@ pub fn get_service_from_config_file() -> RcdService {
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     return RcdService {
         rcd_settings: config,
+        root_dir: String::from("")
     };
 }
 
