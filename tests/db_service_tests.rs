@@ -1,6 +1,7 @@
 mod test_harness;
 
 pub mod save_contract {
+    use crate::test_harness::ServiceAddr;
     use log::info;
     use std::sync::mpsc;
     use std::{thread, time};
@@ -44,7 +45,7 @@ pub mod save_contract {
         thread::sleep(time);
 
         thread::spawn(move || {
-            let res = main_service_client(&test_db_name, &main_addrs.0);
+            let res = main_service_client(&test_db_name, main_addrs.0, participant_addrs.1);
             tx.send(res).unwrap();
         })
         .join()
@@ -59,17 +60,28 @@ pub mod save_contract {
 
     #[cfg(test)]
     #[tokio::main]
-    async fn main_service_client(db_name: &str, addr_port: &str) -> bool {
+    #[allow(unused_variables)]
+    async fn main_service_client(
+        db_name: &str,
+        main_client_addr: ServiceAddr,
+        participant_db_addr: ServiceAddr,
+    ) -> bool {
         use rcd::rcd_enum::LogicalStoragePolicy;
         use rcd::rcd_sql_client::RcdClient;
         use rcd::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
-        let addr_port = format!("{}{}", String::from("http://"), addr_port);
-        info!("main_service_client attempting to connect {}", addr_port);
+        info!(
+            "main_service_client attempting to connect {}",
+            main_client_addr.to_full_string_with_http()
+        );
 
-        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        let client = RcdClient::new(
+            main_client_addr.to_full_string_with_http(),
+            String::from("tester"),
+            String::from("123456"),
+        );
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -94,9 +106,50 @@ pub mod save_contract {
 
         let behavior = RemoteDeleteBehavior::Ignore;
 
-        return client
+        client
             .generate_contract(db_name, "tester", "desc", behavior)
             .await
             .unwrap();
+
+        client
+            .add_participant(
+                db_name,
+                "participant",
+                &participant_db_addr.ip4_addr,
+                participant_db_addr.port,
+            )
+            .await
+            .unwrap();
+
+        return client
+            .send_participant_contract(db_name, "participant")
+            .await
+            .unwrap();
+    }
+
+    #[cfg(test)]
+    #[tokio::main]
+    #[allow(dead_code, unused_variables)]
+    async fn participant_service_client(
+        db_name: &str,
+        participant_client_addr: ServiceAddr,
+    ) -> bool {
+        use rcd::rcd_enum::DatabaseType;
+        use rcd::rcd_sql_client::RcdClient;
+
+        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+
+        info!(
+            "main_service_client attempting to connect {}",
+            participant_client_addr.to_full_string_with_http()
+        );
+
+        let client = RcdClient::new(
+            participant_client_addr.to_full_string_with_http(),
+            String::from("tester"),
+            String::from("123456"),
+        );
+
+        unimplemented!();
     }
 }

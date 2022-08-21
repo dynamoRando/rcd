@@ -2,63 +2,80 @@ use lazy_static::lazy_static;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
-use log::info;
-use std::{thread};
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
 // so that way we can run multiple client/servers
 
+#[derive(Clone)]
+pub enum AddrType {
+    Client,
+    Database,
+}
+
+#[allow(dead_code)]
+#[derive(Clone)]
+pub struct ServiceAddr {
+    pub ip4_addr: String,
+    pub port: u32,
+    pub addr_type: AddrType,
+}
+
+impl ServiceAddr {
+    #[allow(dead_code)]
+    pub fn to_full_string(self: &Self) -> String {
+        return format!("{}{}", self.ip4_addr, self.port.to_string());
+    }
+
+    #[allow(dead_code)]
+    pub fn to_full_string_with_http(self: &Self) -> String {
+        return format!("{}{}", String::from("http://"), self.to_full_string());
+    }
+}
+
 lazy_static! {
     pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings { max_port: 6000 });
 }
 
- /// returns a tuple for the addr_port of the client service and the db service
- #[allow(dead_code)]
- pub fn start_service(test_db_name: &str, root_dir: String) -> (String, String) {
-    let client_port_num = TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_next_avail_port();
-
-    let db_port_num = TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_next_avail_port();
+/// returns a tuple for the addr_port of the client service and the db service
+#[allow(dead_code)]
+pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr) {
+    let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
+    let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
     let service = rcd::get_service_from_config_file();
 
-    let client_address_port =
-        format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
-    let target_client_address_port = client_address_port.clone();
+    let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
+
+    let client_addr = ServiceAddr {
+        ip4_addr: "[::1]:".to_string(),
+        port: client_port_num,
+        addr_type: AddrType::Client,
+    };
 
     let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num.to_string());
-    let target_db_address_port = db_address_port.clone();
+
+    let db_addr = ServiceAddr {
+        ip4_addr: "[::1]:".to_string(),
+        port: db_port_num,
+        addr_type: AddrType::Database,
+    };
 
     println!("{:?}", &service);
 
     service.start_at_dir(root_dir.as_str());
 
+    let db_name = service.rcd_settings.backing_database_name.clone();
+
     let cwd = service.cwd();
     delete_test_database(test_db_name, &cwd);
 
-    info!("starting main client at {}", &client_address_port);
-    info!("starting client service");
-
     let dir = root_dir.clone();
 
-    thread::spawn(move || {
-        let d = dir.clone();
-        let e = d.clone();
-        service
-            .start_client_service_at_addr(client_address_port, d)
-            .unwrap();
-            service
-            .start_db_service_at_addr(db_address_port, e)
-            .unwrap();
-    });
+    let _ =
+        service.start_services_at_addrs(db_name, client_address_port, db_address_port, dir.clone());
 
-    return (target_client_address_port, target_db_address_port);
+    return (client_addr, db_addr);
 }
 
 #[allow(dead_code)]
@@ -76,7 +93,7 @@ pub fn get_test_temp_dir(test_name: &str) -> String {
     return path.as_path().to_str().unwrap().to_string();
 }
 
-/// returns a tuple for the root directory, the "main" directory, and the "participant" directory 
+/// returns a tuple for the root directory, the "main" directory, and the "participant" directory
 /// in the temp folder
 #[allow(dead_code)]
 pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, String, String) {

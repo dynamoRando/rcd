@@ -93,7 +93,7 @@ impl DatabaseContract {
             FROM 
                 COOP_DATABASE_CONTRACT 
             WHERE 
-                RETIRED IS NULL
+                RETIRED_DATE_UTC IS NULL
             ;",
         );
 

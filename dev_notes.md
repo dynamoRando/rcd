@@ -63,6 +63,12 @@ To run and get output, try:
 RUST_LOG=debug RUST_BACKTRACE=1 cargo test -- --nocapture
 ```
 
+Test specific item with debug output:
+
+```
+RUST_LOG=debug RUST_BACKTRACE=1 cargo test save_contract -- --nocapture
+```
+
 See for more information:
 https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
 

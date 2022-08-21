@@ -37,7 +37,7 @@ pub async fn send_participant_contract(
     });
 
     let addr_port = format!(
-        "{}:{}",
+        "{}{}",
         participant.ip4addr,
         participant.db_port.to_string()
     );
@@ -63,12 +63,14 @@ pub fn get_row_from_participant(
 #[allow(dead_code)]
 async fn get_client(participant: DatabaseParticipant) -> DataServiceClient<Channel> {
     let addr_port = format!(
-        "{}:{}",
+        "{}{}",
         participant.ip4addr,
         participant.db_port.to_string()
     );
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
+
+    println!("{}", http_addr_port);
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
     let channel = endpoint.connect().await.unwrap();

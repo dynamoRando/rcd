@@ -38,7 +38,7 @@ use std::path::Path;
     );",
 */
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[allow(dead_code)]
 pub struct DatabaseParticipant {
     pub internal_id: GUID,
@@ -55,7 +55,7 @@ pub struct DatabaseParticipant {
 impl DatabaseParticipant {
     #[allow(dead_code)]
     pub fn get(alias: &str, conn: &Connection) -> DatabaseParticipant {
-        let mut cmd = String::from(
+        let cmd = String::from(
             "
             SELECT 
                 INTERNAL_PARTICIPANT_ID,
@@ -70,11 +70,11 @@ impl DatabaseParticipant {
             FROM
                 COOP_PARTICIPANT
             WHERE
-                ALIAS = ':alias'
+                ALIAS = :alias
             ;
             ",
         );
-        cmd = cmd.replace(":alias", &alias);
+        // cmd = cmd.replace(":alias", &alias);
 
         let row_to_participant = |internal_id: String,
                                   alias: String,
@@ -170,6 +170,9 @@ impl DatabaseParticipant {
                 .unwrap();
         } else {
             // this is an insert
+
+            // println!("{:?}", &self);
+
             let cmd = String::from(
                 "
             INSERT INTO COOP_PARTICIPANT
@@ -186,15 +189,15 @@ impl DatabaseParticipant {
             )
             VALUES
             (
-                ':internal_id',
-                ':alias',
-                ':ip4addr',
-                ':ip6addr',
-                ':db_port',
-                ':contract_status',
-                ':accepted_contract_version',
-                ':token',
-                ':id'
+                :internal_id,
+                :alias,
+                :ip4addr,
+                :ip6addr,
+                :db_port,
+                :contract_status,
+                :accepted_contract_version,
+                :token,
+                :id
             );
             ",
             );
