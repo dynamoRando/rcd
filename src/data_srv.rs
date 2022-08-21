@@ -184,8 +184,6 @@ impl DataService for DataServiceImpl {
         println!("Request from {:?}", request.remote_addr());
         println!("{:?}", request.into_inner().message_info.unwrap());
 
-        // need to save contract
-
         unimplemented!("save contract not implemented");
     }
 
