@@ -62,6 +62,7 @@ pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, Serv
     };
 
     println!("{:?}", &service);
+    println!("{:?}", &root_dir);
 
     service.start_at_dir(root_dir.as_str());
 
