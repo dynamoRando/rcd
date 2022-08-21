@@ -178,8 +178,12 @@ impl DataService for DataServiceImpl {
 
     async fn save_contract(
         &self,
-        _request: Request<SaveContractRequest>,
+        request: Request<SaveContractRequest>,
     ) -> Result<Response<SaveContractResult>, Status> {
+
+        println!("Request from {:?}", request.remote_addr());
+        println!("{:?}", request.into_inner().message_info.unwrap());
+
         unimplemented!("save contract not implemented");
     }
 
