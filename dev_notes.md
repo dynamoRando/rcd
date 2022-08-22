@@ -98,3 +98,39 @@ let default_addr_port = "http://[::1]:50051";
         #[cfg(test)]
         use std::{thread, time};
 ```
+
+# Table Definitions
+- CDS: The core of RCD - stands for Cooperative Data Service. Tables here are common to the instance of `rcd`.
+- COOP: Tables in an any rcd database instance. These tables are for managing participants as well as the metadata the participants will need.
+
+## CDS Data Dictionary
+| Table Name                    | `rcd` Struct | `cdata` Struct | Purpose                                                                                |
+| ----------------------------- | ------------ | -------------- | -------------------------------------------------------------------------------------- |
+| `CDS_USER`                    |              |                | Used to hold users in this `rcd` instance.                                             |
+| `CDS_ROLE`                    |              |                | Holds the various roles in this instance.                                              |
+| `CDS_USER_ROLE`               |              |                | Maps users to roles                                                                    |
+| `CDS_HOST_INFO`               |              |                | Holds our unique identifier to participants.                                           |
+| `CDS_HOSTS`                   |              |                | Holds other host info that we're cooperating with. This is used for partial databases. |
+| `CDS_CONTRACTS`               |              | `Contract`     | Hold schema information for partial databases. This is info from _another_ host.       |
+| `CDS_CONTRACTS_TABLES`        |              |                | Holds table schema information for a partial database.                                 |
+| `CDS_CONTRACTS_TABLE_SCHEMAS` |              |                | Holds column schema for information for a partial database.                            |
+
+
+## COOP Data Dictionary
+| Table Name                     | `rcd` Struct              | `cdata` Struct | Purpose                                                                                                               |
+| ------------------------------ | ------------------------- | -------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `COOP_DATA_HOST`               |                           |                | Holds the database id. Activated when cooperative features are turned on.                                             |
+| `COOP_DATA_TABLES`             |                           |                | Holds the table ids. Activated when we start setting LSPs on tables. This aligns with `COOP_REMOTES`.                 |
+| `COOP_DATA_HOST_TABLE_COLUMNS` |                           |                | Holds the column ids. This needs to align with the actual schema of the table.                                        |
+| `COOP_REMOTES`                 |                           |                | Holds the Logical Storage Policy (LSP) setting for each table.                                                        |
+| `COOP_DATABASE_CONTRACT`       | `CoopDatabaseContract`    |                | Holds contract information that we have generated for this database. This is the data that is sent _to participants_. |
+| `COOP_PARTICIPANT`             | `CoopDatabaseParticipant` |                | Holds information about participants with this database.                                                              |
+
+
+
+### COOP Data Specific Tables
+| Table Name                 | Purpose                                                                                                                                                         |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[TableName]_COOP_SHADOWS` | In addition, for every table at a host, with a LSP that is remote, there is also a `[TableName]_COOP_SHADOWS` table. This table tracks the remote participants. |
+| `[TableName]_COOP_DATA`    | For every table at a host that is remote, there is a `[TableName]_COOP_DATA` that tracks the remote row at the participant.                                     |
+

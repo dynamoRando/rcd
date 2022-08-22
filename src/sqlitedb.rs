@@ -1,6 +1,6 @@
 use crate::cdata::{ColumnSchema, DatabaseSchema, TableSchema};
-use crate::database_contract::DatabaseContract;
-use crate::database_participant::DatabaseParticipant;
+use crate::coop_database_contract::CoopDatabaseContract;
+use crate::coop_database_participant::CoopDatabaseParticipant;
 use crate::rcd_enum::{ColumnType, ContractStatus, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
@@ -95,7 +95,7 @@ pub fn generate_contract(
     if !has_any_rows(cmd, &conn) {
         // this is the first contract
         println!("generate contract: first_contract");
-        let contract = DatabaseContract {
+        let contract = CoopDatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
             description: desc.to_string(),
@@ -129,7 +129,7 @@ pub fn generate_contract(
         }
 
         println!("generate contract: retired. create new contract");
-        let new_contract = DatabaseContract {
+        let new_contract = CoopDatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
             description: desc.to_string(),
@@ -223,7 +223,7 @@ pub fn get_participants_for_table(
     db_name: &str,
     cwd: &str,
     table_name: &str,
-) -> Vec<DatabaseParticipant> {
+) -> Vec<CoopDatabaseParticipant> {
     unimplemented!();
 
     // note - we will need another table to track the remote row id
@@ -370,9 +370,9 @@ pub fn execute_read(db_name: &str, cwd: &str, cmd: &str) -> Result<Table> {
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
-pub fn get_active_contract(db_name: &str, cwd: &str) -> DatabaseContract {
+pub fn get_active_contract(db_name: &str, cwd: &str) -> CoopDatabaseContract {
     let conn = &get_connection(db_name, cwd);
-    return DatabaseContract::get_active_contract(conn);
+    return CoopDatabaseContract::get_active_contract(conn);
 }
 
 #[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
@@ -483,15 +483,15 @@ pub fn get_db_schema(db_name: &str, cwd: &str) -> DatabaseSchema {
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
-pub fn get_participant_by_alias(db_name: &str, cwd: &str, alias: &str) -> DatabaseParticipant {
+pub fn get_participant_by_alias(db_name: &str, cwd: &str, alias: &str) -> CoopDatabaseParticipant {
     let conn = get_connection(db_name, cwd);
-    return DatabaseParticipant::get(alias, &conn);
+    return CoopDatabaseParticipant::get(alias, &conn);
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
 pub fn has_participant(db_name: &str, cwd: &str, alias: &str) -> bool {
     let conn = &get_connection(db_name, cwd);
-    return DatabaseParticipant::exists(alias, conn);
+    return CoopDatabaseParticipant::exists(alias, conn);
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments)]
@@ -499,10 +499,10 @@ pub fn add_participant(db_name: &str, cwd: &str, alias: &str, ip4addr: &str, db_
     let conn = get_connection(db_name, cwd);
     let mut is_added = false;
 
-    if DatabaseParticipant::exists(&alias, &conn) {
+    if CoopDatabaseParticipant::exists(&alias, &conn) {
         is_added = false;
     } else {
-        let participant = DatabaseParticipant {
+        let participant = CoopDatabaseParticipant {
             internal_id: GUID::rand(),
             alias: alias.to_string(),
             ip4addr: ip4addr.to_string(),
@@ -947,8 +947,8 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
 }
 
 #[allow(unused_variables, dead_code, unused_assignments)]
-fn get_all_database_contracts(conn: &Connection) -> Vec<DatabaseContract> {
-    return DatabaseContract::get_all(conn);
+fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract> {
+    return CoopDatabaseContract::get_all(conn);
 }
 
 pub fn get_connection(db_name: &str, cwd: &str) -> Connection {

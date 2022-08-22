@@ -40,7 +40,7 @@ use std::path::Path;
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
-pub struct DatabaseParticipant {
+pub struct CoopDatabaseParticipant {
     pub internal_id: GUID,
     pub alias: String,
     pub ip4addr: String,
@@ -52,9 +52,9 @@ pub struct DatabaseParticipant {
     pub id: GUID,
 }
 
-impl DatabaseParticipant {
+impl CoopDatabaseParticipant {
     #[allow(dead_code)]
-    pub fn get(alias: &str, conn: &Connection) -> DatabaseParticipant {
+    pub fn get(alias: &str, conn: &Connection) -> CoopDatabaseParticipant {
         let cmd = String::from(
             "
             SELECT 
@@ -85,8 +85,8 @@ impl DatabaseParticipant {
                                   accepted_contract_version_id: String,
                                   token: Vec<u8>,
                                   id: String|
-         -> Result<DatabaseParticipant> {
-            let participant = DatabaseParticipant {
+         -> Result<CoopDatabaseParticipant> {
+            let participant = CoopDatabaseParticipant {
                 internal_id: GUID::parse(&internal_id).unwrap(),
                 alias: alias,
                 ip4addr: ip4addr,
@@ -101,7 +101,7 @@ impl DatabaseParticipant {
             Ok(participant)
         };
 
-        let mut results: Vec<DatabaseParticipant> = Vec::new();
+        let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
 
         let mut statement = conn.prepare(&cmd).unwrap();
         let participants = statement

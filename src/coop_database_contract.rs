@@ -41,7 +41,7 @@ use std::path::Path;
 
 #[allow(dead_code, unused_variables)]
 #[derive(Clone)]
-pub struct DatabaseContract {
+pub struct CoopDatabaseContract {
     pub contract_id: GUID,
     pub generated_date: DateTime<Utc>,
     pub description: String,
@@ -50,7 +50,7 @@ pub struct DatabaseContract {
     pub remote_delete_behavior: u32,
 }
 
-impl DatabaseContract {
+impl CoopDatabaseContract {
     pub fn to_cdata_contract(
         &self,
         host_info: &HostInfo,
@@ -81,7 +81,7 @@ impl DatabaseContract {
         return contract;
     }
 
-    pub fn get_active_contract(conn: &Connection) -> DatabaseContract {
+    pub fn get_active_contract(conn: &Connection) -> CoopDatabaseContract {
         let cmd = String::from(
             "
             SELECT 
@@ -102,8 +102,8 @@ impl DatabaseContract {
                                       description: String,
                                       version_id: String,
                                       remote_delete_behavior: u32|
-         -> Result<DatabaseContract> {
-            let contract = DatabaseContract {
+         -> Result<CoopDatabaseContract> {
+            let contract = CoopDatabaseContract {
                 contract_id: GUID::parse(&contract_id).unwrap(),
                 generated_date: Utc::datetime_from_str(
                     &Utc,
@@ -120,7 +120,7 @@ impl DatabaseContract {
             Ok(contract)
         };
 
-        let mut results: Vec<DatabaseContract> = Vec::new();
+        let mut results: Vec<CoopDatabaseContract> = Vec::new();
 
         let mut statement = conn.prepare(&cmd).unwrap();
         let contracts = statement
@@ -142,8 +142,8 @@ impl DatabaseContract {
         return results.first().unwrap().clone();
     }
 
-    pub fn get_all(conn: &Connection) -> Vec<DatabaseContract> {
-        let mut result: Vec<DatabaseContract> = Vec::new();
+    pub fn get_all(conn: &Connection) -> Vec<CoopDatabaseContract> {
+        let mut result: Vec<CoopDatabaseContract> = Vec::new();
 
         /*
             "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -233,7 +233,7 @@ impl DatabaseContract {
                     delete_behavior = vbehavior.parse().unwrap();
                 }
 
-                let item = DatabaseContract {
+                let item = CoopDatabaseContract {
                     contract_id: cid,
                     generated_date: gen_date,
                     description: desc,
