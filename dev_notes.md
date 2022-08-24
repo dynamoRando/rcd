@@ -134,3 +134,12 @@ let default_addr_port = "http://[::1]:50051";
 | `[TableName]_COOP_SHADOWS` | In addition, for every table at a host, with a LSP that is remote, there is also a `[TableName]_COOP_SHADOWS` table. This table tracks the remote participants. |
 | `[TableName]_COOP_DATA`    | For every table at a host that is remote, there is a `[TableName]_COOP_DATA` that tracks the remote row at the participant.                                     |
 
+# Design Notes
+Currently we default everything to Sqlite. It may be useful to change the `SqlClientImpl` to have multiple implementations based on the backing database type - and then bring online the appropriate one based on the settings backing database type.
+
+It may also be useful to seperate project out into different libs per backing database type:
+- Sqlite
+- MySql
+- Postgres
+
+And so on.
