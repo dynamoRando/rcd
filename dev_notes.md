@@ -1,6 +1,6 @@
 # Unorganized Developer Notes
 
-Just a bunch of things removed from places in code.
+Just a bunch of things removed from places in code...
 
 ## Unorganized Links
 - https://stackoverflow.com/questions/32900809/how-to-suppress-function-is-never-used-warning-for-a-function-used-by-tests
