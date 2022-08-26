@@ -1,9 +1,8 @@
 mod test_harness;
 
 pub mod save_contract {
+    use crate::test_harness::ServiceAddr;
     use log::info;
-    use std::fs;
-    use std::path::Path;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -34,30 +33,10 @@ pub mod save_contract {
 
         let (tx, rx) = mpsc::channel();
 
-        let root_dir = super::test_harness::get_test_temp_dir(&test_name);
-        let main_path = Path::new(&root_dir).join("main");
+        let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-        if main_path.exists() {
-            fs::remove_dir_all(&main_path).unwrap();
-        }
-
-        fs::create_dir_all(&main_path).unwrap();
-
-        let main_dir = main_path.as_os_str().to_str().unwrap();
-
-        let participant_path = Path::new(&root_dir).join("participant");
-
-        if participant_path.exists() {
-            fs::remove_dir_all(&participant_path).unwrap();
-        }
-
-        fs::create_dir_all(&participant_path).unwrap();
-
-        let participant_dir = participant_path.as_os_str().to_str().unwrap();
-
-        let main_client_addr_port = main_service_start(&test_db_name, main_dir.to_string());
-        let participant_client_addr_port =
-            participant_service_start(&test_db_name, participant_dir.to_string());
+        let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
+        let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
 
         let time = time::Duration::from_secs(5);
 
@@ -66,7 +45,7 @@ pub mod save_contract {
         thread::sleep(time);
 
         thread::spawn(move || {
-            let res = main_service_client(&test_db_name, &main_client_addr_port);
+            let res = main_service_client(&test_db_name, main_addrs.0, participant_addrs.1);
             tx.send(res).unwrap();
         })
         .join()
@@ -79,89 +58,30 @@ pub mod save_contract {
         unimplemented!();
     }
 
-    fn main_service_start(test_db_name: &str, root_dir: String) -> String {
-        let client_port_num = super::test_harness::TEST_SETTINGS
-            .lock()
-            .unwrap()
-            .get_next_avail_port();
-
-        let db_port_num = super::test_harness::TEST_SETTINGS
-            .lock()
-            .unwrap()
-            .get_next_avail_port();
-
-        let main_service = rcd::get_service_from_config_file();
-        let client_address_port =
-            format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
-        let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &main_service);
-
-        let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num.to_string());
-
-        main_service.start_at_dir(root_dir.as_str());
-
-        let cwd = main_service.cwd();
-        super::test_harness::delete_test_database(test_db_name, &cwd);
-
-        info!("starting main client at {}", &client_address_port);
-        info!("starting client service");
-
-        let dir = root_dir.clone();
-
-        thread::spawn(move || {
-            let d = dir.clone();
-            let e = d.clone();
-            main_service
-                .start_client_service_at_addr(client_address_port, d)
-                .unwrap();
-            main_service
-                .start_db_service_at_addr(db_address_port, e)
-                .unwrap();
-        });
-
-        return target_client_address_port;
-    }
-
-    fn participant_service_start(test_db_name: &str, root_dir: String) -> String {
-        let port_num = super::test_harness::TEST_SETTINGS
-            .lock()
-            .unwrap()
-            .get_next_avail_port();
-
-        let participant_service = rcd::get_service_from_config_file();
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
-        let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &participant_service);
-
-        participant_service.start_at_dir(root_dir.as_str());
-
-        let cwd = participant_service.cwd();
-        super::test_harness::delete_test_database(test_db_name, &cwd);
-
-        info!("starting participant client at {}", &client_address_port);
-        info!("starting client service");
-
-        thread::spawn(move || {
-            let _service =
-                participant_service.start_client_service_at_addr(client_address_port, root_dir);
-        });
-
-        return target_client_address_port;
-    }
-
     #[cfg(test)]
     #[tokio::main]
-    async fn main_service_client(db_name: &str, addr_port: &str) -> bool {
+    #[allow(unused_variables)]
+    async fn main_service_client(
+        db_name: &str,
+        main_client_addr: ServiceAddr,
+        participant_db_addr: ServiceAddr,
+    ) -> bool {
         use rcd::rcd_enum::LogicalStoragePolicy;
         use rcd::rcd_sql_client::RcdClient;
         use rcd::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
-        let addr_port = format!("{}{}", String::from("http://"), addr_port);
-        info!("main_service_client attempting to connect {}", addr_port);
+        info!(
+            "main_service_client attempting to connect {}",
+            main_client_addr.to_full_string_with_http()
+        );
 
-        let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+        let client = RcdClient::new(
+            main_client_addr.to_full_string_with_http(),
+            String::from("tester"),
+            String::from("123456"),
+        );
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -186,9 +106,50 @@ pub mod save_contract {
 
         let behavior = RemoteDeleteBehavior::Ignore;
 
-        return client
+        client
             .generate_contract(db_name, "tester", "desc", behavior)
             .await
             .unwrap();
+
+        client
+            .add_participant(
+                db_name,
+                "participant",
+                &participant_db_addr.ip4_addr,
+                participant_db_addr.port,
+            )
+            .await
+            .unwrap();
+
+        return client
+            .send_participant_contract(db_name, "participant")
+            .await
+            .unwrap();
+    }
+
+    #[cfg(test)]
+    #[tokio::main]
+    #[allow(dead_code, unused_variables)]
+    async fn participant_service_client(
+        db_name: &str,
+        participant_client_addr: ServiceAddr,
+    ) -> bool {
+        use rcd::rcd_enum::DatabaseType;
+        use rcd::rcd_sql_client::RcdClient;
+
+        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+
+        info!(
+            "main_service_client attempting to connect {}",
+            participant_client_addr.to_full_string_with_http()
+        );
+
+        let client = RcdClient::new(
+            participant_client_addr.to_full_string_with_http(),
+            String::from("tester"),
+            String::from("123456"),
+        );
+
+        unimplemented!();
     }
 }

@@ -1,16 +1,18 @@
 use crate::cdata::{sql_client_client::SqlClientClient, AuthRequest};
 use crate::cdata::{
-    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteReadRequest,
-    ExecuteWriteRequest, GenerateContractRequest, GetLogicalStoragePolicyRequest, HasTableRequest,
-    SetLogicalStoragePolicyRequest, StatementResultset,
+    AcceptPendingContractRequest, AddParticipantRequest, Contract, CreateUserDatabaseRequest,
+    EnableCoooperativeFeaturesRequest, ExecuteReadRequest, ExecuteWriteRequest,
+    GenerateContractRequest, GetLogicalStoragePolicyRequest, HasTableRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
+    ViewPendingContractsRequest,
 };
 use crate::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
 use log::info;
 use std::error::Error;
 use tonic::transport::Channel;
 
-/// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the 
-/// `SQLClient` service and is used to talk to an rcd instance as a client 
+/// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the
+/// `SQLClient` service and is used to talk to an rcd instance as a client
 /// (and not as another `rcd` instance, aka a DataService client service. For that, use the `rcd_data_client` module).
 pub struct RcdClient {
     /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://[::1]:50051`
@@ -27,6 +29,112 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn view_pending_contracts(self: &Self) -> Result<Vec<Contract>, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ViewPendingContractsRequest {
+            authentication: Some(auth),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .review_pending_contracts(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.contracts)
+    }
+
+    pub async fn accept_pending_contract(
+        self: &Self,
+        host_alias: &str,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(AcceptPendingContractRequest {
+            authentication: Some(auth),
+            host_alias: host_alias.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .accept_pending_contract(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub async fn send_participant_contract(
+        self: &Self,
+        db_name: &str,
+        participant_alias: &str,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(SendParticipantContractRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            participant_alias: participant_alias.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .send_participant_contract(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_sent)
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub async fn add_participant(
+        self: &Self,
+        db_name: &str,
+        participant_alias: &str,
+        participant_ip4addr: &str,
+        participant_db_port: u32,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(AddParticipantRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            alias: participant_alias.to_string(),
+            ip4_address: participant_ip4addr.to_string(),
+            port: participant_db_port,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.add_participant(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
     }
 
     pub async fn generate_contract(
@@ -247,6 +355,7 @@ impl RcdClient {
     }
 
     async fn get_client(self: &Self) -> SqlClientClient<Channel> {
+        println!("get_client addr_port {}", self.addr_port);
         let endpoint = tonic::transport::Channel::builder(self.addr_port.parse().unwrap());
         let channel = endpoint.connect().await.unwrap();
         return SqlClientClient::new(channel);

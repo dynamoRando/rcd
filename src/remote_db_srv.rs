@@ -8,15 +8,15 @@ use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest};
 use crate::rcd_enum::ContractStatus;
 use crate::{
-    cdata::GetRowFromPartialDatabaseResult, database_contract::DatabaseContract,
-    database_participant::DatabaseParticipant, host_info::HostInfo,
+    cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
+    coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn send_participant_contract(
-    participant: DatabaseParticipant,
+    participant: CoopDatabaseParticipant,
     host_info: HostInfo,
-    contract: DatabaseContract,
+    contract: CoopDatabaseContract,
     own_db_addr_port: String,
     db_schema: DatabaseSchema,
 ) -> bool {
@@ -37,7 +37,7 @@ pub async fn send_participant_contract(
     });
 
     let addr_port = format!(
-        "{}:{}",
+        "{}{}",
         participant.ip4addr,
         participant.db_port.to_string()
     );
@@ -52,7 +52,7 @@ pub async fn send_participant_contract(
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub fn get_row_from_participant(
-    participant: DatabaseParticipant,
+    participant: CoopDatabaseParticipant,
     host_info: HostInfo,
     db_name: &str,
     table_name: &str,
@@ -61,14 +61,16 @@ pub fn get_row_from_participant(
 }
 
 #[allow(dead_code)]
-async fn get_client(participant: DatabaseParticipant) -> DataServiceClient<Channel> {
+async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<Channel> {
     let addr_port = format!(
-        "{}:{}",
+        "{}{}",
         participant.ip4addr,
         participant.db_port.to_string()
     );
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
+
+    println!("{}", http_addr_port);
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
     let channel = endpoint.connect().await.unwrap();

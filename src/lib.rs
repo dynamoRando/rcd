@@ -1,8 +1,8 @@
 pub mod cdata;
 mod crypt;
 mod data_srv;
-mod database_contract;
-mod database_participant;
+mod coop_database_contract;
+mod coop_database_participant;
 pub mod defaults;
 mod host_info;
 mod query_parser;

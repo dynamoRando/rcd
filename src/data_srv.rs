@@ -3,6 +3,7 @@ use crate::cdata::data_service_server::DataService;
 use crate::cdata::data_service_server::DataServiceServer;
 #[allow(unused_imports)]
 use crate::cdata::*;
+use crate::rcd_db;
 #[allow(unused_imports)]
 use crate::sqlitedbpart::*;
 use chrono::Utc;
@@ -49,7 +50,6 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
-
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let host_id = a.user_name;
@@ -85,7 +85,7 @@ impl DataService for DataServiceImpl {
         let create_db_result = CreateDatabaseResult {
             authentication_result: Some(auth_response),
             is_successful: is_authenticated,
-            database_name: db_name,   
+            database_name: db_name,
             result_message: String::from(""),
             database_id: db_id,
         };
@@ -97,7 +97,6 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<CreateTableRequest>,
     ) -> Result<Response<CreateTableResult>, Status> {
-
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let host_id = a.user_name;
@@ -119,8 +118,12 @@ impl DataService for DataServiceImpl {
         }
 
         if is_authenticated {
-            let result = 
-            crate::sqlitedbpart::create_table_in_partial_database(&db_name, &self.root_folder, &table_name, table_schema);
+            let result = crate::sqlitedbpart::create_table_in_partial_database(
+                &db_name,
+                &self.root_folder,
+                &table_name,
+                table_schema,
+            );
             if !result.is_err() {
                 table_is_created = true;
                 table_id = crate::sqlitedbpart::get_table_id(&db_name, &table_name);
@@ -138,7 +141,7 @@ impl DataService for DataServiceImpl {
         let create_table_result = CreateTableResult {
             authentication_result: Some(auth_response),
             is_successful: table_is_created,
-            database_name: db_name,   
+            database_name: db_name,
             result_message: String::from(""),
             table_id: table_id,
             table_name: table_name,
@@ -178,8 +181,18 @@ impl DataService for DataServiceImpl {
 
     async fn save_contract(
         &self,
-        _request: Request<SaveContractRequest>,
+        request: Request<SaveContractRequest>,
     ) -> Result<Response<SaveContractResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        println!("{:?}", &message.message_info.unwrap());
+
+        let contract = message.contract.unwrap().clone();
+
+        let rcd_db_conn = self.get_rcd_db();
+        rcd_db::save_contract(contract, &rcd_db_conn);
+
         unimplemented!("save contract not implemented");
     }
 

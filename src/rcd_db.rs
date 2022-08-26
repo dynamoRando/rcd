@@ -1,6 +1,6 @@
 /// represents all the actions for admin'ing an rcd sqlite database
 
-use crate::{host_info::HostInfo, sql_text::CDS};
+use crate::{host_info::HostInfo, sql_text::CDS, cdata::Contract};
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
@@ -63,6 +63,11 @@ pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
     if !login_is_in_role(login, &String::from("SysAdmin"), &conn).unwrap() {
         add_login_to_role(login, &String::from("SysAdmin"), &conn);
     }
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn save_contract(contract: Contract, conn: &Connection) -> bool {
+    unimplemented!();
 }
 
 #[allow(dead_code)]
