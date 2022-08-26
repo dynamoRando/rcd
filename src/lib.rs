@@ -18,6 +18,7 @@ mod sqlclient_srv;
 mod sqlitedb;
 mod sqlitedbpart;
 mod table;
+mod dbi;
 
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;

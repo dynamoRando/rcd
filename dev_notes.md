@@ -143,3 +143,10 @@ It may also be useful to seperate project out into different libs per backing da
 - Postgres
 
 And so on.
+
+
+## In Flight Design Notes
+- Create `dbi` as a database interface layer.
+- Create a `dbi_config` layer for holding configuration settings
+    - Have a Option<Config-X> for different database types
+        - One for `sqlite` root folder, `postgres` connection string and login, and same for `mysql`
