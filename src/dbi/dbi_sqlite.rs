@@ -20,14 +20,12 @@ use log::info;
 use rusqlite::{named_params, types::Type, Connection, Error, Result};
 use std::path::Path;
 
-#[allow(unused_variables, dead_code)]
 /// Attempts to generate a contract for the user database. This will first validate if all user
 /// tables have a logical storage policy set. If not it will return a generate contract error.
 /// If there is no existing contract, it will generate one. If there is an already existing active contract,
 /// it will retire that contract and generate a new one.
 pub fn generate_contract(
     db_name: &str,
-    host_name: &str,
     desc: &str,
     remote_delete_behavior: RemoteDeleteBehavior,
     config: DbiConfigSqlite,
@@ -44,11 +42,9 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
-    println!("generate contract: start");
+    println!("generate contract: start for {}", db_name);
 
-    let rcd_db_conn = get_rcd_conn(config);
-
-    let conn = get_db_conn(config, db_name);
+    let conn = &get_db_conn(&config, db_name);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, config);
 
     // check to see if all user tables have a logical storage policy set
@@ -79,7 +75,7 @@ pub fn generate_contract(
             version_id: GUID::rand(),
             remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
         };
-        contract.save(&conn);
+        save_contract_at_connection(contract, conn);
     } else {
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
@@ -100,7 +96,7 @@ pub fn generate_contract(
                     "generate contract: save retired contract {}",
                     &con.contract_id.to_string()
                 );
-                con.save(&conn);
+                save_contract_at_connection(con, conn);
             }
         }
 
@@ -113,12 +109,12 @@ pub fn generate_contract(
             version_id: GUID::rand(),
             remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
         };
-        new_contract.save(&conn);
+        save_contract_at_connection(new_contract, &conn);
     }
     Ok(true)
 }
 
-fn save_contract_at_connection(contract: CoopDatabaseContract, conn: Connection) {
+fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connection) {
     let mut cmd = String::from(
         "SELECT COUNT(*) TOTALCOUNT FROM COOP_DATABASE_CONTRACT WHERE VERSION_ID = ':vid'",
     );
@@ -253,7 +249,7 @@ pub fn retire_contract(version_id: GUID, conn: &Connection) {
 }
 
 pub fn rcd_get_host_info(config: DbiConfigSqlite) -> HostInfo {
-    let conn = get_rcd_conn(config);
+    let conn = get_rcd_conn(&config);
     let cmd = String::from(
         "
     SELECT 
@@ -297,7 +293,7 @@ pub fn rcd_get_host_info(config: DbiConfigSqlite) -> HostInfo {
 
 pub fn rcd_generate_host_info(host_name: &str, config: DbiConfigSqlite) {
     let id = GUID::rand();
-    let conn = get_rcd_conn(config);
+    let conn = get_rcd_conn(&config);
     let token_gen = GUID::rand();
     let token = crypt::hash(&token_gen.to_string());
 
@@ -324,11 +320,11 @@ pub fn rcd_generate_host_info(host_name: &str, config: DbiConfigSqlite) {
 
 pub fn if_rcd_host_info_exists(config: DbiConfigSqlite) -> bool {
     let cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_HOST_INFO");
-    return has_any_rows(cmd, &get_rcd_conn(config));
+    return has_any_rows(cmd, &get_rcd_conn(&config));
 }
 
 pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
-    let conn = get_rcd_conn(config);
+    let conn = get_rcd_conn(&config);
 
     if !has_login(login, &conn).unwrap() {
         create_login(login, pw, &conn);
@@ -339,11 +335,11 @@ pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
     }
 }
 
-pub fn configure_rcd_db(config: DbiConfigSqlite) {
+pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     let _init = env_logger::try_init();
 
-    let root = config.root_folder;
-    let db_name = config.rcd_db_name;
+    let root = &config.root_folder;
+    let db_name = &config.rcd_db_name;
 
     log::info!("cwd is {}", &root);
     info!("db_name is {}", &db_name);
@@ -373,7 +369,7 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
     let mut is_verified = false;
 
     let cmd = &String::from(CDS::text_get_user());
-    let conn = get_rcd_conn(config);
+    let conn = get_rcd_conn(&config);
 
     let mut statement = conn.prepare(cmd).unwrap();
 
@@ -408,13 +404,13 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
     return is_verified;
 }
 
-fn get_rcd_conn(config: DbiConfigSqlite) -> Connection {
+fn get_rcd_conn(config: &DbiConfigSqlite) -> Connection {
     let db_path = Path::new(&config.root_folder).join(&config.rcd_db_name);
     return Connection::open(&db_path).unwrap();
 }
 
 #[allow(dead_code)]
-fn get_db_conn(config: DbiConfigSqlite, db_name: &str) -> Connection {
+fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
     let db_path = Path::new(&config.root_folder).join(&db_name);
     return Connection::open(&db_path).unwrap();
 }
@@ -435,6 +431,21 @@ fn create_user_role_table(conn: &Connection) {
 fn create_host_info_table(conn: &Connection) {
     conn.execute(&CDS::text_create_host_info_table(), [])
         .unwrap();
+}
+
+fn create_coop_contracts_table(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+    (
+        CONTRACT_ID CHAR(36) NOT NULL,
+        GENERATED_DATE_UTC DATETIME NOT NULL,
+        DESCRIPTION VARCHAR(255),
+        RETIRED_DATE_UTC DATETIME,
+        VERSION_ID CHAR(36) NOT NULL,
+        REMOTE_DELETE_BEHAVIOR INT
+    );",
+    );
+    conn.execute(&cmd, []).unwrap();
 }
 
 fn create_contracts_table(conn: &Connection) {
@@ -567,7 +578,7 @@ fn get_logical_storage_policy_for_all_user_tables(
     db_name: &str,
     config: DbiConfigSqlite,
 ) -> Vec<(String, LogicalStoragePolicy)> {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
 
     let mut result: Vec<(String, LogicalStoragePolicy)> = Vec::new();
 
@@ -575,7 +586,7 @@ fn get_logical_storage_policy_for_all_user_tables(
 
     for table_name in &table_names {
         let l_policy =
-            get_logical_storage_policy(db_name, &table_name.to_string(), config).unwrap();
+            get_logical_storage_policy(db_name, &table_name.to_string(), &config).unwrap();
         let item = (table_name.to_string(), l_policy);
         result.push(item);
     }
@@ -584,15 +595,15 @@ fn get_logical_storage_policy_for_all_user_tables(
 }
 
 pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connection, Error> {
-    return Ok(get_db_conn(config, db_name));
+    return Ok(get_db_conn(&config, db_name));
 }
 
 fn execute_write(conn: &Connection, cmd: &str) -> usize {
     return conn.execute(&cmd, []).unwrap();
 }
 
-pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> usize {
-    let conn = get_db_conn(config, db_name);
+pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
+    let conn = get_db_conn(&config, db_name);
     return conn.execute(&cmd, []).unwrap();
 }
 
@@ -663,7 +674,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> Result<Tabl
 
 #[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConfigSqlite) -> bool {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
     return has_table(table_name.to_string(), &conn);
 }
 
@@ -703,7 +714,7 @@ pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
     let tables = query_parser::get_table_names(&cmd);
 
     for table in &tables {
-        let result = get_logical_storage_policy(db_name, &table.to_string(), config);
+        let result = get_logical_storage_policy(db_name, &table.to_string(), &config);
 
         if !result.is_err() {
             let policy = result.unwrap();
@@ -734,7 +745,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
     let tables = query_parser::get_table_names(&cmd);
 
     for table in tables {
-        let result = get_logical_storage_policy(db_name, &table, config);
+        let result = get_logical_storage_policy(db_name, &table, &config);
 
         if !result.is_err() {
             let policy = result.unwrap();
@@ -763,7 +774,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
 
 #[allow(dead_code)]
 pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Result<Table> {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let cols = statement.columns();
@@ -825,7 +836,7 @@ pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Result
 
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
 pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDatabaseContract {
-    let conn = &get_db_conn(config, db_name);
+    let conn = &get_db_conn(&config, db_name);
 
     let cmd = String::from(
         "
@@ -889,7 +900,7 @@ pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDataba
 
 #[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
-    let conn = &get_db_conn(config, db_name);
+    let conn = &get_db_conn(&config, db_name);
 
     let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
     let db_id = get_scalar_as_string(cmd, conn);
@@ -921,7 +932,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
     }
 
     for t in &tables_in_db {
-        let mut policy = get_logical_storage_policy(db_name, &t.1, config).unwrap();
+        let mut policy = get_logical_storage_policy(db_name, &t.1, &config).unwrap();
 
         let mut ts = TableSchema {
             table_name: t.1.clone(),
@@ -1000,7 +1011,7 @@ pub fn get_participant_by_alias(
     alias: &str,
     config: DbiConfigSqlite,
 ) -> CoopDatabaseParticipant {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
     let cmd = String::from(
         "
         SELECT 
@@ -1073,7 +1084,7 @@ pub fn get_participant_by_alias(
     return results.first().unwrap().clone();
 }
 
-pub fn has_participant_at_conn(alias: &str, conn: Connection) -> bool {
+pub fn has_participant_at_conn(alias: &str, conn: &Connection) -> bool {
     let mut cmd =
         String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
@@ -1081,7 +1092,7 @@ pub fn has_participant_at_conn(alias: &str, conn: Connection) -> bool {
 }
 
 pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
-    let conn = &get_db_conn(config, db_name);
+    let conn = &get_db_conn(&config, db_name);
     let mut cmd =
         String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
@@ -1096,7 +1107,7 @@ pub fn add_participant(
     db_port: u32,
     config: DbiConfigSqlite,
 ) -> bool {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
     let mut is_added = false;
 
     if has_participant(db_name, alias, config) {
@@ -1113,7 +1124,7 @@ pub fn add_participant(
             id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             token: Vec::new(),
         };
-        participant.save(&conn);
+        save_participant(participant, conn);
         is_added = true;
     }
 
@@ -1121,7 +1132,7 @@ pub fn add_participant(
 }
 
 pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) {
-    if has_participant_at_conn(&participant.alias, conn) {
+    if has_participant_at_conn(&participant.alias, &conn) {
         // this is an update
         let cmd = String::from(
             "
@@ -1206,11 +1217,11 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
 
 #[allow(unused_variables)]
 pub fn enable_coooperative_features(db_name: &str, config: DbiConfigSqlite) {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
 
     create_remotes_table(&conn);
     create_participant_table(&conn);
-    create_contracts_table(&conn);
+    create_coop_contracts_table(&conn);
     create_data_host_tables(&conn);
     populate_data_host_tables(db_name, &conn);
 }
@@ -1222,9 +1233,9 @@ pub fn enable_coooperative_features(db_name: &str, config: DbiConfigSqlite) {
 pub fn get_logical_storage_policy(
     db_name: &str,
     table_name: &str,
-    config: DbiConfigSqlite,
+    config: &DbiConfigSqlite,
 ) -> Result<LogicalStoragePolicy, RcdDbError> {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
     let mut policy = LogicalStoragePolicy::None;
 
     if has_table(table_name.to_string(), &conn) {
@@ -1269,7 +1280,7 @@ pub fn set_logical_storage_policy(
     policy: LogicalStoragePolicy,
     config: DbiConfigSqlite,
 ) -> Result<bool, RcdDbError> {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_db_conn(&config, db_name);
 
     if has_table(table_name.to_string(), &conn) {
         // insert or update on the coop tables
@@ -1288,7 +1299,7 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection(db_name, &cmd, config);
+            execute_write_on_connection(db_name, &cmd, &config);
         } else {
             // then this is an insert
             let mut cmd = String::from(
@@ -1306,7 +1317,7 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection(db_name, &cmd, config);
+            execute_write_on_connection(db_name, &cmd, &config);
         }
     } else {
         let error_message = format!("table {} not in {}", table_name, db_name);
@@ -1667,15 +1678,4 @@ fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract> {
     }
 
     return result;
-}
-
-pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
-    let db_path = Path::new(&cwd).join(&db_name);
-    let conn = Connection::open(&db_path).unwrap();
-    return conn;
-}
-
-fn get_rcd_db(db_name: &str, cwd: &str) -> Connection {
-    let db_path = Path::new(cwd).join(db_name);
-    return Connection::open(&db_path).unwrap();
 }

@@ -139,7 +139,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return dbi_sqlite::get_logical_storage_policy(db_name, table_name, settings);
+                return dbi_sqlite::get_logical_storage_policy(db_name, table_name, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -185,7 +185,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return dbi_sqlite::execute_write_on_connection(db_name, cmd, settings);
+                return dbi_sqlite::execute_write_on_connection(db_name, cmd, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -207,6 +207,7 @@ impl Dbi {
         }
     }
 
+    #[allow(unused_variables)]
     pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
         return false;
     }
@@ -283,7 +284,6 @@ impl Dbi {
 
                 return dbi_sqlite::generate_contract(
                     db_name,
-                    host_name,
                     desc,
                     remote_delete_behavior,
                     settings,
@@ -376,7 +376,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                dbi_sqlite::configure_rcd_db(settings);
+                dbi_sqlite::configure_rcd_db(&settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

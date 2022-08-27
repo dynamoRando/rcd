@@ -8,8 +8,7 @@ use crate::host_info::HostInfo;
 #[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
-use crate::sqlitedb::*;
-use crate::{cdata::*, remote_db_srv, sqlitedb};
+use crate::{cdata::*, remote_db_srv};
 use chrono::Utc;
 use conv::{UnwrapOk, ValueFrom};
 use rusqlite::{Connection, Result};
@@ -406,14 +405,6 @@ impl SqlClient for SqlClientImpl {
         let mut reply_message = String::from("");
 
         if is_authenticated {
-            let db_interface = self.db_interface.unwrap().clone();
-            let result1 = db_interface.generate_contract(
-                &db_name,
-                &host_name,
-                &desc,
-                RemoteDeleteBehavior::from_u32(i_remote_delete_behavior),
-            );
-
             let result = self.dbi().generate_contract(
                 &db_name,
                 &host_name,
@@ -497,13 +488,10 @@ impl SqlClient for SqlClientImpl {
 
         // check if the user is authenticated
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let rcd_db_conn = self.get_rcd_db();
+        let a = message.authentication.unwrap();        
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
-
-        let cwd = &self.root_folder;
 
         let reply_message = String::from("");
         let mut is_successful = false;
