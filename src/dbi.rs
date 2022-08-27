@@ -1,4 +1,16 @@
-use crate::{rcd_enum::DatabaseType, host_info::HostInfo};
+use rusqlite::{Connection, Error};
+
+use crate::{
+    cdata::DatabaseSchema,
+    coop_database_contract::CoopDatabaseContract,
+    coop_database_participant::CoopDatabaseParticipant,
+    host_info::HostInfo,
+    rcd_enum::{
+        DatabaseType, LogicalStoragePolicy, RcdDbError, RcdGenerateContractError,
+        RemoteDeleteBehavior,
+    },
+    table::Table,
+};
 
 mod dbi_sqlite;
 
@@ -44,6 +56,272 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn add_participant(
+        self: &Self,
+        db_name: &str,
+        alias: &str,
+        ip4addr: &str,
+        db_port: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::add_participant(db_name, alias, ip4addr, db_port, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_database_schema(self: &Self, db_name: &str) -> DatabaseSchema {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_db_schema(db_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_participant_by_alias(
+        self: &Self,
+        db_name: &str,
+        participant_alias: &str,
+    ) -> CoopDatabaseParticipant {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_participant_by_alias(db_name, participant_alias, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn has_participant(self: &Self, db_name: &str, participant_alias: &str) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::has_participant(db_name, participant_alias, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_active_contract(self: &Self, db_name: &str) -> CoopDatabaseContract {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_active_contract(db_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_logical_storage_policy(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<LogicalStoragePolicy, RcdDbError> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_logical_storage_policy(db_name, table_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn set_logical_storage_policy(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        policy: LogicalStoragePolicy,
+    ) -> Result<bool, RcdDbError> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::set_logical_storage_policy(
+                    db_name, table_name, policy, settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn has_table(self: &Self, db_name: &str, table_name: &str) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::has_table_client_service(db_name, table_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn execute_write(self: &Self, db_name: &str, cmd: &str) -> usize {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::execute_write_on_connection(db_name, cmd, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn execute_read(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::execute_read(db_name, cmd, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
+        return false;
+    }
+
+    pub fn get_participants_for_table(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Vec<CoopDatabaseParticipant> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_participants_for_table(db_name, table_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_cooperative_tables(self: &Self, db_name: &str, cmd: &str) -> Vec<String> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::get_cooperative_tables(db_name, cmd, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn create_database(self: &Self, db_name: &str) -> Result<Connection, Error> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::create_database(db_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn enable_coooperative_features(self: &Self, db_name: &str) {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+
+                dbi_sqlite::enable_coooperative_features(db_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn generate_contract(
+        self: &Self,
+        db_name: &str,
+        host_name: &str,
+        desc: &str,
+        remote_delete_behavior: RemoteDeleteBehavior,
+    ) -> Result<bool, RcdGenerateContractError> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+
+                let _ = self.generate_and_get_host_info(host_name);
+
+                return dbi_sqlite::generate_contract(
+                    db_name,
+                    host_name,
+                    desc,
+                    remote_delete_behavior,
+                    settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn rcd_get_host_info(self: &Self) -> HostInfo {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::rcd_get_host_info(settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn rcd_generate_host_info(self: &Self, host_name: &str) {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                dbi_sqlite::rcd_generate_host_info(host_name, settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn if_rcd_host_info_exists(self: &Self) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

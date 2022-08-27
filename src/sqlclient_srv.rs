@@ -36,6 +36,10 @@ impl SqlClientImpl {
         let dbi = self.db_interface.as_ref().unwrap().clone();
         return crate::rcd_db::verify_login(&login, &pw, &dbi);
     }
+
+    fn dbi(self: &Self) -> Dbi {
+        return self.db_interface.as_ref().unwrap().clone();
+    }
 }
 
 #[tonic::async_trait]
@@ -66,12 +70,12 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
 
         if is_authenticated {
-            let result = crate::sqlitedb::create_database(&db_name, &self.root_folder);
+            let result = self.dbi().create_database(&db_name);
             if !result.is_err() {
                 is_database_created = true;
             }
@@ -102,12 +106,12 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
 
         if is_authenticated {
-            crate::sqlitedb::enable_coooperative_features(&db_name, &self.root_folder);
+            self.dbi().enable_coooperative_features(&db_name);
         }
 
         let auth_response = AuthResult {
@@ -152,21 +156,17 @@ impl SqlClient for SqlClientImpl {
         };
 
         if is_authenticated {
-            if sqlitedb::has_cooperative_tables_mock(&db_name, &self.root_folder, &sql) {
+            if self.dbi().has_cooperative_tables_mock(&db_name, &sql) {
                 unimplemented!();
                 // we would need to get a list of participants for each of the cooperative tables
-                let cooperative_tables =
-                    sqlitedb::get_cooperative_tables(&db_name, &self.root_folder, &sql);
+                let cooperative_tables = self.dbi().get_cooperative_tables(&db_name, &sql);
 
                 for ct in &cooperative_tables {
-                    let participants_for_table = sqlitedb::get_participants_for_table(
-                        &db_name,
-                        &self.root_folder,
-                        ct.as_str(),
-                    );
+                    let participants_for_table =
+                        self.dbi().get_participants_for_table(&db_name, ct.as_str());
                     for participant in &participants_for_table {
                         // we would need to get rows for that table from the participant
-                        let host_info = HostInfo::get(&rcd_db_conn);
+                        let host_info = HostInfo::get(&self.dbi());
                         let remote_data_result = remote_db_srv::get_row_from_participant(
                             participant.clone(),
                             host_info,
@@ -180,7 +180,7 @@ impl SqlClient for SqlClientImpl {
                 // and then send a request to each participant for row data that fit the query
                 // and finally we would need to assemble those results into a table to be returned
             } else {
-                let query_result = crate::sqlitedb::execute_read(&db_name, &self.root_folder, &sql);
+                let query_result = self.dbi().execute_read(&db_name, &sql);
 
                 if query_result.is_ok() {
                     let result_rows = query_result.unwrap().to_cdata_rows();
@@ -243,8 +243,7 @@ impl SqlClient for SqlClientImpl {
             // ideally in the future we would inspect the sql statement and determine
             // if the table we were going to affect was a cooperative one and then act accordingly
             // right now, we will just execute the write statement
-            let rows_affected =
-                crate::sqlitedb::execute_write(&db_name, &self.root_folder, &statement);
+            let rows_affected = self.dbi().execute_write(&db_name, &statement);
         }
 
         let auth_response = AuthResult {
@@ -282,17 +281,13 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let table_name = message.table_name;
 
         if is_authenticated {
-            has_table = crate::sqlitedb::has_table_client_service(
-                &db_name,
-                &self.root_folder,
-                table_name.as_str(),
-            )
+            has_table = self.dbi().has_table(&db_name, table_name.as_str())
         }
 
         let auth_response = AuthResult {
@@ -321,7 +316,7 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let policy_num = message.policy_mode;
@@ -329,13 +324,10 @@ impl SqlClient for SqlClientImpl {
         let table_name = message.table_name;
 
         if is_authenticated {
-            policy_is_set = crate::sqlitedb::set_logical_storage_policy(
-                &db_name,
-                &self.root_folder,
-                table_name,
-                policy,
-            )
-            .unwrap();
+            policy_is_set = self
+                .dbi()
+                .set_logical_storage_policy(&db_name, table_name.as_str(), policy)
+                .unwrap();
         }
 
         let auth_response = AuthResult {
@@ -364,18 +356,16 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let table_name = message.table_name;
 
         if is_authenticated {
-            let i_policy = crate::sqlitedb::get_logical_storage_policy(
-                &db_name,
-                &self.root_folder,
-                table_name,
-            )
-            .unwrap();
+            let i_policy = self
+                .dbi()
+                .get_logical_storage_policy(&db_name, &table_name)
+                .unwrap();
 
             policy = LogicalStoragePolicy::from_i64(i_policy as i64);
         }
@@ -416,13 +406,19 @@ impl SqlClient for SqlClientImpl {
         let mut reply_message = String::from("");
 
         if is_authenticated {
-            let result = crate::sqlitedb::generate_contract(
+            let db_interface = self.db_interface.unwrap().clone();
+            let result1 = db_interface.generate_contract(
                 &db_name,
-                &self.root_folder,
                 &host_name,
                 &desc,
-                RemoteDeleteBehavior::from_i64(i_remote_delete_behavior as i64),
-                &self.database_name,
+                RemoteDeleteBehavior::from_u32(i_remote_delete_behavior),
+            );
+
+            let result = self.dbi().generate_contract(
+                &db_name,
+                &host_name,
+                &desc,
+                RemoteDeleteBehavior::from_u32(i_remote_delete_behavior),
             );
 
             match result {
@@ -461,7 +457,7 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let alias = message.alias;
@@ -472,8 +468,9 @@ impl SqlClient for SqlClientImpl {
         let mut is_successful = false;
 
         if is_authenticated {
-            is_successful =
-                sqlitedb::add_participant(&db_name, &self.root_folder, &alias, &ip4addr, db_port);
+            is_successful = self
+                .dbi()
+                .add_participant(&db_name, &alias, &ip4addr, db_port);
         };
 
         let auth_response = AuthResult {
@@ -512,12 +509,13 @@ impl SqlClient for SqlClientImpl {
         let mut is_successful = false;
 
         if is_authenticated {
-            if sqlitedb::has_participant(&db_name, cwd, &participant_alias) {
-                let participant =
-                    sqlitedb::get_participant_by_alias(&db_name, cwd, &participant_alias);
-                let active_contract = sqlitedb::get_active_contract(&db_name, cwd);
-                let db_schema = sqlitedb::get_db_schema(&db_name, cwd);
-                let host_info = HostInfo::get(&rcd_db_conn);
+            if self.dbi().has_participant(&db_name, &participant_alias) {
+                let participant = self
+                    .dbi()
+                    .get_participant_by_alias(&db_name, &participant_alias);
+                let active_contract = self.dbi().get_active_contract(&db_name);
+                let db_schema = self.dbi().get_database_schema(&db_name);
+                let host_info = HostInfo::get(&self.dbi());
                 is_successful = remote_db_srv::send_participant_contract(
                     participant,
                     host_info,

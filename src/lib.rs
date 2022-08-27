@@ -15,7 +15,6 @@ pub mod rcd_sql_client;
 mod remote_db_srv;
 mod sql_text;
 mod sqlclient_srv;
-mod sqlitedb;
 mod sqlitedbpart;
 mod table;
 pub mod dbi;

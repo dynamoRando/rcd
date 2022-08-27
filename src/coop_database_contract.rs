@@ -5,8 +5,6 @@ use crate::host_info::HostInfo;
 use crate::rcd_enum::ContractStatus;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
-use crate::sqlitedb::execute_read_on_connection;
-use crate::sqlitedb::{execute_write_on_connection, has_any_rows};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
