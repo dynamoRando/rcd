@@ -24,8 +24,8 @@ use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
 use crate::rcd_settings::RcdSettings;
 use config::Config;
+use dbi::{DbiConfigSqlite, Dbi};
 use std::env;
-use std::path::Path;
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(
@@ -35,13 +35,24 @@ fn configure_backing_store(
     admin_pw: &str,
 ) {
     let cwd = env::current_dir().unwrap();
-    let _db_path = Path::new(&cwd.to_str().unwrap()).join(&backing_db_name);
-    let db_location = _db_path.as_os_str().to_str().unwrap();
-
+    
     match db_type {
         DatabaseType::Sqlite => {
-            crate::rcd_db::configure(cwd.to_str().unwrap(), db_location);
-            crate::rcd_db::configure_admin(admin_un, admin_pw, db_location)
+
+            let config = DbiConfigSqlite {
+                root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+        
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            crate::rcd_db::configure(&dbi);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
         }
         DatabaseType::Mysql => do_nothing(),
         DatabaseType::Postgres => do_nothing(),
@@ -58,13 +69,24 @@ fn configure_backing_store_at_dir(
     admin_pw: &str,
     root_dir: &str,
 ) {
-    let _db_path = Path::new(root_dir).join(&backing_db_name);
-    let db_location = _db_path.as_os_str().to_str().unwrap();
-
+  
     match db_type {
         DatabaseType::Sqlite => {
-            crate::rcd_db::configure(root_dir, db_location);
-            crate::rcd_db::configure_admin(admin_un, admin_pw, db_location)
+
+            let config = DbiConfigSqlite {
+                root_folder: root_dir.to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+        
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            crate::rcd_db::configure(&dbi);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
         }
         DatabaseType::Mysql => do_nothing(),
         DatabaseType::Postgres => do_nothing(),

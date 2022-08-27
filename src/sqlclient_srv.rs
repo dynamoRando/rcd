@@ -34,7 +34,7 @@ impl SqlClientImpl {
 
     fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
         let dbi = self.db_interface.as_ref().unwrap().clone();
-        return crate::rcd_db::verify_login(&login, &pw, dbi);
+        return crate::rcd_db::verify_login(&login, &pw, &dbi);
     }
 }
 

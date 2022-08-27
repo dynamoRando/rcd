@@ -2,7 +2,6 @@
 use crate::{cdata::Contract, dbi::Dbi, host_info::HostInfo, sql_text::CDS};
 use log::info;
 use rusqlite::{named_params, Connection, Result};
-use std::path::Path;
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -11,32 +10,9 @@ pub struct User {
     pub hash: String,
 }
 #[allow(dead_code)]
-/// Configures an rcd backing store in sqlite
-pub fn configure(root: &str, db_name: &str) {
-    let _init = env_logger::try_init();
-
-    log::info!("cwd is {}", root);
-    info!("db_name is {}", db_name);
-
-    let db_path = Path::new(&root).join(&db_name);
-    info!("db_path is {}", db_path.as_os_str().to_str().unwrap());
-
-    if !db_path.exists() {
-        let db_conn = Connection::open(&db_path).unwrap();
-        create_user_table(&db_conn);
-        create_role_table(&db_conn);
-        create_user_role_table(&db_conn);
-        create_host_info_table(&db_conn);
-        create_contracts_table(&db_conn);
-        create_cds_hosts_table(&db_conn);
-
-        let db_has_role = has_role_name(&String::from("SysAdmin"), &db_conn).unwrap();
-
-        if !db_has_role {
-            let statement = String::from("INSERT INTO CDS_ROLE (ROLENAME) VALUES ('SysAdmin');");
-            execute_write(&statement, &db_conn);
-        }
-    }
+/// Configures an rcd backing store
+pub fn configure(dbi: &Dbi) {
+    dbi.configure_rcd_db();
 }
 
 #[allow(dead_code, unused_variables)]
@@ -52,16 +28,8 @@ pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInf
 
 #[allow(dead_code)]
 /// Creates an admin login if one does not already exist and adds it to the `SysAdmin` role
-pub fn configure_admin(login: &str, pw: &str, db_path: &str) {
-    let conn = Connection::open(&db_path).unwrap();
-
-    if !has_login(login, &conn).unwrap() {
-        create_login(login, pw, &conn);
-    }
-
-    if !login_is_in_role(login, &String::from("SysAdmin"), &conn).unwrap() {
-        add_login_to_role(login, &String::from("SysAdmin"), &conn);
-    }
+pub fn configure_admin(login: &str, pw: &str, dbi: &Dbi) {
+    dbi.configure_admin(login, pw);
 }
 
 #[allow(dead_code, unused_variables)]
@@ -112,7 +80,7 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>) -> bool {
 }
 
 #[allow(dead_code, unused_variables)]
-pub fn verify_login(login: &str, pw: &str, dbi: Dbi) -> bool {
+pub fn verify_login(login: &str, pw: &str, dbi: &Dbi) -> bool {
     return dbi.verify_login(login, pw);
 }
 
@@ -179,35 +147,4 @@ pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
     }
 
     return Ok(has_role);
-}
-
-fn execute_write(statement: &str, conn: &Connection) {
-    conn.execute(statement, []).unwrap();
-}
-fn create_user_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_table(), []).unwrap();
-}
-
-fn create_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_role_table(), []).unwrap();
-}
-
-fn create_user_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_role_table(), [])
-        .unwrap();
-}
-
-fn create_host_info_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_host_info_table(), [])
-        .unwrap();
-}
-
-fn create_contracts_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_cds_contracts_table(), [])
-        .unwrap();
-}
-
-fn create_cds_hosts_table(conn: &Connection) {
-    conn.execute(&&CDS::text_create_cds_hosts_table(), [])
-        .unwrap();
 }
