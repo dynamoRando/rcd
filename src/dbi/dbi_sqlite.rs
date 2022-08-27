@@ -14,7 +14,7 @@ use crate::{
     sql_text::{self, CDS},
     table::{Column, Data, Row, Table, Value},
 };
-use chrono::Utc;
+use chrono::{TimeZone, Utc};
 use guid_create::GUID;
 use log::info;
 use rusqlite::{named_params, types::Type, Connection, Error, Result};
@@ -95,7 +95,7 @@ pub fn generate_contract(
                     "generate contract: retire contract {}",
                     &con.contract_id.to_string()
                 );
-                con.retire(&conn);
+                retire_contract(con.version_id, &conn);
                 println!(
                     "generate contract: save retired contract {}",
                     &con.contract_id.to_string()
@@ -116,6 +116,140 @@ pub fn generate_contract(
         new_contract.save(&conn);
     }
     Ok(true)
+}
+
+fn save_contract_at_connection(contract: CoopDatabaseContract, conn: Connection) {
+    let mut cmd = String::from(
+        "SELECT COUNT(*) TOTALCOUNT FROM COOP_DATABASE_CONTRACT WHERE VERSION_ID = ':vid'",
+    );
+    cmd = cmd.replace(":vid", &contract.version_id.to_string());
+    if has_any_rows(cmd, &conn) {
+        // this is an update
+        if contract.is_retired() {
+            let mut cmd = String::from(
+                "
+            UPDATE COOP_DATABASE_CONTRACT 
+            SET 
+                CONTRACT_ID = ':cid',
+                GENERATED_DATE_UTC = ':gen_date',
+                DESCRIPTION = ':desc',
+                RETIRED_DATE_UTC = ':ret_date',
+                REMOTE_DELETE_BEHAVIOR = ':remote_behavior'
+            WHERE
+                VERSION_ID = ':vid'",
+            );
+            cmd = cmd.replace(":cid", &contract.contract_id.to_string());
+            cmd = cmd.replace(":gen_date", &contract.generated_date.to_string());
+            cmd = cmd.replace(":desc", &contract.description);
+            let ret = &contract.retired_date.unwrap().to_string();
+            cmd = cmd.replace(":ret_date", ret);
+            cmd = cmd.replace(":vid", &contract.version_id.to_string());
+            cmd = cmd.replace(
+                ":remote_behavior",
+                &contract.remote_delete_behavior.to_string(),
+            );
+            execute_write(&conn, &cmd);
+        } else {
+            let mut cmd = String::from(
+                "
+            UPDATE COOP_DATABASE_CONTRACT 
+            SET 
+                CONTRACT_ID = ':cid',
+                GENERATED_DATE_UTC = ':gen_date',
+                DESCRIPTION = ':desc',
+                REMOTE_DELETE_BEHAVIOR = ':remote_behavior'
+            WHERE
+                VERSION_ID = ':vid'",
+            );
+            cmd = cmd.replace(":cid", &contract.contract_id.to_string());
+            cmd = cmd.replace(":gen_date", &contract.generated_date.to_string());
+            cmd = cmd.replace(":desc", &contract.description);
+            cmd = cmd.replace(":vid", &contract.version_id.to_string());
+            cmd = cmd.replace(
+                ":remote_behavior",
+                &contract.remote_delete_behavior.to_string(),
+            );
+            execute_write(&conn, &cmd);
+        }
+    } else {
+        // this is an insert
+        if contract.is_retired() {
+            let mut cmd = String::from(
+                "
+            INSERT INTO COOP_DATABASE_CONTRACT
+            (
+                CONTRACT_ID,
+                GENERATED_DATE_UTC,
+                DESCRIPTION,
+                RETIRED_DATE_UTC,
+                VERSION_ID,
+                REMOTE_DELETE_BEHAVIOR
+            )
+            VALUES
+            (
+                ':cid',
+                ':gen_date',
+                ':desc',
+                ':ret_date',
+                ':vid',
+                ':remote_behavior'
+            );
+            ",
+            );
+            cmd = cmd.replace(":cid", &contract.contract_id.to_string());
+            cmd = cmd.replace(":gen_date", &contract.generated_date.to_string());
+            cmd = cmd.replace(":desc", &contract.description);
+            let ret = &contract.retired_date.unwrap().to_string();
+            cmd = cmd.replace(":ret_date", ret);
+            cmd = cmd.replace(":vid", &contract.version_id.to_string());
+            cmd = cmd.replace(
+                ":remote_behavior",
+                &contract.remote_delete_behavior.to_string(),
+            );
+            execute_write(&conn, &cmd);
+        } else {
+            let mut cmd = String::from(
+                "
+            INSERT INTO COOP_DATABASE_CONTRACT
+            (
+                CONTRACT_ID,
+                GENERATED_DATE_UTC,
+                DESCRIPTION,
+                VERSION_ID,
+                REMOTE_DELETE_BEHAVIOR
+            )
+            VALUES
+            (
+                ':cid',
+                ':gen_date',
+                ':desc',
+                ':vid',
+                ':remote_behavior'
+            );
+            ",
+            );
+
+            cmd = cmd.replace(":cid", &contract.contract_id.to_string());
+            println!("{}", &contract.generated_date);
+            cmd = cmd.replace(":gen_date", &contract.generated_date.to_string());
+            cmd = cmd.replace(":desc", &contract.description);
+            cmd = cmd.replace(":vid", &contract.version_id.to_string());
+            cmd = cmd.replace(
+                ":remote_behavior",
+                &contract.remote_delete_behavior.to_string(),
+            );
+            execute_write(&conn, &cmd);
+        }
+    }
+}
+
+/// Marks this contract as retired in the database with today's UTC date
+#[allow(unused_variables, dead_code, unused_assignments)]
+pub fn retire_contract(version_id: GUID, conn: &Connection) {
+    let mut cmd = String::from("UPDATE COOP_DATABASE_CONTRACT SET RETIRED_DATE_UTC = ':retire_date' WHERE VERSION_ID = ':vid'");
+    cmd = cmd.replace(":retire_date", &Utc::now().to_string());
+    cmd = cmd.replace(":vid", &version_id.to_string());
+    execute_write(conn, &cmd);
 }
 
 pub fn rcd_get_host_info(config: DbiConfigSqlite) -> HostInfo {
@@ -453,6 +587,10 @@ pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connect
     return Ok(get_db_conn(config, db_name));
 }
 
+fn execute_write(conn: &Connection, cmd: &str) -> usize {
+    return conn.execute(&cmd, []).unwrap();
+}
+
 pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> usize {
     let conn = get_db_conn(config, db_name);
     return conn.execute(&cmd, []).unwrap();
@@ -688,7 +826,65 @@ pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Result
 #[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
 pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDatabaseContract {
     let conn = &get_db_conn(config, db_name);
-    return CoopDatabaseContract::get_active_contract(conn);
+
+    let cmd = String::from(
+        "
+        SELECT 
+            CONTRACT_ID,
+            GENERATED_DATE_UTC,
+            DESCRIPTION,
+            VERSION_ID,
+            REMOTE_DELETE_BEHAVIOR 
+        FROM 
+            COOP_DATABASE_CONTRACT 
+        WHERE 
+            RETIRED_DATE_UTC IS NULL
+        ;",
+    );
+
+    let row_to_active_contract = |contract_id: String,
+                                  generated_date_utc: String,
+                                  description: String,
+                                  version_id: String,
+                                  remote_delete_behavior: u32|
+     -> Result<CoopDatabaseContract> {
+        let contract = CoopDatabaseContract {
+            contract_id: GUID::parse(&contract_id).unwrap(),
+            generated_date: Utc::datetime_from_str(
+                &Utc,
+                &generated_date_utc,
+                defaults::DATETIME_STRING_FORMAT,
+            )
+            .unwrap(),
+            description: description,
+            retired_date: None,
+            version_id: GUID::parse(&version_id).unwrap(),
+            remote_delete_behavior: remote_delete_behavior,
+        };
+
+        Ok(contract)
+    };
+
+    let mut results: Vec<CoopDatabaseContract> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let contracts = statement
+        .query_and_then([], |row| {
+            row_to_active_contract(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for contract in contracts {
+        results.push(contract.unwrap());
+    }
+
+    return results.first().unwrap().clone();
 }
 
 #[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
@@ -805,13 +1001,91 @@ pub fn get_participant_by_alias(
     config: DbiConfigSqlite,
 ) -> CoopDatabaseParticipant {
     let conn = get_db_conn(config, db_name);
-    return CoopDatabaseParticipant::get(alias, &conn);
+    let cmd = String::from(
+        "
+        SELECT 
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        FROM
+            COOP_PARTICIPANT
+        WHERE
+            ALIAS = :alias
+        ;
+        ",
+    );
+    // cmd = cmd.replace(":alias", &alias);
+
+    let row_to_participant = |internal_id: String,
+                              alias: String,
+                              ip4addr: String,
+                              ip6addr: String,
+                              port: u32,
+                              contract_status: u32,
+                              accepted_contract_version_id: String,
+                              token: Vec<u8>,
+                              id: String|
+     -> Result<CoopDatabaseParticipant> {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::parse(&internal_id).unwrap(),
+            alias: alias,
+            ip4addr: ip4addr,
+            ip6addr: ip6addr,
+            db_port: port,
+            contract_status: ContractStatus::from_i64(contract_status as i64),
+            accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+            token: token,
+            id: GUID::parse(&id).unwrap(),
+        };
+
+        Ok(participant)
+    };
+
+    let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let participants = statement
+        .query_and_then(&[(":alias", &alias)], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for participant in participants {
+        results.push(participant.unwrap());
+    }
+
+    return results.first().unwrap().clone();
 }
 
-#[allow(unused_variables, unused_mut, unused_assignments, dead_code)]
+pub fn has_participant_at_conn(alias: &str, conn: Connection) -> bool {
+    let mut cmd =
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
+    cmd = cmd.replace(":alias", alias);
+    return has_any_rows(cmd, &conn);
+}
+
 pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
     let conn = &get_db_conn(config, db_name);
-    return CoopDatabaseParticipant::exists(alias, conn);
+    let mut cmd =
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
+    cmd = cmd.replace(":alias", alias);
+    return has_any_rows(cmd, conn);
 }
 
 #[allow(unused_variables, unused_mut, unused_assignments)]
@@ -825,7 +1099,7 @@ pub fn add_participant(
     let conn = get_db_conn(config, db_name);
     let mut is_added = false;
 
-    if CoopDatabaseParticipant::exists(&alias, &conn) {
+    if has_participant(db_name, alias, config) {
         is_added = false;
     } else {
         let participant = CoopDatabaseParticipant {
@@ -844,6 +1118,90 @@ pub fn add_participant(
     }
 
     return is_added;
+}
+
+pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) {
+    if has_participant_at_conn(&participant.alias, conn) {
+        // this is an update
+        let cmd = String::from(
+            "
+        UPDATE COOP_PARTICIPANT
+        SET
+            IP4ADDRESS = ':ip4addr',
+            IP6ADDRESS = ':ip6addr',
+            PORT = ':db_port',
+            CONTRACT_STATUS = ':contract_status',
+            ACCEPTED_CONTRACT_VERSION_ID = ':accepted_contract_version',
+            TOKEN = ':token',
+            PARTICIPANT_ID = ':id'
+        WHERE
+            ALIAS = ':alias'
+        ;
+        ",
+        );
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                    ":ip4addr": participant.ip4addr,
+                    ":ip6addr": participant.ip6addr,
+                    ":db_port": participant.db_port.to_string(),
+                    ":contract_status": &ContractStatus::to_u32(participant.contract_status),
+                    ":accepted_contract_version": &participant.accepted_contract_version.to_string(),
+                    ":token": &participant.token,
+                    ":id": &participant.id.to_string(),
+                    ":alias": &participant.alias,
+            })
+            .unwrap();
+    } else {
+        // this is an insert
+
+        // println!("{:?}", &self);
+
+        let cmd = String::from(
+            "
+        INSERT INTO COOP_PARTICIPANT
+        (
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        )
+        VALUES
+        (
+            :internal_id,
+            :alias,
+            :ip4addr,
+            :ip6addr,
+            :db_port,
+            :contract_status,
+            :accepted_contract_version,
+            :token,
+            :id
+        );
+        ",
+        );
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                    ":internal_id": &participant.internal_id.to_string(),
+                    ":alias": &participant.alias,
+                    ":ip4addr": &participant.ip4addr,
+                    ":ip6addr": &participant.ip6addr,
+                    ":db_port": &participant.db_port.to_string(),
+                    ":contract_status": &ContractStatus::to_u32(participant.contract_status),
+                    ":accepted_contract_version": &participant.accepted_contract_version.to_string(),
+                    ":token": &participant.token,
+                    ":id": &participant.id.to_string()
+            })
+            .unwrap();
+    }
 }
 
 #[allow(unused_variables)]
@@ -1205,7 +1563,110 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
 
 #[allow(unused_variables, dead_code, unused_assignments)]
 fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract> {
-    return CoopDatabaseContract::get_all(conn);
+    let mut result: Vec<CoopDatabaseContract> = Vec::new();
+
+    /*
+        "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
+        (
+            CONTRACT_ID CHAR(36) NOT NULL,
+            GENERATED_DATE_UTC DATETIME NOT NULL,
+            DESCRIPTION VARCHAR(255),
+            RETIRED_DATE_UTC DATETIME,
+            VERSION_ID CHAR(36) NOT NULL,
+            REMOTE_DELETE_BEHAVIOR INT
+        );",
+    */
+
+    let cmd = String::from(
+        "SELECT 
+        CONTRACT_ID,
+        GENERATED_DATE_UTC,
+        DESCRIPTION,
+        RETIRED_DATE_UTC,
+        VERSION_ID,
+        REMOTE_DELETE_BEHAVIOR
+    FROM
+        COOP_DATABASE_CONTRACT
+        ;
+        ",
+    );
+
+    let table = execute_read_on_connection(cmd, conn).unwrap();
+
+    for row in table.rows {
+        for val in &row.vals {
+            let mut cid = GUID::rand();
+            let mut gen_date = Utc::now();
+            let mut desc = String::from("");
+            let mut is_retired = false;
+            let mut ret_date = Utc::now();
+            let mut vid = GUID::rand();
+            let mut delete_behavior: u32 = 0;
+
+            if val.col.name == "CONTRACT_ID" {
+                let vcid = val.data.as_ref().unwrap().data_string.clone();
+                let tcid = GUID::parse(&vcid).unwrap();
+                cid = tcid;
+            }
+
+            if val.col.name == "GENERATED_DATE_UTC" {
+                let vgen_date = val.data.as_ref().unwrap().data_string.clone();
+                // println!("{}", vgen_date);
+                let tgen_date =
+                    Utc::datetime_from_str(&Utc, &vgen_date, defaults::DATETIME_STRING_FORMAT);
+                gen_date = tgen_date.unwrap();
+            }
+
+            if val.col.name == "DESCRIPTION" {
+                let vdesc = val.data.as_ref().unwrap().data_string.clone();
+                desc = vdesc.clone();
+            }
+
+            if val.col.name == "RETIRED_DATE_UTC" {
+                if val.is_null() {
+                    is_retired = false;
+                } else {
+                    let vret_date = val.data.as_ref().unwrap().data_string.clone();
+                    if vret_date.len() > 0 {
+                        // println!("{}", vret_date);
+                        let tret_date = Utc::datetime_from_str(
+                            &Utc,
+                            &vret_date,
+                            defaults::DATETIME_STRING_FORMAT,
+                        );
+                        ret_date = tret_date.unwrap();
+                        is_retired = true;
+                    } else {
+                        is_retired = false;
+                    }
+                }
+            }
+
+            if val.col.name == "VERSION_ID" {
+                let vvid = val.data.as_ref().unwrap().data_string.clone();
+                let tvid = GUID::parse(&vvid).unwrap();
+                vid = tvid;
+            }
+
+            if val.col.name == "REMOTE_DELETE_BEHAVIOR" {
+                let vbehavior = val.data.as_ref().unwrap().data_string.clone();
+                delete_behavior = vbehavior.parse().unwrap();
+            }
+
+            let item = CoopDatabaseContract {
+                contract_id: cid,
+                generated_date: gen_date,
+                description: desc,
+                retired_date: if is_retired { Some(ret_date) } else { None },
+                version_id: vid,
+                remote_delete_behavior: delete_behavior,
+            };
+
+            result.push(item);
+        }
+    }
+
+    return result;
 }
 
 pub fn get_connection(db_name: &str, cwd: &str) -> Connection {
