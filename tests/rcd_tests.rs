@@ -8,6 +8,7 @@ use std::path::Path;
 use std::fs;
 use rcd::rcd_db;
 use rusqlite::Connection;
+use rcd::dbi::{Dbi, DbiConfigSqlite};
 
 #[path = "test_harness.rs"]
 mod test_harness;
@@ -106,7 +107,19 @@ fn hash() {
 
     info!("test_hash: has_login {}", &has_login);
 
-    let is_valid = crate::rcd_db::verify_login(&un, &pw, &db_conn);
+    let config = DbiConfigSqlite {
+        root_folder: cwd.to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name,
+    };
+
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
+    let is_valid = crate::rcd_db::verify_login(&un, &pw, dbi);
 
     info!("test_hash: is_valid {}", is_valid);
 
@@ -160,8 +173,20 @@ fn hash_negative() {
 
     info!("test_hash_false: has_login {}", &has_login);
 
+    let config = DbiConfigSqlite {
+        root_folder: cwd.to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name,
+    };
+
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
     let wrong_pw = String::from("43210");
-    let is_valid = crate::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+    let is_valid = crate::rcd_db::verify_login(&un, &wrong_pw, dbi);
 
     info!("test_hash_false: is_valid {}", is_valid);
 

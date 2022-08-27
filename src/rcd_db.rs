@@ -1,15 +1,14 @@
 /// represents all the actions for admin'ing an rcd sqlite database
-
-use crate::{host_info::HostInfo, sql_text::CDS, cdata::Contract};
+use crate::{cdata::Contract, dbi::Dbi, host_info::HostInfo, sql_text::CDS};
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-struct User {
-    username: String,
-    hash: String,
+pub struct User {
+    pub username: String,
+    pub hash: String,
 }
 #[allow(dead_code)]
 /// Configures an rcd backing store in sqlite
@@ -112,43 +111,9 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>) -> bool {
     unimplemented!();
 }
 
-#[allow(dead_code)]
-pub fn verify_login(login: &str, pw: &str, conn: &Connection) -> bool {
-    let mut is_verified = false;
-
-    let cmd = &String::from(CDS::text_get_user());
-
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let user_iter = statement
-        .query_map(&[login.to_string().as_str()], |row| {
-            Ok(User {
-                username: row.get(0).unwrap(),
-                hash: row.get(1).unwrap(),
-            })
-        })
-        .unwrap();
-
-    for user in user_iter {
-        let returned_value = user.unwrap();
-
-        let mut padded = [0u8; 128];
-        returned_value
-            .hash
-            .as_bytes()
-            .iter()
-            .enumerate()
-            .for_each(|(i, val)| {
-                padded[i] = val.clone();
-            });
-
-        if crate::crypt::verify(padded, pw) {
-            is_verified = true;
-            break;
-        }
-    }
-
-    return is_verified;
+#[allow(dead_code, unused_variables)]
+pub fn verify_login(login: &str, pw: &str, dbi: Dbi) -> bool {
+    return dbi.verify_login(login, pw);
 }
 
 #[allow(dead_code)]

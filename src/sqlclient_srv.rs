@@ -31,6 +31,11 @@ impl SqlClientImpl {
         let db_path = Path::new(&self.root_folder).join(&self.database_name);
         return Connection::open(&db_path).unwrap();
     }
+
+    fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
+        let dbi = self.db_interface.as_ref().unwrap().clone();
+        return crate::rcd_db::verify_login(&login, &pw, dbi);
+    }
 }
 
 #[tonic::async_trait]
@@ -61,8 +66,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
 
         if is_authenticated {
@@ -97,8 +102,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
 
         if is_authenticated {
@@ -132,7 +137,7 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let sql = message.sql_statement;
         let rcd_db_conn = self.get_rcd_db();
@@ -230,7 +235,7 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let statement = message.sql_statement;
 
@@ -277,8 +282,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let table_name = message.table_name;
 
@@ -316,8 +321,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let policy_num = message.policy_mode;
         let policy = LogicalStoragePolicy::from_i64(policy_num as i64);
@@ -359,8 +364,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let table_name = message.table_name;
 
@@ -402,7 +407,7 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let desc = message.description;
         let i_remote_delete_behavior = message.remote_delete_behavior;
@@ -456,8 +461,8 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &conn);
+        
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let alias = message.alias;
         let ip4addr = message.ip4_address;
@@ -497,7 +502,7 @@ impl SqlClient for SqlClientImpl {
         let message = request.into_inner();
         let a = message.authentication.unwrap();
         let rcd_db_conn = self.get_rcd_db();
-        let is_authenticated = crate::rcd_db::verify_login(&a.user_name, &a.pw, &rcd_db_conn);
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
 
