@@ -18,12 +18,8 @@ pub fn configure(dbi: &Dbi) {
 #[allow(dead_code, unused_variables)]
 /// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
 /// Will always return the current `HostInfo`
-pub fn generate_and_get_host_info(host_name: &str, conn: &Connection) -> HostInfo {
-    if !HostInfo::exists(conn) {
-        HostInfo::generate(host_name, conn);
-    }
-
-    return HostInfo::get(conn);
+pub fn generate_and_get_host_info(host_name: &str, dbi: Dbi) -> HostInfo {
+    return dbi.generate_and_get_host_info(host_name);
 }
 
 #[allow(dead_code)]

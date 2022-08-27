@@ -1,4 +1,4 @@
-use crate::rcd_enum::DatabaseType;
+use crate::{rcd_enum::DatabaseType, host_info::HostInfo};
 
 mod dbi_sqlite;
 
@@ -44,6 +44,29 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn if_rcd_host_info_exists(self: &Self) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return dbi_sqlite::if_rcd_host_info_exists(settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    /// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
+    /// Will always return the current `HostInfo`
+    pub fn generate_and_get_host_info(self: &Self, host_name: &str) -> HostInfo {
+        if !HostInfo::exists(self) {
+            HostInfo::generate(host_name, self);
+        }
+
+        return HostInfo::get(self);
+    }
+
     pub fn configure_admin(self: &Self, login: &str, pw: &str) {
         match self.db_type {
             DatabaseType::Sqlite => {

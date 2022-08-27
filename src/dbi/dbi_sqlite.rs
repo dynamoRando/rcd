@@ -4,6 +4,11 @@ use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
+pub fn if_rcd_host_info_exists(config: DbiConfigSqlite) -> bool {
+    let cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_HOST_INFO");
+        return has_any_rows(cmd, &get_rcd_conn(config));
+}
+
 pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
     let conn = get_rcd_conn(config);
 
@@ -210,4 +215,32 @@ pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
     statement
         .execute(named_params! { ":username": login, ":rolename": role_name })
         .unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+/// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
+/// created has also populated any data in it.
+pub fn has_any_rows(cmd: String, conn: &Connection) -> bool {
+    return total_count(cmd, conn) > 0;
+}
+
+#[allow(dead_code, unused_variables)]
+/// Takes a SELECT COUNT(*) SQL statement and returns the value
+fn total_count(cmd: String, conn: &Connection) -> u32 {
+    return get_scalar_as_u32(cmd, conn);
+}
+
+#[allow(dead_code, unused_variables)]
+/// Runs any SQL statement that returns a single value and attempts
+/// to return the result as a u32
+fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
+    let mut value: u32 = 0;
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let rows = statement.query_map([], |row| row.get(0)).unwrap();
+
+    for item in rows {
+        value = item.unwrap();
+    }
+
+    return value;
 }

@@ -1,6 +1,6 @@
 use guid_create::GUID;
 use rusqlite::{named_params, Connection, Result};
-use crate::{crypt, sqlitedb::has_any_rows};
+use crate::{crypt, sqlitedb::has_any_rows, dbi::{Dbi, self}};
 
 /*
 "CREATE TABLE IF NOT EXISTS CDS_HOST_INFO
@@ -21,7 +21,7 @@ pub struct HostInfo {
 }
 
 impl HostInfo {
-    pub fn generate(host_name: &str, conn: &Connection) {
+    pub fn generate(host_name: &str, dbi: &Dbi) {
         let id = GUID::rand();
 
         let token_gen = GUID::rand();
@@ -50,12 +50,11 @@ impl HostInfo {
             .unwrap();
     }
 
-    pub fn exists(conn: &Connection) -> bool {
-        let cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_HOST_INFO");
-        return has_any_rows(cmd, conn);
+    pub fn exists(dbi: &Dbi) -> bool {
+        return dbi.if_rcd_host_info_exists();
     }
 
-    pub fn get(conn: &Connection) -> HostInfo {
+    pub fn get(dbi: &Dbi) -> HostInfo {
         let cmd = String::from(
             "
         SELECT 
