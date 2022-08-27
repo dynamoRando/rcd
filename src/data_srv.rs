@@ -1,4 +1,4 @@
-use crate::cdata::data_service_server::DataService;
+use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 #[allow(unused_imports)]
 use crate::cdata::data_service_server::DataServiceServer;
 #[allow(unused_imports)]
@@ -18,6 +18,7 @@ pub struct DataServiceImpl {
     pub root_folder: String,
     pub database_name: String,
     pub addr_port: String,
+    pub db_interface: Option<Dbi>,
 }
 
 impl DataServiceImpl {
@@ -239,6 +240,7 @@ pub async fn start_db_service(
         root_folder: root_folder.to_string(),
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
+        db_interface: None,
     };
 
     let data_client_service = tonic_reflection::server::Builder::configure()

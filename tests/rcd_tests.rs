@@ -70,7 +70,7 @@ fn configure_backing_db() {
     }
 
     // ACT
-    let service = get_service_from_config(rcd_setting);
+    let mut service = get_service_from_config(rcd_setting);
     service.start();
 
     // ASSERT

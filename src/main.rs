@@ -2,7 +2,7 @@
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, world!");
     rcd::hello();
-    let service = rcd::get_service_from_config_file();
+    let mut service = rcd::get_service_from_config_file();
     println!("{:?}", service);
     service.start();
 

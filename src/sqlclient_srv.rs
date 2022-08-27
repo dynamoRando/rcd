@@ -3,6 +3,7 @@ use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
 #[allow(unused_imports)]
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
+use crate::dbi::Dbi;
 use crate::host_info::HostInfo;
 #[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
@@ -22,6 +23,7 @@ pub struct SqlClientImpl {
     pub database_name: String,
     pub addr_port: String,
     pub own_db_addr_port: String,
+    pub db_interface: Option<Dbi>,
 }
 
 impl SqlClientImpl {
@@ -581,6 +583,7 @@ pub async fn start_client_service(
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
+        db_interface: None,
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()

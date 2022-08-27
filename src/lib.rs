@@ -87,7 +87,8 @@ pub fn get_service_from_config_file() -> RcdService {
     let settings = get_config_from_settings_file();
     let service = RcdService {
         rcd_settings: settings,
-        root_dir: String::from("")
+        root_dir: String::from(""),
+        db_interface: None,
     };
     return service;
 }
@@ -96,7 +97,8 @@ pub fn get_service_from_config_file() -> RcdService {
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     return RcdService {
         rcd_settings: config,
-        root_dir: String::from("")
+        root_dir: String::from(""),
+        db_interface: None,
     };
 }
 
