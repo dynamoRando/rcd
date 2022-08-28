@@ -5,7 +5,6 @@ use rcd::get_service_from_config;
 use rcd::rcd_db;
 use rcd::rcd_enum::DatabaseType;
 use rcd::rcd_settings::RcdSettings;
-use rusqlite::Connection;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -105,14 +104,12 @@ fn hash() {
 
     rcd_db::configure(&dbi);
 
-    let db_conn = Connection::open(&db_path).unwrap();
-
     let un = String::from("tester");
     let pw = String::from("1234");
 
     // ACT
-    crate::rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
+    crate::rcd_db::create_login(&un, &pw, &dbi);
+    let has_login = crate::rcd_db::has_login(&un, &dbi).unwrap();
 
     info!("test_hash: has_login {}", &has_login);
 
@@ -171,14 +168,12 @@ fn hash_negative() {
 
     crate::rcd_db::configure(&dbi);
 
-    let db_conn = Connection::open(&db_path).unwrap();
-
     let un = String::from("tester_fail");
     let pw = String::from("1234");
 
     // ACT
-    crate::rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
+    crate::rcd_db::create_login(&un, &pw, &dbi);
+    let has_login = crate::rcd_db::has_login(&un, &dbi).unwrap();
 
     info!("test_hash_false: has_login {}", &has_login);
 
