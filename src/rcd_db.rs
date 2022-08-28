@@ -1,7 +1,6 @@
 /// represents all the actions for admin'ing an rcd sqlite database
-use crate::{cdata::Contract, dbi::Dbi, host_info::HostInfo, sql_text::CDS};
-use log::info;
-use rusqlite::{named_params, Connection, Result};
+use crate::{cdata::Contract, dbi::Dbi, host_info::HostInfo};
+use rusqlite::{Connection, Result};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -34,23 +33,8 @@ pub fn save_contract(contract: Contract, conn: &Connection) -> bool {
 }
 
 #[allow(dead_code)]
-pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
-    let mut has_login = false;
-    let cmd =
-        &String::from("SELECT count(*) AS USERCOUNT FROM CDS_USER WHERE USERNAME = :username");
-
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let rows = statement.query_map(&[(login.to_string().as_str())], |row| row.get(0))?;
-
-    for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            has_login = true;
-        }
-    }
-
-    return Ok(has_login);
+pub fn has_login(login: &str, dbi: &Dbi) -> Result<bool> {
+    return Ok(dbi.has_login(login));
 }
 
 #[allow(dead_code, unused_variables)]
@@ -81,66 +65,21 @@ pub fn verify_login(login: &str, pw: &str, dbi: &Dbi) -> bool {
 }
 
 #[allow(dead_code)]
-pub fn create_login(login: &str, pw: &str, conn: &Connection) {
-    // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
-    // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
-
-    info!("un and pw: {} {}", login, pw);
-
-    let login_hash = crate::crypt::hash(&pw);
-    let cmd = &String::from(CDS::text_add_user());
-    let mut statement = conn.prepare(cmd).unwrap();
-    statement
-        .execute(named_params! { ":username": login, ":hash": login_hash.0 })
-        .unwrap();
+pub fn create_login(login: &str, pw: &str, dbi: &Dbi) {
+    dbi.create_login(login, pw);
 }
 
 #[allow(dead_code)]
-pub fn login_is_in_role(login: &str, role_name: &str, conn: &Connection) -> Result<bool> {
-    let mut login_is_in_role = false;
-    let cmd = &CDS::text_get_user_role();
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let params = [(":username", login), (":rolename", role_name)];
-
-    let rows = statement.query_map(&params, |row| row.get(0))?;
-
-    for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            login_is_in_role = true;
-        }
-    }
-
-    return Ok(login_is_in_role);
+pub fn login_is_in_role(login: &str, role_name: &str, dbi: &Dbi) -> bool {
+    return dbi.login_is_in_role(login, role_name);
 }
 
 #[allow(dead_code)]
-pub fn add_login_to_role(login: &str, role_name: &str, conn: &Connection) {
-    let cmd = &String::from(&CDS::text_add_user_role());
-    let mut statement = conn.prepare(cmd).unwrap();
-    statement
-        .execute(named_params! { ":username": login, ":rolename": role_name })
-        .unwrap();
+pub fn add_login_to_role(login: &str, role_name: &str, dbi: &Dbi) {
+    dbi.add_login_to_role(login, role_name);
 }
 
 #[allow(dead_code)]
-pub fn has_role_name(role_name: &str, conn: &Connection) -> Result<bool> {
-    let mut has_role = false;
-
-    let cmd = &String::from(&CDS::text_get_role());
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
-        row.get(0)
-    })?;
-
-    for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            has_role = true;
-        }
-    }
-
-    return Ok(has_role);
+pub fn has_role_name(role_name: &str, dbi: &Dbi) -> bool {
+    return dbi.has_role_name(role_name);
 }

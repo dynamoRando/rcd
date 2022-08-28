@@ -6,7 +6,7 @@ use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
-    sql_text, table,
+    table,
 };
 #[allow(unused_imports)]
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};

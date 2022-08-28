@@ -13,9 +13,7 @@ mod rcd_service;
 pub mod rcd_settings;
 pub mod rcd_sql_client;
 mod remote_db_srv;
-mod sql_text;
 mod sqlclient_srv;
-mod sqlitedbpart;
 mod table;
 pub mod dbi;
 

@@ -1,15 +1,10 @@
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
-#[allow(unused_imports)]
 use crate::cdata::data_service_server::DataServiceServer;
-#[allow(unused_imports)]
-use crate::cdata::*;
+use crate::{cdata::*};
 use crate::rcd_db;
-#[allow(unused_imports)]
-use crate::sqlitedbpart::*;
 use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
-#[allow(unused_imports)]
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
@@ -26,6 +21,10 @@ impl DataServiceImpl {
     fn get_rcd_db(self: &Self) -> Connection {
         let db_path = Path::new(&self.root_folder).join(&self.database_name);
         return Connection::open(&db_path).unwrap();
+    }
+
+    fn dbi(self: &Self) -> Dbi {
+        return self.db_interface.as_ref().unwrap().clone();
     }
 }
 
@@ -69,10 +68,10 @@ impl DataService for DataServiceImpl {
         }
 
         if is_authenticated {
-            let result = crate::sqlitedbpart::create_partial_database(&db_name, &self.root_folder);
+            let result =  self.dbi().create_partial_database(&db_name);
             if !result.is_err() {
                 is_part_db_created = true;
-                db_id = crate::sqlitedbpart::get_db_id(&db_name.as_str());
+                db_id = self.dbi().get_db_id(&db_name.as_str());
             }
         }
 
@@ -119,16 +118,15 @@ impl DataService for DataServiceImpl {
         }
 
         if is_authenticated {
-            let result = crate::sqlitedbpart::create_table_in_partial_database(
+            let result = self.dbi().create_table_in_partial_database(
                 &db_name,
-                &self.root_folder,
                 &table_name,
                 table_schema,
             );
             if !result.is_err() {
                 table_is_created = true;
-                table_id = crate::sqlitedbpart::get_table_id(&db_name, &table_name);
-                db_id = crate::sqlitedbpart::get_db_id(&db_name.as_str());
+                table_id = self.dbi().get_table_id(&db_name, &table_name);
+                db_id = self.dbi().get_db_id(&db_name.as_str());
             }
         }
 
