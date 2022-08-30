@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Error};
 
 use crate::{
-    cdata::{ColumnSchema, DatabaseSchema},
+    cdata::{ColumnSchema, Contract, DatabaseSchema},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     host_info::HostInfo,
@@ -56,6 +56,19 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn save_contract(self: &Self, contract: Contract) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::save_contract(contract, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn get_table_id(self: &Self, db_name: &str, table_name: &str) -> String {
         match self.db_type {
             DatabaseType::Sqlite => {

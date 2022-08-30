@@ -3,12 +3,19 @@ use crate::{
     crypt,
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
     host_info::HostInfo,
-    rcd_db::User,
+    rcd_db::User, cdata::Contract,
 };
 use guid_create::GUID;
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
+
+#[allow(dead_code, unused_variables)]
+pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+
+    unimplemented!()
+}
 
 pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
     let conn = get_rcd_conn(&config);

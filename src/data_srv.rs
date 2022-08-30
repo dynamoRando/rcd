@@ -1,10 +1,8 @@
-use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use crate::cdata::data_service_server::DataServiceServer;
-use crate::{cdata::*};
-use crate::rcd_db;
+use crate::cdata::*;
+use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
-use rusqlite::{Connection, Result};
-use std::path::Path;
+use rusqlite::{Result};
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
@@ -17,12 +15,6 @@ pub struct DataServiceImpl {
 }
 
 impl DataServiceImpl {
-    #[allow(dead_code)]
-    fn get_rcd_db(self: &Self) -> Connection {
-        let db_path = Path::new(&self.root_folder).join(&self.database_name);
-        return Connection::open(&db_path).unwrap();
-    }
-
     fn dbi(self: &Self) -> Dbi {
         return self.db_interface.as_ref().unwrap().clone();
     }
@@ -68,7 +60,7 @@ impl DataService for DataServiceImpl {
         }
 
         if is_authenticated {
-            let result =  self.dbi().create_partial_database(&db_name);
+            let result = self.dbi().create_partial_database(&db_name);
             if !result.is_err() {
                 is_part_db_created = true;
                 db_id = self.dbi().get_db_id(&db_name.as_str());
@@ -118,11 +110,9 @@ impl DataService for DataServiceImpl {
         }
 
         if is_authenticated {
-            let result = self.dbi().create_table_in_partial_database(
-                &db_name,
-                &table_name,
-                table_schema,
-            );
+            let result =
+                self.dbi()
+                    .create_table_in_partial_database(&db_name, &table_name, table_schema);
             if !result.is_err() {
                 table_is_created = true;
                 table_id = self.dbi().get_table_id(&db_name, &table_name);
@@ -189,10 +179,14 @@ impl DataService for DataServiceImpl {
 
         let contract = message.contract.unwrap().clone();
 
-        let rcd_db_conn = self.get_rcd_db();
-        rcd_db::save_contract(contract, &rcd_db_conn);
+        let save_is_successful = self.dbi().save_contract(contract);
 
-        unimplemented!("save contract not implemented");
+        let result = SaveContractResult {
+            is_saved: save_is_successful,
+            error_message: String::from(""),
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn accept_contract(

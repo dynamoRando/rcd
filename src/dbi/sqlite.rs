@@ -1,5 +1,5 @@
 use super::DbiConfigSqlite;
-use crate::table::{Column, Data, Row, Table, Value};
+use crate::{table::{Column, Data, Row, Table, Value}};
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
@@ -8,6 +8,7 @@ pub mod db;
 pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
+
 
 #[allow(dead_code, unused_variables)]
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
