@@ -10,11 +10,23 @@ use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
+/// Saves a contract sent from a host to our local rcd_db instance. This lets us
+/// later review the contract for us to accept or reject it. If we accept it
+/// this means that we'll create a partial database with the contract's schema
+/// and also notify the host that we are willing to be a participant of the database.
 #[allow(dead_code, unused_variables)]
 pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
 
-    unimplemented!()
+    if !has_contract(&contract.contract_guid, &conn) {
+        save_contract_metadata(&contract, &conn);
+        save_contract_table_data(&contract, &conn);
+        save_contract_table_schema_data(&contract, &conn);
+        save_contract_host_data(&contract, &conn);
+        return true;
+    }
+
+    return false;
 }
 
 pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
@@ -302,4 +314,36 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
     }
 
     return is_verified;
+}
+
+
+/// checks rcd_db's CDS_CONTRACTS table to see if there already is a record
+/// for this contract by contract_id
+#[allow(dead_code, unused_variables)]
+fn has_contract(contract_id: &str, conn: &Connection) -> bool {
+    unimplemented!()
+}
+
+/// saves top level contract data to rcd_db's CDS_CONTRACTS table
+#[allow(dead_code, unused_variables)]
+fn save_contract_metadata(contract: &Contract, conn: &Connection) {
+    unimplemented!()
+}
+
+/// saves a contract's table information to CDS_CONTRACTS_TABLES
+#[allow(dead_code, unused_variables)]
+fn save_contract_table_data(contract: &Contract, conn: &Connection) {
+    unimplemented!()
+}
+
+/// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
+#[allow(dead_code, unused_variables)]
+fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
+    unimplemented!()
+}
+
+// save a contract's host information to CDS_HOSTS
+#[allow(dead_code, unused_variables)]
+fn save_contract_host_data(contract: &Contract, conn: &Connection) {
+    unimplemented!()
 }
