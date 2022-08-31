@@ -321,29 +321,32 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
 /// for this contract by contract_id
 #[allow(dead_code, unused_variables)]
 fn has_contract(contract_id: &str, conn: &Connection) -> bool {
-    unimplemented!()
+    let mut cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid'");
+    cmd = cmd.replace(":cid", contract_id);
+
+    return has_any_rows(cmd, conn);
 }
 
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
 #[allow(dead_code, unused_variables)]
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
-    unimplemented!()
+    unimplemented!("save_contract_metadata not implemented")
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
 #[allow(dead_code, unused_variables)]
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
-    unimplemented!()
+    unimplemented!("save_contract_table_data not implemented")
 }
 
 /// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
 #[allow(dead_code, unused_variables)]
 fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
-    unimplemented!()
+    unimplemented!("save_contract_table_schema_data not implmeneted")
 }
 
 // save a contract's host information to CDS_HOSTS
 #[allow(dead_code, unused_variables)]
 fn save_contract_host_data(contract: &Contract, conn: &Connection) {
-    unimplemented!()
+    unimplemented!("save_contract_host_data not implmeneted")
 }

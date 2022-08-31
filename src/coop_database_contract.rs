@@ -67,9 +67,9 @@ impl CoopDatabaseContract {
         };
 
         let contract = Contract {
-            contract_guid: String::from(""),
-            description: String::from(""),
-            contract_version: String::from(""),
+            contract_guid: self.contract_id.to_string(),
+            description: self.description.clone(),
+            contract_version: self.version_id.to_string(),
             host_info: Some(c_host_info),
             schema: Some(db_schema),
             status: ContractStatus::to_u32(contract_status),
@@ -78,12 +78,8 @@ impl CoopDatabaseContract {
         return contract;
     }
 
-
-
     /// Checks if the contract has a retired date or not
     pub fn is_retired(&self) -> bool {
         return !self.retired_date.is_none();
     }
-
-    
 }
