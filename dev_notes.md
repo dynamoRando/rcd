@@ -35,6 +35,7 @@ pub fn start_data_service(self: &Self) {
 ```    
 
 #### Using Sqlite
+Reading Objects:
 
 ```rust
 let mut statement = conn.prepare(&cmd).unwrap();
@@ -55,6 +56,21 @@ for status in statuses {
 }
 
 return table_policies;
+```
+
+Using Parameters:
+```rust
+    let cmd = sql_text::COOP::text_get_count_from_data_host();
+    let has_database_id = has_any_rows(cmd, conn);
+
+    if !has_database_id {
+        let cmd = sql_text::COOP::text_add_database_id_to_host();
+        let db_id = GUID::rand();
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {":database_id": db_id.to_string(), ":database_name" : db_name})
+            .unwrap();
+    }
 ```
 
 ## Tests

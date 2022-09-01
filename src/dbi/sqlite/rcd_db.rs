@@ -5,6 +5,7 @@ use crate::{
     host_info::HostInfo,
     rcd_db::User, cdata::Contract,
 };
+use chrono::Utc;
 use guid_create::GUID;
 use log::info;
 use rusqlite::{named_params, Connection, Result};
@@ -330,7 +331,46 @@ fn has_contract(contract_id: &str, conn: &Connection) -> bool {
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
 #[allow(dead_code, unused_variables)]
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
-    unimplemented!("save_contract_metadata not implemented")
+
+    let host = contract.host_info.as_ref().clone().unwrap().clone();
+    let db = contract.schema.as_ref().clone().unwrap().clone();
+
+    let cmd = String::from("INSERT INTO CDS_CONTRACTS
+    (
+        HOST_ID,
+        CONTRACT_ID,
+        CONTRACT_VERSION_ID,
+        DATABASE_NAME,
+        DATABASE_ID,
+        DESCRIPTION,
+        GENERATED_DATE_UTC,
+        CONTRACT_STATUS
+    )
+    VALUES
+    (
+        :hid,
+        :cid,
+        :cvid,
+        :dbname,
+        :dbid,
+        :desc,
+        :gdutc,
+        :status
+    )
+    ;");
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement.execute(named_params! {
+        ":hid": host.host_guid.to_string(),
+        ":cid" : contract.contract_guid,
+        ":cvid" : contract.contract_version,
+        ":dbname" : db.database_name,
+        ":dbid" : db.database_id,
+        ":desc" : contract.description,
+        ":gdutc" : Utc::now().to_string(),
+        ":status" : contract.status.to_string()
+    }).unwrap();
+
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
