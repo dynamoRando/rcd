@@ -1,10 +1,11 @@
 use super::{has_any_rows, sql_text::CDS};
 use crate::{
-    cdata::Contract,
+    cdata::{Contract, DatabaseSchema, Host},
     crypt,
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
-    host_info::HostInfo,
+    host_info::{HostInfo},
     rcd_db::User,
+    rcd_enum::ContractStatus,
 };
 use chrono::Utc;
 use guid_create::GUID;
@@ -15,6 +16,82 @@ use std::path::Path;
 #[allow(dead_code, unused_variables)]
 pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     let conn = get_rcd_conn(config);
+
+    let pending_status = ContractStatus::to_u32(ContractStatus::Pending);
+
+    let cmd = String::from(
+        "
+        SELECT 
+            HOST_ID,
+            CONTRACT_ID,
+            CONTRACT_VERSION_ID,
+            DATABASE_NAME,
+            DATABASE_ID,
+            DESCRIPTION,
+            GENERATED_DATE_UTC,
+            CONTRACT_STATUS 
+        FROM 
+            CDS_CONTRACTS 
+        WHERE 
+            CONTRACT_STATUS = :pending",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut pending_contracts: Vec<Contract> = Vec::new();
+
+    let row_to_contract = |host_id: String,
+                           contract_id: String,
+                           contract_version_id: String,
+                           database_name: String,
+                           database_id: String,
+                           description: String,
+                           gen_date: String,
+                           status: u32|
+     -> Result<Contract> {
+        let db_schema = DatabaseSchema {
+            database_name: database_name,
+            database_id: database_id,
+            tables: Vec::new(),
+        };
+
+        let host = Host {
+            host_guid: host_id,
+            host_name: String::from(""),
+            ip4_address: String::from(""),
+            ip6_address: String::from(""),
+            database_port_number: 0,
+            token: Vec::new(),
+        };
+
+        let temp_contract = Contract {
+            contract_guid: contract_id,
+            description,
+            schema: Some(db_schema),
+            contract_version: contract_version_id,
+            host_info: Some(host),
+            status,
+        };
+        Ok(temp_contract)
+    };
+
+    let contract_metadata = statement
+        .query_and_then(&[(":pending", &pending_status.to_string())], |row| {
+            row_to_contract(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for c in contract_metadata {
+        pending_contracts.push(c.unwrap());
+    }
 
     unimplemented!();
 }
