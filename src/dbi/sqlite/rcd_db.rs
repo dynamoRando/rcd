@@ -174,6 +174,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
         create_contracts_table(&db_conn);
         create_cds_hosts_table(&db_conn);
         create_contracts_table_table(&db_conn);
+        create_contracts_table_table_schemas(&db_conn);
 
         let db_has_role = has_role_name(&String::from("SysAdmin"), config).unwrap();
 
@@ -212,6 +213,10 @@ fn create_contracts_table_table(conn: &Connection) {
         .unwrap();
 }
 
+fn create_contracts_table_table_schemas(conn: &Connection) {
+    conn.execute(&CDS::text_create_cds_contracts_tables_schemas_table(), [])
+        .unwrap();
+}
 
 fn create_cds_hosts_table(conn: &Connection) {
     conn.execute(&&CDS::text_create_cds_hosts_table(), [])
@@ -430,7 +435,56 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
 /// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
 #[allow(dead_code, unused_variables)]
 fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
-    unimplemented!("save_contract_table_schema_data not implmeneted")
+    let tables = contract.schema.as_ref().unwrap().tables.clone();
+
+    for table in &tables {
+        let cmd = String::from(
+            "INSERT INTO CDS_CONTRACTS_TABLE_SCHEMAS
+        (
+            TABLE_ID,
+            COLUMN_ID,
+            COLUMN_NAME,
+            COLUMN_TYPE,
+            COLUMN_LENGTH,
+            COLUMN_ORDINAL,
+            IS_NULLABLE
+        )
+        VALUES
+        (
+            :tid,
+            :cid,
+            :cname,
+            :ctype,
+            :clength,
+            :cordinal,
+            :is_nullable
+        )
+        ;",
+        );
+
+        let tid = table.table_id.clone();
+        for column in &table.columns {
+            let cid = column.column_id.clone();
+            let cname = column.column_name.clone();
+            let ctype = column.column_type;
+            let clength = column.column_length;
+            let cordinal = column.ordinal;
+            let is_nullable = if column.is_nullable { 1 } else { 0 };
+
+            let mut statement = conn.prepare(&cmd).unwrap();
+            statement
+                .execute(named_params! {
+                    ":tid": tid,
+                    ":cid" : cid,
+                    ":cname" : cname,
+                    ":ctype" : ctype,
+                    ":clength" : clength,
+                    ":cordinal" : cordinal,
+                    ":is_nullable" : is_nullable,
+                })
+                .unwrap();
+        }
+    }
 }
 
 // save a contract's host information to CDS_HOSTS
