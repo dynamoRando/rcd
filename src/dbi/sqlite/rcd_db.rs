@@ -1,9 +1,15 @@
 use super::{has_any_rows, sql_text::CDS};
 use crate::{
-    cdata::{Contract, DatabaseSchema, Host},
+    cdata::Contract,
     crypt,
-    dbi::{sqlite::get_db_conn, DbiConfigSqlite},
-    host_info::{HostInfo},
+    dbi::{
+        sqlite::{
+            cds_types::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns},
+            get_db_conn,
+        },
+        DbiConfigSqlite,
+    },
+    host_info::HostInfo,
     rcd_db::User,
     rcd_enum::ContractStatus,
 };
@@ -13,7 +19,7 @@ use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_mut)]
 pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     let conn = get_rcd_conn(config);
 
@@ -37,7 +43,12 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     );
 
     let mut statement = conn.prepare(&cmd).unwrap();
+
     let mut pending_contracts: Vec<Contract> = Vec::new();
+
+    let mut cds_contracts: Vec<CdsContracts> = Vec::new();
+    let mut cds_tables: Vec<CdsContractsTables> = Vec::new();
+    let mut cds_tables_columns: Vec<CdsContractsTablesColumns> = Vec::new();
 
     let row_to_contract = |host_id: String,
                            contract_id: String,
@@ -47,31 +58,19 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                            description: String,
                            gen_date: String,
                            status: u32|
-     -> Result<Contract> {
-        let db_schema = DatabaseSchema {
-            database_name: database_name,
-            database_id: database_id,
-            tables: Vec::new(),
-        };
-
-        let host = Host {
-            host_guid: host_id,
-            host_name: String::from(""),
-            ip4_address: String::from(""),
-            ip6_address: String::from(""),
-            database_port_number: 0,
-            token: Vec::new(),
-        };
-
-        let temp_contract = Contract {
-            contract_guid: contract_id,
+     -> Result<CdsContracts> {
+        let cds_contract = CdsContracts {
+            host_id,
+            contract_id,
+            contract_version_id,
+            database_name,
+            database_id,
             description,
-            schema: Some(db_schema),
-            contract_version: contract_version_id,
-            host_info: Some(host),
-            status,
+            generated_date: gen_date,
+            contract_status: ContractStatus::from_u32(status),
         };
-        Ok(temp_contract)
+
+        Ok(cds_contract)
     };
 
     let contract_metadata = statement
@@ -90,8 +89,121 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         .unwrap();
 
     for c in contract_metadata {
-        pending_contracts.push(c.unwrap());
+        cds_contracts.push(c.unwrap());
     }
+
+    for cdata in &cds_contracts {
+        let dbid = cdata.database_id.clone();
+        let dbname = cdata.database_name.clone();
+
+        let cmd = String::from(
+            "
+        SELECT 
+            DATABASE_ID,
+            DATABASE_NAME,
+            TABLE_ID,
+            TABLE_NAME 
+        FROM 
+            CDS_CONTRACTS_TABLES 
+        WHERE 
+            DATABASE_ID = :dbid",
+        );
+
+        let row_to_table = |database_id: String,
+                            database_name: String,
+                            table_id: String,
+                            table_name: String|
+         -> Result<CdsContractsTables> {
+            let table = CdsContractsTables {
+                database_id: database_id,
+                database_name: database_name,
+                table_id,
+                table_name,
+            };
+            Ok(table)
+        };
+
+        statement = conn.prepare(&cmd).unwrap();
+
+        let table_metadata = statement
+            .query_and_then(&[(":dbid", &dbid)], |row| {
+                row_to_table(
+                    row.get(0).unwrap(),
+                    row.get(1).unwrap(),
+                    row.get(2).unwrap(),
+                    row.get(3).unwrap(),
+                )
+            })
+            .unwrap();
+
+        for table in table_metadata {
+            cds_tables.push(table.unwrap());
+        }
+    }
+
+    for table in &cds_tables {
+        let tid = table.table_id.clone();
+
+        let cmd = String::from(
+            "
+        SELECT 
+            TABLE_ID,
+            COLUMN_ID,
+            COLUMN_NAME,
+            COLUMN_TYPE,
+            COLUMN_LENGTH,
+            COLUMN_ORDINAL,
+            IS_NULLABLE 
+        FROM 
+        CDS_CONTRACTS_TABLE_SCHEMAS 
+        WHERE 
+            TABLE_ID = :tid",
+        );
+
+        statement = conn.prepare(&cmd).unwrap();
+
+        let row_to_column = |table_id: String,
+                             column_id: String,
+                             column_name: String,
+                             column_type: u32,
+                             column_length: u32,
+                             column_ordinal: u32,
+                             is_nullable: bool|
+         -> Result<CdsContractsTablesColumns> {
+            let col = CdsContractsTablesColumns {
+                table_id,
+                column_id,
+                column_name,
+                column_type,
+                column_length,
+                column_ordinal,
+                is_nullable,
+            };
+            Ok(col)
+        };
+
+        let table_columns = statement
+            .query_and_then(&[(":tid", &tid)], |row| {
+                row_to_column(
+                    row.get(0).unwrap(),
+                    row.get(1).unwrap(),
+                    row.get(2).unwrap(),
+                    row.get(3).unwrap(),
+                    row.get(4).unwrap(),
+                    row.get(5).unwrap(),
+                    row.get(6).unwrap(),
+                )
+            })
+            .unwrap();
+
+        for column in table_columns {
+            cds_tables_columns.push(column.unwrap());
+        }
+    }
+
+    println!("{:?}", cds_contracts);
+    println!("{:?}", cds_tables);
+    println!("{:?}", cds_tables_columns);
 
     unimplemented!();
 }
