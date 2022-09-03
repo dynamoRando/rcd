@@ -27,6 +27,9 @@ pub fn total_count(cmd: String, conn: &Connection) -> u32 {
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
+
+    // println!("get_scalar_as_u32: {:?}", cmd);
+
     let mut value: u32 = 0;
     let mut statement = conn.prepare(&cmd).unwrap();
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
@@ -68,6 +71,8 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
 
         table.add_column(c);
     }
+
+    // println!("execute_read_on_connection: statement: {:?}", statement);
 
     let mut rows = statement.query([])?;
 

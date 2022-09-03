@@ -510,20 +510,20 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
                 "SELECT 
                     COUNT(*) COUNT
                 FROM 
-                    COOP_DATA_COLUMNS
+                    COOP_DATA_HOST_TABLE_COLUMNS
                 WHERE
-                    COLUMN_NAME = :col_name
+                    COLUMN_NAME = ':col_name'
             ;",
             );
 
-            col_check = col_check.replace("col_name", &col_name);
+            col_check = col_check.replace(":col_name", &col_name);
             if !has_any_rows(col_check, conn) {
                 // we need to add the column schema to the data host tables
                 let col_id = GUID::rand();
 
                 let mut cmd = String::from(
                     "
-                    INSERT INTO COOP_DATA_COLUMNS
+                    INSERT INTO COOP_DATA_HOST_TABLE_COLUMNS
                     (
                         TABLE_ID,
                         COLUMN_ID,
@@ -531,9 +531,9 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
                     )
                     VALUES
                     (
-                        :table_id,
-                        :col_id,
-                        :col_name
+                        ':table_id',
+                        ':col_id',
+                        ':col_name'
                     )
                 ;",
                 );
@@ -556,7 +556,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 /// 5. defaultValue
 /// 6. IsPK
 fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
-    let mut cmd = String::from("PRAGMA table_info(\"{:table_name}\")");
+    let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
     cmd = cmd.replace(":table_name", &table_name);
 
     return Ok(execute_read_on_connection(cmd, conn).unwrap());
@@ -733,6 +733,8 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             execute_write_on_connection(db_name, &cmd, &config);
         }
+
+        populate_data_host_tables(db_name, &conn);
     } else {
         let error_message = format!("table {} not in {}", table_name, db_name);
         let err = RcdDbError::TableNotFound(error_message);
@@ -1029,6 +1031,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         tables_in_db.push(table.unwrap());
     }
 
+    // println!("tables_in_db: {:?}", tables_in_db);
+
     for t in &tables_in_db {
         let policy = get_logical_storage_policy(db_name, &t.1, &config).unwrap();
 
@@ -1050,6 +1054,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         // 4. NotNull
         // 5. defaultValue
         // 6. IsPK
+
+        // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
 
         for row in schema.unwrap().rows {
             let mut cs = ColumnSchema {
@@ -1099,6 +1105,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
 
         db_schema.tables.push(ts);
     }
+
+    // println!("db_schema: {:?}", db_schema);
 
     return db_schema;
 }

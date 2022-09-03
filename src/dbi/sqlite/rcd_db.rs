@@ -1,9 +1,10 @@
 use super::{has_any_rows, sql_text::CDS};
 use crate::{
+    cdata::Contract,
     crypt,
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
     host_info::HostInfo,
-    rcd_db::User, cdata::Contract,
+    rcd_db::User,
 };
 use chrono::Utc;
 use guid_create::GUID;
@@ -18,6 +19,8 @@ use std::path::Path;
 #[allow(dead_code, unused_variables)]
 pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
+
+    // println!("save_contract called with {:?}", contract);
 
     if !has_contract(&contract.contract_guid, &conn) {
         save_contract_metadata(&contract, &conn);
@@ -170,6 +173,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
         }
         create_contracts_table(&db_conn);
         create_cds_hosts_table(&db_conn);
+        create_contracts_table_table(&db_conn);
 
         let db_has_role = has_role_name(&String::from("SysAdmin"), config).unwrap();
 
@@ -202,6 +206,12 @@ fn create_contracts_table(conn: &Connection) {
     conn.execute(&CDS::text_create_cds_contracts_table(), [])
         .unwrap();
 }
+
+fn create_contracts_table_table(conn: &Connection) {
+    conn.execute(&CDS::text_create_cds_contracts_tables_table(), [])
+        .unwrap();
+}
+
 
 fn create_cds_hosts_table(conn: &Connection) {
     conn.execute(&&CDS::text_create_cds_hosts_table(), [])
@@ -317,12 +327,12 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
     return is_verified;
 }
 
-
 /// checks rcd_db's CDS_CONTRACTS table to see if there already is a record
 /// for this contract by contract_id
 #[allow(dead_code, unused_variables)]
 fn has_contract(contract_id: &str, conn: &Connection) -> bool {
-    let mut cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid'");
+    let mut cmd =
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid'");
     cmd = cmd.replace(":cid", contract_id);
 
     return has_any_rows(cmd, conn);
@@ -331,11 +341,11 @@ fn has_contract(contract_id: &str, conn: &Connection) -> bool {
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
 #[allow(dead_code, unused_variables)]
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
-
     let host = contract.host_info.as_ref().clone().unwrap().clone();
     let db = contract.schema.as_ref().clone().unwrap().clone();
 
-    let cmd = String::from("INSERT INTO CDS_CONTRACTS
+    let cmd = String::from(
+        "INSERT INTO CDS_CONTRACTS
     (
         HOST_ID,
         CONTRACT_ID,
@@ -357,26 +367,64 @@ fn save_contract_metadata(contract: &Contract, conn: &Connection) {
         :gdutc,
         :status
     )
-    ;");
+    ;",
+    );
 
     let mut statement = conn.prepare(&cmd).unwrap();
-    statement.execute(named_params! {
-        ":hid": host.host_guid.to_string(),
-        ":cid" : contract.contract_guid,
-        ":cvid" : contract.contract_version,
-        ":dbname" : db.database_name,
-        ":dbid" : db.database_id,
-        ":desc" : contract.description,
-        ":gdutc" : Utc::now().to_string(),
-        ":status" : contract.status.to_string()
-    }).unwrap();
-
+    statement
+        .execute(named_params! {
+            ":hid": host.host_guid.to_string(),
+            ":cid" : contract.contract_guid,
+            ":cvid" : contract.contract_version,
+            ":dbname" : db.database_name,
+            ":dbid" : db.database_id,
+            ":desc" : contract.description,
+            ":gdutc" : Utc::now().to_string(),
+            ":status" : contract.status.to_string()
+        })
+        .unwrap();
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
 #[allow(dead_code, unused_variables)]
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
-    unimplemented!("save_contract_table_data not implemented")
+    println!("save_contract_table_data: connection: {:?}", conn);
+
+    let cmd = String::from(
+        "INSERT INTO CDS_CONTRACTS_TABLES
+    (
+        DATABASE_ID,
+        DATABASE_NAME,
+        TABLE_ID,
+        TABLE_NAME
+    )
+    VALUES
+    (
+        :dbid,
+        :dbname,
+        :tid,
+        :tname
+    )
+    ;
+    ",
+    );
+
+    let schema = contract.schema.as_ref().unwrap();
+
+    let db_name = schema.database_name.clone();
+    let db_id = schema.database_id.clone();
+
+    for t in &schema.tables {
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                ":dbid": &db_id,
+                ":dbname" : &db_name,
+                ":tid" : &t.table_id,
+                ":tname" : &t.table_name,
+            })
+            .unwrap();
+    }
 }
 
 /// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
