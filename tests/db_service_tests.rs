@@ -30,8 +30,10 @@ pub mod save_contract {
 
         let test_name = "save_contract";
         let test_db_name = format!("{}{}", test_name, ".db");
+        let custom_contract_description = String::from("This is a custom description from test");
 
-        let (tx, rx) = mpsc::channel();
+        let (tx_main, rx_main) = mpsc::channel();
+        let (tx_participant, rx_participant) = mpsc::channel();
 
         let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
@@ -44,18 +46,49 @@ pub mod save_contract {
 
         thread::sleep(time);
 
+        let main_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description.clone();
+        let main_db_name = test_db_name.clone();
+        let participant_db_name = test_db_name.clone();
+
         thread::spawn(move || {
-            let res = main_service_client(&test_db_name, main_addrs.0, participant_addrs.1);
-            tx.send(res).unwrap();
+            let res = main_service_client(
+                &main_db_name,
+                main_addrs.0,
+                participant_addrs.1,
+                main_contract_desc,
+            );
+            tx_main.send(res).unwrap();
         })
         .join()
         .unwrap();
 
-        let response = rx.try_recv().unwrap();
+        let sent_participant_contract = rx_main.try_recv().unwrap();
+        println!(
+            "send_participant_contract: got: {}",
+            sent_participant_contract
+        );
 
-        println!("generate_contract: got: {}", response);
+        assert!(sent_participant_contract);
 
-        unimplemented!();
+        thread::spawn(move || {
+            let res = participant_service_client(
+                &participant_db_name,
+                participant_addrs.0,
+                participant_contract_desc,
+            );
+            tx_participant.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
+
+        let participant_got_contract = rx_main.try_recv().unwrap();
+        println!(
+            "participant_got_contract: got: {}",
+            participant_got_contract
+        );
+
+        assert!(participant_got_contract);
     }
 
     #[cfg(test)]
@@ -65,6 +98,7 @@ pub mod save_contract {
         db_name: &str,
         main_client_addr: ServiceAddr,
         participant_db_addr: ServiceAddr,
+        contract_desc: String,
     ) -> bool {
         use rcd::rcd_enum::LogicalStoragePolicy;
         use rcd::rcd_sql_client::RcdClient;
@@ -107,7 +141,7 @@ pub mod save_contract {
         let behavior = RemoteDeleteBehavior::Ignore;
 
         client
-            .generate_contract(db_name, "tester", "desc", behavior)
+            .generate_contract(db_name, "tester", &contract_desc, behavior)
             .await
             .unwrap();
 
@@ -133,11 +167,13 @@ pub mod save_contract {
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
+        contract_desc: String,
     ) -> bool {
         use rcd::rcd_enum::DatabaseType;
         use rcd::rcd_sql_client::RcdClient;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        let mut has_contract = false;
 
         info!(
             "main_service_client attempting to connect {}",
@@ -150,6 +186,15 @@ pub mod save_contract {
             String::from("123456"),
         );
 
-        unimplemented!();
+        let pending_contracts = client.view_pending_contracts().await.unwrap();
+
+        for contract in &pending_contracts {
+            if contract.description == contract_desc {
+                has_contract = true;
+                break;
+            }
+        }
+
+        return has_contract;
     }
 }

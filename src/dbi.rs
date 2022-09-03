@@ -56,6 +56,19 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn get_pending_contracts(self: &Self) -> Vec<Contract> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_pending_contracts(&settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn save_contract(self: &Self, contract: Contract) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

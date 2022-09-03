@@ -12,6 +12,13 @@ use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
+#[allow(dead_code, unused_variables)]
+pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
+    let conn = get_rcd_conn(config);
+
+    unimplemented!();
+}
+
 /// Saves a contract sent from a host to our local rcd_db instance. This lets us
 /// later review the contract for us to accept or reject it. If we accept it
 /// this means that we'll create a partial database with the contract's schema
@@ -490,5 +497,42 @@ fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
 // save a contract's host information to CDS_HOSTS
 #[allow(dead_code, unused_variables)]
 fn save_contract_host_data(contract: &Contract, conn: &Connection) {
-    unimplemented!("save_contract_host_data not implmeneted")
+    let cmd = String::from(
+        "INSERT INTO CDS_HOSTS
+    (
+        HOST_ID,
+        HOST_NAME,
+        TOKEN,
+        IP4ADDRESS,
+        IP6ADDRESS,
+        PORT,
+        LAST_COMMUNICATION_UTC
+    )
+    VALUES
+    (
+        :hid,
+        :hname,
+        :token,
+        :ip4,
+        :ip6,
+        :port,
+        :last_comm
+    )
+    ;",
+    );
+
+    let host = contract.host_info.as_ref().unwrap().clone();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! {
+            ":hid": &host.host_guid,
+            ":hname" : &host.host_name,
+            ":token" : &host.token,
+            ":ip4" : &host.ip4_address,
+            ":ip6" : &host.ip6_address,
+            ":port" : &host.database_port_number,
+            ":last_comm" : Utc::now().to_string()
+        })
+        .unwrap();
 }

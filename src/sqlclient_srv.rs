@@ -488,7 +488,7 @@ impl SqlClient for SqlClientImpl {
 
         // check if the user is authenticated
         let message = request.into_inner();
-        let a = message.authentication.unwrap();        
+        let a = message.authentication.unwrap();
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let participant_alias = message.participant_alias;
@@ -531,12 +531,37 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(send_participant_contract_reply))
     }
 
+    #[allow(unused_variables, unused_mut)]
     async fn review_pending_contracts(
         &self,
         request: Request<ViewPendingContractsRequest>,
     ) -> Result<Response<ViewPendingContractsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+
+        let mut pending_contracts: Vec<Contract> = Vec::new();
+
+        if is_authenticated {
+            pending_contracts = self.dbi().get_pending_contracts();
+        };
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let review_pending_contracts_reply = ViewPendingContractsReply {
+            authentication_result: Some(auth_response),
+            contracts: pending_contracts,
+        };
+
+        Ok(Response::new(review_pending_contracts_reply))
     }
 
     async fn accept_pending_contract(
