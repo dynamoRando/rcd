@@ -42,3 +42,15 @@ pub struct CdsCoop {
     pub column_ordinal: u32,
     pub is_nullable: bool,
 }
+
+#[derive(Clone, Debug)]
+pub struct CdsHosts {
+    pub host_id: String,
+    pub host_name: String,
+    pub token: Vec<u8>,
+    pub ip4: String,
+    pub ip6: String,
+    pub port: u32,
+    pub last_comm_utc: String,
+}
+
