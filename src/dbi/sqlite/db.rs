@@ -45,7 +45,7 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
-    println!("generate contract: start for {}", db_name);
+    // println!("generate contract: start for {}", db_name);
 
     let conn = &get_db_conn(&config, db_name);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, config);
@@ -69,7 +69,7 @@ pub fn generate_contract(
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
     if !has_any_rows(cmd, &conn) {
         // this is the first contract
-        println!("generate contract: first_contract");
+        // println!("generate contract: first_contract");
         let contract = CoopDatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
@@ -83,11 +83,11 @@ pub fn generate_contract(
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
-        println!("generate contract: retire contracts");
-        println!(
-            "generate contract: retire contracts count: {}",
-            contracts.len().to_string()
-        );
+        // println!("generate contract: retire contracts");
+        // println!(
+        //     "generate contract: retire contracts count: {}",
+        //     contracts.len().to_string()
+        //  );
         for con in contracts {
             if !con.is_retired() {
                 println!(

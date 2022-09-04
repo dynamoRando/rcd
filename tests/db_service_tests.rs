@@ -82,7 +82,7 @@ pub mod save_contract {
         .join()
         .unwrap();
 
-        let participant_got_contract = rx_main.try_recv().unwrap();
+        let participant_got_contract = rx_participant.try_recv().unwrap();
         println!(
             "participant_got_contract: got: {}",
             participant_got_contract

@@ -1,6 +1,6 @@
 use super::{has_any_rows, sql_text::CDS};
 use crate::{
-    cdata::Contract,
+    cdata::{Contract, ColumnSchema, TableSchema, DatabaseSchema, Host},
     crypt,
     dbi::{
         sqlite::{
@@ -268,12 +268,115 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         }
     }
 
-    println!("{:?}", cds_contracts);
-    println!("{:?}", cds_tables);
-    println!("{:?}", cds_tables_columns);
-    println!("{:?}", cds_host_infos);
+    // println!("{:?}", cds_contracts);
+    // println!("{:?}", cds_tables);
+    // println!("{:?}", cds_tables_columns);
+    // println!("{:?}", cds_host_infos);
 
-    unimplemented!();
+    /*
+      let short_digits = digits
+                           .iter()
+                           .enumerate()
+                           .filter(|&(index, &digit)| digit.len() < index)
+                           .map(|(_, &digit)| digit);
+
+     */
+
+     let mut db_schema: Vec<DatabaseSchema> = Vec::new();
+
+    for contract in &cds_contracts {
+        let dbid = contract.database_id.clone();
+        let tables = cds_tables
+        .iter()
+        .enumerate()
+        .filter(|&(i, t)| t.database_id == dbid)
+        .map(|(_, t)| t);
+
+        let mut table_schema: Vec<TableSchema> = Vec::new();
+
+        for t in tables {
+
+            let mut col_schema: Vec<ColumnSchema> = Vec::new();
+
+            let tid = t.table_id.clone();
+            let cols = cds_tables_columns
+            .iter()
+            .enumerate()
+            .filter(|&(i, c)| c.table_id == tid)
+            .map(|(_, c)| c);
+
+
+            for c in cols {
+                let cs = ColumnSchema {
+                    column_name: c.column_name.clone(),
+                    column_type: c.column_type,
+                    column_length: c.column_length,
+                    is_nullable: c.is_nullable,
+                    ordinal: c.column_ordinal,
+                    table_id: c.table_id.clone(),
+                    column_id: c.column_id.clone(),
+                    is_primary_key: false,
+                };
+                col_schema.push(cs);
+            }
+
+            let ts = TableSchema {
+                table_name: t.table_name.clone(),
+                table_id: t.table_id.clone(),
+                database_name: t.database_name.clone(),
+                database_id: t.database_id.clone(),
+                columns: col_schema,
+                logical_storage_policy: t.logical_storage_policy,
+            };
+
+            table_schema.push(ts);
+        }
+
+        let ds = DatabaseSchema {
+            database_name: contract.database_name.clone(),
+            database_id: contract.database_id.clone(),
+            tables: table_schema,
+        };
+
+        db_schema.push(ds);
+    }
+
+    for c in &cds_contracts {
+
+        let dbs = db_schema.iter()
+        .enumerate()
+        .filter(|&(i, s)| s.database_id == c.database_id)
+        .map(|(_, s)| s);
+
+        let hi = cds_host_infos.iter()
+        .enumerate()
+        .filter(|&(i, h)| h.host_id == c.host_id)
+        .map(|(_, h)| h);
+
+        let h = hi.last().unwrap().clone();
+
+        let i = Host {
+            host_guid: h.host_id.clone(),
+            host_name: h.host_name.clone(),
+            ip4_address: h.ip4.clone(),
+            ip6_address: h.ip6.clone(),
+            database_port_number: h.port,
+            token: h.token.clone(),
+        };
+
+        let pc = Contract {
+            contract_guid: c.contract_id.clone(),
+            description: c.description.clone(),
+            schema: Some(dbs.last().unwrap().clone()),
+            contract_version: c.contract_version_id.clone(),
+            host_info: Some(i.clone()),
+            status: ContractStatus::to_u32(c.contract_status),
+        };
+
+        pending_contracts.push(pc);
+    }
+
+    return pending_contracts;
 }
 
 /// Saves a contract sent from a host to our local rcd_db instance. This lets us
@@ -657,7 +760,7 @@ fn save_contract_metadata(contract: &Contract, conn: &Connection) {
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
 #[allow(dead_code, unused_variables)]
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
-    println!("save_contract_table_data: connection: {:?}", conn);
+    // println!("save_contract_table_data: connection: {:?}", conn);
 
     let cmd = String::from(
         "INSERT INTO CDS_CONTRACTS_TABLES
