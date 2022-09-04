@@ -102,7 +102,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             DATABASE_ID,
             DATABASE_NAME,
             TABLE_ID,
-            TABLE_NAME 
+            TABLE_NAME,
+            LOGICAL_STORAGE_POLICY
         FROM 
             CDS_CONTRACTS_TABLES 
         WHERE 
@@ -112,13 +113,14 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         let row_to_table = |database_id: String,
                             database_name: String,
                             table_id: String,
-                            table_name: String|
+                            table_name: String, logical_storage_policy: u32|
          -> Result<CdsContractsTables> {
             let table = CdsContractsTables {
                 database_id: database_id,
                 database_name: database_name,
                 table_id,
                 table_name,
+                logical_storage_policy
             };
             Ok(table)
         };
@@ -132,6 +134,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                     row.get(1).unwrap(),
                     row.get(2).unwrap(),
                     row.get(3).unwrap(),
+                    row.get(4).unwrap(),
                 )
             })
             .unwrap();
@@ -597,14 +600,16 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
         DATABASE_ID,
         DATABASE_NAME,
         TABLE_ID,
-        TABLE_NAME
+        TABLE_NAME,
+        LOGICAL_STORAGE_POLICY
     )
     VALUES
     (
         :dbid,
         :dbname,
         :tid,
-        :tname
+        :tname,
+        :policy
     )
     ;
     ",
@@ -623,6 +628,7 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
                 ":dbname" : &db_name,
                 ":tid" : &t.table_id,
                 ":tname" : &t.table_name,
+                ":policy" : &t.logical_storage_policy
             })
             .unwrap();
     }

@@ -18,10 +18,22 @@ pub struct CdsContractsTables {
     pub database_name: String,
     pub table_id: String,
     pub table_name: String,
+    pub logical_storage_policy: u32,
 }
 
 #[derive(Clone, Debug)]
 pub struct CdsContractsTablesColumns {
+    pub table_id: String,
+    pub column_id: String,
+    pub column_name: String,
+    pub column_type: u32,
+    pub column_length: u32,
+    pub column_ordinal: u32,
+    pub is_nullable: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct CdsCoop {
     pub table_id: String,
     pub column_id: String,
     pub column_name: String,
