@@ -583,13 +583,7 @@ impl SqlClient for SqlClientImpl {
             // contract
             // 3 - we need to notify the host that we have accepted the contract
 
-            // 1 - accept the contract
-            is_accepted = self.dbi().accept_pending_contract(&message.host_alias);
-
-            // 2 - create the database with the properties of the contract
-            // find the pending contract so that we can construct it
             let contracts = self.dbi().get_pending_contracts();
-
             let pending_contract = contracts
                 .iter()
                 .enumerate()
@@ -599,13 +593,17 @@ impl SqlClient for SqlClientImpl {
                 .map(|(_, c)| c);
 
             let param_contract = pending_contract.last().unwrap().clone();
-            let self_host_info = self.dbi().rcd_get_host_info();
 
+            // 1 - accept the contract
+            is_accepted = self.dbi().accept_pending_contract(&message.host_alias);
+
+            // 2 - create the database with the properties of the contract
             // make the database
             let db_is_created = self
                 .dbi()
                 .accept_pending_contract_from_contract(&param_contract);
 
+            let self_host_info = self.dbi().rcd_get_host_info();
             // 3 - notify the host that we've accepted the contract
             let is_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
                 &param_contract,
