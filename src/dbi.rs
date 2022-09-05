@@ -58,8 +58,16 @@ pub struct DbiConfigPostgres {
 impl Dbi {
     #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn accept_pending_contract_from_contract(self: &Self, contract: &Contract) -> bool {
-        unimplemented!()
-        // test
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::create_partial_database_from_contract(contract, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn accept_pending_contract(self: &Self, host_name: &str) -> bool {

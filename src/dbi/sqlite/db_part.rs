@@ -26,6 +26,12 @@ pub fn create_partial_database_from_contract(
     contract: &Contract,
     config: &DbiConfigSqlite,
 ) -> bool {
+
+    let db_name = contract.schema.as_ref().unwrap().database_name.clone();
+    let _ = create_partial_database(&db_name, config);
+
+    let conn = get_partial_db_connection(&db_name, &config.root_folder);
+
     unimplemented!()
 }
 
