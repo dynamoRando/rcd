@@ -1,6 +1,7 @@
 use super::get_db_conn_with_result;
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::DbiConfigSqlite;
+use crate::rcd_enum::ColumnType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -94,7 +95,18 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
     return conn;
 }
 
-#[allow(dead_code, unused_variables, unused_assignments)]
+#[allow(dead_code, unused_variables, unused_assignments, unused_mut)]
 fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
+    let table_name = table_schema.table_name.clone();
+    let mut cmd = String::from("CREATE TABLE IF NOT EXISTS :tablename ");
+    cmd = cmd.replace(":tablename", &table_name);
+    cmd = cmd + " ( ";
+
+    for column in &table_schema.columns {
+        let col_name = column.column_name.clone();
+        let col_type = ColumnType::from_u32(column.column_type).data_type_as_string();
+        
+    }
+
     unimplemented!()
 }

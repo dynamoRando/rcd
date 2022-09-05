@@ -179,6 +179,10 @@ pub enum ColumnType {
 }
 
 impl ColumnType {
+    pub fn data_type_as_string(self: &Self) -> String {
+        unimplemented!()
+    }
+
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
         let ct = ColumnType::try_parse(&desc).unwrap();
         return ColumnType::to_u32(ct);
