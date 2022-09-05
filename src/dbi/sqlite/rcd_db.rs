@@ -268,20 +268,6 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         }
     }
 
-    // println!("{:?}", cds_contracts);
-    // println!("{:?}", cds_tables);
-    // println!("{:?}", cds_tables_columns);
-    // println!("{:?}", cds_host_infos);
-
-    /*
-      let short_digits = digits
-                           .iter()
-                           .enumerate()
-                           .filter(|&(index, &digit)| digit.len() < index)
-                           .map(|(_, &digit)| digit);
-
-     */
-
      let mut db_schema: Vec<DatabaseSchema> = Vec::new();
 
     for contract in &cds_contracts {
