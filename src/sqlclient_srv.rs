@@ -564,7 +564,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(review_pending_contracts_reply))
     }
 
-    #[allow(dead_code, unused_assignments, unused_variables)]
+    #[allow(dead_code, unused_assignments, unused_variables, unused_mut)]
     async fn accept_pending_contract(
         &self,
         request: Request<AcceptPendingContractRequest>,
@@ -576,6 +576,7 @@ impl SqlClient for SqlClientImpl {
         let a = message.authentication.unwrap();
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let mut is_accepted = false;
+        let mut return_message = String::from("");
 
         if is_authenticated {
             // 1 - we need to update the rcd_db record that we are accepting this contract
@@ -595,7 +596,7 @@ impl SqlClient for SqlClientImpl {
             let param_contract = pending_contract.last().unwrap().clone();
 
             // 1 - accept the contract
-            is_accepted = self.dbi().accept_pending_contract(&message.host_alias);
+            let is_contract_updated = self.dbi().accept_pending_contract(&message.host_alias);
 
             // 2 - create the database with the properties of the contract
             // make the database
@@ -605,12 +606,22 @@ impl SqlClient for SqlClientImpl {
 
             let self_host_info = self.dbi().rcd_get_host_info();
             // 3 - notify the host that we've accepted the contract
-            let is_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
+            let is_host_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
                 &param_contract,
                 &self_host_info,
                 self.own_db_addr_port.clone(),
             )
             .await;
+
+            if is_contract_updated && db_is_created && is_host_notified {
+                is_accepted = true;
+            } else if !is_contract_updated {
+                return_message = String::from("failed to update contract in rcd db");
+            } else if !db_is_created {
+                return_message = String::from("failed to to create partial db from contract");
+            } else if !is_host_notified {
+                return_message = String::from("failed to notify host of acceptance of contract");
+            }
         };
 
         let auth_response = AuthResult {
@@ -623,7 +634,7 @@ impl SqlClient for SqlClientImpl {
         let accepted_reply = AcceptPendingContractReply {
             authentication_result: Some(auth_response),
             is_successful: is_accepted,
-            message: String::from(""),
+            message: return_message,
         };
 
         Ok(Response::new(accepted_reply))
