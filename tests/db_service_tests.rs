@@ -199,7 +199,6 @@ pub mod save_contract {
     }
 }
 
-
 pub mod accept_contract {
     use crate::test_harness::ServiceAddr;
     use log::info;
@@ -220,7 +219,6 @@ pub mod accept_contract {
         unimplemented!();
     }
 
-    #[ignore = "not yet implemented"]
     #[test]
     #[allow(dead_code, unused_variables)]
     fn test() {
@@ -229,7 +227,7 @@ pub mod accept_contract {
             and we will need to also kick off two clients, one for each
         */
 
-        let test_name = "save_contract";
+        let test_name = "save_accept_contract";
         let test_db_name = format!("{}{}", test_name, ".db");
         let custom_contract_description = String::from("This is a custom description from test");
 
@@ -283,13 +281,13 @@ pub mod accept_contract {
         .join()
         .unwrap();
 
-        let participant_got_contract = rx_participant.try_recv().unwrap();
+        let participant_accepted_contract = rx_participant.try_recv().unwrap();
         println!(
-            "participant_got_contract: got: {}",
-            participant_got_contract
+            "participant_accpeted_contract: got: {}",
+            participant_accepted_contract
         );
 
-        assert!(participant_got_contract);
+        assert!(participant_accepted_contract);
     }
 
     #[cfg(test)]
@@ -396,6 +394,12 @@ pub mod accept_contract {
             }
         }
 
-        return has_contract;
+        let mut accepted_contract = false;
+
+        if has_contract {
+            accepted_contract = client.accept_pending_contract("tester").await.unwrap();
+        }
+
+        return accepted_contract;
     }
 }

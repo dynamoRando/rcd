@@ -1,4 +1,4 @@
-use super::{has_any_rows, sql_text::CDS};
+use super::{has_any_rows, sql_text::CDS, get_scalar_as_string};
 use crate::{
     cdata::{Contract, ColumnSchema, TableSchema, DatabaseSchema, Host},
     crypt,
@@ -18,6 +18,32 @@ use guid_create::GUID;
 use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
+
+#[allow(dead_code, unused_variables, unused_mut)]
+pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+
+    let mut cmd = String::from("SELECT HOST_ID FROM CDS_HOSTS WHERE HOST_NAME = ':hostname'");
+    cmd = cmd.replace(":hostname", host_name);
+
+    let db_host_id = get_scalar_as_string(cmd, &conn);
+    cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE HOST_ID = ':hid'
+    AND CONTRACT_STATUS = 2");
+    cmd = cmd.replace(":hid", &db_host_id);
+
+    let has_pending_contract = has_any_rows(cmd, &conn);
+
+    if has_pending_contract {
+        // 1 - we need to update the rcd_db record that we are accepting this contract
+        // 2 - we need to notify the host that we have accepted the contract
+        // 3 - and then we actually need to create the database with the properties of the 
+        // partial database
+
+        unimplemented!()
+    }
+
+    return false;
+}
 
 #[allow(dead_code, unused_variables, unused_mut)]
 pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {

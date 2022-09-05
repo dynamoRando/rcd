@@ -569,7 +569,36 @@ impl SqlClient for SqlClientImpl {
         request: Request<AcceptPendingContractRequest>,
     ) -> Result<Response<AcceptPendingContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+        let mut is_accepted = false;
+
+        if is_authenticated {
+            // 1 - we need to update the rcd_db record that we are accepting this contract
+            // 2 - we need to notify the host that we have accepted the contract
+            // 3 - and then we actually need to create the database with the properties of the
+            // partial database
+
+            is_accepted = self.dbi().accept_pending_contract(&message.host_alias);
+        };
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let accepted_reply = AcceptPendingContractReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_accepted,
+            message: String::from(""),
+        };
+
+        Ok(Response::new(accepted_reply))
     }
 
     #[allow(unused_variables)]
