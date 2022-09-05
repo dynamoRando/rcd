@@ -1,6 +1,6 @@
-use super::{has_any_rows, sql_text::CDS, get_scalar_as_string};
+use super::{get_scalar_as_string, has_any_rows, sql_text::CDS};
 use crate::{
-    cdata::{Contract, ColumnSchema, TableSchema, DatabaseSchema, Host},
+    cdata::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema},
     crypt,
     dbi::{
         sqlite::{
@@ -27,18 +27,19 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
     cmd = cmd.replace(":hostname", host_name);
 
     let db_host_id = get_scalar_as_string(cmd, &conn);
-    cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE HOST_ID = ':hid'
-    AND CONTRACT_STATUS = 2");
+    cmd = String::from(
+        "SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE HOST_ID = ':hid'
+    AND CONTRACT_STATUS = 2",
+    );
     cmd = cmd.replace(":hid", &db_host_id);
 
     let has_pending_contract = has_any_rows(cmd, &conn);
 
     if has_pending_contract {
         // 1 - we need to update the rcd_db record that we are accepting this contract
-        // 2 - we need to notify the host that we have accepted the contract
-        // 3 - and then we actually need to create the database with the properties of the 
-        // partial database
-
+        // 2 - then we actually need to create the database with the properties of the
+        // contract
+        // 3 - we need to notify the host that we have accepted the contract
         unimplemented!()
     }
 
@@ -294,29 +295,27 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         }
     }
 
-     let mut db_schema: Vec<DatabaseSchema> = Vec::new();
+    let mut db_schema: Vec<DatabaseSchema> = Vec::new();
 
     for contract in &cds_contracts {
         let dbid = contract.database_id.clone();
         let tables = cds_tables
-        .iter()
-        .enumerate()
-        .filter(|&(i, t)| t.database_id == dbid)
-        .map(|(_, t)| t);
+            .iter()
+            .enumerate()
+            .filter(|&(i, t)| t.database_id == dbid)
+            .map(|(_, t)| t);
 
         let mut table_schema: Vec<TableSchema> = Vec::new();
 
         for t in tables {
-
             let mut col_schema: Vec<ColumnSchema> = Vec::new();
 
             let tid = t.table_id.clone();
             let cols = cds_tables_columns
-            .iter()
-            .enumerate()
-            .filter(|&(i, c)| c.table_id == tid)
-            .map(|(_, c)| c);
-
+                .iter()
+                .enumerate()
+                .filter(|&(i, c)| c.table_id == tid)
+                .map(|(_, c)| c);
 
             for c in cols {
                 let cs = ColumnSchema {
@@ -354,16 +353,17 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     }
 
     for c in &cds_contracts {
+        let dbs = db_schema
+            .iter()
+            .enumerate()
+            .filter(|&(i, s)| s.database_id == c.database_id)
+            .map(|(_, s)| s);
 
-        let dbs = db_schema.iter()
-        .enumerate()
-        .filter(|&(i, s)| s.database_id == c.database_id)
-        .map(|(_, s)| s);
-
-        let hi = cds_host_infos.iter()
-        .enumerate()
-        .filter(|&(i, h)| h.host_id == c.host_id)
-        .map(|(_, h)| h);
+        let hi = cds_host_infos
+            .iter()
+            .enumerate()
+            .filter(|&(i, h)| h.host_id == c.host_id)
+            .map(|(_, h)| h);
 
         let h = hi.last().unwrap().clone();
 

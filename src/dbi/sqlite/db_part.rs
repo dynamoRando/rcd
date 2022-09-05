@@ -1,5 +1,5 @@
 use super::get_db_conn_with_result;
-use crate::cdata::ColumnSchema;
+use crate::cdata::{ColumnSchema, Contract};
 use crate::dbi::DbiConfigSqlite;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
@@ -20,6 +20,14 @@ use log::info;
 use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn create_partial_database_from_contract(
+    contract: &Contract,
+    config: &DbiConfigSqlite,
+) -> bool {
+    unimplemented!()
+}
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub fn create_partial_database(

@@ -5,12 +5,17 @@ use log::info;
 use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest};
+use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest, Contract};
 use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub async fn notify_host_of_acceptance_of_contract(accepted_contract: &Contract, own_host_info: &HostInfo, own_db_addr_port: String) -> bool {
+    unimplemented!()
+}
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn send_participant_contract(

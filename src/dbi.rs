@@ -56,6 +56,11 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    #[allow(dead_code, unused_assignments, unused_variables)]
+    pub fn accept_pending_contract_from_contract(self: &Self, contract: &Contract) -> bool {
+        unimplemented!()
+    }
+
     pub fn accept_pending_contract(self: &Self, host_name: &str) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

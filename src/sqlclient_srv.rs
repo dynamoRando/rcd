@@ -564,6 +564,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(review_pending_contracts_reply))
     }
 
+    #[allow(dead_code, unused_assignments, unused_variables)]
     async fn accept_pending_contract(
         &self,
         request: Request<AcceptPendingContractRequest>,
@@ -578,11 +579,40 @@ impl SqlClient for SqlClientImpl {
 
         if is_authenticated {
             // 1 - we need to update the rcd_db record that we are accepting this contract
-            // 2 - we need to notify the host that we have accepted the contract
-            // 3 - and then we actually need to create the database with the properties of the
-            // partial database
+            // 2 - then we actually need to create the database with the properties of the
+            // contract
+            // 3 - we need to notify the host that we have accepted the contract
 
+            // 1 - accept the contract
             is_accepted = self.dbi().accept_pending_contract(&message.host_alias);
+
+            // 2 - create the database with the properties of the contract
+            // find the pending contract so that we can construct it
+            let contracts = self.dbi().get_pending_contracts();
+
+            let pending_contract = contracts
+                .iter()
+                .enumerate()
+                .filter(|&(i, c)| {
+                    c.host_info.as_ref().unwrap().host_name.to_string() == message.host_alias
+                })
+                .map(|(_, c)| c);
+
+            let param_contract = pending_contract.last().unwrap().clone();
+            let self_host_info = self.dbi().rcd_get_host_info();
+
+            // make the database
+            let db_is_created = self
+                .dbi()
+                .accept_pending_contract_from_contract(&param_contract);
+
+            // 3 - notify the host that we've accepted the contract
+            let is_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
+                &param_contract,
+                &self_host_info,
+                self.own_db_addr_port.clone(),
+            )
+            .await;
         };
 
         let auth_response = AuthResult {
