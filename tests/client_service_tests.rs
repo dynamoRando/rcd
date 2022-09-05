@@ -48,7 +48,7 @@ pub mod is_online {
         let root_dir = super::test_harness::get_test_temp_dir(test_message);
         println!("{}", root_dir);
 
-        let service = get_service_from_config_file();
+        let mut service = get_service_from_config_file();
         let client_address_port = service.rcd_settings.client_service_addr_port.clone();
         println!("{:?}", &service);
         service.start_at_dir(&root_dir);
@@ -100,7 +100,7 @@ pub mod create_user_database {
         let root_dir = super::test_harness::get_test_temp_dir(&test_name);
         println!("{}", root_dir);
 
-        let service = get_service_from_config_file();
+        let mut service = get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -162,7 +162,7 @@ pub mod create_user_database {
         let root_dir = super::test_harness::get_test_temp_dir(&test_name);
         println!("{}", root_dir);
 
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -239,7 +239,7 @@ pub mod enable_coooperative_features {
         let root_dir = super::test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
 
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -314,7 +314,7 @@ pub mod create_db_enable_coop_read_write {
 
         let root_dir = super::test_harness::get_test_temp_dir(&test_name);
         println!("{}", root_dir);
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -436,7 +436,7 @@ pub mod get_set_logical_storage_policy {
 
             let root_dir = super::test_harness::get_test_temp_dir(&test_name);
             println!("{}", root_dir);            
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -580,7 +580,7 @@ pub mod has_table {
 
         let root_dir = super::test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -670,7 +670,7 @@ pub mod generate_contract {
 
         let root_dir = super::test_harness::get_test_temp_dir(&test_name);
         println!("{}", root_dir);
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
@@ -719,7 +719,7 @@ pub mod generate_contract {
 
         let root_dir = super::test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
-        let service = rcd::get_service_from_config_file();
+        let mut service = rcd::get_service_from_config_file();
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);

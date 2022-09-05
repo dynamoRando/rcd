@@ -35,6 +35,7 @@ pub fn start_data_service(self: &Self) {
 ```    
 
 #### Using Sqlite
+Reading Objects:
 
 ```rust
 let mut statement = conn.prepare(&cmd).unwrap();
@@ -55,6 +56,21 @@ for status in statuses {
 }
 
 return table_policies;
+```
+
+Using Parameters:
+```rust
+    let cmd = sql_text::COOP::text_get_count_from_data_host();
+    let has_database_id = has_any_rows(cmd, conn);
+
+    if !has_database_id {
+        let cmd = sql_text::COOP::text_add_database_id_to_host();
+        let db_id = GUID::rand();
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {":database_id": db_id.to_string(), ":database_name" : db_name})
+            .unwrap();
+    }
 ```
 
 ## Tests
@@ -143,3 +159,10 @@ It may also be useful to seperate project out into different libs per backing da
 - Postgres
 
 And so on.
+
+
+## In Flight Design Notes
+- Create `dbi` as a database interface layer.
+- Create a `dbi_config` layer for holding configuration settings
+    - Have a `Option<Config-X>` for different database types
+        - One for `sqlite` root folder, `postgres` connection string and login, and same for `mysql`

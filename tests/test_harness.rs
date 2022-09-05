@@ -1,4 +1,7 @@
 use lazy_static::lazy_static;
+use rcd::dbi::Dbi;
+use rcd::dbi::DbiConfigSqlite;
+use rcd::rcd_enum::DatabaseType;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
@@ -11,6 +14,25 @@ use std::{path::Path, sync::Mutex};
 pub enum AddrType {
     Client,
     Database,
+}
+
+#[allow(dead_code)]
+pub fn get_dbi(backing_database_name: String) -> Dbi {
+    let cwd = env::current_dir().unwrap();
+
+    let config = DbiConfigSqlite {
+        root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name,
+    };
+
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
+    return dbi;
 }
 
 #[allow(dead_code)]
@@ -43,7 +65,7 @@ pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, Serv
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
-    let service = rcd::get_service_from_config_file();
+    let mut service = rcd::get_service_from_config_file();
 
     let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
 

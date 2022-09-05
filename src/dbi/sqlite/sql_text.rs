@@ -131,7 +131,8 @@ impl CDS {
             DATABASE_ID CHAR(36) NOT NULL,
             DATABASE_NAME VARCHAR(50) NOT NULL,
             TABLE_ID CHAR(36) NOT NULL,
-            TABLE_NAME VARCHAR(50) NOT NULL
+            TABLE_NAME VARCHAR(50) NOT NULL,
+            LOGICAL_STORAGE_POLICY INT 
         );",
         );
     }

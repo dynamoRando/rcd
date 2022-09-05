@@ -1,13 +1,13 @@
-use log::info;
 use env_logger::{Builder, Target};
-use rcd::rcd_enum::{DatabaseType};
-use rcd::rcd_settings::RcdSettings;
-use rcd::{get_service_from_config};
-use std::env;
-use std::path::Path;
-use std::fs;
+use log::info;
+use rcd::dbi::{Dbi, DbiConfigSqlite};
+use rcd::get_service_from_config;
 use rcd::rcd_db;
-use rusqlite::Connection;
+use rcd::rcd_enum::DatabaseType;
+use rcd::rcd_settings::RcdSettings;
+use std::env;
+use std::fs;
+use std::path::Path;
 
 #[path = "test_harness.rs"]
 mod test_harness;
@@ -38,10 +38,7 @@ fn read_settings_from_config() {
     let service = get_service_from_config(rcd_setting);
 
     // ASSERT
-    assert_eq!(
-        service.rcd_settings.database_type,
-        DatabaseType::Unknown
-    );
+    assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
 }
 
 #[test]
@@ -70,7 +67,7 @@ fn configure_backing_db() {
     }
 
     // ACT
-    let service = get_service_from_config(rcd_setting);
+    let mut service = get_service_from_config(rcd_setting);
     service.start();
 
     // ASSERT
@@ -93,20 +90,30 @@ fn hash() {
         fs::remove_file(&db_path).unwrap();
     }
 
-    rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    let config = DbiConfigSqlite {
+        root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name,
+    };
 
-    let db_conn = Connection::open(&db_path).unwrap();
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
+    rcd_db::configure(&dbi);
 
     let un = String::from("tester");
     let pw = String::from("1234");
 
     // ACT
-    crate::rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
+    crate::rcd_db::create_login(&un, &pw, &dbi);
+    let has_login = crate::rcd_db::has_login(&un, &dbi).unwrap();
 
     info!("test_hash: has_login {}", &has_login);
 
-    let is_valid = crate::rcd_db::verify_login(&un, &pw, &db_conn);
+    let is_valid = crate::rcd_db::verify_login(&un, &pw, &dbi);
 
     info!("test_hash: is_valid {}", is_valid);
 
@@ -147,21 +154,43 @@ fn hash_negative() {
         fs::remove_file(&db_path).unwrap();
     }
 
-    crate::rcd_db::configure(&cwd.to_str().unwrap(), &backing_database_name);
+    let config = DbiConfigSqlite {
+        root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name.clone(),
+    };
 
-    let db_conn = Connection::open(&db_path).unwrap();
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
+    crate::rcd_db::configure(&dbi);
 
     let un = String::from("tester_fail");
     let pw = String::from("1234");
 
     // ACT
-    crate::rcd_db::create_login(&un, &pw, &db_conn);
-    let has_login = crate::rcd_db::has_login(&un, &db_conn).unwrap();
+    crate::rcd_db::create_login(&un, &pw, &dbi);
+    let has_login = crate::rcd_db::has_login(&un, &dbi).unwrap();
 
     info!("test_hash_false: has_login {}", &has_login);
 
+    let config = DbiConfigSqlite {
+        root_folder: cwd.to_str().unwrap().to_string(),
+        rcd_db_name: backing_database_name.clone(),
+    };
+
+    let dbi = Dbi {
+        db_type: DatabaseType::Sqlite,
+        mysql_config: None,
+        postgres_config: None,
+        sqlite_config: Some(config),
+    };
+
     let wrong_pw = String::from("43210");
-    let is_valid = crate::rcd_db::verify_login(&un, &wrong_pw, &db_conn);
+    let is_valid = crate::rcd_db::verify_login(&un, &wrong_pw, &dbi);
 
     info!("test_hash_false: is_valid {}", is_valid);
 

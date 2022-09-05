@@ -1,4 +1,6 @@
-use crate::cdata::ColumnSchema;
+use super::get_db_conn_with_result;
+use crate::cdata::{ColumnSchema, Contract};
+use crate::dbi::DbiConfigSqlite;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -6,7 +8,7 @@ use crate::table::{Column, Data, Row, Table, Value};
 #[allow(unused_imports)]
 use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
-    sql_text, table,
+    table,
 };
 #[allow(unused_imports)]
 use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
@@ -18,29 +20,43 @@ use log::info;
 use rusqlite::types::Type;
 #[allow(unused_imports)]
 use rusqlite::{named_params, Connection, Error, Result};
-use std::path::Path;
 
 #[allow(dead_code, unused_assignments, unused_variables)]
-pub fn create_partial_database(db_name: &str, cwd: &str) -> Result<Connection, Error> {
+pub fn create_partial_database_from_contract(
+    contract: &Contract,
+    config: &DbiConfigSqlite,
+) -> bool {
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn create_partial_database(
+    db_name: &str,
+    config: &DbiConfigSqlite,
+) -> Result<Connection, rusqlite::Error> {
     let mut db_part_name = db_name.replace(".db", "");
     db_part_name = db_part_name.replace(".dbpart", "");
     db_part_name = format!("{}{}", db_name, String::from(".dbpart"));
-    let db_path = Path::new(&cwd).join(&db_part_name);
-    Connection::open(&db_path)
+    return get_db_conn_with_result(config, &db_part_name);
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
-pub fn get_db_id(db_name: &str) -> String {
+pub fn get_db_id(db_name: &str, config: &DbiConfigSqlite) -> String {
     unimplemented!();
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
-pub fn get_table_id(db_name: &str, table_name: &str) -> String {
+pub fn get_table_id(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
     unimplemented!();
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
-pub fn create_table_in_partial_database(db_name: &str, cwd: &str, table_name: &str, schema: Vec<ColumnSchema>) -> Result<bool> {
+pub fn create_table_in_partial_database(
+    db_name: &str,
+    table_name: &str,
+    schema: Vec<ColumnSchema>,
+    config: &DbiConfigSqlite,
+) -> Result<bool> {
     unimplemented!();
 }
 
