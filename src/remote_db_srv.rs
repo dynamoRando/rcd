@@ -14,6 +14,7 @@ use crate::{
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn notify_host_of_acceptance_of_contract(accepted_contract: &Contract, own_host_info: &HostInfo, own_db_addr_port: String) -> bool {
+    // rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
     unimplemented!()
 }
 
