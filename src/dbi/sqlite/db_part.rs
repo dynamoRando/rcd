@@ -1,5 +1,5 @@
 use super::get_db_conn_with_result;
-use crate::cdata::{ColumnSchema, Contract};
+use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::DbiConfigSqlite;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
@@ -32,7 +32,11 @@ pub fn create_partial_database_from_contract(
 
     let conn = get_partial_db_connection(&db_name, &config.root_folder);
 
-    unimplemented!()
+    for table in &contract.schema.as_ref().unwrap().tables {
+        create_table_from_schema(table, &conn);
+    }
+
+    return true;
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
@@ -88,4 +92,9 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
     db_part_name = format!("{}{}", db_name, String::from(".dbpart"));
     let conn = Connection::open(&db_part_name).unwrap();
     return conn;
+}
+
+#[allow(dead_code, unused_variables, unused_assignments)]
+fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
+    unimplemented!()
 }
