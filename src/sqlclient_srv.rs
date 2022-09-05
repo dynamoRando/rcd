@@ -615,6 +615,7 @@ impl SqlClient for SqlClientImpl {
 
             if is_contract_updated && db_is_created && is_host_notified {
                 is_accepted = true;
+                return_message = String::from("accepted contract successfuly");
             } else if !is_contract_updated {
                 return_message = String::from("failed to update contract in rcd db");
             } else if !db_is_created {
