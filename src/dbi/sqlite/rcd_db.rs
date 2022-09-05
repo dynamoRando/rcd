@@ -1,4 +1,4 @@
-use super::{get_scalar_as_string, has_any_rows, sql_text::CDS};
+use super::{execute_write, get_scalar_as_string, has_any_rows, sql_text::CDS};
 use crate::{
     cdata::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema},
     crypt,
@@ -40,7 +40,20 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
         // 2 - then we actually need to create the database with the properties of the
         // contract
         // 3 - we need to notify the host that we have accepted the contract
-        unimplemented!()
+
+        cmd = String::from(
+            "SELECT CONTRACT_ID FROM CDS_CONTRACTS WHERE HOST_ID = ':hid' AND CONTRACT_STATUS = 2",
+        );
+        cmd = cmd.replace(":hid", &db_host_id);
+
+        let cid = get_scalar_as_string(cmd, &conn);
+
+        cmd =
+            String::from("UPDATE CDS_CONTRACTS SET CONTRACT_STATUS = 3 WHERE CONTRACT_ID = ':cid'");
+        cmd = cmd.replace(":cid", &cid);
+
+        let total_count = execute_write(&conn, &cmd);
+        return total_count > 0;
     }
 
     return false;
