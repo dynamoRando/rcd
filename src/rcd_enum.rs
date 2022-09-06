@@ -179,6 +179,21 @@ pub enum ColumnType {
 }
 
 impl ColumnType {
+    pub fn data_type_as_string_sqlite(self: &Self) -> String {
+        match self {
+            ColumnType::Unknown => panic!(),
+            ColumnType::Int => String::from("INT"),
+            ColumnType::Bit => String::from("TINYINT"),
+            ColumnType::Char => String::from("CHAR"),
+            ColumnType::DateTime => String::from("DATETIME"),
+            ColumnType::Decimal => String::from("DECIMAL"),
+            ColumnType::Varchar => String::from("VARCHAR"),
+            ColumnType::Binary => String::from("BLOB"),
+            ColumnType::Varbinary => String::from("BLOB"),
+            ColumnType::Text => String::from("TEXT"),
+        }
+    }
+
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
         let ct = ColumnType::try_parse(&desc).unwrap();
         return ColumnType::to_u32(ct);
