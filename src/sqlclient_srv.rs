@@ -602,7 +602,7 @@ impl SqlClient for SqlClientImpl {
             // make the database
             let db_is_created = self
                 .dbi()
-                .accept_pending_contract_from_contract(&param_contract);
+                .create_partial_database_from_contract(&param_contract);
 
             let self_host_info = self.dbi().rcd_get_host_info();
             // 3 - notify the host that we've accepted the contract

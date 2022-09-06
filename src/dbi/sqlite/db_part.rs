@@ -104,7 +104,7 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
 
     for column in &table_schema.columns {
         let col_name = column.column_name.clone();
-        let col_type = ColumnType::from_u32(column.column_type).data_type_as_string();
+        let col_type = ColumnType::from_u32(column.column_type).data_type_as_string_sqlite();
         
     }
 
