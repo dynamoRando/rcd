@@ -191,8 +191,16 @@ impl DataService for DataServiceImpl {
 
     async fn accept_contract(
         &self,
-        _request: Request<ParticipantAcceptsContractRequest>,
+        request: Request<ParticipantAcceptsContractRequest>,
     ) -> Result<Response<ParticipantAcceptsContractResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        let debug_message_info = &message.message_info.as_ref().unwrap().clone();
+
+        println!("{:?}", debug_message_info);
+        println!("{:?}", &message);
+
         unimplemented!("not implemented");
     }
 
