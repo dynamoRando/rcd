@@ -5,7 +5,7 @@ use log::info;
 use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest, Contract};
+use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest, Contract, ParticipantAcceptsContractRequest, Participant};
 use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
@@ -15,7 +15,34 @@ use crate::{
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn notify_host_of_acceptance_of_contract(accepted_contract: &Contract, own_host_info: &HostInfo, own_db_addr_port: String) -> bool {
     // rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
-    unimplemented!()
+
+    let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
+    let host_info = accepted_contract.host_info.as_ref().unwrap().clone();
+
+    let participant = Participant {
+        participant_guid: own_host_info.id.clone(),
+        alias: own_host_info.name.clone(),
+        ip4_address: own_db_addr_port.clone(),
+        ip6_address: String::from(""),
+        database_port_number: 0,
+        token: own_host_info.token.clone(),
+    };
+
+    let request = ParticipantAcceptsContractRequest {
+        participant: Some(participant),
+        contract_guid: accepted_contract.contract_guid.clone(),
+        database_name: accepted_contract.schema.as_ref().unwrap().database_name.clone(),
+        message_info: Some(message_info),
+    };
+
+    let message = format!("sending request to rcd at: {}", host_info.ip4_address.clone());
+    info!("{}", message);
+    println!("{}", message);
+
+    let client = get_client_with_addr_port(host_info.ip4_address.clone());
+    let response = client.await.accept_contract(request).await.unwrap();
+
+    return response.into_inner().contract_acceptance_is_acknowledged;
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
@@ -64,6 +91,18 @@ pub fn get_row_from_participant(
     table_name: &str,
 ) -> GetRowFromPartialDatabaseResult {
     unimplemented!();
+}
+
+#[allow(dead_code)]
+async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Channel> {
+    let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
+    let message = format!("configuring to connect to rcd at: {}", addr_port);
+    info!("{}", message);
+  
+    let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
+    let channel = endpoint.connect().await.unwrap();
+
+    return DataServiceClient::new(channel);
 }
 
 #[allow(dead_code)]
