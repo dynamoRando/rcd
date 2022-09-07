@@ -58,6 +58,42 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    #[allow(dead_code, unused_mut, unused_variables)]
+    async fn generate_host_info(
+        &self,
+        request: Request<GenerateHostInfoRequest>,
+    ) -> Result<Response<GenerateHostInfoReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let mut is_generate_successful = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let host_name = message.host_name.clone();
+
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+
+        if is_authenticated {
+            self.dbi().rcd_generate_host_info(&host_name);
+            is_generate_successful = true;
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let generate_host_info_result = GenerateHostInfoReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_generate_successful,
+        };
+
+        Ok(Response::new(generate_host_info_result))
+    }
+
     async fn create_user_database(
         &self,
         request: Request<CreateUserDatabaseRequest>,
@@ -603,10 +639,6 @@ impl SqlClient for SqlClientImpl {
             let db_is_created = self
                 .dbi()
                 .create_partial_database_from_contract(&param_contract);
-
-            if !self.dbi().if_rcd_host_info_exists() {
-                self.dbi().generate_and_get_host_info("placeholder");
-            }
 
             let self_host_info = self.dbi().rcd_get_host_info();
             // 3 - notify the host that we've accepted the contract

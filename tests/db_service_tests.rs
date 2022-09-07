@@ -385,6 +385,11 @@ pub mod accept_contract {
             String::from("123456"),
         );
 
+        let is_generated_host = client
+            .generate_host_info("accept_contract_participant")
+            .await
+            .unwrap();
+
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
         for contract in &pending_contracts {

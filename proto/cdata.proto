@@ -19,6 +19,17 @@ service SQLClient {
 	rpc ReviewPendingContracts(ViewPendingContractsRequest) returns (ViewPendingContractsReply);
 	rpc AcceptPendingContract(AcceptPendingContractRequest) returns (AcceptPendingContractReply);
 	rpc RejectPendingContract(RejectPendingContractRequest) returns (RejectPendingContractReply);
+	rpc GenerateHostInfo(GenerateHostInfoRequest) returns (GenerateHostInfoReply);
+}
+
+message GenerateHostInfoRequest {
+	AuthRequest authentication = 1;
+	string hostName = 2;
+}
+
+message GenerateHostInfoReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
 }
 
 message SendParticipantContractRequest {
