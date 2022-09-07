@@ -1,5 +1,6 @@
 /target
 .DS_STORE
 **.db
+**.dbpart
 *.DS_STORE
 *._target

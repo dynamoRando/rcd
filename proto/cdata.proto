@@ -365,8 +365,9 @@ message SaveContractResult {
 message ParticipantAcceptsContractRequest {
 	Participant participant = 1;
 	string contractGUID = 2;
-	string databaseName = 3;
-	MessageInfo messageInfo = 4;
+	string contractVersionGUID = 3;
+	string databaseName = 4;
+	MessageInfo messageInfo = 5;
 }
 
 message ParticipantAcceptsContractResult {

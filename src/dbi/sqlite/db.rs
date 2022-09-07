@@ -3,7 +3,7 @@ use super::{
     get_scalar_as_string, get_scalar_as_u32, has_table, sql_text, DbiConfigSqlite,
 };
 use crate::{
-    cdata::{ColumnSchema, DatabaseSchema, TableSchema},
+    cdata::{ColumnSchema, DatabaseSchema, Participant, TableSchema},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     dbi::sqlite::has_any_rows,
@@ -18,6 +18,49 @@ use chrono::{TimeZone, Utc};
 use guid_create::GUID;
 
 use rusqlite::{named_params, Connection, Error, Result};
+
+#[allow(dead_code, unused_variables)]
+pub fn update_participant_accepts_contract(
+    db_name: &str,
+    participant: CoopDatabaseParticipant,
+    participant_message: Participant,
+    accepted_contract_version_id: &str,
+    config: DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(&config, db_name);
+
+    let internal_id = participant.internal_id.clone();
+    let participant_id = participant_message.participant_guid.clone();
+    let token = participant_message.token.clone();
+
+    let cmd = String::from(
+        "
+    UPDATE 
+        COOP_PARTICIPANT
+    SET 
+        CONTRACT_STATUS = 3, 
+        ACCEPTED_CONTRACT_VERSION_ID = :cid,
+        PARTICIPANT_ID = :pid,
+        TOKEN = :token
+    WHERE 
+        INTERNAL_PARTICIPANT_ID = :iid
+    ;
+    ",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows_affected = statement
+        .execute(named_params! {
+            ":cid" : accepted_contract_version_id.to_string(),
+            ":pid" : participant_id,
+            ":token" : token,
+            ":iid" : internal_id.to_string(),
+        })
+        .unwrap();
+
+    return rows_affected > 0;
+}
 
 pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connection, Error> {
     return Ok(get_db_conn(&config, db_name));

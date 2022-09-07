@@ -2,7 +2,7 @@ use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
-use rusqlite::{Result};
+use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
@@ -201,7 +201,26 @@ impl DataService for DataServiceImpl {
         println!("{:?}", debug_message_info);
         println!("{:?}", &message);
 
-        unimplemented!("not implemented");
+        let participant_message = message.participant.as_ref().unwrap().clone();
+
+        let accepted_participant = self.dbi().get_participant_by_alias(
+            &message.database_name,
+            &message.participant.as_ref().unwrap().alias,
+        );
+
+        let is_successful = self.dbi().update_participant_accepts_contract(
+            &message.database_name,
+            accepted_participant,
+            participant_message,
+            &message.contract_version_guid
+        );
+
+        let result = ParticipantAcceptsContractResult {
+            contract_acceptance_is_acknowledged: is_successful,
+            error_message: String::from(""),
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn remove_row_from_partial_database(

@@ -507,8 +507,10 @@ pub struct ParticipantAcceptsContractRequest {
     #[prost(string, tag="2")]
     pub contract_guid: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
+    pub contract_version_guid: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
     pub database_name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag="5")]
     pub message_info: ::core::option::Option<MessageInfo>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]

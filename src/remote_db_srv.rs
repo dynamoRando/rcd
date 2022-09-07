@@ -5,7 +5,10 @@ use log::info;
 use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
-use crate::cdata::{DatabaseSchema, MessageInfo, SaveContractRequest, Contract, ParticipantAcceptsContractRequest, Participant};
+use crate::cdata::{
+    Contract, DatabaseSchema, MessageInfo, Participant, ParticipantAcceptsContractRequest,
+    SaveContractRequest,
+};
 use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
@@ -13,7 +16,22 @@ use crate::{
 };
 
 #[allow(dead_code, unused_assignments, unused_variables)]
-pub async fn notify_host_of_acceptance_of_contract(accepted_contract: &Contract, own_host_info: &HostInfo, own_db_addr_port: String) -> bool {
+pub async fn insert_row_at_participant(
+    participant: &CoopDatabaseParticipant,
+    own_host_info: &HostInfo,
+    db_name: &str,
+    table_name: &str,
+    sql: &str
+) -> bool {
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
+pub async fn notify_host_of_acceptance_of_contract(
+    accepted_contract: &Contract,
+    own_host_info: &HostInfo,
+    own_db_addr_port: String,
+) -> bool {
     // rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 
     let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
@@ -31,11 +49,20 @@ pub async fn notify_host_of_acceptance_of_contract(accepted_contract: &Contract,
     let request = ParticipantAcceptsContractRequest {
         participant: Some(participant),
         contract_guid: accepted_contract.contract_guid.clone(),
-        database_name: accepted_contract.schema.as_ref().unwrap().database_name.clone(),
+        contract_version_guid: accepted_contract.contract_version.clone(),
+        database_name: accepted_contract
+            .schema
+            .as_ref()
+            .unwrap()
+            .database_name
+            .clone(),
         message_info: Some(message_info),
     };
 
-    let message = format!("sending request to rcd at: {}", host_info.ip4_address.clone());
+    let message = format!(
+        "sending request to rcd at: {}",
+        host_info.ip4_address.clone()
+    );
     info!("{}", message);
     println!("{}", message);
 
@@ -69,11 +96,7 @@ pub async fn send_participant_contract(
         message_info: Some(message_info),
     });
 
-    let addr_port = format!(
-        "{}{}",
-        participant.ip4addr,
-        participant.db_port.to_string()
-    );
+    let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
 
     info!("sending request to rcd at: {}", addr_port);
 
@@ -98,7 +121,7 @@ async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Chann
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     let message = format!("configuring to connect to rcd at: {}", addr_port);
     info!("{}", message);
-  
+
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
     let channel = endpoint.connect().await.unwrap();
 
@@ -107,11 +130,7 @@ async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Chann
 
 #[allow(dead_code)]
 async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<Channel> {
-    let addr_port = format!(
-        "{}{}",
-        participant.ip4addr,
-        participant.db_port.to_string()
-    );
+    let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
 

@@ -275,9 +275,6 @@ impl SqlClient for SqlClientImpl {
         let statement = message.sql_statement;
 
         if is_authenticated {
-            // ideally in the future we would inspect the sql statement and determine
-            // if the table we were going to affect was a cooperative one and then act accordingly
-            // right now, we will just execute the write statement
             let rows_affected = self.dbi().execute_write(&db_name, &statement);
         }
 
@@ -297,11 +294,52 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(execute_write_reply))
     }
 
+    #[allow(unused_variables, unused_mut)]
     async fn execute_cooperative_write(
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
+
+        let mut is_remote_action_successful = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+        let db_name = message.database_name;
+        let statement = message.sql_statement;
+
+        if is_authenticated {
+            if self.dbi().has_participant(&db_name, &message.alias) {
+                /*
+                    we need to determine the type of statement: INSERT/UPDATE/DELETE
+                    because this we need to figure out what metadata, if any, we need
+                    to save on the host side: either a data hash or row id, etc.
+
+                    once we have determined the type of action, we will call the appropriate
+                    method on the data service in remote_db_srv and pass
+                    the raw SQL statement onto the participant to take action
+                */
+
+                unimplemented!()
+            }
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let execute_write_reply = ExecuteWriteReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_remote_action_successful,
+            total_rows_affected: 0,
+        };
+
         unimplemented!("");
     }
 

@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Error};
 
 use crate::{
-    cdata::{ColumnSchema, Contract, DatabaseSchema},
+    cdata::{ColumnSchema, Contract, DatabaseSchema, Participant},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     host_info::HostInfo,
@@ -56,6 +56,32 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    #[allow(dead_code, unused_assignments, unused_variables)]
+    pub fn update_participant_accepts_contract(
+        self: &Self,
+        db_name: &str,
+        participant: CoopDatabaseParticipant,
+        participant_message: Participant,
+        accepted_contract_id: &str,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::update_participant_accepts_contract(
+                    db_name,
+                    participant,
+                    participant_message,
+                    accepted_contract_id,
+                    settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn create_partial_database_from_contract(self: &Self, contract: &Contract) -> bool {
         match self.db_type {
@@ -389,6 +415,11 @@ impl Dbi {
 
     #[allow(unused_variables)]
     pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
+        /*
+         - we want to call query_parser and get a list of tables that are in this query for this database
+         - once we have that list, we will check against dbi to see if any of those tables have a LSP that is cooperative
+         - for every table that is cooperative, we need to aggregate the command against all participants
+         */
         return false;
     }
 
