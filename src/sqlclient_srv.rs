@@ -604,6 +604,10 @@ impl SqlClient for SqlClientImpl {
                 .dbi()
                 .create_partial_database_from_contract(&param_contract);
 
+            if !self.dbi().if_rcd_host_info_exists() {
+                self.dbi().generate_and_get_host_info("placeholder");
+            }
+
             let self_host_info = self.dbi().rcd_get_host_info();
             // 3 - notify the host that we've accepted the contract
             let is_host_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
