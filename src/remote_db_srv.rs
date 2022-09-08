@@ -7,7 +7,7 @@ use tonic::transport::Channel;
 use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
     Contract, DatabaseSchema, MessageInfo, Participant, ParticipantAcceptsContractRequest,
-    SaveContractRequest,
+    SaveContractRequest, InsertRowResult,
 };
 use crate::rcd_enum::ContractStatus;
 use crate::{
@@ -22,7 +22,7 @@ pub async fn insert_row_at_participant(
     db_name: &str,
     table_name: &str,
     sql: &str
-) -> bool {
+) -> InsertRowResult {
     unimplemented!()
 }
 

@@ -286,6 +286,7 @@ message InsertRowResult {
 	string tableName = 6;
 	string tableId = 7;
 	uint32 rowId = 8;
+	bytes dataHash = 9;
 }
 
 message UpdateRowInTableRequest{

@@ -5,6 +5,8 @@ use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
 use crate::host_info::HostInfo;
+use crate::query_parser;
+use crate::rcd_enum::DmlType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -313,6 +315,33 @@ impl SqlClient for SqlClientImpl {
 
         if is_authenticated {
             if self.dbi().has_participant(&db_name, &message.alias) {
+                let dml_type = query_parser::determine_dml_type(&statement);
+                let db_participant = self
+                    .dbi()
+                    .get_participant_by_alias(&db_name, &message.alias);
+                let host_info = self.dbi().rcd_get_host_info();
+                let cmd_table_name = query_parser::get_table_name(&statement);
+
+                match dml_type {
+                    DmlType::Unknown => todo!(),
+                    DmlType::Insert => {
+                        let remote_insert_result = remote_db_srv::insert_row_at_participant(
+                            &db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                        )
+                        .await;
+
+                        if remote_insert_result.is_successful {
+                            // we need to add the data hash and row id here
+                            unimplemented!()
+                        }
+                    }
+                    DmlType::Update => todo!(),
+                    DmlType::Delete => todo!(),
+                }
                 /*
                     we need to determine the type of statement: INSERT/UPDATE/DELETE
                     because this we need to figure out what metadata, if any, we need

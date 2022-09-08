@@ -376,6 +376,8 @@ pub struct InsertRowResult {
     pub table_id: ::prost::alloc::string::String,
     #[prost(uint32, tag="8")]
     pub row_id: u32,
+    #[prost(bytes="vec", tag="9")]
+    pub data_hash: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowInTableRequest {
