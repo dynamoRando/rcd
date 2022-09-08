@@ -56,6 +56,10 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn db_type(self: &Self) -> DatabaseType {
+        return self.db_type;
+    }
+
     #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn update_participant_accepts_contract(
         self: &Self,

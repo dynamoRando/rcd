@@ -10,7 +10,7 @@ use crate::{
     defaults, query_parser,
     rcd_enum::{
         self, ColumnType, ContractStatus, LogicalStoragePolicy, RcdDbError,
-        RcdGenerateContractError, RemoteDeleteBehavior,
+        RcdGenerateContractError, RemoteDeleteBehavior, DatabaseType,
     },
     table::Table,
 };
@@ -456,7 +456,7 @@ pub fn get_participants_for_table(
 pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> bool {
     let mut has_cooperative_tables = false;
 
-    let tables = query_parser::get_table_names(&cmd);
+    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in tables {
         let result = get_logical_storage_policy(db_name, &table, &config);
@@ -489,7 +489,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
 pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Vec<String> {
     let mut cooperative_tables: Vec<String> = Vec::new();
 
-    let tables = query_parser::get_table_names(&cmd);
+    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in &tables {
         let result = get_logical_storage_policy(db_name, &table.to_string(), &config);

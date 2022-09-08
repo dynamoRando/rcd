@@ -315,12 +315,12 @@ impl SqlClient for SqlClientImpl {
 
         if is_authenticated {
             if self.dbi().has_participant(&db_name, &message.alias) {
-                let dml_type = query_parser::determine_dml_type(&statement);
+                let dml_type = query_parser::determine_dml_type(&statement, self.dbi().db_type());
                 let db_participant = self
                     .dbi()
                     .get_participant_by_alias(&db_name, &message.alias);
                 let host_info = self.dbi().rcd_get_host_info();
-                let cmd_table_name = query_parser::get_table_name(&statement);
+                let cmd_table_name = query_parser::get_table_name(&statement, self.dbi().db_type());
 
                 match dml_type {
                     DmlType::Unknown => todo!(),
