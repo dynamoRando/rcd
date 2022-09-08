@@ -336,6 +336,9 @@ impl SqlClient for SqlClientImpl {
 
                         if remote_insert_result.is_successful {
                             // we need to add the data hash and row id here
+                            let data_hash = remote_insert_result.data_hash.clone();
+                            let row_id = remote_insert_result.row_id;
+                            
                             unimplemented!()
                         }
                     }
