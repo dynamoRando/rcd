@@ -488,7 +488,7 @@ pub struct GetRowFromPartialDatabaseResult {
 /// a message from a host to a participant to save a contract
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractRequest {
-    ///AuthRequest authentication = 1;
+    /// AuthRequest authentication = 1;
     #[prost(message, optional, tag="1")]
     pub contract: ::core::option::Option<Contract>,
     #[prost(message, optional, tag="2")]
@@ -496,7 +496,7 @@ pub struct SaveContractRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractResult {
-    ///AuthResult authenticationResult = 1;
+    /// AuthResult authenticationResult = 1;
     #[prost(bool, tag="1")]
     pub is_saved: bool,
     #[prost(string, tag="2")]
@@ -850,6 +850,7 @@ pub struct RowParticipantAddress {
 pub mod sql_client_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug, Clone)]
     pub struct SqlClientClient<T> {
@@ -877,6 +878,10 @@ pub mod sql_client_client {
             let inner = tonic::client::Grpc::new(inner);
             Self { inner }
         }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
@@ -896,19 +901,19 @@ pub mod sql_client_client {
         {
             SqlClientClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
+        /// Compress requests with the given encoding.
         ///
         /// This requires the server to support it otherwise it might respond with an
         /// error.
         #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
             self
         }
-        /// Enable decompressing responses with `gzip`.
+        /// Enable decompressing responses.
         #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
             self
         }
         pub async fn is_online(
@@ -1251,6 +1256,7 @@ pub mod sql_client_client {
 pub mod data_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     /// a service for communication between different rcd stores
     #[derive(Debug, Clone)]
     pub struct DataServiceClient<T> {
@@ -1278,6 +1284,10 @@ pub mod data_service_client {
             let inner = tonic::client::Grpc::new(inner);
             Self { inner }
         }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
@@ -1297,19 +1307,19 @@ pub mod data_service_client {
         {
             DataServiceClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
+        /// Compress requests with the given encoding.
         ///
         /// This requires the server to support it otherwise it might respond with an
         /// error.
         #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
             self
         }
-        /// Enable decompressing responses with `gzip`.
+        /// Enable decompressing responses.
         #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
             self
         }
         pub async fn is_online(
@@ -1640,8 +1650,8 @@ pub mod sql_client_server {
     #[derive(Debug)]
     pub struct SqlClientServer<T: SqlClient> {
         inner: _Inner<T>,
-        accept_compression_encodings: (),
-        send_compression_encodings: (),
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: SqlClient> SqlClientServer<T> {
@@ -1664,6 +1674,18 @@ pub mod sql_client_server {
             F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
         }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for SqlClientServer<T>
@@ -2404,7 +2426,7 @@ pub mod sql_client_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: SqlClient> tonic::transport::NamedService for SqlClientServer<T> {
+    impl<T: SqlClient> tonic::server::NamedService for SqlClientServer<T> {
         const NAME: &'static str = "cdata.SQLClient";
     }
 }
@@ -2483,8 +2505,8 @@ pub mod data_service_server {
     #[derive(Debug)]
     pub struct DataServiceServer<T: DataService> {
         inner: _Inner<T>,
-        accept_compression_encodings: (),
-        send_compression_encodings: (),
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: DataService> DataServiceServer<T> {
@@ -2507,6 +2529,18 @@ pub mod data_service_server {
             F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
         }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for DataServiceServer<T>
@@ -3049,7 +3083,7 @@ pub mod data_service_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: DataService> tonic::transport::NamedService for DataServiceServer<T> {
+    impl<T: DataService> tonic::server::NamedService for DataServiceServer<T> {
         const NAME: &'static str = "cdata.DataService";
     }
 }

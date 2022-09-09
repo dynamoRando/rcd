@@ -5,6 +5,7 @@
 #![allow(nonstandard_style)]
 #![allow(unused_imports)]
 #![allow(unused_mut)]
+#![allow(unused_braces)]
 use antlr_rust::PredictionContextCache;
 use antlr_rust::parser::{Parser, BaseParser, ParserRecog, ParserNodeType};
 use antlr_rust::token_stream::TokenStream;
@@ -350,7 +351,7 @@ use std::any::{Any,TypeId};
 
 
 type BaseParserType<'input, I> =
-	BaseParser<'input,SQLiteParserExt, I, SQLiteParserContextType , dyn SQLiteListener<'input> + 'input >;
+	BaseParser<'input,SQLiteParserExt<'input>, I, SQLiteParserContextType , dyn SQLiteListener<'input> + 'input >;
 
 type TokenType<'input> = <LocalTokenFactory<'input> as TokenFactory<'input>>::Tok;
 pub type LocalTokenFactory<'input> = CommonTokenFactory;
@@ -382,7 +383,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr_rust::recognizer::check_version("0","2");
+		antlr_rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -393,6 +394,7 @@ where
 				input,
 				Arc::clone(&interpreter),
 				SQLiteParserExt{
+					_pd: Default::default(),
 				}
 			),
 			interpreter,
@@ -400,7 +402,6 @@ where
             err_handler: strategy,
         }
     }
-
 }
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
@@ -429,17 +430,17 @@ pub trait SQLiteParserContext<'input>:
 	ParserRuleContext<'input, TF=LocalTokenFactory<'input>, Ctx=SQLiteParserContextType>
 {}
 
+antlr_rust::coerce_from!{ 'input : SQLiteParserContext<'input> }
+
 impl<'input> SQLiteParserContext<'input> for TerminalNode<'input,SQLiteParserContextType> {}
 impl<'input> SQLiteParserContext<'input> for ErrorNode<'input,SQLiteParserContextType> {}
 
-#[antlr_rust::impl_tid]
-impl<'input> antlr_rust::TidAble<'input> for dyn SQLiteParserContext<'input> + 'input{}
+antlr_rust::tid! { impl<'input> TidAble<'input> for dyn SQLiteParserContext<'input> + 'input }
 
-#[antlr_rust::impl_tid]
-impl<'input> antlr_rust::TidAble<'input> for dyn SQLiteListener<'input> + 'input{}
+antlr_rust::tid! { impl<'input> TidAble<'input> for dyn SQLiteListener<'input> + 'input }
 
 pub struct SQLiteParserContextType;
-antlr_rust::type_id!{SQLiteParserContextType}
+antlr_rust::tid!{SQLiteParserContextType}
 
 impl<'input> ParserNodeType<'input> for SQLiteParserContextType{
 	type TF = LocalTokenFactory<'input>;
@@ -468,20 +469,21 @@ where
     }
 }
 
-pub struct SQLiteParserExt{
+pub struct SQLiteParserExt<'input>{
+	_pd: PhantomData<&'input str>,
 }
 
-impl SQLiteParserExt{
+impl<'input> SQLiteParserExt<'input>{
 }
+antlr_rust::tid! { SQLiteParserExt<'a> }
 
-
-impl<'input> TokenAware<'input> for SQLiteParserExt{
+impl<'input> TokenAware<'input> for SQLiteParserExt<'input>{
 	type TF = LocalTokenFactory<'input>;
 }
 
-impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>> ParserRecog<'input, BaseParserType<'input,I>> for SQLiteParserExt{}
+impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>> ParserRecog<'input, BaseParserType<'input,I>> for SQLiteParserExt<'input>{}
 
-impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>> Actions<'input, BaseParserType<'input,I>> for SQLiteParserExt{
+impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>> Actions<'input, BaseParserType<'input,I>> for SQLiteParserExt<'input>{
 	fn get_grammar_file_name(&self) -> & str{ "SQLite.g4"}
 
    	fn get_rule_names(&self) -> &[& str] {&ruleNames}
@@ -565,10 +567,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for ParseContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for ParseContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_parse(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_parse(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_parse(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for ParseContextExt<'input>{
@@ -577,7 +582,7 @@ impl<'input> CustomRuleContext<'input> for ParseContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_parse }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_parse }
 }
-antlr_rust::type_id!{ParseContextExt<'a>}
+antlr_rust::tid!{ParseContextExt<'a>}
 
 impl<'input> ParseContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<ParseContextAll<'input>> {
@@ -625,8 +630,8 @@ where
 		let mut _localctx = ParseContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 0, RULE_parse);
         let mut _localctx: Rc<ParseContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -634,7 +639,7 @@ where
 			recog.base.set_state(170);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			while (((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << SCOL) | (1usize << K_ALTER) | (1usize << K_ANALYZE) | (1usize << K_ATTACH) | (1usize << K_BEGIN) | (1usize << K_COMMIT) | (1usize << K_CREATE) | (1usize << K_DELETE) | (1usize << K_DETACH) | (1usize << K_DROP))) != 0) || ((((_la - 66)) & !0x3f) == 0 && ((1usize << (_la - 66)) & ((1usize << (K_END - 66)) | (1usize << (K_EXPLAIN - 66)) | (1usize << (K_INSERT - 66)) | (1usize << (K_PRAGMA - 66)) | (1usize << (K_REINDEX - 66)) | (1usize << (K_RELEASE - 66)) | (1usize << (K_REPLACE - 66)) | (1usize << (K_ROLLBACK - 66)) | (1usize << (K_SAVEPOINT - 66)) | (1usize << (K_SELECT - 66)))) != 0) || ((((_la - 139)) & !0x3f) == 0 && ((1usize << (_la - 139)) & ((1usize << (K_UPDATE - 139)) | (1usize << (K_VACUUM - 139)) | (1usize << (K_VALUES - 139)) | (1usize << (K_WITH - 139)) | (1usize << (UNEXPECTED_CHAR - 139)))) != 0) {
+			while (((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << SCOL) | (1usize << K_ALTER) | (1usize << K_ANALYZE))) != 0) || ((((_la - 35)) & !0x3f) == 0 && ((1usize << (_la - 35)) & ((1usize << (K_ATTACH - 35)) | (1usize << (K_BEGIN - 35)) | (1usize << (K_COMMIT - 35)) | (1usize << (K_CREATE - 35)) | (1usize << (K_DELETE - 35)) | (1usize << (K_DETACH - 35)) | (1usize << (K_DROP - 35)) | (1usize << (K_END - 35)))) != 0) || _la==K_EXPLAIN || _la==K_INSERT || ((((_la - 112)) & !0x3f) == 0 && ((1usize << (_la - 112)) & ((1usize << (K_PRAGMA - 112)) | (1usize << (K_REINDEX - 112)) | (1usize << (K_RELEASE - 112)) | (1usize << (K_REPLACE - 112)) | (1usize << (K_ROLLBACK - 112)) | (1usize << (K_SAVEPOINT - 112)) | (1usize << (K_SELECT - 112)) | (1usize << (K_UPDATE - 112)) | (1usize << (K_VACUUM - 112)) | (1usize << (K_VALUES - 112)))) != 0) || _la==K_WITH || _la==UNEXPECTED_CHAR {
 				{
 				recog.base.set_state(168);
 				recog.err_handler.sync(&mut recog.base)?;
@@ -673,7 +678,8 @@ where
 			recog.base.match_token(EOF,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -703,10 +709,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for ErrorContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for ErrorContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_error(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_error(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_error(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for ErrorContextExt<'input>{
@@ -715,7 +724,7 @@ impl<'input> CustomRuleContext<'input> for ErrorContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_error }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_error }
 }
-antlr_rust::type_id!{ErrorContextExt<'a>}
+antlr_rust::tid!{ErrorContextExt<'a>}
 
 impl<'input> ErrorContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<ErrorContextAll<'input>> {
@@ -752,19 +761,24 @@ where
 		let mut _localctx = ErrorContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 2, RULE_error);
         let mut _localctx: Rc<ErrorContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
 			recog.base.set_state(175);
 			let tmp = recog.base.match_token(UNEXPECTED_CHAR,&mut recog.err_handler)?;
-			 cast_mut::<_,ErrorContext >(&mut _localctx).UNEXPECTED_CHAR = Some(tmp.clone());			 
-			// throw new RuntimeException("UNEXPECTED_CHAR=" + if let Some(it) = &(cast::<_,ErrorContext >(&*_localctx))
-			// .UNEXPECTED_CHAR { it.get_text() } else { "null" } ); 
+			 cast_mut::<_,ErrorContext >(&mut _localctx).UNEXPECTED_CHAR = Some(tmp.clone());
+			  
+
+
+			 
+			     // throw new RuntimeException("UNEXPECTED_CHAR=" + if let Some(it) = &(cast::<_,ErrorContext >(&*_localctx))
+			 // .UNEXPECTED_CHAR { it.get_text() } else { "null" } ); 
 			   
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -793,10 +807,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Sql_stmt_listContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Sql_stmt_listContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_sql_stmt_list(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_sql_stmt_list(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_sql_stmt_list(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Sql_stmt_listContextExt<'input>{
@@ -805,7 +822,7 @@ impl<'input> CustomRuleContext<'input> for Sql_stmt_listContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_sql_stmt_list }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_sql_stmt_list }
 }
-antlr_rust::type_id!{Sql_stmt_listContextExt<'a>}
+antlr_rust::tid!{Sql_stmt_listContextExt<'a>}
 
 impl<'input> Sql_stmt_listContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Sql_stmt_listContextAll<'input>> {
@@ -851,8 +868,8 @@ where
 		let mut _localctx = Sql_stmt_listContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 4, RULE_sql_stmt_list);
         let mut _localctx: Rc<Sql_stmt_listContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
@@ -929,7 +946,8 @@ where
 				_alt = recog.interpreter.adaptive_predict(5,&mut recog.base)?;
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -958,10 +976,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Sql_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Sql_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_sql_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_sql_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_sql_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Sql_stmtContextExt<'input>{
@@ -970,7 +991,7 @@ impl<'input> CustomRuleContext<'input> for Sql_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_sql_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_sql_stmt }
 }
-antlr_rust::type_id!{Sql_stmtContextExt<'a>}
+antlr_rust::tid!{Sql_stmtContextExt<'a>}
 
 impl<'input> Sql_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Sql_stmtContextAll<'input>> {
@@ -1106,8 +1127,8 @@ where
 		let mut _localctx = Sql_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 6, RULE_sql_stmt);
         let mut _localctx: Rc<Sql_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -1413,7 +1434,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -1442,10 +1464,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Alter_table_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Alter_table_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_alter_table_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_alter_table_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_alter_table_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Alter_table_stmtContextExt<'input>{
@@ -1454,7 +1479,7 @@ impl<'input> CustomRuleContext<'input> for Alter_table_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_alter_table_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_alter_table_stmt }
 }
-antlr_rust::type_id!{Alter_table_stmtContextExt<'a>}
+antlr_rust::tid!{Alter_table_stmtContextExt<'a>}
 
 impl<'input> Alter_table_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Alter_table_stmtContextAll<'input>> {
@@ -1532,7 +1557,7 @@ where
 		let mut _localctx = Alter_table_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 8, RULE_alter_table_stmt);
         let mut _localctx: Rc<Alter_table_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -1612,7 +1637,8 @@ where
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -1641,10 +1667,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Analyze_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Analyze_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_analyze_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_analyze_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_analyze_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Analyze_stmtContextExt<'input>{
@@ -1653,7 +1682,7 @@ impl<'input> CustomRuleContext<'input> for Analyze_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_analyze_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_analyze_stmt }
 }
-antlr_rust::type_id!{Analyze_stmtContextExt<'a>}
+antlr_rust::tid!{Analyze_stmtContextExt<'a>}
 
 impl<'input> Analyze_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Analyze_stmtContextAll<'input>> {
@@ -1700,7 +1729,7 @@ where
 		let mut _localctx = Analyze_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 10, RULE_analyze_stmt);
         let mut _localctx: Rc<Analyze_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -1748,7 +1777,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -1777,10 +1807,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Attach_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Attach_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_attach_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_attach_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_attach_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Attach_stmtContextExt<'input>{
@@ -1789,7 +1822,7 @@ impl<'input> CustomRuleContext<'input> for Attach_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_attach_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_attach_stmt }
 }
-antlr_rust::type_id!{Attach_stmtContextExt<'a>}
+antlr_rust::tid!{Attach_stmtContextExt<'a>}
 
 impl<'input> Attach_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Attach_stmtContextAll<'input>> {
@@ -1841,7 +1874,7 @@ where
 		let mut _localctx = Attach_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 12, RULE_attach_stmt);
         let mut _localctx: Rc<Attach_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -1874,7 +1907,8 @@ where
 			recog.database_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -1903,10 +1937,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Begin_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Begin_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_begin_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_begin_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_begin_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Begin_stmtContextExt<'input>{
@@ -1915,7 +1952,7 @@ impl<'input> CustomRuleContext<'input> for Begin_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_begin_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_begin_stmt }
 }
-antlr_rust::type_id!{Begin_stmtContextExt<'a>}
+antlr_rust::tid!{Begin_stmtContextExt<'a>}
 
 impl<'input> Begin_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Begin_stmtContextAll<'input>> {
@@ -1974,8 +2011,8 @@ where
 		let mut _localctx = Begin_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 14, RULE_begin_stmt);
         let mut _localctx: Rc<Begin_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -1986,7 +2023,7 @@ where
 			recog.base.set_state(278);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			if ((((_la - 58)) & !0x3f) == 0 && ((1usize << (_la - 58)) & ((1usize << (K_DEFERRED - 58)) | (1usize << (K_EXCLUSIVE - 58)) | (1usize << (K_IMMEDIATE - 58)))) != 0) {
+			if (((_la - 58)) & !0x3f) == 0 && ((1usize << (_la - 58)) & ((1usize << (K_DEFERRED - 58)) | (1usize << (K_EXCLUSIVE - 58)) | (1usize << (K_IMMEDIATE - 58)))) != 0 {
 				{
 				recog.base.set_state(277);
 				_la = recog.base.input.la(1);
@@ -2028,7 +2065,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -2057,10 +2095,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Commit_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Commit_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_commit_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_commit_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_commit_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Commit_stmtContextExt<'input>{
@@ -2069,7 +2110,7 @@ impl<'input> CustomRuleContext<'input> for Commit_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_commit_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_commit_stmt }
 }
-antlr_rust::type_id!{Commit_stmtContextExt<'a>}
+antlr_rust::tid!{Commit_stmtContextExt<'a>}
 
 impl<'input> Commit_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Commit_stmtContextAll<'input>> {
@@ -2118,8 +2159,8 @@ where
 		let mut _localctx = Commit_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 16, RULE_commit_stmt);
         let mut _localctx: Rc<Commit_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -2161,7 +2202,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -2190,10 +2232,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Compound_select_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Compound_select_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_compound_select_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_compound_select_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_compound_select_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Compound_select_stmtContextExt<'input>{
@@ -2202,7 +2247,7 @@ impl<'input> CustomRuleContext<'input> for Compound_select_stmtContextExt<'input
 	fn get_rule_index(&self) -> usize { RULE_compound_select_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_compound_select_stmt }
 }
-antlr_rust::type_id!{Compound_select_stmtContextExt<'a>}
+antlr_rust::tid!{Compound_select_stmtContextExt<'a>}
 
 impl<'input> Compound_select_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Compound_select_stmtContextAll<'input>> {
@@ -2319,8 +2364,8 @@ where
 		let mut _localctx = Compound_select_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 18, RULE_compound_select_stmt);
         let mut _localctx: Rc<Compound_select_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -2477,7 +2522,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -2506,10 +2552,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Create_index_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Create_index_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_create_index_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_create_index_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_create_index_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Create_index_stmtContextExt<'input>{
@@ -2518,7 +2567,7 @@ impl<'input> CustomRuleContext<'input> for Create_index_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_create_index_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_create_index_stmt }
 }
-antlr_rust::type_id!{Create_index_stmtContextExt<'a>}
+antlr_rust::tid!{Create_index_stmtContextExt<'a>}
 
 impl<'input> Create_index_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Create_index_stmtContextAll<'input>> {
@@ -2631,8 +2680,8 @@ where
 		let mut _localctx = Create_index_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 20, RULE_create_index_stmt);
         let mut _localctx: Rc<Create_index_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -2746,7 +2795,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -2775,10 +2825,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Create_table_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Create_table_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_create_table_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_create_table_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_create_table_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Create_table_stmtContextExt<'input>{
@@ -2787,7 +2840,7 @@ impl<'input> CustomRuleContext<'input> for Create_table_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_create_table_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_create_table_stmt }
 }
-antlr_rust::type_id!{Create_table_stmtContextExt<'a>}
+antlr_rust::tid!{Create_table_stmtContextExt<'a>}
 
 impl<'input> Create_table_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Create_table_stmtContextAll<'input>> {
@@ -2913,8 +2966,8 @@ where
 		let mut _localctx = Create_table_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 22, RULE_create_table_stmt);
         let mut _localctx: Rc<Create_table_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
@@ -3074,7 +3127,8 @@ where
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -3103,10 +3157,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Create_trigger_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Create_trigger_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_create_trigger_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_create_trigger_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_create_trigger_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Create_trigger_stmtContextExt<'input>{
@@ -3115,7 +3172,7 @@ impl<'input> CustomRuleContext<'input> for Create_trigger_stmtContextExt<'input>
 	fn get_rule_index(&self) -> usize { RULE_create_trigger_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_create_trigger_stmt }
 }
-antlr_rust::type_id!{Create_trigger_stmtContextExt<'a>}
+antlr_rust::tid!{Create_trigger_stmtContextExt<'a>}
 
 impl<'input> Create_trigger_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Create_trigger_stmtContextAll<'input>> {
@@ -3327,8 +3384,8 @@ where
 		let mut _localctx = Create_trigger_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 24, RULE_create_trigger_stmt);
         let mut _localctx: Rc<Create_trigger_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -3617,13 +3674,14 @@ where
 				recog.base.set_state(468); 
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
-				if !(_la==K_DELETE || ((((_la - 88)) & !0x3f) == 0 && ((1usize << (_la - 88)) & ((1usize << (K_INSERT - 88)) | (1usize << (K_REPLACE - 88)) | (1usize << (K_SELECT - 88)) | (1usize << (K_UPDATE - 88)) | (1usize << (K_VALUES - 88)) | (1usize << (K_WITH - 88)))) != 0)) {break}
+				if !(_la==K_DELETE || _la==K_INSERT || ((((_la - 122)) & !0x3f) == 0 && ((1usize << (_la - 122)) & ((1usize << (K_REPLACE - 122)) | (1usize << (K_SELECT - 122)) | (1usize << (K_UPDATE - 122)) | (1usize << (K_VALUES - 122)) | (1usize << (K_WITH - 122)))) != 0)) {break}
 			}
 			recog.base.set_state(470);
 			recog.base.match_token(K_END,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -3652,10 +3710,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Create_view_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Create_view_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_create_view_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_create_view_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_create_view_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Create_view_stmtContextExt<'input>{
@@ -3664,7 +3725,7 @@ impl<'input> CustomRuleContext<'input> for Create_view_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_create_view_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_create_view_stmt }
 }
-antlr_rust::type_id!{Create_view_stmtContextExt<'a>}
+antlr_rust::tid!{Create_view_stmtContextExt<'a>}
 
 impl<'input> Create_view_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Create_view_stmtContextAll<'input>> {
@@ -3749,8 +3810,8 @@ where
 		let mut _localctx = Create_view_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 26, RULE_create_view_stmt);
         let mut _localctx: Rc<Create_view_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -3828,7 +3889,8 @@ where
 			recog.select_stmt()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -3857,10 +3919,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Create_virtual_table_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Create_virtual_table_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_create_virtual_table_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_create_virtual_table_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_create_virtual_table_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Create_virtual_table_stmtContextExt<'input>{
@@ -3869,7 +3934,7 @@ impl<'input> CustomRuleContext<'input> for Create_virtual_table_stmtContextExt<'
 	fn get_rule_index(&self) -> usize { RULE_create_virtual_table_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_create_virtual_table_stmt }
 }
-antlr_rust::type_id!{Create_virtual_table_stmtContextExt<'a>}
+antlr_rust::tid!{Create_virtual_table_stmtContextExt<'a>}
 
 impl<'input> Create_virtual_table_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Create_virtual_table_stmtContextAll<'input>> {
@@ -3974,8 +4039,8 @@ where
 		let mut _localctx = Create_virtual_table_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 28, RULE_create_virtual_table_stmt);
         let mut _localctx: Rc<Create_virtual_table_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4074,7 +4139,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4103,10 +4169,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Delete_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Delete_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_delete_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_delete_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_delete_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Delete_stmtContextExt<'input>{
@@ -4115,7 +4184,7 @@ impl<'input> CustomRuleContext<'input> for Delete_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_delete_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_delete_stmt }
 }
-antlr_rust::type_id!{Delete_stmtContextExt<'a>}
+antlr_rust::tid!{Delete_stmtContextExt<'a>}
 
 impl<'input> Delete_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Delete_stmtContextAll<'input>> {
@@ -4170,8 +4239,8 @@ where
 		let mut _localctx = Delete_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 30, RULE_delete_stmt);
         let mut _localctx: Rc<Delete_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4214,7 +4283,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4243,10 +4313,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Delete_stmt_limitedContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Delete_stmt_limitedContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_delete_stmt_limited(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_delete_stmt_limited(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_delete_stmt_limited(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Delete_stmt_limitedContextExt<'input>{
@@ -4255,7 +4328,7 @@ impl<'input> CustomRuleContext<'input> for Delete_stmt_limitedContextExt<'input>
 	fn get_rule_index(&self) -> usize { RULE_delete_stmt_limited }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_delete_stmt_limited }
 }
-antlr_rust::type_id!{Delete_stmt_limitedContextExt<'a>}
+antlr_rust::tid!{Delete_stmt_limitedContextExt<'a>}
 
 impl<'input> Delete_stmt_limitedContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Delete_stmt_limitedContextAll<'input>> {
@@ -4348,8 +4421,8 @@ where
 		let mut _localctx = Delete_stmt_limitedContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 32, RULE_delete_stmt_limited);
         let mut _localctx: Rc<Delete_stmt_limitedContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4467,7 +4540,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4496,10 +4570,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Detach_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Detach_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_detach_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_detach_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_detach_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Detach_stmtContextExt<'input>{
@@ -4508,7 +4585,7 @@ impl<'input> CustomRuleContext<'input> for Detach_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_detach_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_detach_stmt }
 }
-antlr_rust::type_id!{Detach_stmtContextExt<'a>}
+antlr_rust::tid!{Detach_stmtContextExt<'a>}
 
 impl<'input> Detach_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Detach_stmtContextAll<'input>> {
@@ -4552,7 +4629,7 @@ where
 		let mut _localctx = Detach_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 34, RULE_detach_stmt);
         let mut _localctx: Rc<Detach_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4578,7 +4655,8 @@ where
 			recog.database_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4607,10 +4685,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Drop_index_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Drop_index_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_drop_index_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_drop_index_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_drop_index_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Drop_index_stmtContextExt<'input>{
@@ -4619,7 +4700,7 @@ impl<'input> CustomRuleContext<'input> for Drop_index_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_drop_index_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_drop_index_stmt }
 }
-antlr_rust::type_id!{Drop_index_stmtContextExt<'a>}
+antlr_rust::tid!{Drop_index_stmtContextExt<'a>}
 
 impl<'input> Drop_index_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Drop_index_stmtContextAll<'input>> {
@@ -4681,7 +4762,7 @@ where
 		let mut _localctx = Drop_index_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 36, RULE_drop_index_stmt);
         let mut _localctx: Rc<Drop_index_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4730,7 +4811,8 @@ where
 			recog.index_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4759,10 +4841,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Drop_table_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Drop_table_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_drop_table_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_drop_table_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_drop_table_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Drop_table_stmtContextExt<'input>{
@@ -4771,7 +4856,7 @@ impl<'input> CustomRuleContext<'input> for Drop_table_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_drop_table_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_drop_table_stmt }
 }
-antlr_rust::type_id!{Drop_table_stmtContextExt<'a>}
+antlr_rust::tid!{Drop_table_stmtContextExt<'a>}
 
 impl<'input> Drop_table_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Drop_table_stmtContextAll<'input>> {
@@ -4833,7 +4918,7 @@ where
 		let mut _localctx = Drop_table_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 38, RULE_drop_table_stmt);
         let mut _localctx: Rc<Drop_table_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -4882,7 +4967,8 @@ where
 			recog.table_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -4911,10 +4997,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Drop_trigger_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Drop_trigger_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_drop_trigger_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_drop_trigger_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_drop_trigger_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Drop_trigger_stmtContextExt<'input>{
@@ -4923,7 +5012,7 @@ impl<'input> CustomRuleContext<'input> for Drop_trigger_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_drop_trigger_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_drop_trigger_stmt }
 }
-antlr_rust::type_id!{Drop_trigger_stmtContextExt<'a>}
+antlr_rust::tid!{Drop_trigger_stmtContextExt<'a>}
 
 impl<'input> Drop_trigger_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Drop_trigger_stmtContextAll<'input>> {
@@ -4985,7 +5074,7 @@ where
 		let mut _localctx = Drop_trigger_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 40, RULE_drop_trigger_stmt);
         let mut _localctx: Rc<Drop_trigger_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -5034,7 +5123,8 @@ where
 			recog.trigger_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -5063,10 +5153,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Drop_view_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Drop_view_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_drop_view_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_drop_view_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_drop_view_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Drop_view_stmtContextExt<'input>{
@@ -5075,7 +5168,7 @@ impl<'input> CustomRuleContext<'input> for Drop_view_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_drop_view_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_drop_view_stmt }
 }
-antlr_rust::type_id!{Drop_view_stmtContextExt<'a>}
+antlr_rust::tid!{Drop_view_stmtContextExt<'a>}
 
 impl<'input> Drop_view_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Drop_view_stmtContextAll<'input>> {
@@ -5137,7 +5230,7 @@ where
 		let mut _localctx = Drop_view_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 42, RULE_drop_view_stmt);
         let mut _localctx: Rc<Drop_view_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -5186,7 +5279,8 @@ where
 			recog.view_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -5215,10 +5309,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Factored_select_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Factored_select_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_factored_select_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_factored_select_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_factored_select_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Factored_select_stmtContextExt<'input>{
@@ -5227,7 +5324,7 @@ impl<'input> CustomRuleContext<'input> for Factored_select_stmtContextExt<'input
 	fn get_rule_index(&self) -> usize { RULE_factored_select_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_factored_select_stmt }
 }
-antlr_rust::type_id!{Factored_select_stmtContextExt<'a>}
+antlr_rust::tid!{Factored_select_stmtContextExt<'a>}
 
 impl<'input> Factored_select_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Factored_select_stmtContextAll<'input>> {
@@ -5314,8 +5411,8 @@ where
 		let mut _localctx = Factored_select_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 44, RULE_factored_select_stmt);
         let mut _localctx: Rc<Factored_select_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -5432,7 +5529,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -5461,10 +5559,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Insert_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Insert_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_insert_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_insert_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_insert_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Insert_stmtContextExt<'input>{
@@ -5473,7 +5574,7 @@ impl<'input> CustomRuleContext<'input> for Insert_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_insert_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_insert_stmt }
 }
-antlr_rust::type_id!{Insert_stmtContextExt<'a>}
+antlr_rust::tid!{Insert_stmtContextExt<'a>}
 
 impl<'input> Insert_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Insert_stmtContextAll<'input>> {
@@ -5610,8 +5711,8 @@ where
 		let mut _localctx = Insert_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 46, RULE_insert_stmt);
         let mut _localctx: Rc<Insert_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -5887,7 +5988,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -5916,10 +6018,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Pragma_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Pragma_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_pragma_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_pragma_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_pragma_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Pragma_stmtContextExt<'input>{
@@ -5928,7 +6033,7 @@ impl<'input> CustomRuleContext<'input> for Pragma_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_pragma_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_pragma_stmt }
 }
-antlr_rust::type_id!{Pragma_stmtContextExt<'a>}
+antlr_rust::tid!{Pragma_stmtContextExt<'a>}
 
 impl<'input> Pragma_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Pragma_stmtContextAll<'input>> {
@@ -5993,7 +6098,7 @@ where
 		let mut _localctx = Pragma_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 48, RULE_pragma_stmt);
         let mut _localctx: Rc<Pragma_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6064,7 +6169,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6093,10 +6199,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Reindex_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Reindex_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_reindex_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_reindex_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_reindex_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Reindex_stmtContextExt<'input>{
@@ -6105,7 +6214,7 @@ impl<'input> CustomRuleContext<'input> for Reindex_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_reindex_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_reindex_stmt }
 }
-antlr_rust::type_id!{Reindex_stmtContextExt<'a>}
+antlr_rust::tid!{Reindex_stmtContextExt<'a>}
 
 impl<'input> Reindex_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Reindex_stmtContextAll<'input>> {
@@ -6158,7 +6267,7 @@ where
 		let mut _localctx = Reindex_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 50, RULE_reindex_stmt);
         let mut _localctx: Rc<Reindex_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6226,7 +6335,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6255,10 +6365,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Release_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Release_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_release_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_release_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_release_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Release_stmtContextExt<'input>{
@@ -6267,7 +6380,7 @@ impl<'input> CustomRuleContext<'input> for Release_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_release_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_release_stmt }
 }
-antlr_rust::type_id!{Release_stmtContextExt<'a>}
+antlr_rust::tid!{Release_stmtContextExt<'a>}
 
 impl<'input> Release_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Release_stmtContextAll<'input>> {
@@ -6311,7 +6424,7 @@ where
 		let mut _localctx = Release_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 52, RULE_release_stmt);
         let mut _localctx: Rc<Release_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6337,7 +6450,8 @@ where
 			recog.savepoint_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6366,10 +6480,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Rollback_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Rollback_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_rollback_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_rollback_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_rollback_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Rollback_stmtContextExt<'input>{
@@ -6378,7 +6495,7 @@ impl<'input> CustomRuleContext<'input> for Rollback_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_rollback_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_rollback_stmt }
 }
-antlr_rust::type_id!{Rollback_stmtContextExt<'a>}
+antlr_rust::tid!{Rollback_stmtContextExt<'a>}
 
 impl<'input> Rollback_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Rollback_stmtContextAll<'input>> {
@@ -6435,8 +6552,8 @@ where
 		let mut _localctx = Rollback_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 54, RULE_rollback_stmt);
         let mut _localctx: Rc<Rollback_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6498,7 +6615,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6527,10 +6645,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Savepoint_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Savepoint_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_savepoint_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_savepoint_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_savepoint_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Savepoint_stmtContextExt<'input>{
@@ -6539,7 +6660,7 @@ impl<'input> CustomRuleContext<'input> for Savepoint_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_savepoint_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_savepoint_stmt }
 }
-antlr_rust::type_id!{Savepoint_stmtContextExt<'a>}
+antlr_rust::tid!{Savepoint_stmtContextExt<'a>}
 
 impl<'input> Savepoint_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Savepoint_stmtContextAll<'input>> {
@@ -6578,7 +6699,7 @@ where
 		let mut _localctx = Savepoint_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 56, RULE_savepoint_stmt);
         let mut _localctx: Rc<Savepoint_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6591,7 +6712,8 @@ where
 			recog.savepoint_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6620,10 +6742,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Simple_select_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Simple_select_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_simple_select_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_simple_select_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_simple_select_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Simple_select_stmtContextExt<'input>{
@@ -6632,7 +6757,7 @@ impl<'input> CustomRuleContext<'input> for Simple_select_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_simple_select_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_simple_select_stmt }
 }
-antlr_rust::type_id!{Simple_select_stmtContextExt<'a>}
+antlr_rust::tid!{Simple_select_stmtContextExt<'a>}
 
 impl<'input> Simple_select_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Simple_select_stmtContextAll<'input>> {
@@ -6710,8 +6835,8 @@ where
 		let mut _localctx = Simple_select_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 58, RULE_simple_select_stmt);
         let mut _localctx: Rc<Simple_select_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -6808,7 +6933,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -6837,10 +6963,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Select_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Select_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_select_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_select_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_select_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Select_stmtContextExt<'input>{
@@ -6849,7 +6978,7 @@ impl<'input> CustomRuleContext<'input> for Select_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_select_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_select_stmt }
 }
-antlr_rust::type_id!{Select_stmtContextExt<'a>}
+antlr_rust::tid!{Select_stmtContextExt<'a>}
 
 impl<'input> Select_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Select_stmtContextAll<'input>> {
@@ -6936,8 +7065,8 @@ where
 		let mut _localctx = Select_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 60, RULE_select_stmt);
         let mut _localctx: Rc<Select_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -7054,7 +7183,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -7083,10 +7213,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Select_or_valuesContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Select_or_valuesContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_select_or_values(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_select_or_values(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_select_or_values(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Select_or_valuesContextExt<'input>{
@@ -7095,7 +7228,7 @@ impl<'input> CustomRuleContext<'input> for Select_or_valuesContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_select_or_values }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_select_or_values }
 }
-antlr_rust::type_id!{Select_or_valuesContextExt<'a>}
+antlr_rust::tid!{Select_or_valuesContextExt<'a>}
 
 impl<'input> Select_or_valuesContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Select_or_valuesContextAll<'input>> {
@@ -7219,8 +7352,8 @@ where
 		let mut _localctx = Select_or_valuesContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 62, RULE_select_or_values);
         let mut _localctx: Rc<Select_or_valuesContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(906);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -7486,7 +7619,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -7515,10 +7649,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Update_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Update_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_update_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_update_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_update_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Update_stmtContextExt<'input>{
@@ -7527,7 +7664,7 @@ impl<'input> CustomRuleContext<'input> for Update_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_update_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_update_stmt }
 }
-antlr_rust::type_id!{Update_stmtContextExt<'a>}
+antlr_rust::tid!{Update_stmtContextExt<'a>}
 
 impl<'input> Update_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Update_stmtContextAll<'input>> {
@@ -7639,8 +7776,8 @@ where
 		let mut _localctx = Update_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 64, RULE_update_stmt);
         let mut _localctx: Rc<Update_stmtContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -7780,7 +7917,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -7809,10 +7947,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Update_stmt_limitedContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Update_stmt_limitedContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_update_stmt_limited(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_update_stmt_limited(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_update_stmt_limited(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Update_stmt_limitedContextExt<'input>{
@@ -7821,7 +7962,7 @@ impl<'input> CustomRuleContext<'input> for Update_stmt_limitedContextExt<'input>
 	fn get_rule_index(&self) -> usize { RULE_update_stmt_limited }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_update_stmt_limited }
 }
-antlr_rust::type_id!{Update_stmt_limitedContextExt<'a>}
+antlr_rust::tid!{Update_stmt_limitedContextExt<'a>}
 
 impl<'input> Update_stmt_limitedContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Update_stmt_limitedContextAll<'input>> {
@@ -7959,8 +8100,8 @@ where
 		let mut _localctx = Update_stmt_limitedContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 66, RULE_update_stmt_limited);
         let mut _localctx: Rc<Update_stmt_limitedContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -8175,7 +8316,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -8204,10 +8346,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Vacuum_stmtContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Vacuum_stmtContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_vacuum_stmt(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_vacuum_stmt(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_vacuum_stmt(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Vacuum_stmtContextExt<'input>{
@@ -8216,7 +8361,7 @@ impl<'input> CustomRuleContext<'input> for Vacuum_stmtContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_vacuum_stmt }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_vacuum_stmt }
 }
-antlr_rust::type_id!{Vacuum_stmtContextExt<'a>}
+antlr_rust::tid!{Vacuum_stmtContextExt<'a>}
 
 impl<'input> Vacuum_stmtContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Vacuum_stmtContextAll<'input>> {
@@ -8252,7 +8397,7 @@ where
 		let mut _localctx = Vacuum_stmtContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 68, RULE_vacuum_stmt);
         let mut _localctx: Rc<Vacuum_stmtContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -8261,7 +8406,8 @@ where
 			recog.base.match_token(K_VACUUM,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -8290,10 +8436,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Column_defContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Column_defContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_column_def(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_column_def(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_column_def(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Column_defContextExt<'input>{
@@ -8302,7 +8451,7 @@ impl<'input> CustomRuleContext<'input> for Column_defContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_column_def }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_column_def }
 }
-antlr_rust::type_id!{Column_defContextExt<'a>}
+antlr_rust::tid!{Column_defContextExt<'a>}
 
 impl<'input> Column_defContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Column_defContextAll<'input>> {
@@ -8345,8 +8494,8 @@ where
 		let mut _localctx = Column_defContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 70, RULE_column_def);
         let mut _localctx: Rc<Column_defContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -8372,7 +8521,7 @@ where
 			recog.base.set_state(1007);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			while (((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << K_CHECK) | (1usize << K_COLLATE) | (1usize << K_CONSTRAINT) | (1usize << K_DEFAULT))) != 0) || ((((_la - 102)) & !0x3f) == 0 && ((1usize << (_la - 102)) & ((1usize << (K_NOT - 102)) | (1usize << (K_NULL - 102)) | (1usize << (K_PRIMARY - 102)) | (1usize << (K_REFERENCES - 102)) | (1usize << (K_UNIQUE - 102)))) != 0) {
+			while ((((_la - 44)) & !0x3f) == 0 && ((1usize << (_la - 44)) & ((1usize << (K_CHECK - 44)) | (1usize << (K_COLLATE - 44)) | (1usize << (K_CONSTRAINT - 44)) | (1usize << (K_DEFAULT - 44)))) != 0) || ((((_la - 102)) & !0x3f) == 0 && ((1usize << (_la - 102)) & ((1usize << (K_NOT - 102)) | (1usize << (K_NULL - 102)) | (1usize << (K_PRIMARY - 102)) | (1usize << (K_REFERENCES - 102)))) != 0) || _la==K_UNIQUE {
 				{
 				{
 				/*InvokeRule column_constraint*/
@@ -8386,7 +8535,8 @@ where
 				_la = recog.base.input.la(1);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -8415,10 +8565,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Type_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Type_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_type_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_type_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_type_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Type_nameContextExt<'input>{
@@ -8427,7 +8580,7 @@ impl<'input> CustomRuleContext<'input> for Type_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_type_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_type_name }
 }
-antlr_rust::type_id!{Type_nameContextExt<'a>}
+antlr_rust::tid!{Type_nameContextExt<'a>}
 
 impl<'input> Type_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Type_nameContextAll<'input>> {
@@ -8485,7 +8638,7 @@ where
 		let mut _localctx = Type_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 72, RULE_type_name);
         let mut _localctx: Rc<Type_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
@@ -8556,7 +8709,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -8585,10 +8739,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Column_constraintContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Column_constraintContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_column_constraint(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_column_constraint(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_column_constraint(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Column_constraintContextExt<'input>{
@@ -8597,7 +8754,7 @@ impl<'input> CustomRuleContext<'input> for Column_constraintContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_column_constraint }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_column_constraint }
 }
-antlr_rust::type_id!{Column_constraintContextExt<'a>}
+antlr_rust::tid!{Column_constraintContextExt<'a>}
 
 impl<'input> Column_constraintContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Column_constraintContextAll<'input>> {
@@ -8719,8 +8876,8 @@ where
 		let mut _localctx = Column_constraintContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 74, RULE_column_constraint);
         let mut _localctx: Rc<Column_constraintContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -8918,7 +9075,8 @@ where
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -8947,10 +9105,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Conflict_clauseContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Conflict_clauseContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_conflict_clause(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_conflict_clause(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_conflict_clause(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Conflict_clauseContextExt<'input>{
@@ -8959,7 +9120,7 @@ impl<'input> CustomRuleContext<'input> for Conflict_clauseContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_conflict_clause }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_conflict_clause }
 }
-antlr_rust::type_id!{Conflict_clauseContextExt<'a>}
+antlr_rust::tid!{Conflict_clauseContextExt<'a>}
 
 impl<'input> Conflict_clauseContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Conflict_clauseContextAll<'input>> {
@@ -9025,8 +9186,8 @@ where
 		let mut _localctx = Conflict_clauseContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 76, RULE_conflict_clause);
         let mut _localctx: Rc<Conflict_clauseContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -9044,7 +9205,7 @@ where
 
 				recog.base.set_state(1068);
 				_la = recog.base.input.la(1);
-				if { !(_la==K_ABORT || ((((_la - 72)) & !0x3f) == 0 && ((1usize << (_la - 72)) & ((1usize << (K_FAIL - 72)) | (1usize << (K_IGNORE - 72)) | (1usize << (K_REPLACE - 72)) | (1usize << (K_ROLLBACK - 72)))) != 0)) } {
+				if { !(_la==K_ABORT || _la==K_FAIL || _la==K_IGNORE || _la==K_REPLACE || _la==K_ROLLBACK) } {
 					recog.err_handler.recover_inline(&mut recog.base)?;
 
 				}
@@ -9057,7 +9218,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -9086,10 +9248,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for ExprContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for ExprContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_expr(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_expr(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_expr(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for ExprContextExt<'input>{
@@ -9098,7 +9263,7 @@ impl<'input> CustomRuleContext<'input> for ExprContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_expr }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_expr }
 }
-antlr_rust::type_id!{ExprContextExt<'a>}
+antlr_rust::tid!{ExprContextExt<'a>}
 
 impl<'input> ExprContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<ExprContextAll<'input>> {
@@ -9424,8 +9589,8 @@ where
 	    let mut _localctx: Rc<ExprContextAll> = _localctx;
         let mut _prevctx = _localctx.clone();
 		let _startState = 78;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 			let mut _alt: isize;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -10194,7 +10359,7 @@ where
 
 							recog.base.set_state(1221);
 							_la = recog.base.input.la(1);
-							if { !(((((_la - 77)) & !0x3f) == 0 && ((1usize << (_la - 77)) & ((1usize << (K_GLOB - 77)) | (1usize << (K_LIKE - 77)) | (1usize << (K_MATCH - 77)) | (1usize << (K_REGEXP - 77)))) != 0)) } {
+							if { !(((((_la - 77)) & !0x3f) == 0 && ((1usize << (_la - 77)) & ((1usize << (K_GLOB - 77)) | (1usize << (K_LIKE - 77)) | (1usize << (K_MATCH - 77)))) != 0) || _la==K_REGEXP) } {
 								recog.err_handler.recover_inline(&mut recog.base)?;
 
 							}
@@ -10284,7 +10449,8 @@ where
 				_alt = recog.interpreter.adaptive_predict(169,&mut recog.base)?;
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_) => {},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -10312,10 +10478,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Foreign_key_clauseContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Foreign_key_clauseContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_foreign_key_clause(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_foreign_key_clause(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_foreign_key_clause(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Foreign_key_clauseContextExt<'input>{
@@ -10324,7 +10493,7 @@ impl<'input> CustomRuleContext<'input> for Foreign_key_clauseContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_foreign_key_clause }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_foreign_key_clause }
 }
-antlr_rust::type_id!{Foreign_key_clauseContextExt<'a>}
+antlr_rust::tid!{Foreign_key_clauseContextExt<'a>}
 
 impl<'input> Foreign_key_clauseContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Foreign_key_clauseContextAll<'input>> {
@@ -10518,8 +10687,8 @@ where
 		let mut _localctx = Foreign_key_clauseContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 80, RULE_foreign_key_clause);
         let mut _localctx: Rc<Foreign_key_clauseContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -10724,7 +10893,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -10753,10 +10923,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Raise_functionContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Raise_functionContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_raise_function(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_raise_function(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_raise_function(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Raise_functionContextExt<'input>{
@@ -10765,7 +10938,7 @@ impl<'input> CustomRuleContext<'input> for Raise_functionContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_raise_function }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_raise_function }
 }
-antlr_rust::type_id!{Raise_functionContextExt<'a>}
+antlr_rust::tid!{Raise_functionContextExt<'a>}
 
 impl<'input> Raise_functionContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Raise_functionContextAll<'input>> {
@@ -10839,8 +11012,8 @@ where
 		let mut _localctx = Raise_functionContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 82, RULE_raise_function);
         let mut _localctx: Rc<Raise_functionContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -10893,7 +11066,8 @@ where
 			recog.base.match_token(CLOSE_PAR,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -10922,10 +11096,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Indexed_columnContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Indexed_columnContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_indexed_column(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_indexed_column(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_indexed_column(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Indexed_columnContextExt<'input>{
@@ -10934,7 +11111,7 @@ impl<'input> CustomRuleContext<'input> for Indexed_columnContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_indexed_column }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_indexed_column }
 }
-antlr_rust::type_id!{Indexed_columnContextExt<'a>}
+antlr_rust::tid!{Indexed_columnContextExt<'a>}
 
 impl<'input> Indexed_columnContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Indexed_columnContextAll<'input>> {
@@ -10986,8 +11163,8 @@ where
 		let mut _localctx = Indexed_columnContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 84, RULE_indexed_column);
         let mut _localctx: Rc<Indexed_columnContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -11031,7 +11208,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11060,10 +11238,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_constraintContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_constraintContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_constraint(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_constraint(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_constraint(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_constraintContextExt<'input>{
@@ -11072,7 +11253,7 @@ impl<'input> CustomRuleContext<'input> for Table_constraintContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_table_constraint }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_constraint }
 }
-antlr_rust::type_id!{Table_constraintContextExt<'a>}
+antlr_rust::tid!{Table_constraintContextExt<'a>}
 
 impl<'input> Table_constraintContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_constraintContextAll<'input>> {
@@ -11176,8 +11357,8 @@ where
 		let mut _localctx = Table_constraintContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 86, RULE_table_constraint);
         let mut _localctx: Rc<Table_constraintContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -11332,7 +11513,8 @@ where
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11361,10 +11543,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for With_clauseContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for With_clauseContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_with_clause(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_with_clause(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_with_clause(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for With_clauseContextExt<'input>{
@@ -11373,7 +11558,7 @@ impl<'input> CustomRuleContext<'input> for With_clauseContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_with_clause }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_with_clause }
 }
-antlr_rust::type_id!{With_clauseContextExt<'a>}
+antlr_rust::tid!{With_clauseContextExt<'a>}
 
 impl<'input> With_clauseContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<With_clauseContextAll<'input>> {
@@ -11429,8 +11614,8 @@ where
 		let mut _localctx = With_clauseContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 88, RULE_with_clause);
         let mut _localctx: Rc<With_clauseContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -11475,7 +11660,8 @@ where
 				_la = recog.base.input.la(1);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11504,10 +11690,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Qualified_table_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Qualified_table_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_qualified_table_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_qualified_table_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_qualified_table_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Qualified_table_nameContextExt<'input>{
@@ -11516,7 +11705,7 @@ impl<'input> CustomRuleContext<'input> for Qualified_table_nameContextExt<'input
 	fn get_rule_index(&self) -> usize { RULE_qualified_table_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_qualified_table_name }
 }
-antlr_rust::type_id!{Qualified_table_nameContextExt<'a>}
+antlr_rust::tid!{Qualified_table_nameContextExt<'a>}
 
 impl<'input> Qualified_table_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Qualified_table_nameContextAll<'input>> {
@@ -11576,7 +11765,7 @@ where
 		let mut _localctx = Qualified_table_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 90, RULE_qualified_table_name);
         let mut _localctx: Rc<Qualified_table_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -11644,7 +11833,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11673,10 +11863,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Ordering_termContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Ordering_termContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_ordering_term(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_ordering_term(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_ordering_term(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Ordering_termContextExt<'input>{
@@ -11685,7 +11878,7 @@ impl<'input> CustomRuleContext<'input> for Ordering_termContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_ordering_term }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_ordering_term }
 }
-antlr_rust::type_id!{Ordering_termContextExt<'a>}
+antlr_rust::tid!{Ordering_termContextExt<'a>}
 
 impl<'input> Ordering_termContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Ordering_termContextAll<'input>> {
@@ -11737,8 +11930,8 @@ where
 		let mut _localctx = Ordering_termContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 92, RULE_ordering_term);
         let mut _localctx: Rc<Ordering_termContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -11782,7 +11975,8 @@ where
 			}
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11811,10 +12005,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Pragma_valueContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Pragma_valueContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_pragma_value(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_pragma_value(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_pragma_value(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Pragma_valueContextExt<'input>{
@@ -11823,7 +12020,7 @@ impl<'input> CustomRuleContext<'input> for Pragma_valueContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_pragma_value }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_pragma_value }
 }
-antlr_rust::type_id!{Pragma_valueContextExt<'a>}
+antlr_rust::tid!{Pragma_valueContextExt<'a>}
 
 impl<'input> Pragma_valueContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Pragma_valueContextAll<'input>> {
@@ -11865,7 +12062,7 @@ where
 		let mut _localctx = Pragma_valueContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 94, RULE_pragma_value);
         let mut _localctx: Rc<Pragma_valueContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1383);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -11904,7 +12101,8 @@ where
 
 				_ => {}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -11933,10 +12131,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Common_table_expressionContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Common_table_expressionContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_common_table_expression(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_common_table_expression(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_common_table_expression(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Common_table_expressionContextExt<'input>{
@@ -11945,7 +12146,7 @@ impl<'input> CustomRuleContext<'input> for Common_table_expressionContextExt<'in
 	fn get_rule_index(&self) -> usize { RULE_common_table_expression }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_common_table_expression }
 }
-antlr_rust::type_id!{Common_table_expressionContextExt<'a>}
+antlr_rust::tid!{Common_table_expressionContextExt<'a>}
 
 impl<'input> Common_table_expressionContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Common_table_expressionContextAll<'input>> {
@@ -12020,8 +12221,8 @@ where
 		let mut _localctx = Common_table_expressionContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 96, RULE_common_table_expression);
         let mut _localctx: Rc<Common_table_expressionContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -12081,7 +12282,8 @@ where
 			recog.base.match_token(CLOSE_PAR,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -12110,10 +12312,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Result_columnContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Result_columnContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_result_column(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_result_column(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_result_column(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Result_columnContextExt<'input>{
@@ -12122,7 +12327,7 @@ impl<'input> CustomRuleContext<'input> for Result_columnContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_result_column }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_result_column }
 }
-antlr_rust::type_id!{Result_columnContextExt<'a>}
+antlr_rust::tid!{Result_columnContextExt<'a>}
 
 impl<'input> Result_columnContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Result_columnContextAll<'input>> {
@@ -12177,8 +12382,8 @@ where
 		let mut _localctx = Result_columnContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 98, RULE_result_column);
         let mut _localctx: Rc<Result_columnContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1416);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -12246,7 +12451,8 @@ where
 
 				_ => {}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -12275,10 +12481,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_or_subqueryContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_or_subqueryContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_or_subquery(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_or_subquery(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_or_subquery(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_or_subqueryContextExt<'input>{
@@ -12287,7 +12496,7 @@ impl<'input> CustomRuleContext<'input> for Table_or_subqueryContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_table_or_subquery }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_or_subquery }
 }
-antlr_rust::type_id!{Table_or_subqueryContextExt<'a>}
+antlr_rust::tid!{Table_or_subqueryContextExt<'a>}
 
 impl<'input> Table_or_subqueryContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_or_subqueryContextAll<'input>> {
@@ -12395,8 +12604,8 @@ where
 		let mut _localctx = Table_or_subqueryContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 100, RULE_table_or_subquery);
         let mut _localctx: Rc<Table_or_subqueryContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1484);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -12526,7 +12735,7 @@ where
 					recog.base.set_state(1452);
 					recog.err_handler.sync(&mut recog.base)?;
 					_la = recog.base.input.la(1);
-					if (((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << OPEN_PAR) | (1usize << PLUS) | (1usize << MINUS) | (1usize << TILDE) | (1usize << K_ABORT) | (1usize << K_ACTION) | (1usize << K_ADD) | (1usize << K_AFTER) | (1usize << K_ALL) | (1usize << K_ALTER) | (1usize << K_ANALYZE) | (1usize << K_AND) | (1usize << K_AS) | (1usize << K_ASC) | (1usize << K_ATTACH) | (1usize << K_AUTOINCREMENT) | (1usize << K_BEFORE) | (1usize << K_BEGIN) | (1usize << K_BETWEEN) | (1usize << K_BY) | (1usize << K_CASCADE) | (1usize << K_CASE) | (1usize << K_CAST) | (1usize << K_CHECK) | (1usize << K_COLLATE) | (1usize << K_COLUMN) | (1usize << K_COMMIT) | (1usize << K_CONFLICT) | (1usize << K_CONSTRAINT) | (1usize << K_CREATE) | (1usize << K_CROSS) | (1usize << K_CURRENT_DATE) | (1usize << K_CURRENT_TIME) | (1usize << K_CURRENT_TIMESTAMP) | (1usize << K_DATABASE) | (1usize << K_DEFAULT) | (1usize << K_DEFERRABLE) | (1usize << K_DEFERRED) | (1usize << K_DELETE) | (1usize << K_DESC) | (1usize << K_DETACH) | (1usize << K_DISTINCT) | (1usize << K_DROP))) != 0) || ((((_la - 64)) & !0x3f) == 0 && ((1usize << (_la - 64)) & ((1usize << (K_EACH - 64)) | (1usize << (K_ELSE - 64)) | (1usize << (K_END - 64)) | (1usize << (K_ESCAPE - 64)) | (1usize << (K_EXCEPT - 64)) | (1usize << (K_EXCLUSIVE - 64)) | (1usize << (K_EXISTS - 64)) | (1usize << (K_EXPLAIN - 64)) | (1usize << (K_FAIL - 64)) | (1usize << (K_FOR - 64)) | (1usize << (K_FOREIGN - 64)) | (1usize << (K_FROM - 64)) | (1usize << (K_FULL - 64)) | (1usize << (K_GLOB - 64)) | (1usize << (K_GROUP - 64)) | (1usize << (K_HAVING - 64)) | (1usize << (K_IF - 64)) | (1usize << (K_IGNORE - 64)) | (1usize << (K_IMMEDIATE - 64)) | (1usize << (K_IN - 64)) | (1usize << (K_INDEX - 64)) | (1usize << (K_INDEXED - 64)) | (1usize << (K_INITIALLY - 64)) | (1usize << (K_INNER - 64)) | (1usize << (K_INSERT - 64)) | (1usize << (K_INSTEAD - 64)) | (1usize << (K_INTERSECT - 64)) | (1usize << (K_INTO - 64)) | (1usize << (K_IS - 64)) | (1usize << (K_ISNULL - 64)) | (1usize << (K_JOIN - 64)) | (1usize << (K_KEY - 64)) | (1usize << (K_LEFT - 64)) | (1usize << (K_LIKE - 64)) | (1usize << (K_LIMIT - 64)) | (1usize << (K_MATCH - 64)) | (1usize << (K_NATURAL - 64)) | (1usize << (K_NO - 64)) | (1usize << (K_NOT - 64)) | (1usize << (K_NOTNULL - 64)) | (1usize << (K_NULL - 64)) | (1usize << (K_OF - 64)) | (1usize << (K_OFFSET - 64)) | (1usize << (K_ON - 64)) | (1usize << (K_OR - 64)) | (1usize << (K_ORDER - 64)) | (1usize << (K_OUTER - 64)) | (1usize << (K_PLAN - 64)) | (1usize << (K_PRAGMA - 64)) | (1usize << (K_PRIMARY - 64)) | (1usize << (K_QUERY - 64)) | (1usize << (K_RAISE - 64)) | (1usize << (K_RECURSIVE - 64)) | (1usize << (K_REFERENCES - 64)) | (1usize << (K_REGEXP - 64)) | (1usize << (K_REINDEX - 64)) | (1usize << (K_RELEASE - 64)) | (1usize << (K_RENAME - 64)) | (1usize << (K_REPLACE - 64)) | (1usize << (K_RESTRICT - 64)) | (1usize << (K_RIGHT - 64)) | (1usize << (K_ROLLBACK - 64)) | (1usize << (K_ROW - 64)) | (1usize << (K_SAVEPOINT - 64)))) != 0) || ((((_la - 128)) & !0x3f) == 0 && ((1usize << (_la - 128)) & ((1usize << (K_SELECT - 128)) | (1usize << (K_SET - 128)) | (1usize << (K_TABLE - 128)) | (1usize << (K_TEMP - 128)) | (1usize << (K_TEMPORARY - 128)) | (1usize << (K_THEN - 128)) | (1usize << (K_TO - 128)) | (1usize << (K_TRANSACTION - 128)) | (1usize << (K_TRIGGER - 128)) | (1usize << (K_UNION - 128)) | (1usize << (K_UNIQUE - 128)) | (1usize << (K_UPDATE - 128)) | (1usize << (K_USING - 128)) | (1usize << (K_VACUUM - 128)) | (1usize << (K_VALUES - 128)) | (1usize << (K_VIEW - 128)) | (1usize << (K_VIRTUAL - 128)) | (1usize << (K_WHEN - 128)) | (1usize << (K_WHERE - 128)) | (1usize << (K_WITH - 128)) | (1usize << (K_WITHOUT - 128)) | (1usize << (IDENTIFIER - 128)) | (1usize << (NUMERIC_LITERAL - 128)) | (1usize << (BIND_PARAMETER - 128)) | (1usize << (STRING_LITERAL - 128)) | (1usize << (BLOB_LITERAL - 128)))) != 0) {
+					if (((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << OPEN_PAR) | (1usize << PLUS) | (1usize << MINUS) | (1usize << TILDE) | (1usize << K_ABORT) | (1usize << K_ACTION) | (1usize << K_ADD) | (1usize << K_AFTER) | (1usize << K_ALL) | (1usize << K_ALTER) | (1usize << K_ANALYZE))) != 0) || ((((_la - 32)) & !0x3f) == 0 && ((1usize << (_la - 32)) & ((1usize << (K_AND - 32)) | (1usize << (K_AS - 32)) | (1usize << (K_ASC - 32)) | (1usize << (K_ATTACH - 32)) | (1usize << (K_AUTOINCREMENT - 32)) | (1usize << (K_BEFORE - 32)) | (1usize << (K_BEGIN - 32)) | (1usize << (K_BETWEEN - 32)) | (1usize << (K_BY - 32)) | (1usize << (K_CASCADE - 32)) | (1usize << (K_CASE - 32)) | (1usize << (K_CAST - 32)) | (1usize << (K_CHECK - 32)) | (1usize << (K_COLLATE - 32)) | (1usize << (K_COLUMN - 32)) | (1usize << (K_COMMIT - 32)) | (1usize << (K_CONFLICT - 32)) | (1usize << (K_CONSTRAINT - 32)) | (1usize << (K_CREATE - 32)) | (1usize << (K_CROSS - 32)) | (1usize << (K_CURRENT_DATE - 32)) | (1usize << (K_CURRENT_TIME - 32)) | (1usize << (K_CURRENT_TIMESTAMP - 32)) | (1usize << (K_DATABASE - 32)) | (1usize << (K_DEFAULT - 32)) | (1usize << (K_DEFERRABLE - 32)) | (1usize << (K_DEFERRED - 32)) | (1usize << (K_DELETE - 32)) | (1usize << (K_DESC - 32)) | (1usize << (K_DETACH - 32)) | (1usize << (K_DISTINCT - 32)) | (1usize << (K_DROP - 32)))) != 0) || ((((_la - 64)) & !0x3f) == 0 && ((1usize << (_la - 64)) & ((1usize << (K_EACH - 64)) | (1usize << (K_ELSE - 64)) | (1usize << (K_END - 64)) | (1usize << (K_ESCAPE - 64)) | (1usize << (K_EXCEPT - 64)) | (1usize << (K_EXCLUSIVE - 64)) | (1usize << (K_EXISTS - 64)) | (1usize << (K_EXPLAIN - 64)) | (1usize << (K_FAIL - 64)) | (1usize << (K_FOR - 64)) | (1usize << (K_FOREIGN - 64)) | (1usize << (K_FROM - 64)) | (1usize << (K_FULL - 64)) | (1usize << (K_GLOB - 64)) | (1usize << (K_GROUP - 64)) | (1usize << (K_HAVING - 64)) | (1usize << (K_IF - 64)) | (1usize << (K_IGNORE - 64)) | (1usize << (K_IMMEDIATE - 64)) | (1usize << (K_IN - 64)) | (1usize << (K_INDEX - 64)) | (1usize << (K_INDEXED - 64)) | (1usize << (K_INITIALLY - 64)) | (1usize << (K_INNER - 64)) | (1usize << (K_INSERT - 64)) | (1usize << (K_INSTEAD - 64)) | (1usize << (K_INTERSECT - 64)) | (1usize << (K_INTO - 64)) | (1usize << (K_IS - 64)) | (1usize << (K_ISNULL - 64)) | (1usize << (K_JOIN - 64)) | (1usize << (K_KEY - 64)))) != 0) || ((((_la - 96)) & !0x3f) == 0 && ((1usize << (_la - 96)) & ((1usize << (K_LEFT - 96)) | (1usize << (K_LIKE - 96)) | (1usize << (K_LIMIT - 96)) | (1usize << (K_MATCH - 96)) | (1usize << (K_NATURAL - 96)) | (1usize << (K_NO - 96)) | (1usize << (K_NOT - 96)) | (1usize << (K_NOTNULL - 96)) | (1usize << (K_NULL - 96)) | (1usize << (K_OF - 96)) | (1usize << (K_OFFSET - 96)) | (1usize << (K_ON - 96)) | (1usize << (K_OR - 96)) | (1usize << (K_ORDER - 96)) | (1usize << (K_OUTER - 96)) | (1usize << (K_PLAN - 96)) | (1usize << (K_PRAGMA - 96)) | (1usize << (K_PRIMARY - 96)) | (1usize << (K_QUERY - 96)) | (1usize << (K_RAISE - 96)) | (1usize << (K_RECURSIVE - 96)) | (1usize << (K_REFERENCES - 96)) | (1usize << (K_REGEXP - 96)) | (1usize << (K_REINDEX - 96)) | (1usize << (K_RELEASE - 96)) | (1usize << (K_RENAME - 96)) | (1usize << (K_REPLACE - 96)) | (1usize << (K_RESTRICT - 96)) | (1usize << (K_RIGHT - 96)) | (1usize << (K_ROLLBACK - 96)) | (1usize << (K_ROW - 96)) | (1usize << (K_SAVEPOINT - 96)))) != 0) || ((((_la - 128)) & !0x3f) == 0 && ((1usize << (_la - 128)) & ((1usize << (K_SELECT - 128)) | (1usize << (K_SET - 128)) | (1usize << (K_TABLE - 128)) | (1usize << (K_TEMP - 128)) | (1usize << (K_TEMPORARY - 128)) | (1usize << (K_THEN - 128)) | (1usize << (K_TO - 128)) | (1usize << (K_TRANSACTION - 128)) | (1usize << (K_TRIGGER - 128)) | (1usize << (K_UNION - 128)) | (1usize << (K_UNIQUE - 128)) | (1usize << (K_UPDATE - 128)) | (1usize << (K_USING - 128)) | (1usize << (K_VACUUM - 128)) | (1usize << (K_VALUES - 128)) | (1usize << (K_VIEW - 128)) | (1usize << (K_VIRTUAL - 128)) | (1usize << (K_WHEN - 128)) | (1usize << (K_WHERE - 128)) | (1usize << (K_WITH - 128)) | (1usize << (K_WITHOUT - 128)) | (1usize << (IDENTIFIER - 128)) | (1usize << (NUMERIC_LITERAL - 128)) | (1usize << (BIND_PARAMETER - 128)) | (1usize << (STRING_LITERAL - 128)) | (1usize << (BLOB_LITERAL - 128)))) != 0) {
 						{
 						/*InvokeRule expr*/
 						recog.base.set_state(1444);
@@ -12680,7 +12889,8 @@ where
 
 				_ => {}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -12709,10 +12919,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Join_clauseContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Join_clauseContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_join_clause(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_join_clause(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_join_clause(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Join_clauseContextExt<'input>{
@@ -12721,7 +12934,7 @@ impl<'input> CustomRuleContext<'input> for Join_clauseContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_join_clause }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_join_clause }
 }
-antlr_rust::type_id!{Join_clauseContextExt<'a>}
+antlr_rust::tid!{Join_clauseContextExt<'a>}
 
 impl<'input> Join_clauseContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Join_clauseContextAll<'input>> {
@@ -12770,8 +12983,8 @@ where
 		let mut _localctx = Join_clauseContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 102, RULE_join_clause);
         let mut _localctx: Rc<Join_clauseContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -12805,7 +13018,8 @@ where
 				_la = recog.base.input.la(1);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -12834,10 +13048,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Join_operatorContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Join_operatorContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_join_operator(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_join_operator(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_join_operator(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Join_operatorContextExt<'input>{
@@ -12846,7 +13063,7 @@ impl<'input> CustomRuleContext<'input> for Join_operatorContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_join_operator }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_join_operator }
 }
-antlr_rust::type_id!{Join_operatorContextExt<'a>}
+antlr_rust::tid!{Join_operatorContextExt<'a>}
 
 impl<'input> Join_operatorContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Join_operatorContextAll<'input>> {
@@ -12912,8 +13129,8 @@ where
 		let mut _localctx = Join_operatorContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 104, RULE_join_operator);
         let mut _localctx: Rc<Join_operatorContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1509);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -13000,7 +13217,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -13029,10 +13247,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Join_constraintContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Join_constraintContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_join_constraint(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_join_constraint(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_join_constraint(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Join_constraintContextExt<'input>{
@@ -13041,7 +13262,7 @@ impl<'input> CustomRuleContext<'input> for Join_constraintContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_join_constraint }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_join_constraint }
 }
-antlr_rust::type_id!{Join_constraintContextExt<'a>}
+antlr_rust::tid!{Join_constraintContextExt<'a>}
 
 impl<'input> Join_constraintContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Join_constraintContextAll<'input>> {
@@ -13110,8 +13331,8 @@ where
 		let mut _localctx = Join_constraintContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 106, RULE_join_constraint);
         let mut _localctx: Rc<Join_constraintContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -13182,7 +13403,8 @@ where
 				_ => {}
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -13211,10 +13433,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Select_coreContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Select_coreContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_select_core(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_select_core(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_select_core(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Select_coreContextExt<'input>{
@@ -13223,7 +13448,7 @@ impl<'input> CustomRuleContext<'input> for Select_coreContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_select_core }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_select_core }
 }
-antlr_rust::type_id!{Select_coreContextExt<'a>}
+antlr_rust::tid!{Select_coreContextExt<'a>}
 
 impl<'input> Select_coreContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Select_coreContextAll<'input>> {
@@ -13347,8 +13572,8 @@ where
 		let mut _localctx = Select_coreContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 108, RULE_select_core);
         let mut _localctx: Rc<Select_coreContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1601);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -13614,7 +13839,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -13643,10 +13869,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Compound_operatorContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Compound_operatorContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_compound_operator(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_compound_operator(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_compound_operator(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Compound_operatorContextExt<'input>{
@@ -13655,7 +13884,7 @@ impl<'input> CustomRuleContext<'input> for Compound_operatorContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_compound_operator }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_compound_operator }
 }
-antlr_rust::type_id!{Compound_operatorContextExt<'a>}
+antlr_rust::tid!{Compound_operatorContextExt<'a>}
 
 impl<'input> Compound_operatorContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Compound_operatorContextAll<'input>> {
@@ -13706,7 +13935,7 @@ where
 		let mut _localctx = Compound_operatorContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 110, RULE_compound_operator);
         let mut _localctx: Rc<Compound_operatorContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1608);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -13756,7 +13985,8 @@ where
 
 				_ => {}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -13785,10 +14015,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Signed_numberContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Signed_numberContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_signed_number(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_signed_number(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_signed_number(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Signed_numberContextExt<'input>{
@@ -13797,7 +14030,7 @@ impl<'input> CustomRuleContext<'input> for Signed_numberContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_signed_number }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_signed_number }
 }
-antlr_rust::type_id!{Signed_numberContextExt<'a>}
+antlr_rust::tid!{Signed_numberContextExt<'a>}
 
 impl<'input> Signed_numberContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Signed_numberContextAll<'input>> {
@@ -13843,8 +14076,8 @@ where
 		let mut _localctx = Signed_numberContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 112, RULE_signed_number);
         let mut _localctx: Rc<Signed_numberContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -13872,7 +14105,8 @@ where
 			recog.base.match_token(NUMERIC_LITERAL,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -13901,10 +14135,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Literal_valueContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Literal_valueContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_literal_value(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_literal_value(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_literal_value(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Literal_valueContextExt<'input>{
@@ -13913,7 +14150,7 @@ impl<'input> CustomRuleContext<'input> for Literal_valueContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_literal_value }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_literal_value }
 }
-antlr_rust::type_id!{Literal_valueContextExt<'a>}
+antlr_rust::tid!{Literal_valueContextExt<'a>}
 
 impl<'input> Literal_valueContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Literal_valueContextAll<'input>> {
@@ -13979,15 +14216,15 @@ where
 		let mut _localctx = Literal_valueContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 114, RULE_literal_value);
         let mut _localctx: Rc<Literal_valueContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
 			recog.base.set_state(1615);
 			_la = recog.base.input.la(1);
-			if { !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << K_CURRENT_DATE) | (1usize << K_CURRENT_TIME) | (1usize << K_CURRENT_TIMESTAMP))) != 0) || ((((_la - 104)) & !0x3f) == 0 && ((1usize << (_la - 104)) & ((1usize << (K_NULL - 104)) | (1usize << (NUMERIC_LITERAL - 104)) | (1usize << (STRING_LITERAL - 104)) | (1usize << (BLOB_LITERAL - 104)))) != 0)) } {
+			if { !(((((_la - 52)) & !0x3f) == 0 && ((1usize << (_la - 52)) & ((1usize << (K_CURRENT_DATE - 52)) | (1usize << (K_CURRENT_TIME - 52)) | (1usize << (K_CURRENT_TIMESTAMP - 52)))) != 0) || _la==K_NULL || ((((_la - 150)) & !0x3f) == 0 && ((1usize << (_la - 150)) & ((1usize << (NUMERIC_LITERAL - 150)) | (1usize << (STRING_LITERAL - 150)) | (1usize << (BLOB_LITERAL - 150)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -13997,7 +14234,8 @@ where
 				recog.base.consume(&mut recog.err_handler);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -14026,10 +14264,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Unary_operatorContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Unary_operatorContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_unary_operator(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_unary_operator(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_unary_operator(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Unary_operatorContextExt<'input>{
@@ -14038,7 +14279,7 @@ impl<'input> CustomRuleContext<'input> for Unary_operatorContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_unary_operator }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_unary_operator }
 }
-antlr_rust::type_id!{Unary_operatorContextExt<'a>}
+antlr_rust::tid!{Unary_operatorContextExt<'a>}
 
 impl<'input> Unary_operatorContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Unary_operatorContextAll<'input>> {
@@ -14089,8 +14330,8 @@ where
 		let mut _localctx = Unary_operatorContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 116, RULE_unary_operator);
         let mut _localctx: Rc<Unary_operatorContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -14107,7 +14348,8 @@ where
 				recog.base.consume(&mut recog.err_handler);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -14136,10 +14378,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Error_messageContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Error_messageContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_error_message(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_error_message(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_error_message(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Error_messageContextExt<'input>{
@@ -14148,7 +14393,7 @@ impl<'input> CustomRuleContext<'input> for Error_messageContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_error_message }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_error_message }
 }
-antlr_rust::type_id!{Error_messageContextExt<'a>}
+antlr_rust::tid!{Error_messageContextExt<'a>}
 
 impl<'input> Error_messageContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Error_messageContextAll<'input>> {
@@ -14184,7 +14429,7 @@ where
 		let mut _localctx = Error_messageContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 118, RULE_error_message);
         let mut _localctx: Rc<Error_messageContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -14193,7 +14438,8 @@ where
 			recog.base.match_token(STRING_LITERAL,&mut recog.err_handler)?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -14222,10 +14468,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Module_argumentContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Module_argumentContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_module_argument(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_module_argument(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_module_argument(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Module_argumentContextExt<'input>{
@@ -14234,7 +14483,7 @@ impl<'input> CustomRuleContext<'input> for Module_argumentContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_module_argument }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_module_argument }
 }
-antlr_rust::type_id!{Module_argumentContextExt<'a>}
+antlr_rust::tid!{Module_argumentContextExt<'a>}
 
 impl<'input> Module_argumentContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Module_argumentContextAll<'input>> {
@@ -14271,7 +14520,7 @@ where
 		let mut _localctx = Module_argumentContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 120, RULE_module_argument);
         let mut _localctx: Rc<Module_argumentContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1623);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -14300,7 +14549,8 @@ where
 
 				_ => {}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -14329,10 +14579,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Column_aliasContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Column_aliasContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_column_alias(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_column_alias(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_column_alias(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Column_aliasContextExt<'input>{
@@ -14341,7 +14594,7 @@ impl<'input> CustomRuleContext<'input> for Column_aliasContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_column_alias }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_column_alias }
 }
-antlr_rust::type_id!{Column_aliasContextExt<'a>}
+antlr_rust::tid!{Column_aliasContextExt<'a>}
 
 impl<'input> Column_aliasContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Column_aliasContextAll<'input>> {
@@ -14382,8 +14635,8 @@ where
 		let mut _localctx = Column_aliasContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 122, RULE_column_alias);
         let mut _localctx: Rc<Column_aliasContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -14400,7 +14653,8 @@ where
 				recog.base.consume(&mut recog.err_handler);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -14429,10 +14683,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for KeywordContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for KeywordContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_keyword(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_keyword(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_keyword(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for KeywordContextExt<'input>{
@@ -14441,7 +14698,7 @@ impl<'input> CustomRuleContext<'input> for KeywordContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_keyword }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_keyword }
 }
-antlr_rust::type_id!{KeywordContextExt<'a>}
+antlr_rust::tid!{KeywordContextExt<'a>}
 
 impl<'input> KeywordContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<KeywordContextAll<'input>> {
@@ -15092,15 +15349,15 @@ where
 		let mut _localctx = KeywordContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 124, RULE_keyword);
         let mut _localctx: Rc<KeywordContextAll> = _localctx;
-		let mut _la: isize;
-		let result: Result<(), ANTLRError> = try {
+		let mut _la: isize = -1;
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
 			{
 			recog.base.set_state(1627);
 			_la = recog.base.input.la(1);
-			if { !(((((_la - 25)) & !0x3f) == 0 && ((1usize << (_la - 25)) & ((1usize << (K_ABORT - 25)) | (1usize << (K_ACTION - 25)) | (1usize << (K_ADD - 25)) | (1usize << (K_AFTER - 25)) | (1usize << (K_ALL - 25)) | (1usize << (K_ALTER - 25)) | (1usize << (K_ANALYZE - 25)) | (1usize << (K_AND - 25)) | (1usize << (K_AS - 25)) | (1usize << (K_ASC - 25)) | (1usize << (K_ATTACH - 25)) | (1usize << (K_AUTOINCREMENT - 25)) | (1usize << (K_BEFORE - 25)) | (1usize << (K_BEGIN - 25)) | (1usize << (K_BETWEEN - 25)) | (1usize << (K_BY - 25)) | (1usize << (K_CASCADE - 25)) | (1usize << (K_CASE - 25)) | (1usize << (K_CAST - 25)) | (1usize << (K_CHECK - 25)) | (1usize << (K_COLLATE - 25)) | (1usize << (K_COLUMN - 25)) | (1usize << (K_COMMIT - 25)) | (1usize << (K_CONFLICT - 25)) | (1usize << (K_CONSTRAINT - 25)) | (1usize << (K_CREATE - 25)) | (1usize << (K_CROSS - 25)) | (1usize << (K_CURRENT_DATE - 25)) | (1usize << (K_CURRENT_TIME - 25)) | (1usize << (K_CURRENT_TIMESTAMP - 25)) | (1usize << (K_DATABASE - 25)) | (1usize << (K_DEFAULT - 25)) | (1usize << (K_DEFERRABLE - 25)) | (1usize << (K_DEFERRED - 25)) | (1usize << (K_DELETE - 25)) | (1usize << (K_DESC - 25)) | (1usize << (K_DETACH - 25)) | (1usize << (K_DISTINCT - 25)) | (1usize << (K_DROP - 25)) | (1usize << (K_EACH - 25)) | (1usize << (K_ELSE - 25)) | (1usize << (K_END - 25)) | (1usize << (K_ESCAPE - 25)) | (1usize << (K_EXCEPT - 25)) | (1usize << (K_EXCLUSIVE - 25)) | (1usize << (K_EXISTS - 25)) | (1usize << (K_EXPLAIN - 25)) | (1usize << (K_FAIL - 25)) | (1usize << (K_FOR - 25)) | (1usize << (K_FOREIGN - 25)) | (1usize << (K_FROM - 25)) | (1usize << (K_FULL - 25)) | (1usize << (K_GLOB - 25)) | (1usize << (K_GROUP - 25)) | (1usize << (K_HAVING - 25)) | (1usize << (K_IF - 25)) | (1usize << (K_IGNORE - 25)) | (1usize << (K_IMMEDIATE - 25)) | (1usize << (K_IN - 25)) | (1usize << (K_INDEX - 25)) | (1usize << (K_INDEXED - 25)) | (1usize << (K_INITIALLY - 25)) | (1usize << (K_INNER - 25)) | (1usize << (K_INSERT - 25)))) != 0) || ((((_la - 89)) & !0x3f) == 0 && ((1usize << (_la - 89)) & ((1usize << (K_INSTEAD - 89)) | (1usize << (K_INTERSECT - 89)) | (1usize << (K_INTO - 89)) | (1usize << (K_IS - 89)) | (1usize << (K_ISNULL - 89)) | (1usize << (K_JOIN - 89)) | (1usize << (K_KEY - 89)) | (1usize << (K_LEFT - 89)) | (1usize << (K_LIKE - 89)) | (1usize << (K_LIMIT - 89)) | (1usize << (K_MATCH - 89)) | (1usize << (K_NATURAL - 89)) | (1usize << (K_NO - 89)) | (1usize << (K_NOT - 89)) | (1usize << (K_NOTNULL - 89)) | (1usize << (K_NULL - 89)) | (1usize << (K_OF - 89)) | (1usize << (K_OFFSET - 89)) | (1usize << (K_ON - 89)) | (1usize << (K_OR - 89)) | (1usize << (K_ORDER - 89)) | (1usize << (K_OUTER - 89)) | (1usize << (K_PLAN - 89)) | (1usize << (K_PRAGMA - 89)) | (1usize << (K_PRIMARY - 89)) | (1usize << (K_QUERY - 89)) | (1usize << (K_RAISE - 89)) | (1usize << (K_RECURSIVE - 89)) | (1usize << (K_REFERENCES - 89)) | (1usize << (K_REGEXP - 89)) | (1usize << (K_REINDEX - 89)) | (1usize << (K_RELEASE - 89)) | (1usize << (K_RENAME - 89)) | (1usize << (K_REPLACE - 89)) | (1usize << (K_RESTRICT - 89)) | (1usize << (K_RIGHT - 89)) | (1usize << (K_ROLLBACK - 89)) | (1usize << (K_ROW - 89)) | (1usize << (K_SAVEPOINT - 89)) | (1usize << (K_SELECT - 89)) | (1usize << (K_SET - 89)) | (1usize << (K_TABLE - 89)) | (1usize << (K_TEMP - 89)) | (1usize << (K_TEMPORARY - 89)) | (1usize << (K_THEN - 89)) | (1usize << (K_TO - 89)) | (1usize << (K_TRANSACTION - 89)) | (1usize << (K_TRIGGER - 89)) | (1usize << (K_UNION - 89)) | (1usize << (K_UNIQUE - 89)) | (1usize << (K_UPDATE - 89)) | (1usize << (K_USING - 89)) | (1usize << (K_VACUUM - 89)) | (1usize << (K_VALUES - 89)) | (1usize << (K_VIEW - 89)) | (1usize << (K_VIRTUAL - 89)) | (1usize << (K_WHEN - 89)) | (1usize << (K_WHERE - 89)) | (1usize << (K_WITH - 89)) | (1usize << (K_WITHOUT - 89)))) != 0)) } {
+			if { !(((((_la - 25)) & !0x3f) == 0 && ((1usize << (_la - 25)) & ((1usize << (K_ABORT - 25)) | (1usize << (K_ACTION - 25)) | (1usize << (K_ADD - 25)) | (1usize << (K_AFTER - 25)) | (1usize << (K_ALL - 25)) | (1usize << (K_ALTER - 25)) | (1usize << (K_ANALYZE - 25)) | (1usize << (K_AND - 25)) | (1usize << (K_AS - 25)) | (1usize << (K_ASC - 25)) | (1usize << (K_ATTACH - 25)) | (1usize << (K_AUTOINCREMENT - 25)) | (1usize << (K_BEFORE - 25)) | (1usize << (K_BEGIN - 25)) | (1usize << (K_BETWEEN - 25)) | (1usize << (K_BY - 25)) | (1usize << (K_CASCADE - 25)) | (1usize << (K_CASE - 25)) | (1usize << (K_CAST - 25)) | (1usize << (K_CHECK - 25)) | (1usize << (K_COLLATE - 25)) | (1usize << (K_COLUMN - 25)) | (1usize << (K_COMMIT - 25)) | (1usize << (K_CONFLICT - 25)) | (1usize << (K_CONSTRAINT - 25)) | (1usize << (K_CREATE - 25)) | (1usize << (K_CROSS - 25)) | (1usize << (K_CURRENT_DATE - 25)) | (1usize << (K_CURRENT_TIME - 25)) | (1usize << (K_CURRENT_TIMESTAMP - 25)) | (1usize << (K_DATABASE - 25)) | (1usize << (K_DEFAULT - 25)))) != 0) || ((((_la - 57)) & !0x3f) == 0 && ((1usize << (_la - 57)) & ((1usize << (K_DEFERRABLE - 57)) | (1usize << (K_DEFERRED - 57)) | (1usize << (K_DELETE - 57)) | (1usize << (K_DESC - 57)) | (1usize << (K_DETACH - 57)) | (1usize << (K_DISTINCT - 57)) | (1usize << (K_DROP - 57)) | (1usize << (K_EACH - 57)) | (1usize << (K_ELSE - 57)) | (1usize << (K_END - 57)) | (1usize << (K_ESCAPE - 57)) | (1usize << (K_EXCEPT - 57)) | (1usize << (K_EXCLUSIVE - 57)) | (1usize << (K_EXISTS - 57)) | (1usize << (K_EXPLAIN - 57)) | (1usize << (K_FAIL - 57)) | (1usize << (K_FOR - 57)) | (1usize << (K_FOREIGN - 57)) | (1usize << (K_FROM - 57)) | (1usize << (K_FULL - 57)) | (1usize << (K_GLOB - 57)) | (1usize << (K_GROUP - 57)) | (1usize << (K_HAVING - 57)) | (1usize << (K_IF - 57)) | (1usize << (K_IGNORE - 57)) | (1usize << (K_IMMEDIATE - 57)) | (1usize << (K_IN - 57)) | (1usize << (K_INDEX - 57)) | (1usize << (K_INDEXED - 57)) | (1usize << (K_INITIALLY - 57)) | (1usize << (K_INNER - 57)) | (1usize << (K_INSERT - 57)))) != 0) || ((((_la - 89)) & !0x3f) == 0 && ((1usize << (_la - 89)) & ((1usize << (K_INSTEAD - 89)) | (1usize << (K_INTERSECT - 89)) | (1usize << (K_INTO - 89)) | (1usize << (K_IS - 89)) | (1usize << (K_ISNULL - 89)) | (1usize << (K_JOIN - 89)) | (1usize << (K_KEY - 89)) | (1usize << (K_LEFT - 89)) | (1usize << (K_LIKE - 89)) | (1usize << (K_LIMIT - 89)) | (1usize << (K_MATCH - 89)) | (1usize << (K_NATURAL - 89)) | (1usize << (K_NO - 89)) | (1usize << (K_NOT - 89)) | (1usize << (K_NOTNULL - 89)) | (1usize << (K_NULL - 89)) | (1usize << (K_OF - 89)) | (1usize << (K_OFFSET - 89)) | (1usize << (K_ON - 89)) | (1usize << (K_OR - 89)) | (1usize << (K_ORDER - 89)) | (1usize << (K_OUTER - 89)) | (1usize << (K_PLAN - 89)) | (1usize << (K_PRAGMA - 89)) | (1usize << (K_PRIMARY - 89)) | (1usize << (K_QUERY - 89)) | (1usize << (K_RAISE - 89)) | (1usize << (K_RECURSIVE - 89)) | (1usize << (K_REFERENCES - 89)) | (1usize << (K_REGEXP - 89)) | (1usize << (K_REINDEX - 89)) | (1usize << (K_RELEASE - 89)))) != 0) || ((((_la - 121)) & !0x3f) == 0 && ((1usize << (_la - 121)) & ((1usize << (K_RENAME - 121)) | (1usize << (K_REPLACE - 121)) | (1usize << (K_RESTRICT - 121)) | (1usize << (K_RIGHT - 121)) | (1usize << (K_ROLLBACK - 121)) | (1usize << (K_ROW - 121)) | (1usize << (K_SAVEPOINT - 121)) | (1usize << (K_SELECT - 121)) | (1usize << (K_SET - 121)) | (1usize << (K_TABLE - 121)) | (1usize << (K_TEMP - 121)) | (1usize << (K_TEMPORARY - 121)) | (1usize << (K_THEN - 121)) | (1usize << (K_TO - 121)) | (1usize << (K_TRANSACTION - 121)) | (1usize << (K_TRIGGER - 121)) | (1usize << (K_UNION - 121)) | (1usize << (K_UNIQUE - 121)) | (1usize << (K_UPDATE - 121)) | (1usize << (K_USING - 121)) | (1usize << (K_VACUUM - 121)) | (1usize << (K_VALUES - 121)) | (1usize << (K_VIEW - 121)) | (1usize << (K_VIRTUAL - 121)) | (1usize << (K_WHEN - 121)) | (1usize << (K_WHERE - 121)) | (1usize << (K_WITH - 121)) | (1usize << (K_WITHOUT - 121)))) != 0)) } {
 				recog.err_handler.recover_inline(&mut recog.base)?;
 
 			}
@@ -15110,7 +15367,8 @@ where
 				recog.base.consume(&mut recog.err_handler);
 			}
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15139,10 +15397,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for NameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for NameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for NameContextExt<'input>{
@@ -15151,7 +15412,7 @@ impl<'input> CustomRuleContext<'input> for NameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_name }
 }
-antlr_rust::type_id!{NameContextExt<'a>}
+antlr_rust::tid!{NameContextExt<'a>}
 
 impl<'input> NameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<NameContextAll<'input>> {
@@ -15185,7 +15446,7 @@ where
 		let mut _localctx = NameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 126, RULE_name);
         let mut _localctx: Rc<NameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15195,7 +15456,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15224,10 +15486,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Function_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Function_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_function_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_function_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_function_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Function_nameContextExt<'input>{
@@ -15236,7 +15501,7 @@ impl<'input> CustomRuleContext<'input> for Function_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_function_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_function_name }
 }
-antlr_rust::type_id!{Function_nameContextExt<'a>}
+antlr_rust::tid!{Function_nameContextExt<'a>}
 
 impl<'input> Function_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Function_nameContextAll<'input>> {
@@ -15270,7 +15535,7 @@ where
 		let mut _localctx = Function_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 128, RULE_function_name);
         let mut _localctx: Rc<Function_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15280,7 +15545,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15309,10 +15575,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Database_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Database_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_database_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_database_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_database_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Database_nameContextExt<'input>{
@@ -15321,7 +15590,7 @@ impl<'input> CustomRuleContext<'input> for Database_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_database_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_database_name }
 }
-antlr_rust::type_id!{Database_nameContextExt<'a>}
+antlr_rust::tid!{Database_nameContextExt<'a>}
 
 impl<'input> Database_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Database_nameContextAll<'input>> {
@@ -15355,7 +15624,7 @@ where
 		let mut _localctx = Database_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 130, RULE_database_name);
         let mut _localctx: Rc<Database_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15365,7 +15634,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15394,10 +15664,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Schema_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Schema_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_schema_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_schema_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_schema_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Schema_nameContextExt<'input>{
@@ -15406,7 +15679,7 @@ impl<'input> CustomRuleContext<'input> for Schema_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_schema_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_schema_name }
 }
-antlr_rust::type_id!{Schema_nameContextExt<'a>}
+antlr_rust::tid!{Schema_nameContextExt<'a>}
 
 impl<'input> Schema_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Schema_nameContextAll<'input>> {
@@ -15440,7 +15713,7 @@ where
 		let mut _localctx = Schema_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 132, RULE_schema_name);
         let mut _localctx: Rc<Schema_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15450,7 +15723,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15479,10 +15753,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_function_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_function_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_function_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_function_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_function_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_function_nameContextExt<'input>{
@@ -15491,7 +15768,7 @@ impl<'input> CustomRuleContext<'input> for Table_function_nameContextExt<'input>
 	fn get_rule_index(&self) -> usize { RULE_table_function_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_function_name }
 }
-antlr_rust::type_id!{Table_function_nameContextExt<'a>}
+antlr_rust::tid!{Table_function_nameContextExt<'a>}
 
 impl<'input> Table_function_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_function_nameContextAll<'input>> {
@@ -15525,7 +15802,7 @@ where
 		let mut _localctx = Table_function_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 134, RULE_table_function_name);
         let mut _localctx: Rc<Table_function_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15535,7 +15812,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15564,10 +15842,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_nameContextExt<'input>{
@@ -15576,7 +15857,7 @@ impl<'input> CustomRuleContext<'input> for Table_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_table_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_name }
 }
-antlr_rust::type_id!{Table_nameContextExt<'a>}
+antlr_rust::tid!{Table_nameContextExt<'a>}
 
 impl<'input> Table_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_nameContextAll<'input>> {
@@ -15610,7 +15891,7 @@ where
 		let mut _localctx = Table_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 136, RULE_table_name);
         let mut _localctx: Rc<Table_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15620,7 +15901,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15649,10 +15931,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_or_index_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_or_index_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_or_index_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_or_index_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_or_index_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_or_index_nameContextExt<'input>{
@@ -15661,7 +15946,7 @@ impl<'input> CustomRuleContext<'input> for Table_or_index_nameContextExt<'input>
 	fn get_rule_index(&self) -> usize { RULE_table_or_index_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_or_index_name }
 }
-antlr_rust::type_id!{Table_or_index_nameContextExt<'a>}
+antlr_rust::tid!{Table_or_index_nameContextExt<'a>}
 
 impl<'input> Table_or_index_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_or_index_nameContextAll<'input>> {
@@ -15695,7 +15980,7 @@ where
 		let mut _localctx = Table_or_index_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 138, RULE_table_or_index_name);
         let mut _localctx: Rc<Table_or_index_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15705,7 +15990,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15734,10 +16020,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for New_table_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for New_table_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_new_table_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_new_table_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_new_table_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for New_table_nameContextExt<'input>{
@@ -15746,7 +16035,7 @@ impl<'input> CustomRuleContext<'input> for New_table_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_new_table_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_new_table_name }
 }
-antlr_rust::type_id!{New_table_nameContextExt<'a>}
+antlr_rust::tid!{New_table_nameContextExt<'a>}
 
 impl<'input> New_table_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<New_table_nameContextAll<'input>> {
@@ -15780,7 +16069,7 @@ where
 		let mut _localctx = New_table_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 140, RULE_new_table_name);
         let mut _localctx: Rc<New_table_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15790,7 +16079,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15819,10 +16109,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Column_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Column_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_column_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_column_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_column_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Column_nameContextExt<'input>{
@@ -15831,7 +16124,7 @@ impl<'input> CustomRuleContext<'input> for Column_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_column_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_column_name }
 }
-antlr_rust::type_id!{Column_nameContextExt<'a>}
+antlr_rust::tid!{Column_nameContextExt<'a>}
 
 impl<'input> Column_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Column_nameContextAll<'input>> {
@@ -15865,7 +16158,7 @@ where
 		let mut _localctx = Column_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 142, RULE_column_name);
         let mut _localctx: Rc<Column_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15875,7 +16168,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15904,10 +16198,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Collation_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Collation_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_collation_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_collation_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_collation_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Collation_nameContextExt<'input>{
@@ -15916,7 +16213,7 @@ impl<'input> CustomRuleContext<'input> for Collation_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_collation_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_collation_name }
 }
-antlr_rust::type_id!{Collation_nameContextExt<'a>}
+antlr_rust::tid!{Collation_nameContextExt<'a>}
 
 impl<'input> Collation_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Collation_nameContextAll<'input>> {
@@ -15950,7 +16247,7 @@ where
 		let mut _localctx = Collation_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 144, RULE_collation_name);
         let mut _localctx: Rc<Collation_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -15960,7 +16257,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -15989,10 +16287,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Foreign_tableContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Foreign_tableContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_foreign_table(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_foreign_table(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_foreign_table(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Foreign_tableContextExt<'input>{
@@ -16001,7 +16302,7 @@ impl<'input> CustomRuleContext<'input> for Foreign_tableContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_foreign_table }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_foreign_table }
 }
-antlr_rust::type_id!{Foreign_tableContextExt<'a>}
+antlr_rust::tid!{Foreign_tableContextExt<'a>}
 
 impl<'input> Foreign_tableContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Foreign_tableContextAll<'input>> {
@@ -16035,7 +16336,7 @@ where
 		let mut _localctx = Foreign_tableContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 146, RULE_foreign_table);
         let mut _localctx: Rc<Foreign_tableContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16045,7 +16346,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16074,10 +16376,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Index_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Index_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_index_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_index_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_index_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Index_nameContextExt<'input>{
@@ -16086,7 +16391,7 @@ impl<'input> CustomRuleContext<'input> for Index_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_index_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_index_name }
 }
-antlr_rust::type_id!{Index_nameContextExt<'a>}
+antlr_rust::tid!{Index_nameContextExt<'a>}
 
 impl<'input> Index_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Index_nameContextAll<'input>> {
@@ -16120,7 +16425,7 @@ where
 		let mut _localctx = Index_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 148, RULE_index_name);
         let mut _localctx: Rc<Index_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16130,7 +16435,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16159,10 +16465,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Trigger_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Trigger_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_trigger_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_trigger_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_trigger_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Trigger_nameContextExt<'input>{
@@ -16171,7 +16480,7 @@ impl<'input> CustomRuleContext<'input> for Trigger_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_trigger_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_trigger_name }
 }
-antlr_rust::type_id!{Trigger_nameContextExt<'a>}
+antlr_rust::tid!{Trigger_nameContextExt<'a>}
 
 impl<'input> Trigger_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Trigger_nameContextAll<'input>> {
@@ -16205,7 +16514,7 @@ where
 		let mut _localctx = Trigger_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 150, RULE_trigger_name);
         let mut _localctx: Rc<Trigger_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16215,7 +16524,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16244,10 +16554,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for View_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for View_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_view_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_view_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_view_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for View_nameContextExt<'input>{
@@ -16256,7 +16569,7 @@ impl<'input> CustomRuleContext<'input> for View_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_view_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_view_name }
 }
-antlr_rust::type_id!{View_nameContextExt<'a>}
+antlr_rust::tid!{View_nameContextExt<'a>}
 
 impl<'input> View_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<View_nameContextAll<'input>> {
@@ -16290,7 +16603,7 @@ where
 		let mut _localctx = View_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 152, RULE_view_name);
         let mut _localctx: Rc<View_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16300,7 +16613,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16329,10 +16643,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Module_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Module_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_module_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_module_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_module_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Module_nameContextExt<'input>{
@@ -16341,7 +16658,7 @@ impl<'input> CustomRuleContext<'input> for Module_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_module_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_module_name }
 }
-antlr_rust::type_id!{Module_nameContextExt<'a>}
+antlr_rust::tid!{Module_nameContextExt<'a>}
 
 impl<'input> Module_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Module_nameContextAll<'input>> {
@@ -16375,7 +16692,7 @@ where
 		let mut _localctx = Module_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 154, RULE_module_name);
         let mut _localctx: Rc<Module_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16385,7 +16702,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16414,10 +16732,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Pragma_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Pragma_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_pragma_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_pragma_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_pragma_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Pragma_nameContextExt<'input>{
@@ -16426,7 +16747,7 @@ impl<'input> CustomRuleContext<'input> for Pragma_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_pragma_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_pragma_name }
 }
-antlr_rust::type_id!{Pragma_nameContextExt<'a>}
+antlr_rust::tid!{Pragma_nameContextExt<'a>}
 
 impl<'input> Pragma_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Pragma_nameContextAll<'input>> {
@@ -16460,7 +16781,7 @@ where
 		let mut _localctx = Pragma_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 156, RULE_pragma_name);
         let mut _localctx: Rc<Pragma_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16470,7 +16791,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16499,10 +16821,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Savepoint_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Savepoint_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_savepoint_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_savepoint_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_savepoint_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Savepoint_nameContextExt<'input>{
@@ -16511,7 +16836,7 @@ impl<'input> CustomRuleContext<'input> for Savepoint_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_savepoint_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_savepoint_name }
 }
-antlr_rust::type_id!{Savepoint_nameContextExt<'a>}
+antlr_rust::tid!{Savepoint_nameContextExt<'a>}
 
 impl<'input> Savepoint_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Savepoint_nameContextAll<'input>> {
@@ -16545,7 +16870,7 @@ where
 		let mut _localctx = Savepoint_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 158, RULE_savepoint_name);
         let mut _localctx: Rc<Savepoint_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16555,7 +16880,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16584,10 +16910,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Table_aliasContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Table_aliasContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_table_alias(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_table_alias(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_table_alias(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Table_aliasContextExt<'input>{
@@ -16596,7 +16925,7 @@ impl<'input> CustomRuleContext<'input> for Table_aliasContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_table_alias }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_table_alias }
 }
-antlr_rust::type_id!{Table_aliasContextExt<'a>}
+antlr_rust::tid!{Table_aliasContextExt<'a>}
 
 impl<'input> Table_aliasContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Table_aliasContextAll<'input>> {
@@ -16650,7 +16979,7 @@ where
 		let mut _localctx = Table_aliasContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 160, RULE_table_alias);
         let mut _localctx: Rc<Table_aliasContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1669);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -16697,7 +17026,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16726,10 +17056,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Transaction_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Transaction_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_transaction_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_transaction_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_transaction_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Transaction_nameContextExt<'input>{
@@ -16738,7 +17071,7 @@ impl<'input> CustomRuleContext<'input> for Transaction_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_transaction_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_transaction_name }
 }
-antlr_rust::type_id!{Transaction_nameContextExt<'a>}
+antlr_rust::tid!{Transaction_nameContextExt<'a>}
 
 impl<'input> Transaction_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Transaction_nameContextAll<'input>> {
@@ -16772,7 +17105,7 @@ where
 		let mut _localctx = Transaction_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 162, RULE_transaction_name);
         let mut _localctx: Rc<Transaction_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1);
 			recog.base.enter_outer_alt(None, 1);
@@ -16782,7 +17115,8 @@ where
 			recog.any_name()?;
 
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
@@ -16811,10 +17145,13 @@ ph:PhantomData<&'input str>
 impl<'input> SQLiteParserContext<'input> for Any_nameContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SQLiteListener<'input> + 'a> for Any_nameContext<'input>{
-	fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
-		listener.enter_any_name(self);
-	}
+		fn enter(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.enter_every_rule(self);
+			listener.enter_any_name(self);
+		}fn exit(&self,listener: &mut (dyn SQLiteListener<'input> + 'a)) {
+			listener.exit_any_name(self);
+			listener.exit_every_rule(self);
+		}
 }
 
 impl<'input> CustomRuleContext<'input> for Any_nameContextExt<'input>{
@@ -16823,7 +17160,7 @@ impl<'input> CustomRuleContext<'input> for Any_nameContextExt<'input>{
 	fn get_rule_index(&self) -> usize { RULE_any_name }
 	//fn type_rule_index() -> usize where Self: Sized { RULE_any_name }
 }
-antlr_rust::type_id!{Any_nameContextExt<'a>}
+antlr_rust::tid!{Any_nameContextExt<'a>}
 
 impl<'input> Any_nameContextExt<'input>{
 	fn new(parent: Option<Rc<dyn SQLiteParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<Any_nameContextAll<'input>> {
@@ -16880,7 +17217,7 @@ where
 		let mut _localctx = Any_nameContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 164, RULE_any_name);
         let mut _localctx: Rc<Any_nameContextAll> = _localctx;
-		let result: Result<(), ANTLRError> = try {
+		let result: Result<(), ANTLRError> = (|| {
 
 			recog.base.set_state(1680);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -16957,7 +17294,8 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-		};
+			Ok(())
+		})();
 		match result {
 		Ok(_)=>{},
         Err(e @ ANTLRError::FallThrough(_)) => return Err(e),

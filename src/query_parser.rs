@@ -1,6 +1,6 @@
 use crate::rcd_enum::{DatabaseType, DmlType};
 
-mod sqlite;
+pub mod sqlite;
 
 #[allow(dead_code, unused_variables)]
 /// Takes a SQL statement and returns a list of tables involved in that SQL statement
