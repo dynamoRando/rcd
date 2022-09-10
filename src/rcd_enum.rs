@@ -1,11 +1,13 @@
 use std::{error::Error, fmt};
 use substring::Substring;
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum DmlType {
     Unknown = 0,
     Insert = 1,
     Update = 2,
-    Delete  = 3
+    Delete  = 3,
+    Select = 4,
 }
 
 impl DmlType {
@@ -15,6 +17,7 @@ impl DmlType {
             1 => DmlType::Insert,
             2 => DmlType::Update,
             3 => DmlType::Delete,
+            4 => DmlType::Select,
             _ => panic!("Unknown value: {}", value),
         }
     }
@@ -26,6 +29,7 @@ impl DmlType {
             DmlType::Insert => 1,
             DmlType::Update => 2,
             DmlType::Delete => 3,
+            DmlType::Select => 4,
         }
     }
 }
