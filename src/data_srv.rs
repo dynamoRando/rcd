@@ -134,7 +134,6 @@ impl DataService for DataServiceImpl {
         let is_authenticated = authenticate_host(message.authentication.unwrap());
         let db_name = message.database_name;
         let table_name = message.table_name;
-        let mut is_cmd_successful = false;
 
         let mut result = InsertPartialDataResult {
             is_successful: false,
@@ -148,8 +147,6 @@ impl DataService for DataServiceImpl {
             result = self
                 .dbi()
                 .insert_data_into_partial_db(&db_name, &table_name, cmd);
-
-            is_cmd_successful = result.is_successful;
         }
 
         let auth_response = AuthResult {
@@ -161,7 +158,7 @@ impl DataService for DataServiceImpl {
 
         let result = InsertDataResult {
             authentication_result: Some(auth_response),
-            is_successful: is_cmd_successful,
+            is_successful: result.is_successful,
             data_hash: result.data_hash,
             message: String::from(""),
             row_id: result.row_id,
