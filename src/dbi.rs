@@ -66,6 +66,27 @@ impl Dbi {
         return self.db_type;
     }
 
+    pub fn insert_metadata_into_host_db(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+        hash: u64,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::insert_metadata_into_host_db(
+                    db_name, table_name, row_id, hash, settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn insert_data_into_partial_db(
         self: &Self,
         part_db_name: &str,

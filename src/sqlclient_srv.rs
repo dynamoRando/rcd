@@ -331,7 +331,7 @@ impl SqlClient for SqlClientImpl {
                             &db_name,
                             &cmd_table_name,
                             &statement,
-                            self.own_db_addr_port.clone()
+                            self.own_db_addr_port.clone(),
                         )
                         .await;
 
@@ -340,24 +340,23 @@ impl SqlClient for SqlClientImpl {
                             let data_hash = remote_insert_result.data_hash.clone();
                             let row_id = remote_insert_result.row_id;
 
-                            unimplemented!()
+                            let local_insert_is_successful =
+                                self.dbi().insert_metadata_into_host_db(
+                                    &db_name,
+                                    &cmd_table_name,
+                                    row_id,
+                                    data_hash,
+                                );
+
+                            if local_insert_is_successful {
+                                is_remote_action_successful = true;
+                            }
                         }
                     }
                     DmlType::Update => todo!(),
                     DmlType::Delete => todo!(),
                     DmlType::Select => panic!(),
                 }
-                /*
-                    we need to determine the type of statement: INSERT/UPDATE/DELETE
-                    because this we need to figure out what metadata, if any, we need
-                    to save on the host side: either a data hash or row id, etc.
-
-                    once we have determined the type of action, we will call the appropriate
-                    method on the data service in remote_db_srv and pass
-                    the raw SQL statement onto the participant to take action
-                */
-
-                unimplemented!()
             }
         }
 
@@ -368,13 +367,13 @@ impl SqlClient for SqlClientImpl {
             authentication_message: String::from(""),
         };
 
-        let execute_write_reply = ExecuteWriteReply {
+        let execute_write_reply = ExecuteCooperativeWriteReply {
             authentication_result: Some(auth_response),
             is_successful: is_remote_action_successful,
             total_rows_affected: 0,
         };
 
-        unimplemented!("");
+        Ok(Response::new(execute_write_reply))
     }
 
     async fn has_table(

@@ -9,8 +9,8 @@ use crate::{
     dbi::sqlite::has_any_rows,
     defaults, query_parser,
     rcd_enum::{
-        self, ColumnType, ContractStatus, LogicalStoragePolicy, RcdDbError,
-        RcdGenerateContractError, RemoteDeleteBehavior, DatabaseType,
+        self, ColumnType, ContractStatus, DatabaseType, LogicalStoragePolicy, RcdDbError,
+        RcdGenerateContractError, RemoteDeleteBehavior,
     },
     table::Table,
 };
@@ -18,6 +18,35 @@ use chrono::{TimeZone, Utc};
 use guid_create::GUID;
 
 use rusqlite::{named_params, Connection, Error, Result};
+
+#[allow(dead_code, unused_variables)]
+pub fn insert_metadata_into_host_db(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    hash: u64,
+    config: DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(&config, db_name);
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+
+    if !has_table(metadata_table_name.clone(), &conn) {
+        //  need to create table
+        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        execute_write(&conn, &cmd);
+    }
+
+    let mut cmd = sql_text::COOP::text_insert_row_metadata_table();
+    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows = statement
+        .execute(named_params! {":row": row_id, ":hash" : hash})
+        .unwrap();
+
+    return rows > 0;
+}
 
 #[allow(dead_code, unused_variables)]
 pub fn update_participant_accepts_contract(

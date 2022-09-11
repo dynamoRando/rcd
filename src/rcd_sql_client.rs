@@ -1,12 +1,13 @@
 use crate::cdata::{sql_client_client::SqlClientClient, AuthRequest};
 use crate::cdata::{
     AcceptPendingContractRequest, AddParticipantRequest, Contract, CreateUserDatabaseRequest,
-    EnableCoooperativeFeaturesRequest, ExecuteReadRequest, ExecuteWriteRequest,
-    GenerateContractRequest, GenerateHostInfoRequest, GetLogicalStoragePolicyRequest,
-    HasTableRequest, SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
-    StatementResultset, ViewPendingContractsRequest,
+    EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
+    ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
+    GetLogicalStoragePolicyRequest, HasTableRequest, InsertDataRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
+    ViewPendingContractsRequest,
 };
-use crate::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
+use crate::rcd_enum::{DatabaseType, LogicalStoragePolicy, RemoteDeleteBehavior};
 use log::info;
 use std::error::Error;
 use tonic::transport::Channel;
@@ -52,6 +53,35 @@ impl RcdClient {
         info!("response back");
 
         Ok(response.is_successful)
+    }
+
+    pub async fn execute_cooperative_write(
+        self: &Self,
+        db_name: &str,
+        cmd: &str,
+        participant_alias: &str,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = ExecuteCooperativeWriteRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            sql_statement: cmd.to_string(),
+            database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
+            alias: participant_alias.to_string(),
+            participant_id: String::from(""),
+        };
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+        let response = client
+            .execute_cooperative_write(request)
+            .await
+            .unwrap()
+            .into_inner();
+
+        return Ok(response.is_successful);
     }
 
     pub async fn view_pending_contracts(self: &Self) -> Result<Vec<Contract>, Box<dyn Error>> {

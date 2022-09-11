@@ -385,10 +385,7 @@ pub mod accept_contract {
             String::from("123456"),
         );
 
-        let is_generated_host = client
-            .generate_host_info("participant")
-            .await
-            .unwrap();
+        let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -415,17 +412,16 @@ pub mod insert_row {
     use std::sync::mpsc;
     use std::{thread, time};
 
-    #[ignore = "data service functions not written yet"]
     #[test]
-    fn test () {
+    fn test() {
         /*
             We will need to kick off two services, the host and the participant
             and we will need to also kick off two clients, one for each
         */
 
-        let test_name = "insert_row_coop";
+        let test_name = "insert_remote_row";
         let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert row coop test");
+        let custom_contract_description = String::from("insert remote row");
 
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
@@ -484,9 +480,6 @@ pub mod insert_row {
         );
 
         assert!(participant_accepted_contract);
-
-        unimplemented!();
-        
     }
 
     #[cfg(test)]
@@ -553,8 +546,17 @@ pub mod insert_row {
             .await
             .unwrap();
 
-        return client
+        client
             .send_participant_contract(db_name, "participant")
+            .await
+            .unwrap();
+
+        return client
+            .execute_cooperative_write(
+                db_name,
+                "INSERT INTO EMPLOYEE ( Id, Text ) VALUES ( 999, 'ASDF');",
+                "participant",
+            )
             .await
             .unwrap();
     }
@@ -584,10 +586,7 @@ pub mod insert_row {
             String::from("123456"),
         );
 
-        let is_generated_host = client
-            .generate_host_info("participant")
-            .await
-            .unwrap();
+        let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
