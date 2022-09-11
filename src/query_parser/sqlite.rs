@@ -1,6 +1,9 @@
 use antlr_rust::{
-    common_token_stream::CommonTokenStream, token_factory::CommonTokenFactory,
-    tree::ParseTreeListener, InputStream,
+    common_token_stream::CommonTokenStream,
+    parser_rule_context::ParserRuleContext,
+    token_factory::CommonTokenFactory,
+    tree::{ParseTreeListener},
+    InputStream,
 };
 
 use crate::rcd_enum::{DatabaseType, DmlType};
@@ -20,9 +23,10 @@ struct RcdSqliteListener {
     pub statement_type: Box<DmlData>,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 struct DmlData {
     pub data: DmlType,
+    pub table_name: String,
 }
 
 impl<'input> ParseTreeListener<'input, SQLiteParserContextType> for RcdSqliteListener {
@@ -395,6 +399,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
         &mut self,
         _ctx: &sqliteparser::Table_function_nameContext<'input>,
     ) {
+        self.statement_type.table_name = _ctx.start().text.to_string();
     }
 
     fn exit_table_function_name(
@@ -405,7 +410,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_table_name(&mut self, _ctx: &sqliteparser::Table_nameContext<'input>) {
         // println!("SQLiteListener ENTERED TABLE NAME");
-        // println!("{:?}", _ctx.start().text);
+        self.statement_type.table_name = _ctx.start().text.to_string();
     }
 
     fn exit_table_name(&mut self, _ctx: &sqliteparser::Table_nameContext<'input>) {}
@@ -478,9 +483,26 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     fn exit_any_name(&mut self, _ctx: &sqliteparser::Any_nameContext<'input>) {}
 }
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_mut)]
 pub fn get_table_name(cmd: &str, db_type: DatabaseType) -> String {
-    unimplemented!()
+    let tf = CommonTokenFactory::default();
+    let input = InputStream::new(cmd.into());
+    let mut lexer = SQLiteLexer::new_with_token_factory(input, &tf);
+    let token_source = CommonTokenStream::new(lexer);
+    let mut parser = SQLiteParser::new(token_source);
+
+    let rcd_listener = RcdSqliteListener {
+        statement_type: Box::new(DmlData {
+            data: DmlType::Unknown,
+            table_name: String::from(""),
+        }),
+    };
+
+    let listener_id = parser.add_parse_listener(Box::new(rcd_listener));
+    let result = parser.parse();
+    let item = parser.remove_parse_listener(listener_id);
+
+    return item.statement_type.table_name;
 }
 
 #[allow(dead_code, unused_variables, unused_mut)]
@@ -498,6 +520,7 @@ pub fn determine_statement_type(sql_text: String) -> DmlType {
     let rcd_listener = RcdSqliteListener {
         statement_type: Box::new(DmlData {
             data: DmlType::Unknown,
+            table_name: String::from(""),
         }),
     };
 
