@@ -479,7 +479,7 @@ message AuthResult {
 
 // A message for creating a user database
 message CreateDatabaseRequest{
-	AuthResult authentication = 1;
+	AuthRequest authentication = 1;
 	MessageInfo messageInfo = 2;
 	string databaseName = 3;
 }

@@ -44,21 +44,10 @@ impl DataService for DataServiceImpl {
         request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_id = a.user_name;
-        let host_token = a.token.as_bytes();
-        let mut is_authenticated = false;
+        let is_authenticated = authenticate_host(message.authentication.unwrap());
         let mut is_part_db_created = false;
         let db_name = message.database_name;
         let mut db_id = String::from("");
-
-        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
-
-        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
 
         if is_authenticated {
             let result = self.dbi().create_partial_database(&db_name);
@@ -91,24 +80,13 @@ impl DataService for DataServiceImpl {
         request: Request<CreateTableRequest>,
     ) -> Result<Response<CreateTableResult>, Status> {
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_id = a.user_name;
-        let host_token = a.token;
-        let mut is_authenticated = false;
+        let is_authenticated = authenticate_host(message.authentication.unwrap());
         let db_name = message.database_name;
         let table_name = message.table_name;
         let table_schema = message.columns;
         let mut table_is_created = false;
         let mut table_id = String::from("");
         let mut db_id = String::from("");
-
-        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
-
-        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
 
         if is_authenticated {
             let result =
@@ -153,10 +131,7 @@ impl DataService for DataServiceImpl {
         request: Request<InsertDataRequest>,
     ) -> Result<Response<InsertDataResult>, Status> {
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_id = a.user_name;
-        let host_token = a.token;
-        let mut is_authenticated = false;
+        let is_authenticated = authenticate_host(message.authentication.unwrap());
         let db_name = message.database_name;
         let table_name = message.table_name;
         let mut is_cmd_successful = false;
@@ -166,14 +141,6 @@ impl DataService for DataServiceImpl {
             row_id: 0,
             data_hash: Vec::new(),
         };
-
-        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
-
-        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
 
         if is_authenticated {
             let cmd = &message.cmd;
@@ -331,4 +298,21 @@ pub async fn start_db_service(
         .await?;
 
     Ok(())
+}
+
+fn authenticate_host(authentication: AuthRequest) -> bool {
+    let mut is_authenticated = false;
+
+    let host_id = authentication.user_name;
+    let host_token = authentication.token;
+
+    if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
+        is_authenticated = true;
+    }
+
+    if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
+        is_authenticated = true;
+    }
+
+    return is_authenticated;
 }

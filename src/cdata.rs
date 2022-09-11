@@ -682,7 +682,7 @@ pub struct AuthResult {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateDatabaseRequest {
     #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthResult>,
+    pub authentication: ::core::option::Option<AuthRequest>,
     #[prost(message, optional, tag="2")]
     pub message_info: ::core::option::Option<MessageInfo>,
     #[prost(string, tag="3")]
