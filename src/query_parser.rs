@@ -21,5 +21,11 @@ pub fn get_table_name(cmd: &str, db_type: DatabaseType) -> String {
 
 #[allow(dead_code, unused_variables)]
 pub fn determine_dml_type(cmd: &str, db_type: DatabaseType) -> DmlType {
-    unimplemented!()
+    match db_type {
+        DatabaseType::Mysql => unimplemented!(),
+        DatabaseType::Unknown => panic!(),
+        DatabaseType::Sqlite => return sqlite::determine_statement_type(cmd.to_string()),
+        DatabaseType::Postgres => unimplemented!(),
+        DatabaseType::Sqlserver => unimplemented!(),
+    }
 }
