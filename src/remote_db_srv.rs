@@ -6,8 +6,8 @@ use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
-    Contract, DatabaseSchema, MessageInfo, Participant, ParticipantAcceptsContractRequest,
-    SaveContractRequest, InsertRowResult,
+    AuthRequest, Contract, DatabaseSchema, InsertDataRequest, InsertDataResult, MessageInfo,
+    Participant, ParticipantAcceptsContractRequest, SaveContractRequest,
 };
 use crate::rcd_enum::ContractStatus;
 use crate::{
@@ -17,13 +17,31 @@ use crate::{
 
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn insert_row_at_participant(
-    participant: &CoopDatabaseParticipant,
+    participant: CoopDatabaseParticipant,
     own_host_info: &HostInfo,
     db_name: &str,
     table_name: &str,
-    sql: &str
-) -> InsertRowResult {
-    unimplemented!()
+    sql: &str,
+    own_db_addr_port: String,
+) -> InsertDataResult {
+    let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
+    let auth = get_auth_request(own_host_info);
+
+    let request = InsertDataRequest {
+        authentication: Some(auth),
+        database_name: db_name.to_string(),
+        table_name: table_name.to_string(),
+        cmd: sql.to_string(),
+    };
+
+    let client = get_client(participant);
+    let response = client
+        .await
+        .insert_command_into_table(request)
+        .await
+        .unwrap();
+
+    return response.into_inner();
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
@@ -170,4 +188,15 @@ fn is_little_endian() -> bool {
     };
 
     return result;
+}
+
+fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
+    let auth = AuthRequest {
+        user_name: own_host_info.name.clone(),
+        pw: String::from(""),
+        pw_hash: Vec::new(),
+        token: own_host_info.token.clone(),
+    };
+
+    return auth;
 }

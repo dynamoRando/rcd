@@ -326,11 +326,12 @@ impl SqlClient for SqlClientImpl {
                     DmlType::Unknown => todo!(),
                     DmlType::Insert => {
                         let remote_insert_result = remote_db_srv::insert_row_at_participant(
-                            &db_participant,
+                            db_participant,
                             &host_info,
                             &db_name,
                             &cmd_table_name,
                             &statement,
+                            self.own_db_addr_port.clone()
                         )
                         .await;
 

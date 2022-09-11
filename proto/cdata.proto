@@ -230,6 +230,7 @@ service DataService {
 	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
 	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
 	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
+	rpc InsertCommandIntoTable(InsertDataRequest) returns (InsertDataResult);
 	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
 	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
@@ -287,6 +288,21 @@ message InsertRowResult {
 	string tableId = 7;
 	uint32 rowId = 8;
 	bytes dataHash = 9;
+}
+
+message InsertDataRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	string cmd = 4;
+}
+
+message InsertDataResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	bytes dataHash = 3;
+	string message = 4;
+	uint32 rowId = 5;
 }
 
 message UpdateRowInTableRequest{

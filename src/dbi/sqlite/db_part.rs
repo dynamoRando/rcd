@@ -1,9 +1,9 @@
 use std::path::Path;
 
-use super::get_db_conn_with_result;
+use super::{get_db_conn, get_db_conn_with_result};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
-use crate::dbi::DbiConfigSqlite;
-use crate::dbi::sqlite::{execute_write};
+use crate::dbi::sqlite::execute_write;
+use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
 use crate::rcd_enum::ColumnType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
@@ -26,11 +26,26 @@ use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Error, Result};
 
 #[allow(dead_code, unused_assignments, unused_variables)]
+pub fn insert_data_into_partial_db(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> InsertPartialDataResult {
+    let conn = get_db_conn(config, db_name);
+
+    // need to insert the data
+    // need to generate a data hash
+    // need to get the row id of the data that was saved
+
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_assignments, unused_variables)]
 pub fn create_partial_database_from_contract(
     contract: &Contract,
     config: &DbiConfigSqlite,
 ) -> bool {
-
     println!("{:?}", config);
 
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();

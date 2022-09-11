@@ -1,5 +1,6 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
+use crate::dbi::InsertPartialDataResult;
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
 use rusqlite::Result;
@@ -147,6 +148,61 @@ impl DataService for DataServiceImpl {
         unimplemented!("not implemented");
     }
 
+    async fn insert_command_into_table(
+        &self,
+        request: Request<InsertDataRequest>,
+    ) -> Result<Response<InsertDataResult>, Status> {
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let host_id = a.user_name;
+        let host_token = a.token;
+        let mut is_authenticated = false;
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+        let mut is_cmd_successful = false;
+
+        let mut result = InsertPartialDataResult {
+            is_successful: false,
+            row_id: 0,
+            data_hash: Vec::new(),
+        };
+
+        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
+            is_authenticated = true;
+        }
+
+        if is_authenticated {
+            let cmd = &message.cmd;
+
+            result = self
+                .dbi()
+                .insert_data_into_partial_db(&db_name, &table_name, cmd);
+
+            is_cmd_successful = result.is_successful;
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = InsertDataResult {
+            authentication_result: Some(auth_response),
+            is_successful: is_cmd_successful,
+            data_hash: result.data_hash,
+            message: String::from(""),
+            row_id: result.row_id,
+        };
+
+        Ok(Response::new(result))
+    }
+
     async fn update_row_in_table(
         &self,
         _request: Request<UpdateRowInTableRequest>,
@@ -212,7 +268,7 @@ impl DataService for DataServiceImpl {
             &message.database_name,
             accepted_participant,
             participant_message,
-            &message.contract_version_guid
+            &message.contract_version_guid,
         );
 
         let result = ParticipantAcceptsContractResult {

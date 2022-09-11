@@ -380,6 +380,30 @@ pub struct InsertRowResult {
     pub data_hash: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertDataRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub cmd: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertDataResult {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+    #[prost(bytes="vec", tag="3")]
+    pub data_hash: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="4")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(uint32, tag="5")]
+    pub row_id: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowInTableRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -1395,6 +1419,25 @@ pub mod data_service_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/cdata.DataService/InsertRowIntoTable",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn insert_command_into_table(
+            &mut self,
+            request: impl tonic::IntoRequest<super::InsertDataRequest>,
+        ) -> Result<tonic::Response<super::InsertDataResult>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.DataService/InsertCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2453,6 +2496,10 @@ pub mod data_service_server {
             &self,
             request: tonic::Request<super::InsertRowRequest>,
         ) -> Result<tonic::Response<super::InsertRowResult>, tonic::Status>;
+        async fn insert_command_into_table(
+            &self,
+            request: tonic::Request<super::InsertDataRequest>,
+        ) -> Result<tonic::Response<super::InsertDataResult>, tonic::Status>;
         async fn update_row_in_table(
             &self,
             request: tonic::Request<super::UpdateRowInTableRequest>,
@@ -2706,6 +2753,46 @@ pub mod data_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = InsertRowIntoTableSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.DataService/InsertCommandIntoTable" => {
+                    #[allow(non_camel_case_types)]
+                    struct InsertCommandIntoTableSvc<T: DataService>(pub Arc<T>);
+                    impl<
+                        T: DataService,
+                    > tonic::server::UnaryService<super::InsertDataRequest>
+                    for InsertCommandIntoTableSvc<T> {
+                        type Response = super::InsertDataResult;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::InsertDataRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).insert_command_into_table(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = InsertCommandIntoTableSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

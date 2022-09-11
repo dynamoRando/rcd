@@ -14,6 +14,12 @@ use crate::{
 
 mod sqlite;
 
+pub struct InsertPartialDataResult {
+    pub is_successful: bool,
+    pub row_id: u32,
+    pub data_hash: Vec<u8>,
+}
+
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 /// Database Interface: an abstraction over the underlying database layer. Supports:
@@ -58,6 +64,29 @@ pub struct DbiConfigPostgres {
 impl Dbi {
     pub fn db_type(self: &Self) -> DatabaseType {
         return self.db_type;
+    }
+
+    pub fn insert_data_into_partial_db(
+        self: &Self,
+        part_db_name: &str,
+        table_name: &str,
+        cmd: &str,
+    ) -> InsertPartialDataResult {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::insert_data_into_partial_db(
+                    part_db_name,
+                    table_name,
+                    cmd,
+                    &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     #[allow(dead_code, unused_assignments, unused_variables)]
@@ -420,10 +449,10 @@ impl Dbi {
     #[allow(unused_variables)]
     pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
         /*
-         - we want to call query_parser and get a list of tables that are in this query for this database
-         - once we have that list, we will check against dbi to see if any of those tables have a LSP that is cooperative
-         - for every table that is cooperative, we need to aggregate the command against all participants
-         */
+        - we want to call query_parser and get a list of tables that are in this query for this database
+        - once we have that list, we will check against dbi to see if any of those tables have a LSP that is cooperative
+        - for every table that is cooperative, we need to aggregate the command against all participants
+        */
         return false;
     }
 
