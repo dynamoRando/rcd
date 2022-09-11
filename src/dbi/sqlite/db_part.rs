@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{get_db_conn, get_db_conn_with_result};
+use super::{get_db_conn, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::execute_write;
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
@@ -34,13 +34,31 @@ pub fn insert_data_into_partial_db(
 ) -> InsertPartialDataResult {
     let conn = get_db_conn(config, db_name);
 
+    let mut row_id = 0;
+
     // need to insert the data
     // need to generate a data hash
     // need to get the row id of the data that was saved
     // http://www.sqlite.org/c3ref/last_insert_rowid.html
     // https://stackoverflow.com/questions/5867404/best-way-to-get-the-id-of-the-last-inserted-row-on-sqlite
 
-    unimplemented!()
+    // hashing function in sqlite: https://www.i-programmer.info/news/84-database/10527-sqlite-317-adds-sha1-extension.html
+    // would we parse the insert statement for the values to hash? maybe?
+    // we also need to save the hash here locally with the data along with the row_id
+
+    let total_rows = execute_write(&conn, cmd);
+    if total_rows > 0 {
+        let cmd = String::from("select last_insert_rowid()");
+        row_id = get_scalar_as_u32(cmd, &conn);
+    }
+
+    let result = InsertPartialDataResult {
+        is_successful: total_rows > 0,
+        row_id,
+        data_hash: Vec::new(),
+    };
+
+    unimplemented!();
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
