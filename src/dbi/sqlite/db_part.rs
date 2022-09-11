@@ -37,6 +37,8 @@ pub fn insert_data_into_partial_db(
     // need to insert the data
     // need to generate a data hash
     // need to get the row id of the data that was saved
+    // http://www.sqlite.org/c3ref/last_insert_rowid.html
+    // https://stackoverflow.com/questions/5867404/best-way-to-get-the-id-of-the-last-inserted-row-on-sqlite
 
     unimplemented!()
 }
