@@ -139,7 +139,7 @@ impl DataService for DataServiceImpl {
         let mut result = InsertPartialDataResult {
             is_successful: false,
             row_id: 0,
-            data_hash: Vec::new(),
+            data_hash: 0,
         };
 
         if is_authenticated {

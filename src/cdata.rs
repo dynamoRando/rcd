@@ -396,8 +396,8 @@ pub struct InsertDataResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(bool, tag="2")]
     pub is_successful: bool,
-    #[prost(bytes="vec", tag="3")]
-    pub data_hash: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag="3")]
+    pub data_hash: u64,
     #[prost(string, tag="4")]
     pub message: ::prost::alloc::string::String,
     #[prost(uint32, tag="5")]

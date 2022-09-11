@@ -300,7 +300,7 @@ message InsertDataRequest {
 message InsertDataResult {
 	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
-	bytes dataHash = 3;
+	uint64 dataHash = 3;
 	string message = 4;
 	uint32 rowId = 5;
 }

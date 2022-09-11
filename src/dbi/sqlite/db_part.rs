@@ -2,14 +2,14 @@ use std::path::Path;
 
 use super::{get_db_conn, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
-use crate::dbi::sqlite::execute_write;
+use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
-use crate::query_parser;
 use crate::rcd_enum::{ColumnType, DatabaseType};
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
 use crate::table::{Column, Data, Row, Table, Value};
+use crate::{crypt, defaults, query_parser};
 #[allow(unused_imports)]
 use crate::{
     rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
@@ -34,18 +34,7 @@ pub fn insert_data_into_partial_db(
     config: &DbiConfigSqlite,
 ) -> InsertPartialDataResult {
     let conn = get_db_conn(config, db_name);
-
     let mut row_id = 0;
-
-    // need to insert the data
-    // need to generate a data hash
-    // need to get the row id of the data that was saved
-    // http://www.sqlite.org/c3ref/last_insert_rowid.html
-    // https://stackoverflow.com/questions/5867404/best-way-to-get-the-id-of-the-last-inserted-row-on-sqlite
-
-    // hashing function in sqlite: https://www.i-programmer.info/news/84-database/10527-sqlite-317-adds-sha1-extension.html
-    // would we parse the insert statement for the values to hash? maybe?
-    // we also need to save the hash here locally with the data along with the row_id
 
     let total_rows = execute_write(&conn, cmd);
     if total_rows > 0 {
@@ -53,22 +42,37 @@ pub fn insert_data_into_partial_db(
         row_id = get_scalar_as_u32(cmd, &conn);
     }
 
+    // we need to parse the values of this row
+    // and create a data hash for it
+    let insert_values = query_parser::get_values_from_insert_statement(cmd, DatabaseType::Sqlite);
+    let hash_value = crypt::calculate_hash_for_struct(&insert_values);
+
+    // we need to determine if there is a metadata table for this table or not
+    // and if there is not one, create it
+    // then we need to save the data hash along with the row id
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+
+    if !has_table(metadata_table_name.clone(), &conn) {
+        //  need to create table
+        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        execute_write(&conn, &cmd);
+    }
+
+    let mut cmd = sql_text::COOP::text_insert_row_metadata_table();
+    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! {":row": row_id, ":hash" : hash_value})
+        .unwrap();
+
     let result = InsertPartialDataResult {
         is_successful: total_rows > 0,
         row_id,
-        data_hash: Vec::new(),
+        data_hash: hash_value,
     };
 
-    // we need to parse the values of this row 
-    // and create a data hash for it
-    let insert_values = query_parser::get_values_from_insert_statement(cmd, DatabaseType::Sqlite);
-
-    // we need to determine if there is a metadata table for this table or not
-    // and if there is not one, create it 
-    // then we need to save the data hash along with the row id
-    
-
-    unimplemented!();
+    return result;
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]

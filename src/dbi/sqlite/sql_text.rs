@@ -157,6 +157,34 @@ impl CDS {
 }
 
 impl COOP {
+    pub fn text_insert_row_metadata_table() -> String {
+        return String::from(
+            "INSERT INTO :table_table 
+        (
+            ROW_ID,
+            HASH
+        )
+        VALUES
+        (
+            :row,
+            :hash
+        )
+        ;",
+        );
+    }
+
+    pub fn text_create_metadata_table() -> String {
+        return String::from(
+            "
+        CREATE TABLE IF NOT EXISTS :table_name
+        (
+            ROW_ID INT,
+            HASH INT
+        );
+        ",
+        );
+    }
+
     #[allow(dead_code)]
     /// Returns create table statement for storing the database id when we 1st enable cooperative features
     pub fn text_create_data_host_table() -> String {

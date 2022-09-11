@@ -17,7 +17,7 @@ mod sqlite;
 pub struct InsertPartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
-    pub data_hash: Vec<u8>,
+    pub data_hash: u64,
 }
 
 #[derive(Debug, Clone)]
