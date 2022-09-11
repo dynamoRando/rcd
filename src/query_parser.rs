@@ -9,6 +9,20 @@ pub fn get_table_names(cmd: &str, db_type: DatabaseType) -> Vec<String> {
 }
 
 #[allow(dead_code, unused_variables)]
+pub fn get_values_from_insert_statement(
+    insert_statement: &str,
+    db_type: DatabaseType,
+) -> Vec<String> {
+    match db_type {
+        DatabaseType::Unknown => todo!(),
+        DatabaseType::Sqlite => return sqlite::get_values_from_insert_statement(insert_statement),
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
+    }
+}
+
+#[allow(dead_code, unused_variables)]
 pub fn get_table_name(cmd: &str, db_type: DatabaseType) -> String {
     match db_type {
         DatabaseType::Unknown => todo!(),

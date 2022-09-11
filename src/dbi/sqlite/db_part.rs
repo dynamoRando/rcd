@@ -4,7 +4,8 @@ use super::{get_db_conn, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::execute_write;
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
-use crate::rcd_enum::ColumnType;
+use crate::query_parser;
+use crate::rcd_enum::{ColumnType, DatabaseType};
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -57,6 +58,15 @@ pub fn insert_data_into_partial_db(
         row_id,
         data_hash: Vec::new(),
     };
+
+    // we need to parse the values of this row 
+    // and create a data hash for it
+    let insert_values = query_parser::get_values_from_insert_statement(cmd, DatabaseType::Sqlite);
+
+    // we need to determine if there is a metadata table for this table or not
+    // and if there is not one, create it 
+    // then we need to save the data hash along with the row id
+    
 
     unimplemented!();
 }

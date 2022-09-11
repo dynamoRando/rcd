@@ -1,4 +1,21 @@
 pub mod sqlite {
+    pub mod parse_insert_for_values {
+        use rcd::query_parser::sqlite::get_values_from_insert_statement;
+
+        #[test]
+        pub fn test() {
+            let insert_statement = "INSERT INTO test_table ( col1, col2 ) VALUES (1, 'abcd');";
+            let values = get_values_from_insert_statement(insert_statement);
+
+            let mut test_values: Vec<String> = Vec::new();
+
+            test_values.push(String::from("1"));
+            test_values.push(String::from("'abcd'"));
+
+            assert_eq!(test_values, values);
+        }
+    }
+
     pub mod determine_statement_type {
         use rcd::{query_parser::sqlite::determine_statement_type, rcd_enum::DmlType};
         #[test]
