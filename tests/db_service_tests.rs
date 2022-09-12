@@ -633,3 +633,12 @@ pub mod insert_row {
         return accepted_contract;
     }
 }
+
+pub mod insert_read_remote_row {
+
+    #[ignore = "test not written yet"]
+    #[test]
+    fn test () {
+        unimplemented!()
+    }
+}
