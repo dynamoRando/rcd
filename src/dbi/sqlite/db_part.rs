@@ -194,10 +194,12 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
             );
         }
 
-        cmd = cmd + &col_statement;
-    }
+ }
 
     cmd = cmd + " ) ";
+
+    // println!("{}", cmd);
+    // println!("{:?}", conn);
 
     execute_write(conn, &cmd);
 }
