@@ -4,3 +4,4 @@
 **.dbpart
 *.DS_STORE
 *._target
+**.db.dbpart
