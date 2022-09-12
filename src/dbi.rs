@@ -66,6 +66,32 @@ impl Dbi {
         return self.db_type;
     }
 
+    pub fn verify_host_by_id(self: &Self, host_id: &str, token: Vec<u8>) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::verify_host_by_id(host_id, token, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn verify_host_by_name(self: &Self, host_name: &str, token: Vec<u8>) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::verify_host_by_name(host_name, token, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn insert_metadata_into_host_db(
         self: &Self,
         db_name: &str,

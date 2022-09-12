@@ -42,7 +42,7 @@ pub fn insert_metadata_into_host_db(
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement
-        .execute(named_params! {":row": row_id, ":hash" : hash})
+        .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes() })
         .unwrap();
 
     return rows > 0;

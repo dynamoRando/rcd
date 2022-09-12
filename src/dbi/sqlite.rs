@@ -41,6 +41,8 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
 }
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
+    println!("{}", cmd);
+    println!("{:?}", conn);
     return conn.execute(&cmd, []).unwrap();
 }
 

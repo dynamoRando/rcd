@@ -409,6 +409,7 @@ pub mod accept_contract {
 pub mod insert_row {
     use crate::test_harness::ServiceAddr;
     use log::info;
+    use rcd::rcd_sql_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -425,6 +426,7 @@ pub mod insert_row {
 
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
+        let (tx_main_write, rx_main_read) = mpsc::channel();
 
         let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
@@ -441,6 +443,9 @@ pub mod insert_row {
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
         let participant_db_name = test_db_name.clone();
+        let main_db_name_write = main_db_name.clone();
+
+        let main_srv_addr = main_addrs.0.clone();
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -480,6 +485,17 @@ pub mod insert_row {
         );
 
         assert!(participant_accepted_contract);
+
+        thread::spawn(move || {
+            let res = main_execute_coop_write(&main_db_name_write, main_srv_addr);
+            tx_main_write.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
+
+        let write_is_successful = rx_main_read.try_recv().unwrap();
+
+        assert!(write_is_successful);
     }
 
     #[cfg(test)]
@@ -546,15 +562,26 @@ pub mod insert_row {
             .await
             .unwrap();
 
-        client
+        return client
             .send_participant_contract(db_name, "participant")
             .await
             .unwrap();
+    }
+
+    #[cfg(test)]
+    #[tokio::main]
+    #[allow(unused_variables)]
+    async fn main_execute_coop_write(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+        let client = RcdClient::new(
+            main_client_addr.to_full_string_with_http(),
+            String::from("tester"),
+            String::from("123456"),
+        );
 
         return client
             .execute_cooperative_write(
                 db_name,
-                "INSERT INTO EMPLOYEE ( Id, Text ) VALUES ( 999, 'ASDF');",
+                "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
                 "participant",
             )
             .await

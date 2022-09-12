@@ -3,7 +3,7 @@ use crate::cdata::{
     AcceptPendingContractRequest, AddParticipantRequest, Contract, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
     ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetLogicalStoragePolicyRequest, HasTableRequest, InsertDataRequest,
+    GetLogicalStoragePolicyRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
     ViewPendingContractsRequest,
 };

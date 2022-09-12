@@ -38,7 +38,7 @@ pub fn has_login(login: &str, dbi: &Dbi) -> Result<bool> {
 }
 
 #[allow(dead_code, unused_variables)]
-pub fn verify_host_by_id(host_id: &str, token: Vec<u8>) -> bool {
+pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, dbi: &Dbi) -> bool {
     /*
         "CREATE TABLE IF NOT EXISTS CDS_HOSTS
         (
@@ -51,12 +51,12 @@ pub fn verify_host_by_id(host_id: &str, token: Vec<u8>) -> bool {
             LAST_COMMUNICATION_UTC DATETIME
         );",
     */
-    unimplemented!();
+    return dbi.verify_host_by_id(host_id, token);
 }
 
 #[allow(dead_code, unused_variables)]
-pub fn verify_host_by_name(host_name: &str, token: Vec<u8>) -> bool {
-    unimplemented!();
+pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, dbi: &Dbi) -> bool {
+    return dbi.verify_host_by_name(host_name, token);
 }
 
 #[allow(dead_code, unused_variables)]

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::{get_db_conn, get_db_conn_with_result, get_scalar_as_u32};
+use super::{get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
@@ -33,7 +33,7 @@ pub fn insert_data_into_partial_db(
     cmd: &str,
     config: &DbiConfigSqlite,
 ) -> InsertPartialDataResult {
-    let conn = get_db_conn(config, db_name);
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
     let mut row_id = 0;
 
     let total_rows = execute_write(&conn, cmd);
@@ -62,8 +62,12 @@ pub fn insert_data_into_partial_db(
     let mut cmd = sql_text::COOP::text_insert_row_metadata_table();
     cmd = cmd.replace(":table_name", &metadata_table_name.clone());
     let mut statement = conn.prepare(&cmd).unwrap();
+
+    println!("{:?}", row_id);
+    println!("{:?}", hash_value);
+
     statement
-        .execute(named_params! {":row": row_id, ":hash" : hash_value})
+        .execute(named_params! {":row": row_id, ":hash" : hash_value.to_ne_bytes() })
         .unwrap();
 
     let result = InsertPartialDataResult {

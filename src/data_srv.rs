@@ -44,7 +44,7 @@ impl DataService for DataServiceImpl {
         request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
         let message = request.into_inner();
-        let is_authenticated = authenticate_host(message.authentication.unwrap());
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let mut is_part_db_created = false;
         let db_name = message.database_name;
         let mut db_id = String::from("");
@@ -80,7 +80,7 @@ impl DataService for DataServiceImpl {
         request: Request<CreateTableRequest>,
     ) -> Result<Response<CreateTableResult>, Status> {
         let message = request.into_inner();
-        let is_authenticated = authenticate_host(message.authentication.unwrap());
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let db_name = message.database_name;
         let table_name = message.table_name;
         let table_schema = message.columns;
@@ -131,7 +131,7 @@ impl DataService for DataServiceImpl {
         request: Request<InsertDataRequest>,
     ) -> Result<Response<InsertDataResult>, Status> {
         let message = request.into_inner();
-        let is_authenticated = authenticate_host(message.authentication.unwrap());
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let db_name = message.database_name;
         let table_name = message.table_name;
 
@@ -297,17 +297,17 @@ pub async fn start_db_service(
     Ok(())
 }
 
-fn authenticate_host(authentication: AuthRequest) -> bool {
+fn authenticate_host(authentication: AuthRequest, dbi: &Dbi) -> bool {
     let mut is_authenticated = false;
 
     let host_id = authentication.user_name;
     let host_token = authentication.token;
 
-    if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
+    if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec(), dbi) {
         is_authenticated = true;
     }
 
-    if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
+    if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec(), dbi) {
         is_authenticated = true;
     }
 

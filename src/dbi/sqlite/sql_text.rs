@@ -159,7 +159,7 @@ impl CDS {
 impl COOP {
     pub fn text_insert_row_metadata_table() -> String {
         return String::from(
-            "INSERT INTO :table_table 
+            "INSERT INTO :table_name
         (
             ROW_ID,
             HASH
@@ -179,7 +179,7 @@ impl COOP {
         CREATE TABLE IF NOT EXISTS :table_name
         (
             ROW_ID INT,
-            HASH INT
+            HASH BLOB
         );
         ",
         );
