@@ -5,10 +5,6 @@ use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
 use crate::rcd_enum::{ColumnType, DatabaseType};
-use super::get_db_conn_with_result;
-use crate::cdata::{ColumnSchema, Contract, TableSchema};
-use crate::dbi::DbiConfigSqlite;
-use crate::rcd_enum::ColumnType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -198,24 +194,8 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
             );
         }
 
-        cmd = cmd + &col_statement
+        cmd = cmd + &col_statement;
     }
-
     cmd = cmd + " ) ";
-
-    // println!("{}", cmd);
-    // println!("{:?}", conn);
-
     execute_write(conn, &cmd);
-}
-
-    }
-
-    unimplemented!()
-}
-
-        
-    }
-
-    unimplemented!()
 }
