@@ -5,6 +5,10 @@ use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
 use crate::rcd_enum::{ColumnType, DatabaseType};
+use super::get_db_conn_with_result;
+use crate::cdata::{ColumnSchema, Contract, TableSchema};
+use crate::dbi::DbiConfigSqlite;
+use crate::rcd_enum::ColumnType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -85,6 +89,7 @@ pub fn create_partial_database_from_contract(
     config: &DbiConfigSqlite,
 ) -> bool {
     println!("{:?}", config);
+
 
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();
     let _ = create_partial_database(&db_name, config);
@@ -204,3 +209,9 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
 
     execute_write(conn, &cmd);
 }
+
+    }
+
+    unimplemented!()
+}
+
