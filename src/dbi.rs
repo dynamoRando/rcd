@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Error};
 
 use crate::{
-    cdata::{ColumnSchema, Contract, DatabaseSchema},
+    cdata::{ColumnSchema, Contract, DatabaseSchema, Participant},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     host_info::HostInfo,
@@ -13,6 +13,12 @@ use crate::{
 };
 
 mod sqlite;
+
+pub struct InsertPartialDataResult {
+    pub is_successful: bool,
+    pub row_id: u32,
+    pub data_hash: u64,
+}
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -56,6 +62,107 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn db_type(self: &Self) -> DatabaseType {
+        return self.db_type;
+    }
+
+    pub fn verify_host_by_id(self: &Self, host_id: &str, token: Vec<u8>) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::verify_host_by_id(host_id, token, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn verify_host_by_name(self: &Self, host_name: &str, token: Vec<u8>) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::verify_host_by_name(host_name, token, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn insert_metadata_into_host_db(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+        hash: u64,
+        internal_participant_id: &str
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::insert_metadata_into_host_db(
+                    db_name, table_name, row_id, hash, internal_participant_id, settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn insert_data_into_partial_db(
+        self: &Self,
+        part_db_name: &str,
+        table_name: &str,
+        cmd: &str,
+    ) -> InsertPartialDataResult {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::insert_data_into_partial_db(
+                    part_db_name,
+                    table_name,
+                    cmd,
+                    &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    #[allow(dead_code, unused_assignments, unused_variables)]
+    pub fn update_participant_accepts_contract(
+        self: &Self,
+        db_name: &str,
+        participant: CoopDatabaseParticipant,
+        participant_message: Participant,
+        accepted_contract_id: &str,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::update_participant_accepts_contract(
+                    db_name,
+                    participant,
+                    participant_message,
+                    accepted_contract_id,
+                    settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn create_partial_database_from_contract(self: &Self, contract: &Contract) -> bool {
         match self.db_type {
@@ -389,6 +496,11 @@ impl Dbi {
 
     #[allow(unused_variables)]
     pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
+        /*
+        - we want to call query_parser and get a list of tables that are in this query for this database
+        - once we have that list, we will check against dbi to see if any of those tables have a LSP that is cooperative
+        - for every table that is cooperative, we need to aggregate the command against all participants
+        */
         return false;
     }
 

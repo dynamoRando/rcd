@@ -1,8 +1,9 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
+use crate::dbi::InsertPartialDataResult;
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
-use rusqlite::{Result};
+use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Default)]
@@ -43,21 +44,10 @@ impl DataService for DataServiceImpl {
         request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_id = a.user_name;
-        let host_token = a.token.as_bytes();
-        let mut is_authenticated = false;
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let mut is_part_db_created = false;
         let db_name = message.database_name;
         let mut db_id = String::from("");
-
-        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
-
-        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
 
         if is_authenticated {
             let result = self.dbi().create_partial_database(&db_name);
@@ -90,24 +80,13 @@ impl DataService for DataServiceImpl {
         request: Request<CreateTableRequest>,
     ) -> Result<Response<CreateTableResult>, Status> {
         let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_id = a.user_name;
-        let host_token = a.token;
-        let mut is_authenticated = false;
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let db_name = message.database_name;
         let table_name = message.table_name;
         let table_schema = message.columns;
         let mut table_is_created = false;
         let mut table_id = String::from("");
         let mut db_id = String::from("");
-
-        if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
-
-        if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec()) {
-            is_authenticated = true;
-        }
 
         if is_authenticated {
             let result =
@@ -145,6 +124,47 @@ impl DataService for DataServiceImpl {
         _request: Request<InsertRowRequest>,
     ) -> Result<Response<InsertRowResult>, Status> {
         unimplemented!("not implemented");
+    }
+
+    async fn insert_command_into_table(
+        &self,
+        request: Request<InsertDataRequest>,
+    ) -> Result<Response<InsertDataResult>, Status> {
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+
+        let mut result = InsertPartialDataResult {
+            is_successful: false,
+            row_id: 0,
+            data_hash: 0,
+        };
+
+        if is_authenticated {
+            let cmd = &message.cmd;
+
+            result = self
+                .dbi()
+                .insert_data_into_partial_db(&db_name, &table_name, cmd);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = InsertDataResult {
+            authentication_result: Some(auth_response),
+            is_successful: result.is_successful,
+            data_hash: result.data_hash,
+            message: String::from(""),
+            row_id: result.row_id,
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn update_row_in_table(
@@ -191,9 +211,36 @@ impl DataService for DataServiceImpl {
 
     async fn accept_contract(
         &self,
-        _request: Request<ParticipantAcceptsContractRequest>,
+        request: Request<ParticipantAcceptsContractRequest>,
     ) -> Result<Response<ParticipantAcceptsContractResult>, Status> {
-        unimplemented!("not implemented");
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        let debug_message_info = &message.message_info.as_ref().unwrap().clone();
+
+        println!("{:?}", debug_message_info);
+        println!("{:?}", &message);
+
+        let participant_message = message.participant.as_ref().unwrap().clone();
+
+        let accepted_participant = self.dbi().get_participant_by_alias(
+            &message.database_name,
+            &message.participant.as_ref().unwrap().alias,
+        );
+
+        let is_successful = self.dbi().update_participant_accepts_contract(
+            &message.database_name,
+            accepted_participant,
+            participant_message,
+            &message.contract_version_guid,
+        );
+
+        let result = ParticipantAcceptsContractResult {
+            contract_acceptance_is_acknowledged: is_successful,
+            error_message: String::from(""),
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn remove_row_from_partial_database(
@@ -248,4 +295,21 @@ pub async fn start_db_service(
         .await?;
 
     Ok(())
+}
+
+fn authenticate_host(authentication: AuthRequest, dbi: &Dbi) -> bool {
+    let mut is_authenticated = false;
+
+    let host_id = authentication.user_name;
+    let host_token = authentication.token;
+
+    if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec(), dbi) {
+        is_authenticated = true;
+    }
+
+    if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec(), dbi) {
+        is_authenticated = true;
+    }
+
+    return is_authenticated;
 }

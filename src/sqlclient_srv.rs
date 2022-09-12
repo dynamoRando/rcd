@@ -5,6 +5,8 @@ use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
 use crate::host_info::HostInfo;
+use crate::query_parser;
+use crate::rcd_enum::DmlType;
 #[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 #[allow(unused_imports)]
@@ -56,6 +58,42 @@ impl SqlClient for SqlClientImpl {
             reply_echo_message: String::from(item),
         };
         Ok(Response::new(response))
+    }
+
+    #[allow(dead_code, unused_mut, unused_variables)]
+    async fn generate_host_info(
+        &self,
+        request: Request<GenerateHostInfoRequest>,
+    ) -> Result<Response<GenerateHostInfoReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let mut is_generate_successful = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+        let host_name = message.host_name.clone();
+
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+
+        if is_authenticated {
+            self.dbi().rcd_generate_host_info(&host_name);
+            is_generate_successful = true;
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let generate_host_info_result = GenerateHostInfoReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_generate_successful,
+        };
+
+        Ok(Response::new(generate_host_info_result))
     }
 
     async fn create_user_database(
@@ -239,9 +277,6 @@ impl SqlClient for SqlClientImpl {
         let statement = message.sql_statement;
 
         if is_authenticated {
-            // ideally in the future we would inspect the sql statement and determine
-            // if the table we were going to affect was a cooperative one and then act accordingly
-            // right now, we will just execute the write statement
             let rows_affected = self.dbi().execute_write(&db_name, &statement);
         }
 
@@ -261,12 +296,89 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(execute_write_reply))
     }
 
+    #[allow(unused_variables, unused_mut)]
     async fn execute_cooperative_write(
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
+
+        let mut is_remote_action_successful = false;
+
+        // check if the user is authenticated
+        let message = request.into_inner();
+        let a = message.authentication.unwrap();
+
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+        let db_name = message.database_name;
+        let statement = message.sql_statement;
+
+        if is_authenticated {
+            if self.dbi().has_participant(&db_name, &message.alias) {
+                let dml_type = query_parser::determine_dml_type(&statement, self.dbi().db_type());
+                let db_participant = self
+                    .dbi()
+                    .get_participant_by_alias(&db_name, &message.alias);
+                let host_info = self.dbi().rcd_get_host_info();
+                let cmd_table_name = query_parser::get_table_name(&statement, self.dbi().db_type());
+
+                let db_participant_reference = db_participant.clone();
+
+                match dml_type {
+                    DmlType::Unknown => todo!(),
+                    DmlType::Insert => {
+                        let remote_insert_result = remote_db_srv::insert_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                            self.own_db_addr_port.clone(),
+                        )
+                        .await;
+
+                        if remote_insert_result.is_successful {
+                            // we need to add the data hash and row id here
+                            let data_hash = remote_insert_result.data_hash.clone();
+                            let row_id = remote_insert_result.row_id;
+
+                            let internal_participant_id = db_participant_reference.internal_id.to_string().clone();
+
+                            let local_insert_is_successful =
+                                self.dbi().insert_metadata_into_host_db(
+                                    &db_name,
+                                    &cmd_table_name,
+                                    row_id,
+                                    data_hash,
+                                    &internal_participant_id
+                                );
+                                
+                            if local_insert_is_successful {
+                                is_remote_action_successful = true;
+                            }
+                        }
+                    }
+                    DmlType::Update => todo!(),
+                    DmlType::Delete => todo!(),
+                    DmlType::Select => panic!(),
+                }
+            }
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let execute_write_reply = ExecuteCooperativeWriteReply {
+            authentication_result: Some(auth_response),
+            is_successful: is_remote_action_successful,
+            total_rows_affected: 0,
+        };
+
+        Ok(Response::new(execute_write_reply))
     }
 
     async fn has_table(

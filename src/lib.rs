@@ -5,7 +5,7 @@ mod coop_database_contract;
 mod coop_database_participant;
 pub mod defaults;
 mod host_info;
-mod query_parser;
+pub mod query_parser;
 pub mod rcd_data_client;
 pub mod rcd_db;
 pub mod rcd_enum;
@@ -23,6 +23,7 @@ use crate::rcd_settings::RcdSettings;
 use config::Config;
 use dbi::{DbiConfigSqlite, Dbi};
 use std::env;
+
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(

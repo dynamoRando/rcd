@@ -1,4 +1,18 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateHostInfoRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub host_name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GenerateHostInfoReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SendParticipantContractRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -362,6 +376,32 @@ pub struct InsertRowResult {
     pub table_id: ::prost::alloc::string::String,
     #[prost(uint32, tag="8")]
     pub row_id: u32,
+    #[prost(bytes="vec", tag="9")]
+    pub data_hash: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertDataRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub cmd: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct InsertDataResult {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+    #[prost(uint64, tag="3")]
+    pub data_hash: u64,
+    #[prost(string, tag="4")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(uint32, tag="5")]
+    pub row_id: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowInTableRequest {
@@ -472,7 +512,7 @@ pub struct GetRowFromPartialDatabaseResult {
 /// a message from a host to a participant to save a contract
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractRequest {
-    ///AuthRequest authentication = 1;
+    /// AuthRequest authentication = 1;
     #[prost(message, optional, tag="1")]
     pub contract: ::core::option::Option<Contract>,
     #[prost(message, optional, tag="2")]
@@ -480,7 +520,7 @@ pub struct SaveContractRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractResult {
-    ///AuthResult authenticationResult = 1;
+    /// AuthResult authenticationResult = 1;
     #[prost(bool, tag="1")]
     pub is_saved: bool,
     #[prost(string, tag="2")]
@@ -493,8 +533,10 @@ pub struct ParticipantAcceptsContractRequest {
     #[prost(string, tag="2")]
     pub contract_guid: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
+    pub contract_version_guid: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
     pub database_name: ::prost::alloc::string::String,
-    #[prost(message, optional, tag="4")]
+    #[prost(message, optional, tag="5")]
     pub message_info: ::core::option::Option<MessageInfo>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -640,7 +682,7 @@ pub struct AuthResult {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateDatabaseRequest {
     #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthResult>,
+    pub authentication: ::core::option::Option<AuthRequest>,
     #[prost(message, optional, tag="2")]
     pub message_info: ::core::option::Option<MessageInfo>,
     #[prost(string, tag="3")]
@@ -832,6 +874,7 @@ pub struct RowParticipantAddress {
 pub mod sql_client_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug, Clone)]
     pub struct SqlClientClient<T> {
@@ -859,6 +902,10 @@ pub mod sql_client_client {
             let inner = tonic::client::Grpc::new(inner);
             Self { inner }
         }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
@@ -878,19 +925,19 @@ pub mod sql_client_client {
         {
             SqlClientClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
+        /// Compress requests with the given encoding.
         ///
         /// This requires the server to support it otherwise it might respond with an
         /// error.
         #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
             self
         }
-        /// Enable decompressing responses with `gzip`.
+        /// Enable decompressing responses.
         #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
             self
         }
         pub async fn is_online(
@@ -1208,12 +1255,32 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn generate_host_info(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GenerateHostInfoRequest>,
+        ) -> Result<tonic::Response<super::GenerateHostInfoReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/GenerateHostInfo",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
 pub mod data_service_client {
     #![allow(unused_variables, dead_code, missing_docs, clippy::let_unit_value)]
     use tonic::codegen::*;
+    use tonic::codegen::http::Uri;
     /// a service for communication between different rcd stores
     #[derive(Debug, Clone)]
     pub struct DataServiceClient<T> {
@@ -1241,6 +1308,10 @@ pub mod data_service_client {
             let inner = tonic::client::Grpc::new(inner);
             Self { inner }
         }
+        pub fn with_origin(inner: T, origin: Uri) -> Self {
+            let inner = tonic::client::Grpc::with_origin(inner, origin);
+            Self { inner }
+        }
         pub fn with_interceptor<F>(
             inner: T,
             interceptor: F,
@@ -1260,19 +1331,19 @@ pub mod data_service_client {
         {
             DataServiceClient::new(InterceptedService::new(inner, interceptor))
         }
-        /// Compress requests with `gzip`.
+        /// Compress requests with the given encoding.
         ///
         /// This requires the server to support it otherwise it might respond with an
         /// error.
         #[must_use]
-        pub fn send_gzip(mut self) -> Self {
-            self.inner = self.inner.send_gzip();
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.send_compressed(encoding);
             self
         }
-        /// Enable decompressing responses with `gzip`.
+        /// Enable decompressing responses.
         #[must_use]
-        pub fn accept_gzip(mut self) -> Self {
-            self.inner = self.inner.accept_gzip();
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.inner = self.inner.accept_compressed(encoding);
             self
         }
         pub async fn is_online(
@@ -1348,6 +1419,25 @@ pub mod data_service_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/cdata.DataService/InsertRowIntoTable",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn insert_command_into_table(
+            &mut self,
+            request: impl tonic::IntoRequest<super::InsertDataRequest>,
+        ) -> Result<tonic::Response<super::InsertDataResult>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.DataService/InsertCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1594,13 +1684,17 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::RejectPendingContractRequest>,
         ) -> Result<tonic::Response<super::RejectPendingContractReply>, tonic::Status>;
+        async fn generate_host_info(
+            &self,
+            request: tonic::Request<super::GenerateHostInfoRequest>,
+        ) -> Result<tonic::Response<super::GenerateHostInfoReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
     pub struct SqlClientServer<T: SqlClient> {
         inner: _Inner<T>,
-        accept_compression_encodings: (),
-        send_compression_encodings: (),
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: SqlClient> SqlClientServer<T> {
@@ -1623,6 +1717,18 @@ pub mod sql_client_server {
             F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
         }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for SqlClientServer<T>
@@ -2288,6 +2394,46 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
+                "/cdata.SQLClient/GenerateHostInfo" => {
+                    #[allow(non_camel_case_types)]
+                    struct GenerateHostInfoSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GenerateHostInfoRequest>
+                    for GenerateHostInfoSvc<T> {
+                        type Response = super::GenerateHostInfoReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GenerateHostInfoRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).generate_host_info(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GenerateHostInfoSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 _ => {
                     Box::pin(async move {
                         Ok(
@@ -2323,7 +2469,7 @@ pub mod sql_client_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: SqlClient> tonic::transport::NamedService for SqlClientServer<T> {
+    impl<T: SqlClient> tonic::server::NamedService for SqlClientServer<T> {
         const NAME: &'static str = "cdata.SQLClient";
     }
 }
@@ -2350,6 +2496,10 @@ pub mod data_service_server {
             &self,
             request: tonic::Request<super::InsertRowRequest>,
         ) -> Result<tonic::Response<super::InsertRowResult>, tonic::Status>;
+        async fn insert_command_into_table(
+            &self,
+            request: tonic::Request<super::InsertDataRequest>,
+        ) -> Result<tonic::Response<super::InsertDataResult>, tonic::Status>;
         async fn update_row_in_table(
             &self,
             request: tonic::Request<super::UpdateRowInTableRequest>,
@@ -2402,8 +2552,8 @@ pub mod data_service_server {
     #[derive(Debug)]
     pub struct DataServiceServer<T: DataService> {
         inner: _Inner<T>,
-        accept_compression_encodings: (),
-        send_compression_encodings: (),
+        accept_compression_encodings: EnabledCompressionEncodings,
+        send_compression_encodings: EnabledCompressionEncodings,
     }
     struct _Inner<T>(Arc<T>);
     impl<T: DataService> DataServiceServer<T> {
@@ -2426,6 +2576,18 @@ pub mod data_service_server {
             F: tonic::service::Interceptor,
         {
             InterceptedService::new(Self::new(inner), interceptor)
+        }
+        /// Enable decompressing requests with the given encoding.
+        #[must_use]
+        pub fn accept_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.accept_compression_encodings.enable(encoding);
+            self
+        }
+        /// Compress responses with the given encoding, if the client supports it.
+        #[must_use]
+        pub fn send_compressed(mut self, encoding: CompressionEncoding) -> Self {
+            self.send_compression_encodings.enable(encoding);
+            self
         }
     }
     impl<T, B> tonic::codegen::Service<http::Request<B>> for DataServiceServer<T>
@@ -2591,6 +2753,46 @@ pub mod data_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = InsertRowIntoTableSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.DataService/InsertCommandIntoTable" => {
+                    #[allow(non_camel_case_types)]
+                    struct InsertCommandIntoTableSvc<T: DataService>(pub Arc<T>);
+                    impl<
+                        T: DataService,
+                    > tonic::server::UnaryService<super::InsertDataRequest>
+                    for InsertCommandIntoTableSvc<T> {
+                        type Response = super::InsertDataResult;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::InsertDataRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).insert_command_into_table(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = InsertCommandIntoTableSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2968,7 +3170,7 @@ pub mod data_service_server {
             write!(f, "{:?}", self.0)
         }
     }
-    impl<T: DataService> tonic::transport::NamedService for DataServiceServer<T> {
+    impl<T: DataService> tonic::server::NamedService for DataServiceServer<T> {
         const NAME: &'static str = "cdata.DataService";
     }
 }

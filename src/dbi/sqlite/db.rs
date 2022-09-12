@@ -3,13 +3,13 @@ use super::{
     get_scalar_as_string, get_scalar_as_u32, has_table, sql_text, DbiConfigSqlite,
 };
 use crate::{
-    cdata::{ColumnSchema, DatabaseSchema, TableSchema},
+    cdata::{ColumnSchema, DatabaseSchema, Participant, TableSchema},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     dbi::sqlite::has_any_rows,
     defaults, query_parser,
     rcd_enum::{
-        self, ColumnType, ContractStatus, LogicalStoragePolicy, RcdDbError,
+        self, ColumnType, ContractStatus, DatabaseType, LogicalStoragePolicy, RcdDbError,
         RcdGenerateContractError, RemoteDeleteBehavior,
     },
     table::Table,
@@ -18,6 +18,79 @@ use chrono::{TimeZone, Utc};
 use guid_create::GUID;
 
 use rusqlite::{named_params, Connection, Error, Result};
+
+#[allow(dead_code, unused_variables)]
+pub fn insert_metadata_into_host_db(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    hash: u64,
+    internal_participant_id: &str,
+    config: DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(&config, db_name);
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+
+    if !has_table(metadata_table_name.clone(), &conn) {
+        //  need to create table
+        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        execute_write(&conn, &cmd);
+    }
+
+    let mut cmd = sql_text::COOP::text_insert_row_metadata_table();
+    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows = statement
+        .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes(), ":pid" : internal_participant_id })
+        .unwrap();
+
+    return rows > 0;
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn update_participant_accepts_contract(
+    db_name: &str,
+    participant: CoopDatabaseParticipant,
+    participant_message: Participant,
+    accepted_contract_version_id: &str,
+    config: DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(&config, db_name);
+
+    let internal_id = participant.internal_id.clone();
+    let participant_id = participant_message.participant_guid.clone();
+    let token = participant_message.token.clone();
+
+    let cmd = String::from(
+        "
+    UPDATE 
+        COOP_PARTICIPANT
+    SET 
+        CONTRACT_STATUS = 3, 
+        ACCEPTED_CONTRACT_VERSION_ID = :cid,
+        PARTICIPANT_ID = :pid,
+        TOKEN = :token
+    WHERE 
+        INTERNAL_PARTICIPANT_ID = :iid
+    ;
+    ",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows_affected = statement
+        .execute(named_params! {
+            ":cid" : accepted_contract_version_id.to_string(),
+            ":pid" : participant_id,
+            ":token" : token,
+            ":iid" : internal_id.to_string(),
+        })
+        .unwrap();
+
+    return rows_affected > 0;
+}
 
 pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connection, Error> {
     return Ok(get_db_conn(&config, db_name));
@@ -413,7 +486,7 @@ pub fn get_participants_for_table(
 pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> bool {
     let mut has_cooperative_tables = false;
 
-    let tables = query_parser::get_table_names(&cmd);
+    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in tables {
         let result = get_logical_storage_policy(db_name, &table, &config);
@@ -446,7 +519,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
 pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Vec<String> {
     let mut cooperative_tables: Vec<String> = Vec::new();
 
-    let tables = query_parser::get_table_names(&cmd);
+    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in &tables {
         let result = get_logical_storage_policy(db_name, &table.to_string(), &config);
