@@ -322,6 +322,8 @@ impl SqlClient for SqlClientImpl {
                 let host_info = self.dbi().rcd_get_host_info();
                 let cmd_table_name = query_parser::get_table_name(&statement, self.dbi().db_type());
 
+                let db_participant_reference = db_participant.clone();
+
                 match dml_type {
                     DmlType::Unknown => todo!(),
                     DmlType::Insert => {
@@ -340,14 +342,17 @@ impl SqlClient for SqlClientImpl {
                             let data_hash = remote_insert_result.data_hash.clone();
                             let row_id = remote_insert_result.row_id;
 
+                            let internal_participant_id = db_participant_reference.internal_id.to_string().clone();
+
                             let local_insert_is_successful =
                                 self.dbi().insert_metadata_into_host_db(
                                     &db_name,
                                     &cmd_table_name,
                                     row_id,
                                     data_hash,
+                                    &internal_participant_id
                                 );
-
+                                
                             if local_insert_is_successful {
                                 is_remote_action_successful = true;
                             }

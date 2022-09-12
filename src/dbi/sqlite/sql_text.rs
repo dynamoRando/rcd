@@ -162,12 +162,14 @@ impl COOP {
             "INSERT INTO :table_name
         (
             ROW_ID,
-            HASH
+            HASH,
+            INTERNAL_PARTICIPANT_ID
         )
         VALUES
         (
             :row,
-            :hash
+            :hash,
+            :pid
         )
         ;",
         );
@@ -179,7 +181,8 @@ impl COOP {
         CREATE TABLE IF NOT EXISTS :table_name
         (
             ROW_ID INT,
-            HASH BLOB
+            HASH BLOB,
+            INTERNAL_PARTICIPANT_ID CHAR(36)
         );
         ",
         );

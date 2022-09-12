@@ -150,8 +150,7 @@ let default_addr_port = "http://[::1]:50051";
 
 | Table Name                 | Purpose                                                                                                                                                          |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[TableName]_COOP_SHADOWS` | In addition, for every table at a host, with a LSP that is remote, there is also a `[TableName]_COOP_SHADOWS` table. This table tracks the remote participants.  |
-| `[TableName]_COOP_DATA`    | For every table at a host that is remote, there is a `[TableName]_COOP_DATA` that tracks the remote row at the participant. This is the row id and the data hash |
+| `[TableName]_COOP_METADATA`    | For every table at a host that is remote, there is a `[TableName]_COOP_DATA` that tracks the remote row at the participant. This is the row id and the data hash and the participant. |
 
 #### Participant
 | Table Name                  | Purpose                                                                                                                                        |

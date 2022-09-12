@@ -25,6 +25,7 @@ pub fn insert_metadata_into_host_db(
     table_name: &str,
     row_id: u32,
     hash: u64,
+    internal_participant_id: &str,
     config: DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
@@ -42,7 +43,7 @@ pub fn insert_metadata_into_host_db(
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement
-        .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes() })
+        .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes(), ":pid" : internal_participant_id })
         .unwrap();
 
     return rows > 0;

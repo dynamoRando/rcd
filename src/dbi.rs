@@ -98,12 +98,13 @@ impl Dbi {
         table_name: &str,
         row_id: u32,
         hash: u64,
+        internal_participant_id: &str
     ) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 return sqlite::db::insert_metadata_into_host_db(
-                    db_name, table_name, row_id, hash, settings,
+                    db_name, table_name, row_id, hash, internal_participant_id, settings,
                 );
             }
             DatabaseType::Unknown => unimplemented!(),
