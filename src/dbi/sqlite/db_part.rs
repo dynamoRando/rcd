@@ -86,7 +86,6 @@ pub fn create_partial_database_from_contract(
 ) -> bool {
     println!("{:?}", config);
 
-
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();
     let _ = create_partial_database(&db_name, config);
 
@@ -195,16 +194,8 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
             );
         }
 
-<<<<<<< HEAD
- }
-
+        cmd = cmd + &col_statement;
+    }
     cmd = cmd + " ) ";
-
-    // println!("{}", cmd);
-    // println!("{:?}", conn);
-
     execute_write(conn, &cmd);
 }
-=======
-        cmd = cmd + &col_statement
->>>>>>> parent of 4863670 (fix)
