@@ -19,6 +19,17 @@ service SQLClient {
 	rpc ReviewPendingContracts(ViewPendingContractsRequest) returns (ViewPendingContractsReply);
 	rpc AcceptPendingContract(AcceptPendingContractRequest) returns (AcceptPendingContractReply);
 	rpc RejectPendingContract(RejectPendingContractRequest) returns (RejectPendingContractReply);
+	rpc GenerateHostInfo(GenerateHostInfoRequest) returns (GenerateHostInfoReply);
+}
+
+message GenerateHostInfoRequest {
+	AuthRequest authentication = 1;
+	string hostName = 2;
+}
+
+message GenerateHostInfoReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
 }
 
 message SendParticipantContractRequest {
@@ -219,6 +230,7 @@ service DataService {
 	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
 	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
 	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
+	rpc InsertCommandIntoTable(InsertDataRequest) returns (InsertDataResult);
 	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
 	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
@@ -275,6 +287,22 @@ message InsertRowResult {
 	string tableName = 6;
 	string tableId = 7;
 	uint32 rowId = 8;
+	bytes dataHash = 9;
+}
+
+message InsertDataRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	string cmd = 4;
+}
+
+message InsertDataResult {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	uint64 dataHash = 3;
+	string message = 4;
+	uint32 rowId = 5;
 }
 
 message UpdateRowInTableRequest{
@@ -354,8 +382,9 @@ message SaveContractResult {
 message ParticipantAcceptsContractRequest {
 	Participant participant = 1;
 	string contractGUID = 2;
-	string databaseName = 3;
-	MessageInfo messageInfo = 4;
+	string contractVersionGUID = 3;
+	string databaseName = 4;
+	MessageInfo messageInfo = 5;
 }
 
 message ParticipantAcceptsContractResult {
@@ -450,7 +479,7 @@ message AuthResult {
 
 // A message for creating a user database
 message CreateDatabaseRequest{
-	AuthResult authentication = 1;
+	AuthRequest authentication = 1;
 	MessageInfo messageInfo = 2;
 	string databaseName = 3;
 }

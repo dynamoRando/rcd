@@ -19,6 +19,64 @@ use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
+pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
+    println!("host_id: {}", host_id);
+
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_ID = ':hid'",
+    );
+    cmd = cmd.replace(":hid", host_id);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let mut returned_tokens: Vec<Vec<u8>> = Vec::new();
+
+    let row_to_token = |token: Vec<u8>| -> Result<Vec<u8>> { Ok(token) };
+
+    let tokens = statement
+        .query_and_then([], |row| row_to_token(row.get(0).unwrap()))
+        .unwrap();
+
+    for t in tokens {
+        returned_tokens.push(t.unwrap());
+    }
+
+    if returned_tokens.len() == 0 {
+        return false;
+    } else {
+        return do_vecs_match(&token, returned_tokens.last().unwrap());
+    }
+}
+
+pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
+    println!("host_name: {}", host_name);
+
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_NAME = ':name'",
+    );
+    cmd = cmd.replace(":name", host_name);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let mut returned_tokens: Vec<Vec<u8>> = Vec::new();
+
+    let row_to_token = |token: Vec<u8>| -> Result<Vec<u8>> { Ok(token) };
+
+    let tokens = statement
+        .query_and_then([], |row| row_to_token(row.get(0).unwrap()))
+        .unwrap();
+
+    for t in tokens {
+        returned_tokens.push(t.unwrap());
+    }
+
+    return do_vecs_match(&token, returned_tokens.last().unwrap());
+}
+
 #[allow(dead_code, unused_variables, unused_mut)]
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
@@ -923,4 +981,9 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
             ":last_comm" : Utc::now().to_string()
         })
         .unwrap();
+}
+
+fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+    let matching = a.iter().zip(b.iter()).filter(|&(a, b)| a == b).count();
+    matching == a.len() && matching == b.len()
 }

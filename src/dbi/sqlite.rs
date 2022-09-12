@@ -1,14 +1,14 @@
 use super::DbiConfigSqlite;
-use crate::{table::{Column, Data, Row, Table, Value}};
+use crate::table::{Column, Data, Row, Table, Value};
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
 
+mod cds_types;
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
-mod cds_types;
 
 #[allow(dead_code, unused_variables)]
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
@@ -27,7 +27,6 @@ pub fn total_count(cmd: String, conn: &Connection) -> u32 {
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
-
     // println!("get_scalar_as_u32: {:?}", cmd);
 
     let mut value: u32 = 0;
@@ -42,6 +41,8 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
 }
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
+    println!("{}", cmd);
+    println!("{:?}", conn);
     return conn.execute(&cmd, []).unwrap();
 }
 
@@ -112,7 +113,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     return Ok(table);
 }
 
-#[allow(dead_code,unused_variables)]
+#[allow(dead_code, unused_variables)]
 pub fn has_cooperative_tables_mock(db_name: &str, cwd: &str, cmd: &str) -> bool {
     return false;
 }

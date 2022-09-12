@@ -1,3 +1,5 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 pub fn hash(
     passwd: &str,
@@ -22,4 +24,10 @@ pub fn verify(hash: [u8; 128], passwd: &str) -> bool {
         Some(hp) => sodiumoxide::crypto::pwhash::argon2id13::pwhash_verify(&hp, passwd.as_bytes()),
         _ => false,
     }
+}
+
+pub fn calculate_hash_for_struct<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
 }
