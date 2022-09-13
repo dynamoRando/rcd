@@ -240,7 +240,6 @@ impl RcdService {
         Ok(())
     }
 
-    #[allow(dead_code)]
     #[tokio::main]
     pub async fn start_client_service_at_addr(
         self: &Self,
@@ -281,7 +280,6 @@ impl RcdService {
         Ok(())
     }
 
-    #[allow(dead_code)]
     #[tokio::main]
     pub async fn start_db_service_at_addr(
         self: &Self,

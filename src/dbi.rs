@@ -1,9 +1,9 @@
 use rusqlite::{Connection, Error};
 
 use crate::{
-    cdata::{ColumnSchema, Contract, DatabaseSchema, Participant},
+    cdata::{ColumnSchema, Contract, DatabaseSchema, Participant, Row},
     coop_database_contract::CoopDatabaseContract,
-    coop_database_participant::CoopDatabaseParticipant,
+    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     host_info::HostInfo,
     rcd_enum::{
         DatabaseType, LogicalStoragePolicy, RcdDbError, RcdGenerateContractError,
@@ -21,7 +21,6 @@ pub struct InsertPartialDataResult {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 /// Database Interface: an abstraction over the underlying database layer. Supports:
 /// - Sqlite
 /// - MySQL
@@ -35,14 +34,12 @@ pub struct Dbi {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct DbiConfigSqlite {
     pub root_folder: String,
     pub rcd_db_name: String,
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct DbiConfigMySql {
     pub user_name: String,
     pub pw: String,
@@ -52,7 +49,6 @@ pub struct DbiConfigMySql {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct DbiConfigPostgres {
     pub user_name: String,
     pub pw: String,
@@ -64,6 +60,26 @@ pub struct DbiConfigPostgres {
 impl Dbi {
     pub fn db_type(self: &Self) -> DatabaseType {
         return self.db_type;
+    }
+
+    pub fn get_row_from_partial_database(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> Row {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::get_row_from_partial_database(
+                    db_name, table_name, row_id, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn verify_host_by_id(self: &Self, host_id: &str, token: Vec<u8>) -> bool {
@@ -98,13 +114,18 @@ impl Dbi {
         table_name: &str,
         row_id: u32,
         hash: u64,
-        internal_participant_id: &str
+        internal_participant_id: &str,
     ) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 return sqlite::db::insert_metadata_into_host_db(
-                    db_name, table_name, row_id, hash, internal_participant_id, settings,
+                    db_name,
+                    table_name,
+                    row_id,
+                    hash,
+                    internal_participant_id,
+                    settings,
                 );
             }
             DatabaseType::Unknown => unimplemented!(),
@@ -137,7 +158,6 @@ impl Dbi {
         }
     }
 
-    #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn update_participant_accepts_contract(
         self: &Self,
         db_name: &str,
@@ -163,7 +183,6 @@ impl Dbi {
         }
     }
 
-    #[allow(dead_code, unused_assignments, unused_variables)]
     pub fn create_partial_database_from_contract(self: &Self, contract: &Contract) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -494,21 +513,25 @@ impl Dbi {
         }
     }
 
-    #[allow(unused_variables)]
-    pub fn has_cooperative_tables_mock(self: &Self, db_name: &str, cmd: &str) -> bool {
-        /*
-        - we want to call query_parser and get a list of tables that are in this query for this database
-        - once we have that list, we will check against dbi to see if any of those tables have a LSP that is cooperative
-        - for every table that is cooperative, we need to aggregate the command against all participants
-        */
-        return false;
+    #[allow(dead_code, unused_variables)]
+    pub fn has_cooperative_tables(self: &Self, db_name: &str, cmd: &str) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::has_cooperative_tables(db_name, cmd, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn get_participants_for_table(
         self: &Self,
         db_name: &str,
         table_name: &str,
-    ) -> Vec<CoopDatabaseParticipant> {
+    ) -> Vec<CoopDatabaseParticipantData> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -650,7 +673,6 @@ impl Dbi {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     pub fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

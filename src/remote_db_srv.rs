@@ -6,25 +6,24 @@ use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
-    AuthRequest, Contract, DatabaseSchema, InsertDataRequest, InsertDataResult, MessageInfo,
-    Participant, ParticipantAcceptsContractRequest, SaveContractRequest,
+    AuthRequest, Contract, DatabaseSchema, GetRowFromPartialDatabaseRequest, InsertDataRequest,
+    InsertDataResult, MessageInfo, Participant, ParticipantAcceptsContractRequest,
+    RowParticipantAddress, SaveContractRequest,
 };
+use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::rcd_enum::ContractStatus;
 use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
 
-#[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn insert_row_at_participant(
     participant: CoopDatabaseParticipant,
     own_host_info: &HostInfo,
     db_name: &str,
     table_name: &str,
     sql: &str,
-    own_db_addr_port: String,
 ) -> InsertDataResult {
-    let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
     let auth = get_auth_request(own_host_info);
 
     let request = InsertDataRequest {
@@ -44,7 +43,6 @@ pub async fn insert_row_at_participant(
     return response.into_inner();
 }
 
-#[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn notify_host_of_acceptance_of_contract(
     accepted_contract: &Contract,
     own_host_info: &HostInfo,
@@ -90,7 +88,6 @@ pub async fn notify_host_of_acceptance_of_contract(
     return response.into_inner().contract_acceptance_is_acknowledged;
 }
 
-#[allow(dead_code, unused_assignments, unused_variables)]
 pub async fn send_participant_contract(
     participant: CoopDatabaseParticipant,
     host_info: HostInfo,
@@ -124,17 +121,38 @@ pub async fn send_participant_contract(
     return response.into_inner().is_saved;
 }
 
-#[allow(dead_code, unused_assignments, unused_variables)]
-pub fn get_row_from_participant(
-    participant: CoopDatabaseParticipant,
-    host_info: HostInfo,
-    db_name: &str,
-    table_name: &str,
+pub async fn get_row_from_participant(
+    participant: CoopDatabaseParticipantData,
+    own_host_info: HostInfo,
+    own_db_addr_port: String,
 ) -> GetRowFromPartialDatabaseResult {
-    unimplemented!();
+    let message_info = get_message_info(&own_host_info, own_db_addr_port.clone());
+    let auth = get_auth_request(&own_host_info);
+
+    let row_address = RowParticipantAddress {
+        database_name: participant.db_name.clone(),
+        table_name: participant.table_name.clone(),
+        row_id: participant.row_data.first().unwrap().0,
+    };
+
+    let request = GetRowFromPartialDatabaseRequest {
+        authentication: Some(auth),
+        row_address: Some(row_address),
+        message_info: Some(message_info),
+    };
+
+    let participant_info = participant.participant.clone();
+
+    let client = get_client(participant_info);
+    let response = client
+        .await
+        .get_row_from_partial_database(request)
+        .await
+        .unwrap();
+
+    return response.into_inner();
 }
 
-#[allow(dead_code)]
 async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Channel> {
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     let message = format!("configuring to connect to rcd at: {}", addr_port);
@@ -146,7 +164,6 @@ async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Chann
     return DataServiceClient::new(channel);
 }
 
-#[allow(dead_code)]
 async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<Channel> {
     let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);

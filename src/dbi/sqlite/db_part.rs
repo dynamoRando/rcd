@@ -1,32 +1,29 @@
 use std::path::Path;
 
-use super::{get_db_conn_with_result, get_scalar_as_u32};
+use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
 use crate::rcd_enum::{ColumnType, DatabaseType};
-#[allow(unused_imports)]
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
-#[allow(unused_imports)]
-use crate::table::{Column, Data, Row, Table, Value};
+use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
-#[allow(unused_imports)]
-use crate::{
-    rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
-    table,
-};
-#[allow(unused_imports)]
-use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
-#[allow(unused_imports)]
-use guid_create::GUID;
-#[allow(unused_imports)]
-use log::info;
-#[allow(unused_imports)]
-use rusqlite::types::Type;
-#[allow(unused_imports)]
-use rusqlite::{named_params, Connection, Error, Result};
+use rusqlite::{named_params, Connection, Result};
 
-#[allow(dead_code, unused_assignments, unused_variables)]
+pub fn get_row_from_partial_database(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    config: &DbiConfigSqlite,
+) -> crate::cdata::Row {
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let mut cmd = String::from("SELECT * from :table_name WHERE ROWID = :rid");
+
+    cmd = cmd.replace(":table_name", table_name);
+    cmd = cmd.replace(":rid", &row_id.to_string());
+
+    return execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap();
+}
+
 pub fn insert_data_into_partial_db(
     db_name: &str,
     table_name: &str,
@@ -79,7 +76,6 @@ pub fn insert_data_into_partial_db(
     return result;
 }
 
-#[allow(dead_code, unused_assignments, unused_variables)]
 pub fn create_partial_database_from_contract(
     contract: &Contract,
     config: &DbiConfigSqlite,
@@ -98,7 +94,6 @@ pub fn create_partial_database_from_contract(
     return true;
 }
 
-#[allow(dead_code, unused_assignments, unused_variables)]
 pub fn create_partial_database(
     db_name: &str,
     config: &DbiConfigSqlite,
@@ -144,7 +139,6 @@ pub fn save_contract(db_name: &str, table_name: &str, row_data: Table) -> String
     unimplemented!();
 }
 
-#[allow(dead_code, unused_variables, unused_assignments)]
 pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
     let mut db_part_name = db_name.replace(".db", "");
     db_part_name = db_part_name.replace(".dbpart", "");
@@ -154,7 +148,6 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
     return conn;
 }
 
-#[allow(dead_code, unused_variables, unused_assignments, unused_mut)]
 fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     let table_name = table_schema.table_name.clone();
     let mut cmd = String::from("CREATE TABLE IF NOT EXISTS :tablename ");
@@ -178,7 +171,7 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
             col_nullable = String::from("NOT NULL");
         }
 
-        let mut col_statement = String::from("");
+        let col_statement: String;
 
         let last_column = &table_schema.columns.last().unwrap().column_name;
 

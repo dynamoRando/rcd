@@ -495,12 +495,13 @@ message CreateDatabaseResult {
 
 // an object for representing a row in a table. used for returning data
 message Row {
-	uint32 rowId = 1;
-	uint32 tableId = 2;
-	string databaseId = 3;
+	string databaseName = 1;
+	string tableName = 2;
+	uint32 rowId = 3;
 	repeated RowValue values = 4;
 	bool isRemoteable = 5;
 	RowRemoteMetadata remoteMetadata = 6;
+	bytes hash = 7;
 }
 
 // an object for storing values for a row in a table. used for returning data
@@ -511,6 +512,7 @@ message RowValue {
 	// note: this value does not include the 4 byte INT length prefix for variable length fields
 	// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
 	bytes value = 3; 
+	string stringValue = 4;
 }
 
 message RowRemoteMetadata {
@@ -599,9 +601,7 @@ message TransactionInfo {
 
 // a message for identifying the location of a row in a partial database
 message RowParticipantAddress {
-	uint32 rowId = 1;
-	uint32 tableId = 2;
-	string databaseId = 3;
-	string databaseName = 4;
-	string tableName = 5;
+	string databaseName = 1;
+	string tableName = 2;
+	uint32 rowId = 3;
 }
