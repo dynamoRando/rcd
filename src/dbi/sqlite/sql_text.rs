@@ -1,13 +1,13 @@
-#[allow(dead_code)]
+
 /// Anything in CDS is in the Cooperative Data Store.
 pub struct CDS {}
-#[allow(dead_code)]
+
 /// Anything in COOP are tables stored in the user database and are used
 /// to enable cooperative functions with participants.
 pub struct COOP {}
 
 impl CDS {
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing users of the CDS.
     pub fn text_create_user_table() -> String {
         return String::from(
@@ -18,37 +18,31 @@ impl CDS {
         );",
         );
     }
-
-    #[allow(dead_code)]
+    
     pub fn text_add_user() -> String {
         return String::from("INSERT INTO CDS_USER (USERNAME, HASH) VALUES (:username, :hash);");
     }
-
-    #[allow(dead_code)]
+    
     pub fn text_get_user() -> String {
         return String::from("SELECT USERNAME, HASH FROM CDS_USER WHERE USERNAME = :un");
     }
-
-    #[allow(dead_code)]
+    
     pub fn text_get_user_role() -> String {
         return String::from("SELECT count(*) AS TOTALCOUNT FROM CDS_USER_ROLE WHERE USERNAME = :username AND ROLENAME = :rolename;");
     }
-
-    #[allow(dead_code)]
+    
     pub fn text_add_user_role() -> String {
         return String::from(
             "INSERT INTO CDS_USER_ROLE (USERNAME, ROLENAME) VALUES (:username, :rolename);",
         );
     }
-
-    #[allow(dead_code)]
+    
     pub fn text_get_role() -> String {
         return String::from(
             "SELECT count(*) AS ROLECOUNT FROM CDS_ROLE WHERE ROLENAME = :rolename",
         );
     }
-
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing roles of the CDS.
     pub fn text_create_role_table() -> String {
         return String::from(
@@ -59,7 +53,6 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
     /// Returns create table statement for xref users to roles.
     pub fn text_create_user_role_table() -> String {
         return String::from(
@@ -71,7 +64,7 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing unique identifier to participants.
     pub fn text_create_host_info_table() -> String {
         return String::from(
@@ -84,7 +77,7 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for hosts that this CDS is cooperating with.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_hosts_table() -> String {
@@ -102,7 +95,6 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
     /// Returns create table statement for holding schema information for partial databases participating with a remote host.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_table() -> String {
@@ -121,7 +113,7 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for holding the tables in the partial database.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_tables_table() -> String {
@@ -137,7 +129,7 @@ impl CDS {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for holding the schema for the tables in the partial database.
     /// This is used for partial databases and their contracts.
     pub fn text_create_cds_contracts_tables_schemas_table() -> String {
@@ -188,7 +180,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing the database id when we 1st enable cooperative features
     pub fn text_create_data_host_table() -> String {
         return String::from(
@@ -201,7 +193,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing the table ids generated when we start setting logical
     /// storage policies on tables. This should align with COOP_REMOTES.
     pub fn text_create_data_host_tables_table() -> String {
@@ -215,7 +207,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing the column ids generated when we start setting logical
     /// storage policies on tables. This should align with the actual schema of the table in the datbase.
     pub fn text_create_data_host_tables_columns_table() -> String {
@@ -230,7 +222,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns SQL statement for getting the count of tables in the cooperative data table tables (this is for contracts)
     /// for the specified table name
     /// # Params:
@@ -243,7 +235,7 @@ impl COOP {
         return statement;
     }
 
-    #[allow(dead_code)]
+    
     /// Returns SQL statement for adding a table name and id to the cooperative data table.
     /// # Params:
     /// - ":table_id"
@@ -255,12 +247,12 @@ impl COOP {
         return statement;
     }
 
-    #[allow(dead_code)]
+    
     pub fn text_get_count_from_data_host() -> String {
         return String::from("SELECT COUNT(*) COUNT FROM COOP_DATA_HOST");
     }
 
-    #[allow(dead_code)]
+    
     /// adds the generated database_id and database_name to the COOP_DATA_HOST table
     /// # Params:
     /// - ":database_id"
@@ -272,7 +264,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     /// Returns create table statement for storing the logcial storage policy for each table
     pub fn text_create_data_remotes_table() -> String {
         return String::from(
@@ -285,7 +277,7 @@ impl COOP {
         );
     }
 
-    #[allow(dead_code)]
+    
     pub fn text_get_logical_storage_policy_tables() -> String {
         return String::from(
             "

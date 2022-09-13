@@ -1,10 +1,10 @@
-use antlr_rust::{
-    parser_rule_context::ParserRuleContext,
-    tree::{ParseTreeListener},
-};
+use antlr_rust::{parser_rule_context::ParserRuleContext, tree::ParseTreeListener};
 
-use crate::rcd_enum::{DmlType};
-use super::{sqliteparser::{SQLiteParserContextType, self, SQLiteParserContext}, sqlitelistener::SQLiteListener};
+use super::{
+    sqlitelistener::SQLiteListener,
+    sqliteparser::{self, SQLiteParserContext, SQLiteParserContextType},
+};
+use crate::rcd_enum::DmlType;
 
 #[derive(Clone, Debug)]
 pub struct RcdSqliteListener {
@@ -15,6 +15,7 @@ pub struct RcdSqliteListener {
 pub struct DmlData {
     pub data: DmlType,
     pub table_name: String,
+    pub table_name_collection: Vec<String>,
 }
 
 impl<'input> ParseTreeListener<'input, SQLiteParserContextType> for RcdSqliteListener {
@@ -403,6 +404,9 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     fn enter_table_name(&mut self, _ctx: &sqliteparser::Table_nameContext<'input>) {
         // println!("SQLiteListener ENTERED TABLE NAME");
         self.statement_type.table_name = _ctx.start().text.to_string();
+        self.statement_type
+            .table_name_collection
+            .push(_ctx.start().text.to_string());
     }
 
     fn exit_table_name(&mut self, _ctx: &sqliteparser::Table_nameContext<'input>) {}

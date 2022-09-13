@@ -1,15 +1,12 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
-#[allow(unused_imports)]
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
 use crate::host_info::HostInfo;
 use crate::query_parser;
 use crate::rcd_enum::DmlType;
-#[allow(unused_imports)]
 use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
-#[allow(unused_imports)]
 use crate::{cdata::*, remote_db_srv};
 use chrono::Utc;
 use conv::{UnwrapOk, ValueFrom};
@@ -60,7 +57,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
-    #[allow(dead_code, unused_mut, unused_variables)]
     async fn generate_host_info(
         &self,
         request: Request<GenerateHostInfoRequest>,
@@ -167,7 +163,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
-    #[allow(unused_variables, unused_assignments, unreachable_code)]
     async fn execute_read(
         &self,
         request: Request<ExecuteReadRequest>,
@@ -177,24 +172,23 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
+
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let sql = message.sql_statement;
-        let rcd_db_conn = self.get_rcd_db();
-        let result_table = Vec::new();
+
+        let mut result_table = Vec::new();
 
         let mut statement_result_set = StatementResultset {
             is_error: true,
             result_message: String::from(""),
             number_of_rows_affected: 0,
-            rows: result_table,
+            rows: Vec::new(),
             execution_error_message: String::from(""),
         };
 
         if is_authenticated {
-            if self.dbi().has_cooperative_tables_mock(&db_name, &sql) {
-                unimplemented!();
+            if self.dbi().has_cooperative_tables(&db_name, &sql) {
                 // we would need to get a list of participants for each of the cooperative tables
                 let cooperative_tables = self.dbi().get_cooperative_tables(&db_name, &sql);
 
@@ -207,15 +201,23 @@ impl SqlClient for SqlClientImpl {
                         let remote_data_result = remote_db_srv::get_row_from_participant(
                             participant.clone(),
                             host_info,
-                            &db_name,
-                            &ct,
-                        );
-                        unimplemented!();
+                            self.own_db_addr_port.clone(),
+                        )
+                        .await;
+
+                        let data_hash_for_row =
+                            remote_data_result.row.as_ref().unwrap().hash.clone();
+
+                        let saved_hash_for_row = participant.row_data.first().unwrap().1.clone();
+
+                        if data_hash_for_row == saved_hash_for_row {
+                            let row = remote_data_result.row.as_ref().unwrap().clone();
+                            result_table.push(row);
+                        }
                     }
                 }
 
-                // and then send a request to each participant for row data that fit the query
-                // and finally we would need to assemble those results into a table to be returned
+                statement_result_set.rows = result_table;
             } else {
                 let query_result = self.dbi().execute_read(&db_name, &sql);
 
@@ -296,7 +298,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(execute_write_reply))
     }
 
-    #[allow(unused_variables, unused_mut)]
     async fn execute_cooperative_write(
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
@@ -333,7 +334,6 @@ impl SqlClient for SqlClientImpl {
                             &db_name,
                             &cmd_table_name,
                             &statement,
-                            self.own_db_addr_port.clone(),
                         )
                         .await;
 
@@ -342,7 +342,8 @@ impl SqlClient for SqlClientImpl {
                             let data_hash = remote_insert_result.data_hash.clone();
                             let row_id = remote_insert_result.row_id;
 
-                            let internal_participant_id = db_participant_reference.internal_id.to_string().clone();
+                            let internal_participant_id =
+                                db_participant_reference.internal_id.to_string().clone();
 
                             let local_insert_is_successful =
                                 self.dbi().insert_metadata_into_host_db(
@@ -350,9 +351,9 @@ impl SqlClient for SqlClientImpl {
                                     &cmd_table_name,
                                     row_id,
                                     data_hash,
-                                    &internal_participant_id
+                                    &internal_participant_id,
                                 );
-                                
+
                             if local_insert_is_successful {
                                 is_remote_action_successful = true;
                             }
@@ -496,7 +497,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(get_policy_reply))
     }
 
-    #[allow(unused_variables)]
     async fn generate_contract(
         &self,
         request: Request<GenerateContractRequest>,
@@ -507,7 +507,6 @@ impl SqlClient for SqlClientImpl {
         // check if the user is authenticated
         let message = request.into_inner();
         let a = message.authentication.unwrap();
-        let conn = self.get_rcd_db();
         let is_authenticated = self.verify_login(&a.user_name, &a.pw);
         let db_name = message.database_name;
         let desc = message.description;
@@ -643,7 +642,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(send_participant_contract_reply))
     }
 
-    #[allow(unused_variables, unused_mut)]
     async fn review_pending_contracts(
         &self,
         request: Request<ViewPendingContractsRequest>,
@@ -676,7 +674,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(review_pending_contracts_reply))
     }
 
-    #[allow(dead_code, unused_assignments, unused_variables, unused_mut)]
     async fn accept_pending_contract(
         &self,
         request: Request<AcceptPendingContractRequest>,
@@ -700,7 +697,7 @@ impl SqlClient for SqlClientImpl {
             let pending_contract = contracts
                 .iter()
                 .enumerate()
-                .filter(|&(i, c)| {
+                .filter(|&(_, c)| {
                     c.host_info.as_ref().unwrap().host_name.to_string() == message.host_alias
                 })
                 .map(|(_, c)| c);
@@ -762,7 +759,6 @@ impl SqlClient for SqlClientImpl {
     }
 }
 
-#[allow(dead_code)]
 #[tokio::main]
 pub async fn start_client_service(
     address_port: &str,

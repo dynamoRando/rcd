@@ -5,7 +5,7 @@ use super::{
 use crate::{
     cdata::{ColumnSchema, DatabaseSchema, Participant, TableSchema},
     coop_database_contract::CoopDatabaseContract,
-    coop_database_participant::CoopDatabaseParticipant,
+    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     dbi::sqlite::has_any_rows,
     defaults, query_parser,
     rcd_enum::{
@@ -19,7 +19,6 @@ use guid_create::GUID;
 
 use rusqlite::{named_params, Connection, Error, Result};
 
-#[allow(dead_code, unused_variables)]
 pub fn insert_metadata_into_host_db(
     db_name: &str,
     table_name: &str,
@@ -49,7 +48,6 @@ pub fn insert_metadata_into_host_db(
     return rows > 0;
 }
 
-#[allow(dead_code, unused_variables)]
 pub fn update_participant_accepts_contract(
     db_name: &str,
     participant: CoopDatabaseParticipant,
@@ -458,32 +456,92 @@ pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConf
     return has_table(table_name.to_string(), &conn);
 }
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_assignments)]
 pub fn get_participants_for_table(
     db_name: &str,
     table_name: &str,
     config: DbiConfigSqlite,
-) -> Vec<CoopDatabaseParticipant> {
-    unimplemented!();
-
+) -> Vec<CoopDatabaseParticipantData> {
     // note - we will need another table to track the remote row id
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let conn = get_db_conn(&config, db_name);
 
-    /*
-    internal const string CREATE_SHADOW_TABLE = $@"
-       CREATE TABLE IF NOT EXISTS {TableNames.COOP.SHADOWS}
-       (
-           PARTICIPANT_ID CHAR(36) NOT NULL,
-           IS_PARTICIPANT_DELETED INT,
-           PARTICIPANT_DELETE_DATE_UTC DATETIME,
-           DATA_HASH_LENGTH INT,
-           DATA_HASH BLOB
-       );
-       ";
-    */
+    let mut result: Vec<CoopDatabaseParticipantData> = Vec::new();
+
+    let mut cmd = String::from(
+        "
+        SELECT DISTINCT 
+            INTERNAL_PARTICIPANT_ID 
+        FROM 
+            :table_name
+        ;",
+    );
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut participant_ids: Vec<String> = Vec::new();
+    let mut db_participants: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let row_to_id = |participant_id: String| -> Result<String> { Ok(participant_id) };
+
+    let participants = statement
+        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
+        .unwrap();
+
+    for p in participants {
+        participant_ids.push(p.unwrap());
+    }
+
+    for pid in &participant_ids {
+        let participant = get_participant_by_internal_id(db_name, pid, &config);
+        db_participants.push(participant);
+    }
+
+    let row_to_data = |row_id: u32, hash: Vec<u8>| -> Result<(u32, Vec<u8>)> { Ok((row_id, hash)) };
+
+    for p in &db_participants {
+        cmd = String::from(
+            "
+            SELECT 
+                ROW_ID, 
+                HASH
+            FROM 
+                :table_name
+            WHERE
+                INTERNAL_PARTICIPANT_ID = ':pid'
+            ;",
+        );
+        cmd = cmd.replace(":table_name", &metadata_table_name);
+        cmd = cmd.replace(":pid", &p.internal_id.to_string());
+
+        statement = conn.prepare(&cmd).unwrap();
+
+        let row_data = statement
+            .query_and_then([], |row| {
+                row_to_data(row.get(0).unwrap(), row.get(1).unwrap())
+            })
+            .unwrap();
+
+        let mut row_data_results: Vec<(u32, Vec<u8>)> = Vec::new();
+
+        for data in row_data {
+            row_data_results.push(data.unwrap());
+        }
+
+        let participant_data = CoopDatabaseParticipantData {
+            participant: p.clone(),
+            db_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            row_data: row_data_results,
+        };
+
+        result.push(participant_data);
+    }
+
+    return result;
 }
 
-#[allow(dead_code, unused_variables)]
-pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> bool {
+pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> bool {
     let mut has_cooperative_tables = false;
 
     let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
@@ -724,7 +782,6 @@ fn create_data_host_tables(conn: &Connection) {
     conn.execute(&cmd, []).unwrap();
 }
 
-#[allow(dead_code, unused_variables)]
 /// Creates the COOP_PARTICIPANT table if it does not exist. This holds
 /// the participant information that are cooperating with this database.
 fn create_participant_table(conn: &Connection) {
@@ -746,7 +803,6 @@ fn create_participant_table(conn: &Connection) {
     conn.execute(&cmd, []).unwrap();
 }
 
-#[allow(dead_code, unused_variables)]
 /// Creates the COOP_REMOTES table if it does not exist. This holds
 /// the logical storage policy for every table in the database.
 fn create_remotes_table(conn: &Connection) {
@@ -947,7 +1003,6 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
     }
 }
 
-#[allow(unused_assignments)]
 pub fn add_participant(
     db_name: &str,
     alias: &str,
@@ -956,7 +1011,7 @@ pub fn add_participant(
     config: DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
-    let mut is_added = false;
+    let is_added: bool;
 
     if has_participant(db_name, alias, config) {
         is_added = false;
@@ -977,6 +1032,84 @@ pub fn add_participant(
     }
 
     return is_added;
+}
+
+pub fn get_participant_by_internal_id(
+    db_name: &str,
+    internal_id: &str,
+    config: &DbiConfigSqlite,
+) -> CoopDatabaseParticipant {
+    let conn = get_db_conn(&config, db_name);
+    let cmd = String::from(
+        "
+        SELECT 
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        FROM
+            COOP_PARTICIPANT
+        WHERE
+            INTERNAL_PARTICIPANT_ID = :pid
+        ;
+        ",
+    );
+    // cmd = cmd.replace(":alias", &alias);
+
+    let row_to_participant = |internal_id: String,
+                              alias: String,
+                              ip4addr: String,
+                              ip6addr: String,
+                              port: u32,
+                              contract_status: u32,
+                              accepted_contract_version_id: String,
+                              token: Vec<u8>,
+                              id: String|
+     -> Result<CoopDatabaseParticipant> {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::parse(&internal_id).unwrap(),
+            alias: alias,
+            ip4addr: ip4addr,
+            ip6addr: ip6addr,
+            db_port: port,
+            contract_status: ContractStatus::from_i64(contract_status as i64),
+            accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+            token: token,
+            id: GUID::parse(&id).unwrap(),
+        };
+
+        Ok(participant)
+    };
+
+    let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let participants = statement
+        .query_and_then(&[(":pid", &internal_id)], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for participant in participants {
+        results.push(participant.unwrap());
+    }
+
+    return results.first().unwrap().clone();
 }
 
 pub fn get_participant_by_alias(

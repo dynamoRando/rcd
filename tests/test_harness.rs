@@ -1,7 +1,4 @@
 use lazy_static::lazy_static;
-use rcd::dbi::Dbi;
-use rcd::dbi::DbiConfigSqlite;
-use rcd::rcd_enum::DatabaseType;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
@@ -16,26 +13,6 @@ pub enum AddrType {
     Database,
 }
 
-#[allow(dead_code)]
-pub fn get_dbi(backing_database_name: String) -> Dbi {
-    let cwd = env::current_dir().unwrap();
-
-    let config = DbiConfigSqlite {
-        root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
-        rcd_db_name: backing_database_name,
-    };
-
-    let dbi = Dbi {
-        db_type: DatabaseType::Sqlite,
-        mysql_config: None,
-        postgres_config: None,
-        sqlite_config: Some(config),
-    };
-
-    return dbi;
-}
-
-#[allow(dead_code)]
 #[derive(Clone)]
 pub struct ServiceAddr {
     pub ip4_addr: String,
@@ -48,7 +25,6 @@ impl ServiceAddr {
     pub fn to_full_string(self: &Self) -> String {
         return format!("{}{}", self.ip4_addr, self.port.to_string());
     }
-
     #[allow(dead_code)]
     pub fn to_full_string_with_http(self: &Self) -> String {
         return format!("{}{}", String::from("http://"), self.to_full_string());
@@ -59,8 +35,8 @@ lazy_static! {
     pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings { max_port: 6000 });
 }
 
-/// returns a tuple for the addr_port of the client service and the db service
 #[allow(dead_code)]
+/// returns a tuple for the addr_port of the client service and the db service
 pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr) {
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
@@ -116,9 +92,9 @@ pub fn get_test_temp_dir(test_name: &str) -> String {
     return path.as_path().to_str().unwrap().to_string();
 }
 
+#[allow(dead_code)]
 /// returns a tuple for the root directory, the "main" directory, and the "participant" directory
 /// in the temp folder
-#[allow(dead_code)]
 pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, String, String) {
     let root_dir = get_test_temp_dir(&test_name);
 
@@ -145,17 +121,16 @@ pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, Strin
     return (root_dir, main_dir.to_string(), participant_dir.to_string());
 }
 
-#[allow(dead_code)]
 pub struct TestSettings {
     max_port: u32,
 }
 
 impl TestSettings {
-    #[allow(dead_code)]
     pub fn get_next_avail_port(&mut self) -> u32 {
         self.max_port = self.max_port + 1;
         return self.max_port;
     }
+
     #[allow(dead_code)]
     pub fn get_current_port(&self) -> u32 {
         return self.max_port;

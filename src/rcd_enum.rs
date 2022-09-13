@@ -22,7 +22,6 @@ impl DmlType {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(dml_type: DmlType) -> u32 {
         match dml_type {
             DmlType::Unknown => 0,
@@ -53,7 +52,6 @@ pub enum RemoteDeleteBehavior {
 
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl RemoteDeleteBehavior {
-    #[allow(dead_code)]
     pub fn from_i64(value: i64) -> RemoteDeleteBehavior {
         match value {
             0 => RemoteDeleteBehavior::Unknown,
@@ -74,7 +72,6 @@ impl RemoteDeleteBehavior {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(behavior: RemoteDeleteBehavior) -> u32 {
         match behavior {
             RemoteDeleteBehavior::Unknown => 0,
@@ -108,7 +105,6 @@ pub enum LogicalStoragePolicy {
 
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl LogicalStoragePolicy {
-    #[allow(dead_code)]
     pub fn from_i64(value: i64) -> LogicalStoragePolicy {
         match value {
             0 => LogicalStoragePolicy::None,
@@ -131,7 +127,6 @@ impl LogicalStoragePolicy {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(policy: LogicalStoragePolicy) -> u32 {
         match policy {
             LogicalStoragePolicy::None => 0,
@@ -161,7 +156,6 @@ pub enum ContractStatus {
 
 // https://enodev.fr/posts/rusticity-convert-an-integer-to-an-enum.html
 impl ContractStatus {
-    #[allow(dead_code)]
     pub fn from_i64(value: i64) -> ContractStatus {
         match value {
             0 => ContractStatus::Unknown,
@@ -184,7 +178,6 @@ impl ContractStatus {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(status: ContractStatus) -> u32 {
         match status {
             ContractStatus::Unknown => 0,
@@ -245,7 +238,6 @@ impl ColumnType {
         }
     }
 
-    #[allow(dead_code)]
     pub fn try_parse(desc: &str) -> Option<ColumnType> {
         let string_data_type = desc.to_lowercase();
 
@@ -292,7 +284,6 @@ impl ColumnType {
         return None;
     }
 
-    #[allow(dead_code)]
     pub fn from_u32(value: u32) -> ColumnType {
         match value {
             0 => ColumnType::Unknown,
@@ -309,7 +300,6 @@ impl ColumnType {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(col_type: ColumnType) -> u32 {
         match col_type {
             ColumnType::Unknown => 0,
@@ -396,7 +386,6 @@ impl DatabaseType {
         }
     }
 
-    #[allow(dead_code)]
     pub fn to_u32(db_type: DatabaseType) -> u32 {
         match db_type {
             DatabaseType::Unknown => 0,

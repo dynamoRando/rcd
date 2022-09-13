@@ -1,25 +1,5 @@
 use crate::rcd_enum::ContractStatus;
-#[allow(unused_imports)]
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
-#[allow(unused_imports)]
-use crate::table::{Column, Data, Row, Table, Value};
-#[allow(unused_imports)]
-use crate::{
-    rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
-    table,
-};
-#[allow(unused_imports)]
-use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
-#[allow(unused_imports)]
 use guid_create::GUID;
-#[allow(unused_imports)]
-use log::info;
-#[allow(unused_imports)]
-use rusqlite::types::Type;
-#[allow(unused_imports)]
-use rusqlite::{named_params, Connection, Error, Result};
-#[allow(unused_imports)]
-use std::path::Path;
 
 /*
 "CREATE TABLE IF NOT EXISTS COOP_PARTICIPANT
@@ -37,7 +17,6 @@ use std::path::Path;
 */
 
 #[derive(Clone, Debug)]
-#[allow(dead_code)]
 pub struct CoopDatabaseParticipant {
     pub internal_id: GUID,
     pub alias: String,
@@ -48,4 +27,12 @@ pub struct CoopDatabaseParticipant {
     pub accepted_contract_version: GUID,
     pub token: Vec<u8>,
     pub id: GUID,
+}
+
+#[derive(Clone, Debug)]
+pub struct CoopDatabaseParticipantData {
+    pub participant: CoopDatabaseParticipant,
+    pub db_name: String,
+    pub table_name: String,
+    pub row_data: Vec<(u32, Vec<u8>)>,
 }

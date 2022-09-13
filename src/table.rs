@@ -1,18 +1,13 @@
-#[allow(unused_imports)]
-use crate::{cdata::RowValue, rcd_enum::ColumnType};
-#[allow(unused_imports)]
-use conv::UnwrapOrInvalid;
+use crate::{ rcd_enum::ColumnType};
 use guid_create::GUID;
 use substring::Substring;
 
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Data {
     pub data_string: String,
     pub data_byte: Vec<u8>,
 }
 
-#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Value {
     pub data: Option<Data>,
@@ -20,31 +15,26 @@ pub struct Value {
 }
 
 impl Value {
-    #[allow(dead_code)]
     pub fn is_null(&self) -> bool {
         return self.data.is_none();
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Row {
     pub vals: Vec<Value>,
 }
 
 impl Row {
-    #[allow(dead_code)]
     pub fn new() -> Self {
         Self { vals: Vec::new() }
     }
 
-    #[allow(dead_code)]
     pub fn add_value(&mut self, value: Value) {
         self.vals.push(value);
     }
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub struct Column {
     pub name: String,
@@ -76,7 +66,6 @@ impl Column {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct Table {
     pub num_cols: usize,
@@ -95,32 +84,26 @@ impl Table {
         }
     }
 
-    #[allow(dead_code)]
     pub fn set_name(&mut self, name: &str) {
         self.name = name.to_string();
     }
 
-    #[allow(dead_code)]
     pub fn set_num_cols(&mut self, total_cols: usize) {
         self.num_cols = total_cols;
     }
 
-    #[allow(dead_code)]
     pub fn num_cols(&self) -> usize {
         return self.num_cols;
     }
 
-    #[allow(dead_code)]
     pub fn add_column(&mut self, column: Column) {
         self.cols.push(column);
     }
 
-    #[allow(dead_code)]
     pub fn add_row(&mut self, row: Row) {
         self.rows.push(row);
     }
 
-    #[allow(dead_code)]
     pub fn get_column_by_index(&self, idx: usize) -> Option<Column> {
         for col in &self.cols {
             if col.idx == idx {
@@ -130,7 +113,6 @@ impl Table {
         return None;
     }
 
-    #[allow(dead_code)]
     pub fn debug(&self) {
         for row in &self.rows {
             for val in &row.vals {
@@ -144,7 +126,6 @@ impl Table {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     pub fn to_cdata_rows(&self) -> Vec<crate::cdata::Row> {
         let mut result: Vec<crate::cdata::Row> = Vec::new();
         let mut idx = 0;
@@ -180,6 +161,7 @@ impl Table {
                     column: Some(c_col_schema_item),
                     is_null_value: if c_bd.len() > 0 { false } else { true },
                     value: c_bd,
+                    string_value: c_str_data.clone(),
                 };
 
                 c_values.push(c_val);
@@ -194,11 +176,12 @@ impl Table {
 
             let c_row = crate::cdata::Row {
                 row_id: idx,
-                table_id: 0,
-                database_id: String::from(""),
+                table_name: self.name.clone(),
+                database_name: String::from(""),
                 values: c_values,
                 is_remoteable: false,
                 remote_metadata: Some(c_remote_data),
+                hash: Vec::new(),
             };
 
             result.push(c_row);

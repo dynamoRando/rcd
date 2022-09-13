@@ -38,21 +38,18 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(response))
     }
 
-    #[allow(dead_code, unused_variables, unused_assignments)]
     async fn create_partial_database(
         &self,
         request: Request<CreateDatabaseRequest>,
     ) -> Result<Response<CreateDatabaseResult>, Status> {
         let message = request.into_inner();
         let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
-        let mut is_part_db_created = false;
         let db_name = message.database_name;
         let mut db_id = String::from("");
 
         if is_authenticated {
             let result = self.dbi().create_partial_database(&db_name);
             if !result.is_err() {
-                is_part_db_created = true;
                 db_id = self.dbi().get_db_id(&db_name.as_str());
             }
         }
@@ -130,6 +127,8 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<InsertDataRequest>,
     ) -> Result<Response<InsertDataResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
         let message = request.into_inner();
         let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let db_name = message.database_name;
@@ -183,9 +182,48 @@ impl DataService for DataServiceImpl {
 
     async fn get_row_from_partial_database(
         &self,
-        _request: Request<GetRowFromPartialDatabaseRequest>,
+        request: Request<GetRowFromPartialDatabaseRequest>,
     ) -> Result<Response<GetRowFromPartialDatabaseResult>, Status> {
-        unimplemented!("not implemented");
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+
+        let mut result_row = Row {
+            row_id: 0,
+            database_name: message.row_address.as_ref().unwrap().database_name.clone(),
+            table_name: message.row_address.as_ref().unwrap().table_name.clone(),
+            values: Vec::new(),
+            is_remoteable: true,
+            remote_metadata: None,
+            hash: Vec::new(),
+        };
+
+        if is_authenticated {
+            let db_name = message.row_address.as_ref().unwrap().database_name.clone();
+            let table_name = message.row_address.as_ref().unwrap().table_name.clone();
+            let row_id = message.row_address.as_ref().unwrap().row_id;
+
+            result_row = self
+                .dbi()
+                .get_row_from_partial_database(&db_name, &table_name, row_id);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = GetRowFromPartialDatabaseResult {
+            authentication_result: Some(auth_response),
+            is_successful: false,
+            result_message: String::from(""),
+            row: Some(result_row),
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn save_contract(
@@ -265,7 +303,6 @@ impl DataService for DataServiceImpl {
     }
 }
 
-#[allow(dead_code)]
 #[tokio::main]
 pub async fn start_db_service(
     address_port: &str,

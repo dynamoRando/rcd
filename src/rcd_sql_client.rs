@@ -132,7 +132,6 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
-    #[allow(dead_code, unused_variables)]
     pub async fn send_participant_contract(
         self: &Self,
         db_name: &str,
@@ -161,7 +160,6 @@ impl RcdClient {
         Ok(response.is_sent)
     }
 
-    #[allow(dead_code, unused_variables)]
     pub async fn add_participant(
         self: &Self,
         db_name: &str,

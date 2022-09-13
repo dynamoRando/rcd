@@ -2,27 +2,8 @@ use crate::cdata::Contract;
 use crate::cdata::{DatabaseSchema, Host};
 use crate::host_info::HostInfo;
 use crate::rcd_enum::ContractStatus;
-#[allow(unused_imports)]
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
-#[allow(unused_imports)]
-use crate::table::{Column, Data, Row, Table, Value};
-#[allow(unused_imports)]
-use crate::{
-    rcd_enum::{self, LogicalStoragePolicy, RcdDbError},
-    table,
-};
-#[allow(unused_imports)]
-use chrono::{DateTime, Local, NaiveDateTime, TimeZone, Utc};
-#[allow(unused_imports)]
+use chrono::{DateTime, Utc};
 use guid_create::GUID;
-#[allow(unused_imports)]
-use log::info;
-#[allow(unused_imports)]
-use rusqlite::types::Type;
-#[allow(unused_imports)]
-use rusqlite::{named_params, Connection, Error, Result};
-#[allow(unused_imports)]
-use std::path::Path;
 
 /*
     "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT
@@ -36,7 +17,6 @@ use std::path::Path;
     );",
 */
 
-#[allow(dead_code, unused_variables)]
 #[derive(Clone)]
 pub struct CoopDatabaseContract {
     pub contract_id: GUID,
