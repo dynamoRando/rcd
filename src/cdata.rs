@@ -705,18 +705,20 @@ pub struct CreateDatabaseResult {
 /// an object for representing a row in a table. used for returning data
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Row {
-    #[prost(uint32, tag="1")]
+    #[prost(string, tag="1")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag="3")]
     pub row_id: u32,
-    #[prost(uint32, tag="2")]
-    pub table_id: u32,
-    #[prost(string, tag="3")]
-    pub database_id: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="4")]
     pub values: ::prost::alloc::vec::Vec<RowValue>,
     #[prost(bool, tag="5")]
     pub is_remoteable: bool,
     #[prost(message, optional, tag="6")]
     pub remote_metadata: ::core::option::Option<RowRemoteMetadata>,
+    #[prost(bytes="vec", tag="7")]
+    pub hash: ::prost::alloc::vec::Vec<u8>,
 }
 /// an object for storing values for a row in a table. used for returning data
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -730,6 +732,8 @@ pub struct RowValue {
     /// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
     #[prost(bytes="vec", tag="3")]
     pub value: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="4")]
+    pub string_value: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowRemoteMetadata {
@@ -859,16 +863,12 @@ pub struct TransactionInfo {
 /// a message for identifying the location of a row in a partial database
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowParticipantAddress {
-    #[prost(uint32, tag="1")]
-    pub row_id: u32,
-    #[prost(uint32, tag="2")]
-    pub table_id: u32,
-    #[prost(string, tag="3")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
+    #[prost(string, tag="1")]
     pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
+    #[prost(string, tag="2")]
     pub table_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag="3")]
+    pub row_id: u32,
 }
 /// Generated client implementations.
 pub mod sql_client_client {

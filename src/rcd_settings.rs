@@ -2,7 +2,6 @@ use crate::rcd_enum::DatabaseType;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct RcdSettings {
     pub admin_un: String,
     pub admin_pw: String,

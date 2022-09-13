@@ -117,7 +117,6 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
     return false;
 }
 
-#[allow(dead_code, unused_variables, unused_mut)]
 pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     let conn = get_rcd_conn(config);
 
@@ -192,7 +191,6 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
 
     for cdata in &cds_contracts {
         let dbid = cdata.database_id.clone();
-        let dbname = cdata.database_name.clone();
 
         let cmd = String::from(
             "
@@ -373,7 +371,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         let tables = cds_tables
             .iter()
             .enumerate()
-            .filter(|&(i, t)| t.database_id == dbid)
+            .filter(|&(_, t)| t.database_id == dbid)
             .map(|(_, t)| t);
 
         let mut table_schema: Vec<TableSchema> = Vec::new();
@@ -385,7 +383,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             let cols = cds_tables_columns
                 .iter()
                 .enumerate()
-                .filter(|&(i, c)| c.table_id == tid)
+                .filter(|&(_, c)| c.table_id == tid)
                 .map(|(_, c)| c);
 
             for c in cols {
@@ -427,13 +425,13 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         let dbs = db_schema
             .iter()
             .enumerate()
-            .filter(|&(i, s)| s.database_id == c.database_id)
+            .filter(|&(_, s)| s.database_id == c.database_id)
             .map(|(_, s)| s);
 
         let hi = cds_host_infos
             .iter()
             .enumerate()
-            .filter(|&(i, h)| h.host_id == c.host_id)
+            .filter(|&(_, h)| h.host_id == c.host_id)
             .map(|(_, h)| h);
 
         let h = hi.last().unwrap().clone();
@@ -784,7 +782,6 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
 
 /// checks rcd_db's CDS_CONTRACTS table to see if there already is a record
 /// for this contract by contract_id
-#[allow(dead_code, unused_variables)]
 fn has_contract(contract_id: &str, conn: &Connection) -> bool {
     let mut cmd =
         String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid'");
@@ -794,7 +791,6 @@ fn has_contract(contract_id: &str, conn: &Connection) -> bool {
 }
 
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
-#[allow(dead_code, unused_variables)]
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
     let host = contract.host_info.as_ref().clone().unwrap().clone();
     let db = contract.schema.as_ref().clone().unwrap().clone();
@@ -841,7 +837,6 @@ fn save_contract_metadata(contract: &Contract, conn: &Connection) {
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
-#[allow(dead_code, unused_variables)]
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
     // println!("save_contract_table_data: connection: {:?}", conn);
 
@@ -941,7 +936,6 @@ fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
 }
 
 // save a contract's host information to CDS_HOSTS
-#[allow(dead_code, unused_variables)]
 fn save_contract_host_data(contract: &Contract, conn: &Connection) {
     let cmd = String::from(
         "INSERT INTO CDS_HOSTS

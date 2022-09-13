@@ -1,5 +1,10 @@
 use super::DbiConfigSqlite;
-use crate::table::{Column, Data, Row, Table, Value};
+use crate::{
+    cdata::{ColumnSchema, RowValue},
+    defaults,
+    rcd_enum::ColumnType,
+    table::{Column, Data, Table, Value},
+};
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
@@ -10,20 +15,17 @@ pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
 
-#[allow(dead_code, unused_variables)]
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
 /// created has also populated any data in it.
 pub fn has_any_rows(cmd: String, conn: &Connection) -> bool {
     return total_count(cmd, conn) > 0;
 }
 
-#[allow(dead_code, unused_variables)]
 /// Takes a SELECT COUNT(*) SQL statement and returns the value
 pub fn total_count(cmd: String, conn: &Connection) -> u32 {
     return get_scalar_as_u32(cmd, conn);
 }
 
-#[allow(dead_code, unused_variables)]
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
@@ -44,6 +46,108 @@ pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
     println!("{}", cmd);
     println!("{:?}", conn);
     return conn.execute(&cmd, []).unwrap();
+}
+
+pub fn execute_read_on_connection_for_row(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    cmd: String,
+    conn: &Connection,
+) -> Result<crate::cdata::Row> {
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let total_columns = statement.column_count();
+    let cols = statement.columns();
+
+    let mut values: Vec<crate::cdata::RowValue> = Vec::new();
+    let mut columns: Vec<crate::cdata::ColumnSchema> = Vec::new();
+
+    for col in cols {
+        let col_idx = statement.column_index(col.name()).unwrap();
+        let empty_string = String::from("");
+        let col_type = match col.decl_type() {
+            Some(c) => c,
+            None => &empty_string,
+        };
+
+        let c = ColumnSchema {
+            column_name: col.name().to_string(),
+            column_type: ColumnType::to_u32(ColumnType::try_parse(col_type).unwrap()),
+            column_length: 0,
+            is_nullable: false,
+            ordinal: col_idx as u32,
+            table_id: String::from(""),
+            column_id: col_idx.to_string(),
+            is_primary_key: false,
+        };
+        columns.push(c);
+    }
+
+    let mut rows = statement.query([])?;
+
+    while let Some(row) = rows.next()? {
+        for i in 0..total_columns {
+            let dt = row.get_ref_unwrap(i).data_type();
+            let string_value: String = match dt {
+                Type::Blob => String::from(""),
+                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                _ => String::from(""),
+            };
+
+            let mut row_value = RowValue {
+                column: None,
+                is_null_value: false,
+                value: Vec::new(),
+                string_value: String::from(""),
+            };
+
+            let column = columns
+                .iter()
+                .enumerate()
+                .filter(|&(_, c)| c.ordinal == i as u32)
+                .map(|(_, c)| c);
+
+            let col = column.last().unwrap().clone();
+            row_value.column = Some(col);
+            row_value.value = string_value.as_bytes().to_vec();
+            row_value.string_value = string_value.clone();
+            values.push(row_value);
+        }
+    }
+
+    let mut cmd = String::from("SELECT HASH FROM :table_name WHERE ROW_ID = :rid");
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+    cmd = cmd.replace(":rid", &row_id.to_string());
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let row_to_hash = |hash: Vec<u8>| -> Result<Vec<u8>> { Ok(hash) };
+
+    let hashes = statement
+        .query_and_then([], |row| row_to_hash(row.get(0).unwrap()))
+        .unwrap();
+
+    let mut hash: Vec<u8> = Vec::new();
+
+    for h in hashes {
+        hash = h.unwrap();
+        break;
+    }
+
+    let result = crate::cdata::Row {
+        database_name: db_name.to_string(),
+        table_name: table_name.to_string(),
+        row_id: row_id,
+        values: values,
+        is_remoteable: true,
+        remote_metadata: None,
+        hash: hash,
+    };
+
+    return Ok(result);
 }
 
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::Result<Table> {
@@ -78,7 +182,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     let mut rows = statement.query([])?;
 
     while let Some(row) = rows.next()? {
-        let mut data_row = Row::new();
+        let mut data_row = crate::table::Row::new();
 
         for i in 0..total_columns {
             let dt = row.get_ref_unwrap(i).data_type();
@@ -113,11 +217,6 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     return Ok(table);
 }
 
-#[allow(dead_code, unused_variables)]
-pub fn has_cooperative_tables_mock(db_name: &str, cwd: &str, cmd: &str) -> bool {
-    return false;
-}
-
 pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> rusqlite::Result<Table> {
     let conn = get_db_conn(&config, db_name);
     let mut statement = conn.prepare(cmd).unwrap();
@@ -144,7 +243,7 @@ pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> rusqli
     let mut rows = statement.query([])?;
 
     while let Some(row) = rows.next()? {
-        let mut data_row = Row::new();
+        let mut data_row = crate::table::Row::new();
 
         for i in 0..total_columns {
             let dt = row.get_ref_unwrap(i).data_type();
