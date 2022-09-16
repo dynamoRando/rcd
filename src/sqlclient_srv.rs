@@ -253,14 +253,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(execute_read_reply))
     }
 
-    async fn execute_cooperative_read(
-        &self,
-        request: Request<ExecuteCooperativeReadRequest>,
-    ) -> Result<Response<ExecuteCooperativeReadReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
-        unimplemented!("");
-    }
-
     #[allow(unused_variables)]
     async fn execute_write(
         &self,

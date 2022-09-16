@@ -7,7 +7,6 @@ service SQLClient {
 	rpc CreateUserDatabase(CreateUserDatabaseRequest) returns (CreateUserDatabaseReply);
 	rpc EnableCoooperativeFeatures(EnableCoooperativeFeaturesRequest) returns (EnableCoooperativeFeaturesReply);
 	rpc ExecuteRead(ExecuteReadRequest) returns (ExecuteReadReply);
-	rpc ExecuteCooperativeRead(ExecuteCooperativeReadRequest) returns (ExecuteCooperativeReadReply);
 	rpc ExecuteWrite(ExecuteWriteRequest) returns (ExecuteWriteReply);
 	rpc ExecuteCooperativeWrite(ExecuteCooperativeWriteRequest) returns (ExecuteCooperativeWriteReply);
 	rpc HasTable(HasTableRequest) returns (HasTableReply);
@@ -138,21 +137,6 @@ message GetLogicalStoragePolicyReply {
 	AuthResult authenticationResult  = 1;
 	uint32 policyMode = 2;
 }
-
-message ExecuteCooperativeReadRequest {
-  AuthRequest authentication = 1;
-  string databaseName = 2;
-  string sqlStatement = 3;
-  uint32 databaseType = 4;
-  repeated string tables = 5;
-}
-
-message ExecuteCooperativeReadReply {
-	AuthResult authenticationResult = 1;
-	uint64 totalResultsets = 2;
-	repeated StatementResultset results = 3;
-}
-
 message ExecuteCooperativeWriteRequest {
   AuthRequest authentication = 1;
   string databaseName = 2;
