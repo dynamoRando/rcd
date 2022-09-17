@@ -85,6 +85,30 @@ pub fn update_data_into_partial_db(
 
     println!("{:?}", cmd);
 
+    let mut row_hashes: Vec<(u32, u64)> = Vec::new(); 
+
+    for id in &row_ids {
+        let sql = cmd.replace(":rid", &id.to_string());
+
+        let mut stmt = conn.prepare(&sql).unwrap();
+        let mut rows = stmt.query([]).unwrap();
+    
+        // for a single row
+        while let Some(row) = rows.next().unwrap() {
+            let mut row_values: Vec<String> = Vec::new();
+            for i in 0..col_names.len() {
+                let value: String = row.get(i).unwrap();
+                row_values.push(value);
+            }
+
+            let hash_value = crypt::calculate_hash_for_struct(&row_values);
+            let row_hash: (u32, u64) = (*id, hash_value);
+            row_hashes.push(row_hash);
+        }
+    }
+
+    // now that we have the row hashes, we should save them back to the table 
+
     unimplemented!();
 }
 
