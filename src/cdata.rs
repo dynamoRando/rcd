@@ -317,45 +317,12 @@ pub struct CreateTableResult {
     #[prost(string, tag="7")]
     pub table_id: ::prost::alloc::string::String,
 }
-/// a message for inserting a row into a table in a database
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InsertRowRequest {
-    #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthRequest>,
-    #[prost(message, optional, tag="2")]
-    pub table: ::core::option::Option<TableSchema>,
-    #[prost(message, repeated, tag="3")]
-    pub values: ::prost::alloc::vec::Vec<RowValue>,
-    #[prost(message, optional, tag="4")]
-    pub message_info: ::core::option::Option<MessageInfo>,
-    #[prost(message, optional, tag="5")]
-    pub transaction: ::core::option::Option<TransactionInfo>,
-    #[prost(uint32, tag="6")]
-    pub row_id: u32,
-    #[prost(message, optional, tag="7")]
-    pub host_info: ::core::option::Option<Host>,
-}
-/// a message for describing the result of a InsertRowRequest
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct InsertRowResult {
-    #[prost(message, optional, tag="1")]
-    pub authentication_result: ::core::option::Option<AuthResult>,
-    #[prost(bool, tag="2")]
-    pub is_successful: bool,
-    #[prost(string, tag="3")]
-    pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub result_message: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub table_name: ::prost::alloc::string::String,
-    #[prost(string, tag="7")]
-    pub table_id: ::prost::alloc::string::String,
-    #[prost(uint32, tag="8")]
-    pub row_id: u32,
-    #[prost(bytes="vec", tag="9")]
-    pub data_hash: ::prost::alloc::vec::Vec<u8>,
+pub struct RowHashInfo {
+    #[prost(uint32, tag="1")]
+    pub rowid: u32,
+    #[prost(uint64, tag="2")]
+    pub data_hash: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InsertDataRequest {
@@ -382,48 +349,26 @@ pub struct InsertDataResult {
     pub row_id: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UpdateRowInTableRequest {
+pub struct UpdateDataRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
-    #[prost(message, optional, tag="2")]
-    pub message_info: ::core::option::Option<MessageInfo>,
-    #[prost(string, tag="3")]
+    #[prost(string, tag="2")]
     pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
+    #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
-    #[prost(uint32, tag="6")]
-    pub table_id: u32,
-    #[prost(uint32, tag="7")]
-    pub where_row_id: u32,
-    #[prost(string, tag="8")]
-    pub update_column: ::prost::alloc::string::String,
-    #[prost(string, tag="9")]
-    pub update_value: ::prost::alloc::string::String,
-    #[prost(bytes="vec", tag="10")]
-    pub existing_data_hash: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="4")]
+    pub cmd: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct UpdateRowInTableResult {
+pub struct UpdateDataResult {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(bool, tag="2")]
     pub is_successful: bool,
     #[prost(string, tag="3")]
-    pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
-    pub table_name: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub table_id: ::prost::alloc::string::String,
-    #[prost(uint32, tag="7")]
-    pub number_of_rows_affected: u32,
-    #[prost(string, tag="8")]
-    pub result_message: ::prost::alloc::string::String,
-    #[prost(bytes="vec", tag="9")]
-    pub new_data_hash: ::prost::alloc::vec::Vec<u8>,
+    pub message: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub rows: ::prost::alloc::vec::Vec<RowHashInfo>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRowsFromTableRequest {
@@ -1362,25 +1307,6 @@ pub mod data_service_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn insert_row_into_table(
-            &mut self,
-            request: impl tonic::IntoRequest<super::InsertRowRequest>,
-        ) -> Result<tonic::Response<super::InsertRowResult>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/cdata.DataService/InsertRowIntoTable",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
         pub async fn insert_command_into_table(
             &mut self,
             request: impl tonic::IntoRequest<super::InsertDataRequest>,
@@ -1400,10 +1326,10 @@ pub mod data_service_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn update_row_in_table(
+        pub async fn update_command_into_table(
             &mut self,
-            request: impl tonic::IntoRequest<super::UpdateRowInTableRequest>,
-        ) -> Result<tonic::Response<super::UpdateRowInTableResult>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::UpdateDataRequest>,
+        ) -> Result<tonic::Response<super::UpdateDataResult>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -1415,7 +1341,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/cdata.DataService/UpdateRowInTable",
+                "/cdata.DataService/UpdateCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2407,18 +2333,14 @@ pub mod data_service_server {
             &self,
             request: tonic::Request<super::CreateTableRequest>,
         ) -> Result<tonic::Response<super::CreateTableResult>, tonic::Status>;
-        async fn insert_row_into_table(
-            &self,
-            request: tonic::Request<super::InsertRowRequest>,
-        ) -> Result<tonic::Response<super::InsertRowResult>, tonic::Status>;
         async fn insert_command_into_table(
             &self,
             request: tonic::Request<super::InsertDataRequest>,
         ) -> Result<tonic::Response<super::InsertDataResult>, tonic::Status>;
-        async fn update_row_in_table(
+        async fn update_command_into_table(
             &self,
-            request: tonic::Request<super::UpdateRowInTableRequest>,
-        ) -> Result<tonic::Response<super::UpdateRowInTableResult>, tonic::Status>;
+            request: tonic::Request<super::UpdateDataRequest>,
+        ) -> Result<tonic::Response<super::UpdateDataResult>, tonic::Status>;
         async fn get_rows_from_table(
             &self,
             request: tonic::Request<super::GetRowsFromTableRequest>,
@@ -2639,46 +2561,6 @@ pub mod data_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/cdata.DataService/InsertRowIntoTable" => {
-                    #[allow(non_camel_case_types)]
-                    struct InsertRowIntoTableSvc<T: DataService>(pub Arc<T>);
-                    impl<
-                        T: DataService,
-                    > tonic::server::UnaryService<super::InsertRowRequest>
-                    for InsertRowIntoTableSvc<T> {
-                        type Response = super::InsertRowResult;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::InsertRowRequest>,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).insert_row_into_table(request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = InsertRowIntoTableSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
                 "/cdata.DataService/InsertCommandIntoTable" => {
                     #[allow(non_camel_case_types)]
                     struct InsertCommandIntoTableSvc<T: DataService>(pub Arc<T>);
@@ -2719,25 +2601,25 @@ pub mod data_service_server {
                     };
                     Box::pin(fut)
                 }
-                "/cdata.DataService/UpdateRowInTable" => {
+                "/cdata.DataService/UpdateCommandIntoTable" => {
                     #[allow(non_camel_case_types)]
-                    struct UpdateRowInTableSvc<T: DataService>(pub Arc<T>);
+                    struct UpdateCommandIntoTableSvc<T: DataService>(pub Arc<T>);
                     impl<
                         T: DataService,
-                    > tonic::server::UnaryService<super::UpdateRowInTableRequest>
-                    for UpdateRowInTableSvc<T> {
-                        type Response = super::UpdateRowInTableResult;
+                    > tonic::server::UnaryService<super::UpdateDataRequest>
+                    for UpdateCommandIntoTableSvc<T> {
+                        type Response = super::UpdateDataResult;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::UpdateRowInTableRequest>,
+                            request: tonic::Request<super::UpdateDataRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).update_row_in_table(request).await
+                                (*inner).update_command_into_table(request).await
                             };
                             Box::pin(fut)
                         }
@@ -2747,7 +2629,7 @@ pub mod data_service_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = UpdateRowInTableSvc(inner);
+                        let method = UpdateCommandIntoTableSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

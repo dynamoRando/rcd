@@ -213,9 +213,8 @@ service DataService {
 	rpc IsOnline(TestRequest) returns (TestReply);
 	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
 	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
-	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
 	rpc InsertCommandIntoTable(InsertDataRequest) returns (InsertDataResult);
-	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
+	rpc UpdateCommandIntoTable(UpdateDataRequest) returns (UpdateDataResult);
 	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
@@ -250,28 +249,9 @@ message CreateTableResult {
 	string tableId = 7;
 }
 
-// a message for inserting a row into a table in a database
-message InsertRowRequest {
-	AuthRequest authentication = 1;
-	TableSchema table = 2;
-	repeated RowValue values = 3;
-	MessageInfo messageInfo = 4; 
-	TransactionInfo transaction = 5;
-	uint32 rowId = 6;
-	Host hostInfo = 7;
-}
-
-// a message for describing the result of a InsertRowRequest
-message InsertRowResult {
-	AuthResult authenticationResult = 1;
-	bool isSuccessful = 2;
-	string databaseName = 3;
-	string resultMessage = 4;
-	string databaseId = 5;
-	string tableName = 6;
-	string tableId = 7;
-	uint32 rowId = 8;
-	bytes dataHash = 9;
+message RowHashInfo {
+	uint32 rowid = 1;
+	uint64 dataHash = 2;
 }
 
 message InsertDataRequest {
@@ -289,29 +269,18 @@ message InsertDataResult {
 	uint32 rowId = 5;
 }
 
-message UpdateRowInTableRequest{
+message UpdateDataRequest {
 	AuthRequest authentication = 1;
-	MessageInfo messageInfo = 2;
-	string databaseName = 3;
-	string databaseId = 4;
-	string tableName = 5;
-	uint32 tableId = 6;
-	uint32 whereRowId = 7;
-	string updateColumn = 8;
-	string updateValue = 9; 
-	bytes existingDataHash = 10;
+	string databaseName = 2;
+	string tableName = 3;
+	string cmd = 4;
 }
 
-message UpdateRowInTableResult {
+message UpdateDataResult {
 	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
-	string databaseName = 3;
-	string databaseId = 4;
-	string tableName = 5;
-	string tableId = 6;
-	uint32 numberOfRowsAffected = 7;
-	string resultMessage = 8;
-	bytes newDataHash = 9;
+	string message = 3;
+	repeated RowHashInfo rows = 4;
 }
 
 message GetRowsFromTableRequest {

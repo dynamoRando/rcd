@@ -116,13 +116,6 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(create_table_result))
     }
 
-    async fn insert_row_into_table(
-        &self,
-        _request: Request<InsertRowRequest>,
-    ) -> Result<Response<InsertRowResult>, Status> {
-        unimplemented!("not implemented");
-    }
-
     async fn insert_command_into_table(
         &self,
         request: Request<InsertDataRequest>,
@@ -166,10 +159,12 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(result))
     }
 
-    async fn update_row_in_table(
+    async fn update_command_into_table(
         &self,
-        _request: Request<UpdateRowInTableRequest>,
-    ) -> Result<Response<UpdateRowInTableResult>, Status> {
+        request: Request<UpdateDataRequest>,
+    ) -> Result<Response<UpdateDataResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
         unimplemented!("not implemented");
     }
 
