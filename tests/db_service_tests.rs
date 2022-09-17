@@ -896,7 +896,6 @@ pub mod insert_read_remote_row {
         return accepted_contract;
     }
 }
-<<<<<<< HEAD
 
 pub mod insert_read_update_remote_row {
     use crate::test_harness::ServiceAddr;
@@ -1415,5 +1414,3 @@ pub mod insert_read_delete_remote_row {
         return accepted_contract;
     }
 }
-=======
->>>>>>> main
