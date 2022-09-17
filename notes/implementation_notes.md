@@ -59,7 +59,13 @@ Recieves a SQL statement that involves an INSERT/UPDATE/DELETE action for a loca
 
 Recieves a SQL statement that involves an INSERT/UPDATE/DELETE action for a specific participant. 
 
+# Design Decisions
+We are currently not checking the contract definition right now at the participant for actions being done from the host - we are only authenticating.
+
 # Scenario Testing (Un-organized)
+## `INSERT`s
+We need to also handle inserts locally at the participant and if we should notify upstream the host of an inserted row.
+
 ## `UPDATE`s
 Either the host or the participant can update records on either side of the database. If the row is stored at a participant, the following situations can occur:
 
