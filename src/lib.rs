@@ -6,7 +6,6 @@ mod coop_database_participant;
 pub mod defaults;
 mod host_info;
 pub mod query_parser;
-pub mod rcd_data_client;
 pub mod rcd_db;
 pub mod rcd_enum;
 mod rcd_service;

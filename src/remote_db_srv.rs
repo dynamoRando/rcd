@@ -8,7 +8,7 @@ use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
     AuthRequest, Contract, DatabaseSchema, GetRowFromPartialDatabaseRequest, InsertDataRequest,
     InsertDataResult, MessageInfo, Participant, ParticipantAcceptsContractRequest,
-    RowParticipantAddress, SaveContractRequest,
+    RowParticipantAddress, SaveContractRequest, UpdateDataResult, UpdateDataRequest,
 };
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::rcd_enum::ContractStatus;
@@ -16,6 +16,32 @@ use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
+
+pub async fn update_row_at_participant(
+    participant: CoopDatabaseParticipant,
+    own_host_info: &HostInfo,
+    db_name: &str,
+    table_name: &str,
+    sql: &str,
+) -> UpdateDataResult {
+    let auth = get_auth_request(own_host_info);
+
+    let request = UpdateDataRequest {
+        authentication: Some(auth),
+        database_name: db_name.to_string(),
+        table_name: table_name.to_string(),
+        cmd: sql.to_string(),
+    };
+
+    let client = get_client(participant);
+    let response = client
+        .await
+        .update_command_into_table(request)
+        .await
+        .unwrap();
+
+    return response.into_inner();
+}
 
 pub async fn insert_row_at_participant(
     participant: CoopDatabaseParticipant,
