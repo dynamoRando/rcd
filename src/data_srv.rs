@@ -168,6 +168,15 @@ impl DataService for DataServiceImpl {
         unimplemented!("not implemented");
     }
 
+    async fn delete_command_into_table(
+        &self,
+        request: Request<DeleteDataRequest>,
+    ) -> Result<Response<DeleteDataResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        unimplemented!("not implemented");
+    }
+
     async fn get_row_from_partial_database(
         &self,
         request: Request<GetRowFromPartialDatabaseRequest>,
@@ -267,13 +276,6 @@ impl DataService for DataServiceImpl {
         };
 
         Ok(Response::new(result))
-    }
-
-    async fn remove_row_from_partial_database(
-        &self,
-        _request: Request<RemoveRowFromPartialDatabaseRequest>,
-    ) -> Result<Response<RemoveRowFromPartialDatabaseResult>, Status> {
-        unimplemented!("not implemented");
     }
 
     async fn update_row_data_hash_for_host(

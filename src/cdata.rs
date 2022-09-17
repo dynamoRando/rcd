@@ -375,6 +375,28 @@ pub struct UpdateDataResult {
     pub rows: ::prost::alloc::vec::Vec<RowInfo>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteDataRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub cmd: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct DeleteDataResult {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthRequest>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+    #[prost(string, tag="3")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag="4")]
+    pub rows: ::prost::alloc::vec::Vec<RowInfo>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRowFromPartialDatabaseRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -428,24 +450,6 @@ pub struct ParticipantAcceptsContractResult {
     pub contract_acceptance_is_acknowledged: bool,
     #[prost(string, tag="2")]
     pub error_message: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RemoveRowFromPartialDatabaseRequest {
-    #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthRequest>,
-    #[prost(message, optional, tag="2")]
-    pub message_info: ::core::option::Option<MessageInfo>,
-    #[prost(message, optional, tag="3")]
-    pub row_address: ::core::option::Option<RowParticipantAddress>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RemoveRowFromPartialDatabaseResult {
-    #[prost(message, optional, tag="1")]
-    pub authentication_result: ::core::option::Option<AuthResult>,
-    #[prost(bool, tag="2")]
-    pub is_successful: bool,
-    #[prost(string, tag="3")]
-    pub result_message: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowDataHashForHostRequest {
@@ -1308,6 +1312,25 @@ pub mod data_service_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn delete_command_into_table(
+            &mut self,
+            request: impl tonic::IntoRequest<super::DeleteDataRequest>,
+        ) -> Result<tonic::Response<super::DeleteDataResult>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.DataService/DeleteCommandIntoTable",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
         pub async fn get_row_from_partial_database(
             &mut self,
             request: impl tonic::IntoRequest<super::GetRowFromPartialDatabaseRequest>,
@@ -1368,28 +1391,6 @@ pub mod data_service_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/cdata.DataService/AcceptContract",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        pub async fn remove_row_from_partial_database(
-            &mut self,
-            request: impl tonic::IntoRequest<super::RemoveRowFromPartialDatabaseRequest>,
-        ) -> Result<
-            tonic::Response<super::RemoveRowFromPartialDatabaseResult>,
-            tonic::Status,
-        > {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/cdata.DataService/RemoveRowFromPartialDatabase",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2285,6 +2286,10 @@ pub mod data_service_server {
             &self,
             request: tonic::Request<super::UpdateDataRequest>,
         ) -> Result<tonic::Response<super::UpdateDataResult>, tonic::Status>;
+        async fn delete_command_into_table(
+            &self,
+            request: tonic::Request<super::DeleteDataRequest>,
+        ) -> Result<tonic::Response<super::DeleteDataResult>, tonic::Status>;
         async fn get_row_from_partial_database(
             &self,
             request: tonic::Request<super::GetRowFromPartialDatabaseRequest>,
@@ -2301,13 +2306,6 @@ pub mod data_service_server {
             request: tonic::Request<super::ParticipantAcceptsContractRequest>,
         ) -> Result<
             tonic::Response<super::ParticipantAcceptsContractResult>,
-            tonic::Status,
-        >;
-        async fn remove_row_from_partial_database(
-            &self,
-            request: tonic::Request<super::RemoveRowFromPartialDatabaseRequest>,
-        ) -> Result<
-            tonic::Response<super::RemoveRowFromPartialDatabaseResult>,
             tonic::Status,
         >;
         async fn update_row_data_hash_for_host(
@@ -2581,6 +2579,46 @@ pub mod data_service_server {
                     };
                     Box::pin(fut)
                 }
+                "/cdata.DataService/DeleteCommandIntoTable" => {
+                    #[allow(non_camel_case_types)]
+                    struct DeleteCommandIntoTableSvc<T: DataService>(pub Arc<T>);
+                    impl<
+                        T: DataService,
+                    > tonic::server::UnaryService<super::DeleteDataRequest>
+                    for DeleteCommandIntoTableSvc<T> {
+                        type Response = super::DeleteDataResult;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::DeleteDataRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).delete_command_into_table(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = DeleteCommandIntoTableSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 "/cdata.DataService/GetRowFromPartialDatabase" => {
                     #[allow(non_camel_case_types)]
                     struct GetRowFromPartialDatabaseSvc<T: DataService>(pub Arc<T>);
@@ -2696,49 +2734,6 @@ pub mod data_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = AcceptContractSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/cdata.DataService/RemoveRowFromPartialDatabase" => {
-                    #[allow(non_camel_case_types)]
-                    struct RemoveRowFromPartialDatabaseSvc<T: DataService>(pub Arc<T>);
-                    impl<
-                        T: DataService,
-                    > tonic::server::UnaryService<
-                        super::RemoveRowFromPartialDatabaseRequest,
-                    > for RemoveRowFromPartialDatabaseSvc<T> {
-                        type Response = super::RemoveRowFromPartialDatabaseResult;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<
-                                super::RemoveRowFromPartialDatabaseRequest,
-                            >,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).remove_row_from_partial_database(request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = RemoveRowFromPartialDatabaseSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

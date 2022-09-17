@@ -215,10 +215,10 @@ service DataService {
 	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
 	rpc InsertCommandIntoTable(InsertDataRequest) returns (InsertDataResult);
 	rpc UpdateCommandIntoTable(UpdateDataRequest) returns (UpdateDataResult);
+	rpc DeleteCommandIntoTable(DeleteDataRequest) returns (DeleteDataResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
-	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
 	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
 	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
 }
@@ -284,6 +284,20 @@ message UpdateDataResult {
 	repeated RowInfo rows = 4;
 }
 
+message DeleteDataRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	string cmd = 4;
+}
+
+message DeleteDataResult {
+	AuthRequest authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+	repeated RowInfo rows = 4;
+}
+
 message GetRowFromPartialDatabaseRequest {
 	AuthRequest authentication = 1;
 	RowParticipantAddress rowAddress = 2;
@@ -319,18 +333,6 @@ message ParticipantAcceptsContractRequest {
 message ParticipantAcceptsContractResult {
 	bool contractAcceptanceIsAcknowledged = 1;
 	string errorMessage = 2;
-}
-
-message RemoveRowFromPartialDatabaseRequest {
-	AuthRequest authentication = 1;
-	MessageInfo MessageInfo = 2;
-	RowParticipantAddress rowAddress = 3;
-}
-
-message RemoveRowFromPartialDatabaseResult {
-	AuthResult authenticationResult = 1;
-	bool isSuccessful = 2;
-	string resultMessage = 3;
 }
 
 message UpdateRowDataHashForHostRequest {
