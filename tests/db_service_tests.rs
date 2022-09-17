@@ -1122,7 +1122,7 @@ pub mod insert_read_update_remote_row {
 
         assert!(update_result);
 
-        let data = client
+        let new_data = client
             .execute_read(
                 db_name,
                 "SELECT Name FROM EMPLOYEE",
@@ -1131,23 +1131,23 @@ pub mod insert_read_update_remote_row {
             .await
             .unwrap();
 
-        println!("{:?}", data);
+        println!("{:?}", new_data);
 
-        let value = data
+        let new_value = new_data
             .rows
             .first()
             .unwrap()
             .values
-            .first()
+            .last()
             .unwrap()
             .value
             .clone();
 
-        println!("{:?}", value);
-
+        println!("{:?}", new_value);
         let expected_value = "Bob".as_bytes().to_vec();
+        println!("{:?}", expected_value);
 
-        return value == expected_value;
+        return new_value == expected_value;
     }
 
     #[cfg(test)]

@@ -149,6 +149,20 @@ impl CDS {
 }
 
 impl COOP {
+    pub fn text_update_row_metadata_table() -> String {
+        return String::from(
+            "UPDATE 
+                :table_name
+            SET 
+                HASH = :hash
+            WHERE 
+                ROW_ID = :row 
+            AND 
+                INTERNAL_PARTICIPANT_ID = :pid
+        ;",
+        );
+    }
+
     pub fn text_insert_row_metadata_table() -> String {
         return String::from(
             "INSERT INTO :table_name

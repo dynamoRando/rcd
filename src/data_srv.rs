@@ -171,6 +171,8 @@ impl DataService for DataServiceImpl {
         let table_name = message.table_name;
         let where_clause = message.where_clause.clone();
 
+        let mut rows: Vec<RowInfo> = Vec::new();
+
         let mut result = UpdatePartialDataResult {
             is_successful: false,
             row_id: 0,
@@ -180,9 +182,19 @@ impl DataService for DataServiceImpl {
         if is_authenticated {
             let cmd = &message.cmd;
 
-            result = self
-                .dbi()
-                .update_data_into_partial_db(&db_name, &table_name, cmd, &where_clause);
+            result =
+                self.dbi()
+                    .update_data_into_partial_db(&db_name, &table_name, cmd, &where_clause);
+
+            if result.is_successful {
+                let row = RowInfo {
+                    database_name: db_name,
+                    table_name,
+                    rowid: result.row_id,
+                    data_hash: result.data_hash,
+                };
+                rows.push(row);
+            }
         }
 
         let auth_response = AuthResult {
@@ -196,7 +208,7 @@ impl DataService for DataServiceImpl {
             authentication_result: Some(auth_response),
             is_successful: result.is_successful,
             message: String::from(""),
-            rows: Vec::new(),
+            rows: rows,
         };
 
         Ok(Response::new(result))

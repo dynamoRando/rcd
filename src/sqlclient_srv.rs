@@ -290,6 +290,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(execute_write_reply))
     }
 
+    #[allow(unused_assignments)]
     async fn execute_cooperative_write(
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
@@ -366,11 +367,25 @@ impl SqlClient for SqlClientImpl {
                         .await;
 
                         if remote_update_result.is_successful {
-                            todo!();
-                        }
+                            let data_hash = remote_update_result.rows.first().unwrap().data_hash;
+                            let row_id = remote_update_result.rows.first().unwrap().rowid;
 
-                        unimplemented!();
-                    },
+                            let internal_participant_id =
+                                db_participant_reference.internal_id.to_string().clone();
+
+                            let local_update_is_successful = self.dbi().update_metadata_in_host_db(
+                                &db_name,
+                                &cmd_table_name,
+                                row_id,
+                                data_hash,
+                                &internal_participant_id,
+                            );
+
+                            if local_update_is_successful {
+                                is_remote_action_successful = true;
+                            }
+                        }
+                    }
                     DmlType::Delete => todo!(),
                     DmlType::Select => panic!(),
                 }
