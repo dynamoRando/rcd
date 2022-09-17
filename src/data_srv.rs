@@ -1,6 +1,6 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
-use crate::dbi::InsertPartialDataResult;
+use crate::dbi::{InsertPartialDataResult, UpdatePartialDataResult};
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
 use rusqlite::Result;
@@ -165,7 +165,40 @@ impl DataService for DataServiceImpl {
     ) -> Result<Response<UpdateDataResult>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
-        unimplemented!("not implemented");
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+
+        let mut result = UpdatePartialDataResult {
+            is_successful: false,
+            row_id: 0,
+            data_hash: 0,
+        };
+
+        if is_authenticated {
+            let cmd = &message.cmd;
+
+            result = self
+                .dbi()
+                .update_data_into_partial_db(&db_name, &table_name, cmd);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = UpdateDataResult {
+            authentication_result: Some(auth_response),
+            is_successful: result.is_successful,
+            message: String::from(""),
+            rows: Vec::new(),
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn delete_command_into_table(
