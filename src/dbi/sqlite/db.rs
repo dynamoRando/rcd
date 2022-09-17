@@ -693,6 +693,22 @@ fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
     return Ok(execute_read_on_connection(cmd, conn).unwrap());
 }
 
+pub fn get_col_names_of_table(table_name: String, conn: &Connection) -> Vec<String> {
+    let mut result: Vec<String> = Vec::new();
+
+    let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
+    cmd = cmd.replace(":table_name", &table_name);
+
+    let statement = conn.prepare(&cmd).unwrap();
+    let cols = statement.columns();
+
+    for col in cols {
+        result.push(col.name().to_string())
+    }
+
+    return result;
+}
+
 /// Queries the COOP_REMOTES table for the table name and policy for each table in the database.
 /// If this returns an empty vector it means either this is a new database or we haven't audited the
 /// tables in the database. Generally, whenever we create a new table we should be adding the policy

@@ -2,6 +2,7 @@ use std::path::Path;
 
 use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
+use crate::dbi::sqlite::db::get_col_names_of_table;
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::rcd_enum::{ColumnType, DatabaseType};
@@ -24,7 +25,7 @@ pub fn get_row_from_partial_database(
     return execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap();
 }
 
-#[allow(dead_code, unused_variables)]
+#[allow(dead_code, unused_variables, unused_assignments)]
 pub fn update_data_into_partial_db(
     db_name: &str,
     table_name: &str,
@@ -68,6 +69,21 @@ pub fn update_data_into_partial_db(
 
     // now we need to update the data hashes for every row that was changed
     // ... how do we do that?
+    let col_names = get_col_names_of_table(table_name.to_string(), &conn);
+    let mut cmd;
+    cmd = String::from("SELECT :col_names FROM :table_name WHERE ROWID = :rid");
+    cmd = cmd.replace(":table_name", table_name);
+
+    let mut col_name_list = String::from("");
+
+    for name in &col_names {
+        col_name_list = col_name_list + name + " ,";
+    }
+
+    col_name_list.remove(col_name_list.len());
+    cmd = cmd.replace(":col_names", &col_name_list);
+
+    println!("{:?}", cmd);
 
     unimplemented!();
 }
