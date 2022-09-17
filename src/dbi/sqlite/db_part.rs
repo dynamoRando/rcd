@@ -32,14 +32,34 @@ pub fn update_data_into_partial_db(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
+    let mut cmd;
+    cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
+        .replace(":table_name", table_name);
+
+    if where_clause.len() > 0 {
+        cmd = cmd.replace(":where_clause", where_clause);
+    } else {
+        cmd = cmd.replace("WHERE", "");
+        cmd = cmd.replace(":where_clause", "");
+    }
+
     // we need to determine the row_ids that we're going to update because we're going to need to update
     // the data hashes for them
-
-    let cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
-        .replace(":table_name", table_name)
-        .replace(":where_clause", where_clause);
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let mut statement = conn.prepare(&cmd).unwrap();
 
     // once we have the row ids, then we will need to get the hash of the rows after they've been updated.
+
+    let mut row_ids: Vec<u32> = Vec::new();
+    let row_to_id = |rowid: u32| -> Result<u32> { Ok(rowid) };
+
+    let ids = statement
+        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
+        .unwrap();
+
+    for id in ids {
+        row_ids.push(id.unwrap());
+    }
 
     unimplemented!();
 }
