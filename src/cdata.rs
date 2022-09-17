@@ -188,6 +188,8 @@ pub struct ExecuteCooperativeWriteRequest {
     pub alias: ::prost::alloc::string::String,
     #[prost(string, tag="6")]
     pub participant_id: ::prost::alloc::string::String,
+    #[prost(string, tag="7")]
+    pub where_clause: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteCooperativeWriteReply {
@@ -362,6 +364,8 @@ pub struct UpdateDataRequest {
     pub table_name: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
     pub cmd: ::prost::alloc::string::String,
+    #[prost(string, tag="5")]
+    pub where_clause: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateDataResult {

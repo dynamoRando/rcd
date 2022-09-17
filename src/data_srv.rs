@@ -169,6 +169,7 @@ impl DataService for DataServiceImpl {
         let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
         let db_name = message.database_name;
         let table_name = message.table_name;
+        let where_clause = message.where_clause.clone();
 
         let mut result = UpdatePartialDataResult {
             is_successful: false,
@@ -181,7 +182,7 @@ impl DataService for DataServiceImpl {
 
             result = self
                 .dbi()
-                .update_data_into_partial_db(&db_name, &table_name, cmd);
+                .update_data_into_partial_db(&db_name, &table_name, cmd, &where_clause);
         }
 
         let auth_response = AuthResult {

@@ -60,6 +60,7 @@ impl RcdClient {
         db_name: &str,
         cmd: &str,
         participant_alias: &str,
+        where_clause: &str,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -70,6 +71,7 @@ impl RcdClient {
             database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
             alias: participant_alias.to_string(),
             participant_id: String::from(""),
+            where_clause: where_clause.to_string(),
         };
 
         info!("sending request");

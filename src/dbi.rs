@@ -146,6 +146,7 @@ impl Dbi {
         part_db_name: &str,
         table_name: &str,
         cmd: &str,
+        where_clause: &str,
     ) -> UpdatePartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -154,6 +155,7 @@ impl Dbi {
                     part_db_name,
                     table_name,
                     cmd,
+                    where_clause,
                     &settings,
                 );
             }

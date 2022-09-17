@@ -314,6 +314,7 @@ impl SqlClient for SqlClientImpl {
                     .get_participant_by_alias(&db_name, &message.alias);
                 let host_info = self.dbi().rcd_get_host_info();
                 let cmd_table_name = query_parser::get_table_name(&statement, self.dbi().db_type());
+                let where_clause = message.where_clause.clone();
 
                 let db_participant_reference = db_participant.clone();
 
@@ -360,6 +361,7 @@ impl SqlClient for SqlClientImpl {
                             &db_name,
                             &cmd_table_name,
                             &statement,
+                            &where_clause,
                         )
                         .await;
 

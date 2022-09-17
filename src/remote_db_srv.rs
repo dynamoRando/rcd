@@ -23,6 +23,7 @@ pub async fn update_row_at_participant(
     db_name: &str,
     table_name: &str,
     sql: &str,
+    where_clause: &str,
 ) -> UpdateDataResult {
     let auth = get_auth_request(own_host_info);
 
@@ -31,6 +32,7 @@ pub async fn update_row_at_participant(
         database_name: db_name.to_string(),
         table_name: table_name.to_string(),
         cmd: sql.to_string(),
+        where_clause: where_clause.to_string(),
     };
 
     let client = get_client(participant);

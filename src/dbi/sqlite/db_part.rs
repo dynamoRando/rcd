@@ -29,6 +29,7 @@ pub fn update_data_into_partial_db(
     db_name: &str,
     table_name: &str,
     cmd: &str,
+    where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult { 
     unimplemented!()
