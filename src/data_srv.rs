@@ -1,6 +1,6 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
-use crate::dbi::InsertPartialDataResult;
+use crate::dbi::{InsertPartialDataResult, UpdatePartialDataResult};
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
 use rusqlite::Result;
@@ -116,13 +116,6 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(create_table_result))
     }
 
-    async fn insert_row_into_table(
-        &self,
-        _request: Request<InsertRowRequest>,
-    ) -> Result<Response<InsertRowResult>, Status> {
-        unimplemented!("not implemented");
-    }
-
     async fn insert_command_into_table(
         &self,
         request: Request<InsertDataRequest>,
@@ -166,17 +159,54 @@ impl DataService for DataServiceImpl {
         Ok(Response::new(result))
     }
 
-    async fn update_row_in_table(
+    async fn update_command_into_table(
         &self,
-        _request: Request<UpdateRowInTableRequest>,
-    ) -> Result<Response<UpdateRowInTableResult>, Status> {
-        unimplemented!("not implemented");
+        request: Request<UpdateDataRequest>,
+    ) -> Result<Response<UpdateDataResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+
+        let mut result = UpdatePartialDataResult {
+            is_successful: false,
+            row_id: 0,
+            data_hash: 0,
+        };
+
+        if is_authenticated {
+            let cmd = &message.cmd;
+
+            result = self
+                .dbi()
+                .update_data_into_partial_db(&db_name, &table_name, cmd);
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = UpdateDataResult {
+            authentication_result: Some(auth_response),
+            is_successful: result.is_successful,
+            message: String::from(""),
+            rows: Vec::new(),
+        };
+
+        Ok(Response::new(result))
     }
 
-    async fn get_rows_from_table(
+    async fn delete_command_into_table(
         &self,
-        _request: Request<GetRowsFromTableRequest>,
-    ) -> Result<Response<GetRowsFromTableResult>, Status> {
+        request: Request<DeleteDataRequest>,
+    ) -> Result<Response<DeleteDataResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+
         unimplemented!("not implemented");
     }
 
@@ -279,13 +309,6 @@ impl DataService for DataServiceImpl {
         };
 
         Ok(Response::new(result))
-    }
-
-    async fn remove_row_from_partial_database(
-        &self,
-        _request: Request<RemoveRowFromPartialDatabaseRequest>,
-    ) -> Result<Response<RemoveRowFromPartialDatabaseResult>, Status> {
-        unimplemented!("not implemented");
     }
 
     async fn update_row_data_hash_for_host(

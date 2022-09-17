@@ -3,7 +3,7 @@ use std::path::Path;
 use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
-use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult};
+use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::rcd_enum::{ColumnType, DatabaseType};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
@@ -22,6 +22,16 @@ pub fn get_row_from_partial_database(
     cmd = cmd.replace(":rid", &row_id.to_string());
 
     return execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn update_data_into_partial_db(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult { 
+    unimplemented!()
 }
 
 pub fn insert_data_into_partial_db(

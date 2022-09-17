@@ -213,14 +213,12 @@ service DataService {
 	rpc IsOnline(TestRequest) returns (TestReply);
 	rpc CreatePartialDatabase(CreateDatabaseRequest) returns (CreateDatabaseResult);
 	rpc CreateTableInDatabase(CreateTableRequest) returns (CreateTableResult);
-	rpc InsertRowIntoTable(InsertRowRequest) returns (InsertRowResult);
 	rpc InsertCommandIntoTable(InsertDataRequest) returns (InsertDataResult);
-	rpc UpdateRowInTable(UpdateRowInTableRequest) returns (UpdateRowInTableResult);
-	rpc GetRowsFromTable(GetRowsFromTableRequest) returns (GetRowsFromTableResult);
+	rpc UpdateCommandIntoTable(UpdateDataRequest) returns (UpdateDataResult);
+	rpc DeleteCommandIntoTable(DeleteDataRequest) returns (DeleteDataResult);
 	rpc GetRowFromPartialDatabase(GetRowFromPartialDatabaseRequest) returns (GetRowFromPartialDatabaseResult);
 	rpc SaveContract(SaveContractRequest) returns (SaveContractResult);
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
-	rpc RemoveRowFromPartialDatabase(RemoveRowFromPartialDatabaseRequest) returns (RemoveRowFromPartialDatabaseResult);
 	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
 	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
 }
@@ -250,28 +248,11 @@ message CreateTableResult {
 	string tableId = 7;
 }
 
-// a message for inserting a row into a table in a database
-message InsertRowRequest {
-	AuthRequest authentication = 1;
-	TableSchema table = 2;
-	repeated RowValue values = 3;
-	MessageInfo messageInfo = 4; 
-	TransactionInfo transaction = 5;
-	uint32 rowId = 6;
-	Host hostInfo = 7;
-}
-
-// a message for describing the result of a InsertRowRequest
-message InsertRowResult {
-	AuthResult authenticationResult = 1;
-	bool isSuccessful = 2;
-	string databaseName = 3;
-	string resultMessage = 4;
-	string databaseId = 5;
-	string tableName = 6;
-	string tableId = 7;
-	uint32 rowId = 8;
-	bytes dataHash = 9;
+message RowInfo {
+	string databaseName = 1;
+	string tableName = 2;
+	uint32 rowid = 3;
+	uint64 dataHash = 4;
 }
 
 message InsertDataRequest {
@@ -289,52 +270,32 @@ message InsertDataResult {
 	uint32 rowId = 5;
 }
 
-message UpdateRowInTableRequest{
-	AuthRequest authentication = 1;
-	MessageInfo messageInfo = 2;
-	string databaseName = 3;
-	string databaseId = 4;
-	string tableName = 5;
-	uint32 tableId = 6;
-	uint32 whereRowId = 7;
-	string updateColumn = 8;
-	string updateValue = 9; 
-	bytes existingDataHash = 10;
-}
-
-message UpdateRowInTableResult {
-	AuthResult authenticationResult = 1;
-	bool isSuccessful = 2;
-	string databaseName = 3;
-	string databaseId = 4;
-	string tableName = 5;
-	string tableId = 6;
-	uint32 numberOfRowsAffected = 7;
-	string resultMessage = 8;
-	bytes newDataHash = 9;
-}
-
-message GetRowsFromTableRequest {
+message UpdateDataRequest {
 	AuthRequest authentication = 1;
 	string databaseName = 2;
-	string databaseId = 3;
-	string tableName = 4;
-	string tableId = 5;
-	string columnNames = 6;
-	repeated RowValue rowsWithValue = 7; // WHERE columnName = value
-	string operation = 8; // AND, OR, EQUAL, GREATER THAN, LESS THAN, ETC.
+	string tableName = 3;
+	string cmd = 4;
 }
 
-message GetRowsFromTableResult {
+message UpdateDataResult {
 	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
-	string databaseName = 3;
-	string databaseId = 4;
-	string tableName = 5;
-	string tableId = 6;
-	uint32 numberOfRowsAffected = 7;
-	string resultMessage = 8;
-	repeated Row rows = 9;
+	string message = 3;
+	repeated RowInfo rows = 4;
+}
+
+message DeleteDataRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	string cmd = 4;
+}
+
+message DeleteDataResult {
+	AuthRequest authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+	repeated RowInfo rows = 4;
 }
 
 message GetRowFromPartialDatabaseRequest {
@@ -352,13 +313,11 @@ message GetRowFromPartialDatabaseResult {
 
 // a message from a host to a participant to save a contract
 message SaveContractRequest {
-	//AuthRequest authentication = 1;
 	Contract contract = 1;
 	MessageInfo messageInfo = 2;
 }
 
 message SaveContractResult {
-	//AuthResult authenticationResult = 1;
 	bool isSaved = 1;
 	string errorMessage = 2;
 }
@@ -374,18 +333,6 @@ message ParticipantAcceptsContractRequest {
 message ParticipantAcceptsContractResult {
 	bool contractAcceptanceIsAcknowledged = 1;
 	string errorMessage = 2;
-}
-
-message RemoveRowFromPartialDatabaseRequest {
-	AuthRequest authentication = 1;
-	MessageInfo MessageInfo = 2;
-	RowParticipantAddress rowAddress = 3;
-}
-
-message RemoveRowFromPartialDatabaseResult {
-	AuthResult authenticationResult = 1;
-	bool isSuccessful = 2;
-	string resultMessage = 3;
 }
 
 message UpdateRowDataHashForHostRequest {
@@ -499,6 +446,9 @@ message RowValue {
 	string stringValue = 4;
 }
 
+// describes the data status of the host in relation to the participant
+// if for example the data hash between the host and the participant do not match
+// or if the row was deleted at the participant, but the reference at the host is not
 message RowRemoteMetadata {
 	bool isRemoteOutOfSyncWithHost = 1;
 	bool isHashOutOfSyncWithHost = 2;
