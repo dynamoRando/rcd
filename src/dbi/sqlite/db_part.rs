@@ -85,14 +85,14 @@ pub fn update_data_into_partial_db(
 
     println!("{:?}", cmd);
 
-    let mut row_hashes: Vec<(u32, u64)> = Vec::new(); 
+    let mut row_hashes: Vec<(u32, u64)> = Vec::new();
 
     for id in &row_ids {
         let sql = cmd.replace(":rid", &id.to_string());
 
         let mut stmt = conn.prepare(&sql).unwrap();
         let mut rows = stmt.query([]).unwrap();
-    
+
         // for a single row
         while let Some(row) = rows.next().unwrap() {
             let mut row_values: Vec<String> = Vec::new();
@@ -107,9 +107,27 @@ pub fn update_data_into_partial_db(
         }
     }
 
-    // now that we have the row hashes, we should save them back to the table 
+    // now that we have the row hashes, we should save them back to the table
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let mut cmd = String::from("UPDATE :table_name SET HASH = :hash WHERE ROW_ID = :rid");
+    cmd = cmd.replace(":table_name", &metadata_table_name);
 
-    unimplemented!();
+    for row in &row_hashes {
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {":hash": row.1, ":rid" : row.0})
+            .unwrap();
+    }
+
+    let row_data = row_hashes.first().unwrap();
+
+    let result = UpdatePartialDataResult {
+        is_successful: true,
+        row_id: row_data.0,
+        data_hash: row_data.1,
+    };
+
+    return result;
 }
 
 pub fn insert_data_into_partial_db(
