@@ -318,7 +318,9 @@ impl SqlClient for SqlClientImpl {
                 let db_participant_reference = db_participant.clone();
 
                 match dml_type {
-                    DmlType::Unknown => todo!(),
+                    DmlType::Unknown => {
+                        panic!();
+                    }
                     DmlType::Insert => {
                         let remote_insert_result = remote_db_srv::insert_row_at_participant(
                             db_participant,
@@ -351,7 +353,22 @@ impl SqlClient for SqlClientImpl {
                             }
                         }
                     }
-                    DmlType::Update => todo!(),
+                    DmlType::Update => {
+                        let remote_update_result = remote_db_srv::update_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                        )
+                        .await;
+
+                        if remote_update_result.is_successful {
+                            todo!();
+                        }
+
+                        unimplemented!();
+                    },
                     DmlType::Delete => todo!(),
                     DmlType::Select => panic!(),
                 }
