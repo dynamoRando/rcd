@@ -8,6 +8,7 @@ use crate::dbi::{DbiConfigSqlite, InsertPartialDataResult, UpdatePartialDataResu
 use crate::rcd_enum::{ColumnType, DatabaseType};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
+use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
 
 pub fn get_row_from_partial_database(
@@ -33,6 +34,8 @@ pub fn update_data_into_partial_db(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
+    let original_cmd = cmd.clone();
+
     let mut cmd;
     cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
         .replace(":table_name", table_name);
@@ -62,7 +65,10 @@ pub fn update_data_into_partial_db(
         row_ids.push(id.unwrap());
     }
 
-    let total_rows = execute_write(&conn, &cmd);
+    // println!("{:?}", row_ids);
+
+    let total_rows = execute_write(&conn, &original_cmd);
+
     if total_rows != row_ids.len() {
         panic!("the update statement did not match the expected count of affected rows");
     }
@@ -77,18 +83,22 @@ pub fn update_data_into_partial_db(
     let mut col_name_list = String::from("");
 
     for name in &col_names {
-        col_name_list = col_name_list + name + " ,";
+        col_name_list = col_name_list + name + ",";
     }
 
-    col_name_list.remove(col_name_list.len());
-    cmd = cmd.replace(":col_names", &col_name_list);
+    let completed_col_name_list = &col_name_list[0..&col_name_list.len() - 1];
+    // println!("{}", completed_col_name_list);
 
-    println!("{:?}", cmd);
+    cmd = cmd.replace(":col_names", &completed_col_name_list);
+
+    // println!("{:?}", cmd);
 
     let mut row_hashes: Vec<(u32, u64)> = Vec::new();
 
     for id in &row_ids {
         let sql = cmd.replace(":rid", &id.to_string());
+
+        // println!("{:?}", sql);
 
         let mut stmt = conn.prepare(&sql).unwrap();
         let mut rows = stmt.query([]).unwrap();
@@ -97,8 +107,17 @@ pub fn update_data_into_partial_db(
         while let Some(row) = rows.next().unwrap() {
             let mut row_values: Vec<String> = Vec::new();
             for i in 0..col_names.len() {
-                let value: String = row.get(i).unwrap();
-                row_values.push(value);
+                let dt = row.get_ref_unwrap(i).data_type();
+
+                let string_value: String = match dt {
+                    Type::Blob => String::from(""),
+                    Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                    Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                    Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                    _ => String::from(""),
+                };
+
+                row_values.push(string_value);
             }
 
             let hash_value = crypt::calculate_hash_for_struct(&row_values);
@@ -115,7 +134,7 @@ pub fn update_data_into_partial_db(
     for row in &row_hashes {
         let mut statement = conn.prepare(&cmd).unwrap();
         statement
-            .execute(named_params! {":hash": row.1, ":rid" : row.0})
+            .execute(named_params! {":hash": row.1.to_ne_bytes(), ":rid" : row.0})
             .unwrap();
     }
 

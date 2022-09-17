@@ -817,7 +817,7 @@ pub mod insert_read_remote_row {
                 db_name,
                 "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
                 "participant",
-                ""
+                "",
             )
             .await
             .unwrap();
@@ -906,7 +906,6 @@ pub mod insert_read_update_remote_row {
     use std::sync::mpsc;
     use std::{thread, time};
 
-    #[ignore = "functionality not written yet"]
     #[test]
     fn test() {
         let test_name = "add_read_update_remote";
@@ -1077,7 +1076,7 @@ pub mod insert_read_update_remote_row {
                 db_name,
                 "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
                 "participant",
-                ""
+                "",
             )
             .await
             .unwrap();
@@ -1108,6 +1107,45 @@ pub mod insert_read_update_remote_row {
         let expected_value = "999".as_bytes().to_vec();
 
         println!("{:?}", expected_value);
+
+        assert_eq!(value, expected_value);
+
+        let update_result = client
+            .execute_cooperative_write(
+                db_name,
+                "UPDATE EMPLOYEE SET NAME = 'Bob' WHERE Id = 999;",
+                "participant",
+                "Id = 999",
+            )
+            .await
+            .unwrap();
+
+        assert!(update_result);
+
+        let data = client
+            .execute_read(
+                db_name,
+                "SELECT Name FROM EMPLOYEE",
+                DatabaseType::to_u32(DatabaseType::Sqlite),
+            )
+            .await
+            .unwrap();
+
+        println!("{:?}", data);
+
+        let value = data
+            .rows
+            .first()
+            .unwrap()
+            .values
+            .first()
+            .unwrap()
+            .value
+            .clone();
+
+        println!("{:?}", value);
+
+        let expected_value = "Bob".as_bytes().to_vec();
 
         return value == expected_value;
     }
@@ -1337,7 +1375,7 @@ pub mod insert_read_delete_remote_row {
                 db_name,
                 "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
                 "participant",
-                ""
+                "",
             )
             .await
             .unwrap();

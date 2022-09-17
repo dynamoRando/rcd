@@ -696,14 +696,19 @@ fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
 pub fn get_col_names_of_table(table_name: String, conn: &Connection) -> Vec<String> {
     let mut result: Vec<String> = Vec::new();
 
-    let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
+    let mut cmd = String::from("select NAME from pragma_table_info(\":table_name\") as tblInfo;");
     cmd = cmd.replace(":table_name", &table_name);
 
-    let statement = conn.prepare(&cmd).unwrap();
-    let cols = statement.columns();
+    let row_to_string = |column_name: String| -> Result<String> { Ok(column_name) };
 
-    for col in cols {
-        result.push(col.name().to_string())
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let names = statement
+        .query_and_then([], |row| row_to_string(row.get(0).unwrap()))
+        .unwrap();
+
+    for name in names {
+        result.push(name.unwrap());
     }
 
     return result;
