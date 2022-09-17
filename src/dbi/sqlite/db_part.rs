@@ -31,8 +31,17 @@ pub fn update_data_into_partial_db(
     cmd: &str,
     where_clause: &str,
     config: &DbiConfigSqlite,
-) -> UpdatePartialDataResult { 
-    unimplemented!()
+) -> UpdatePartialDataResult {
+    // we need to determine the row_ids that we're going to update because we're going to need to update
+    // the data hashes for them
+
+    let cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
+        .replace(":table_name", table_name)
+        .replace(":where_clause", where_clause);
+
+    // once we have the row ids, then we will need to get the hash of the rows after they've been updated.
+
+    unimplemented!();
 }
 
 pub fn insert_data_into_partial_db(
