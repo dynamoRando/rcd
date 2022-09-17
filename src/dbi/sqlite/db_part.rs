@@ -61,6 +61,14 @@ pub fn update_data_into_partial_db(
         row_ids.push(id.unwrap());
     }
 
+    let total_rows = execute_write(&conn, &cmd);
+    if total_rows != row_ids.len() {
+        panic!("the update statement did not match the expected count of affected rows");
+    }
+
+    // now we need to update the data hashes for every row that was changed
+    // ... how do we do that?
+
     unimplemented!();
 }
 
