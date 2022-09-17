@@ -318,10 +318,14 @@ pub struct CreateTableResult {
     pub table_id: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct RowHashInfo {
-    #[prost(uint32, tag="1")]
+pub struct RowInfo {
+    #[prost(string, tag="1")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(uint32, tag="3")]
     pub rowid: u32,
-    #[prost(uint64, tag="2")]
+    #[prost(uint64, tag="4")]
     pub data_hash: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -368,49 +372,7 @@ pub struct UpdateDataResult {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="4")]
-    pub rows: ::prost::alloc::vec::Vec<RowHashInfo>,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetRowsFromTableRequest {
-    #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthRequest>,
-    #[prost(string, tag="2")]
-    pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="3")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub table_name: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
-    pub table_id: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub column_names: ::prost::alloc::string::String,
-    /// WHERE columnName = value
-    #[prost(message, repeated, tag="7")]
-    pub rows_with_value: ::prost::alloc::vec::Vec<RowValue>,
-    /// AND, OR, EQUAL, GREATER THAN, LESS THAN, ETC.
-    #[prost(string, tag="8")]
-    pub operation: ::prost::alloc::string::String,
-}
-#[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetRowsFromTableResult {
-    #[prost(message, optional, tag="1")]
-    pub authentication_result: ::core::option::Option<AuthResult>,
-    #[prost(bool, tag="2")]
-    pub is_successful: bool,
-    #[prost(string, tag="3")]
-    pub database_name: ::prost::alloc::string::String,
-    #[prost(string, tag="4")]
-    pub database_id: ::prost::alloc::string::String,
-    #[prost(string, tag="5")]
-    pub table_name: ::prost::alloc::string::String,
-    #[prost(string, tag="6")]
-    pub table_id: ::prost::alloc::string::String,
-    #[prost(uint32, tag="7")]
-    pub number_of_rows_affected: u32,
-    #[prost(string, tag="8")]
-    pub result_message: ::prost::alloc::string::String,
-    #[prost(message, repeated, tag="9")]
-    pub rows: ::prost::alloc::vec::Vec<Row>,
+    pub rows: ::prost::alloc::vec::Vec<RowInfo>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRowFromPartialDatabaseRequest {
@@ -435,7 +397,6 @@ pub struct GetRowFromPartialDatabaseResult {
 /// a message from a host to a participant to save a contract
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractRequest {
-    /// AuthRequest authentication = 1;
     #[prost(message, optional, tag="1")]
     pub contract: ::core::option::Option<Contract>,
     #[prost(message, optional, tag="2")]
@@ -443,7 +404,6 @@ pub struct SaveContractRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractResult {
-    /// AuthResult authenticationResult = 1;
     #[prost(bool, tag="1")]
     pub is_saved: bool,
     #[prost(string, tag="2")]
@@ -658,6 +618,9 @@ pub struct RowValue {
     #[prost(string, tag="4")]
     pub string_value: ::prost::alloc::string::String,
 }
+/// describes the data status of the host in relation to the participant
+/// if for example the data hash between the host and the participant do not match
+/// or if the row was deleted at the participant, but the reference at the host is not
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowRemoteMetadata {
     #[prost(bool, tag="1")]
@@ -1342,25 +1305,6 @@ pub mod data_service_client {
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
                 "/cdata.DataService/UpdateCommandIntoTable",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
-        pub async fn get_rows_from_table(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetRowsFromTableRequest>,
-        ) -> Result<tonic::Response<super::GetRowsFromTableResult>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/cdata.DataService/GetRowsFromTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2341,10 +2285,6 @@ pub mod data_service_server {
             &self,
             request: tonic::Request<super::UpdateDataRequest>,
         ) -> Result<tonic::Response<super::UpdateDataResult>, tonic::Status>;
-        async fn get_rows_from_table(
-            &self,
-            request: tonic::Request<super::GetRowsFromTableRequest>,
-        ) -> Result<tonic::Response<super::GetRowsFromTableResult>, tonic::Status>;
         async fn get_row_from_partial_database(
             &self,
             request: tonic::Request<super::GetRowFromPartialDatabaseRequest>,
@@ -2630,46 +2570,6 @@ pub mod data_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = UpdateCommandIntoTableSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/cdata.DataService/GetRowsFromTable" => {
-                    #[allow(non_camel_case_types)]
-                    struct GetRowsFromTableSvc<T: DataService>(pub Arc<T>);
-                    impl<
-                        T: DataService,
-                    > tonic::server::UnaryService<super::GetRowsFromTableRequest>
-                    for GetRowsFromTableSvc<T> {
-                        type Response = super::GetRowsFromTableResult;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::GetRowsFromTableRequest>,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).get_rows_from_table(request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = GetRowsFromTableSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

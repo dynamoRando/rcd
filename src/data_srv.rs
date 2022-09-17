@@ -168,13 +168,6 @@ impl DataService for DataServiceImpl {
         unimplemented!("not implemented");
     }
 
-    async fn get_rows_from_table(
-        &self,
-        _request: Request<GetRowsFromTableRequest>,
-    ) -> Result<Response<GetRowsFromTableResult>, Status> {
-        unimplemented!("not implemented");
-    }
-
     async fn get_row_from_partial_database(
         &self,
         request: Request<GetRowFromPartialDatabaseRequest>,
