@@ -1,7 +1,8 @@
 # 2022-09-17
 Hopefully soon planned changes:
-- Implement UPDATE from host to participant
-- Implement DELETE from host to participant
+- [X] Implement UPDATE from host to participant
+- [X] Implement DELETE from host to participant (this is a hard delete)
+- Implement 'soft' DELETE from host to participant
 - Write logs to a rcd_log.db 
 - Modify INSERT/UPDATE/DELETE from host to participant so that at the participant we check if 
     - the host has been banned
