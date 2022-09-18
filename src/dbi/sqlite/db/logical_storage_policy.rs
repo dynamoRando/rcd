@@ -90,14 +90,13 @@ pub fn set_logical_storage_policy(
 /// Returns the logical storage policy for the specified table. If the table does not exist in the database, it will
 /// return an error. If the table exist but does not have a logical storage policy defined for it, it will default
 /// to `LogicalStoragePolicy::None`
-#[allow(unused_assignments)]
 pub fn get_logical_storage_policy(
     db_name: &str,
     table_name: &str,
     config: &DbiConfigSqlite,
 ) -> Result<LogicalStoragePolicy, RcdDbError> {
     let conn = get_db_conn(&config, db_name);
-    let mut policy = LogicalStoragePolicy::None;
+    let policy;
 
     if has_table(table_name.to_string(), &conn) {
         // insert or update on the coop tables

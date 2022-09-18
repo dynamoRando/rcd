@@ -113,7 +113,6 @@ pub fn if_host_info_exists(config: DbiConfigSqlite) -> bool {
     return has_any_rows(cmd, &get_rcd_conn(&config));
 }
 
-#[allow(dead_code)]
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     let mut has_login = false;
     let cmd =
