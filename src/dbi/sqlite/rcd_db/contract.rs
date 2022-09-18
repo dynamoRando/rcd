@@ -1,7 +1,4 @@
-use super::{
-    get_rcd_conn, has_contract, save_contract_host_data, save_contract_metadata,
-    save_contract_table_schema_data,
-};
+use super::{get_rcd_conn, has_contract};
 use crate::{
     cdata::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema},
     dbi::{
@@ -13,7 +10,8 @@ use crate::{
     },
     rcd_enum::ContractStatus,
 };
-use rusqlite::{named_params, Result, Connection};
+use chrono::Utc;
+use rusqlite::{named_params, Connection, Result};
 
 #[allow(dead_code, unused_variables, unused_mut)]
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
@@ -419,7 +417,6 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
     return false;
 }
 
-
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
     // println!("save_contract_table_data: connection: {:?}", conn);
@@ -462,4 +459,147 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
             })
             .unwrap();
     }
+}
+
+/// saves top level contract data to rcd_db's CDS_CONTRACTS table
+fn save_contract_metadata(contract: &Contract, conn: &Connection) {
+    let host = contract.host_info.as_ref().clone().unwrap().clone();
+    let db = contract.schema.as_ref().clone().unwrap().clone();
+
+    let cmd = String::from(
+        "INSERT INTO CDS_CONTRACTS
+    (
+        HOST_ID,
+        CONTRACT_ID,
+        CONTRACT_VERSION_ID,
+        DATABASE_NAME,
+        DATABASE_ID,
+        DESCRIPTION,
+        GENERATED_DATE_UTC,
+        CONTRACT_STATUS
+    )
+    VALUES
+    (
+        :hid,
+        :cid,
+        :cvid,
+        :dbname,
+        :dbid,
+        :desc,
+        :gdutc,
+        :status
+    )
+    ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! {
+            ":hid": host.host_guid.to_string(),
+            ":cid" : contract.contract_guid,
+            ":cvid" : contract.contract_version,
+            ":dbname" : db.database_name,
+            ":dbid" : db.database_id,
+            ":desc" : contract.description,
+            ":gdutc" : Utc::now().to_string(),
+            ":status" : contract.status.to_string()
+        })
+        .unwrap();
+}
+
+/// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
+#[allow(dead_code, unused_variables)]
+fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
+    let tables = contract.schema.as_ref().unwrap().tables.clone();
+
+    for table in &tables {
+        let cmd = String::from(
+            "INSERT INTO CDS_CONTRACTS_TABLE_SCHEMAS
+        (
+            TABLE_ID,
+            COLUMN_ID,
+            COLUMN_NAME,
+            COLUMN_TYPE,
+            COLUMN_LENGTH,
+            COLUMN_ORDINAL,
+            IS_NULLABLE
+        )
+        VALUES
+        (
+            :tid,
+            :cid,
+            :cname,
+            :ctype,
+            :clength,
+            :cordinal,
+            :is_nullable
+        )
+        ;",
+        );
+
+        let tid = table.table_id.clone();
+        for column in &table.columns {
+            let cid = column.column_id.clone();
+            let cname = column.column_name.clone();
+            let ctype = column.column_type;
+            let clength = column.column_length;
+            let cordinal = column.ordinal;
+            let is_nullable = if column.is_nullable { 1 } else { 0 };
+
+            let mut statement = conn.prepare(&cmd).unwrap();
+            statement
+                .execute(named_params! {
+                    ":tid": tid,
+                    ":cid" : cid,
+                    ":cname" : cname,
+                    ":ctype" : ctype,
+                    ":clength" : clength,
+                    ":cordinal" : cordinal,
+                    ":is_nullable" : is_nullable,
+                })
+                .unwrap();
+        }
+    }
+}
+
+// save a contract's host information to CDS_HOSTS
+fn save_contract_host_data(contract: &Contract, conn: &Connection) {
+    let cmd = String::from(
+        "INSERT INTO CDS_HOSTS
+    (
+        HOST_ID,
+        HOST_NAME,
+        TOKEN,
+        IP4ADDRESS,
+        IP6ADDRESS,
+        PORT,
+        LAST_COMMUNICATION_UTC
+    )
+    VALUES
+    (
+        :hid,
+        :hname,
+        :token,
+        :ip4,
+        :ip6,
+        :port,
+        :last_comm
+    )
+    ;",
+    );
+
+    let host = contract.host_info.as_ref().unwrap().clone();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! {
+            ":hid": &host.host_guid,
+            ":hname" : &host.host_name,
+            ":token" : &host.token,
+            ":ip4" : &host.ip4_address,
+            ":ip6" : &host.ip6_address,
+            ":port" : &host.database_port_number,
+            ":last_comm" : Utc::now().to_string()
+        })
+        .unwrap();
 }
