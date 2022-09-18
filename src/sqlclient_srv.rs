@@ -1,18 +1,18 @@
 use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
-use crate::cdata::AuthResult;
 use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
-use crate::host_info::HostInfo;
-use crate::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
-use crate::{cdata::*, remote_db_srv};
+use crate::{cdata::*, };
 use chrono::Utc;
 use rusqlite::{Connection, Result};
 use std::path::Path;
 use tonic::{transport::Server, Request, Response, Status};
 
+mod contract;
+mod db;
 mod io;
 mod logical_storage_policy;
+mod participant;
 
 #[derive(Default)]
 /// Implements the `SQLClient` definition from the protobuff file
@@ -62,33 +62,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GenerateHostInfoRequest>,
     ) -> Result<Response<GenerateHostInfoReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        let mut is_generate_successful = false;
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let host_name = message.host_name.clone();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-
-        if is_authenticated {
-            self.dbi().rcd_generate_host_info(&host_name);
-            is_generate_successful = true;
-        }
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let generate_host_info_result = GenerateHostInfoReply {
-            authentication_result: Some(auth_response),
-            is_successful: is_generate_successful,
-        };
-
+        let generate_host_info_result = db::generate_host_info(request.into_inner(), self).await;
         Ok(Response::new(generate_host_info_result))
     }
 
@@ -97,36 +71,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<CreateUserDatabaseRequest>,
     ) -> Result<Response<CreateUserDatabaseReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        let mut is_database_created = false;
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-
-        if is_authenticated {
-            let result = self.dbi().create_database(&db_name);
-            if !result.is_err() {
-                is_database_created = true;
-            }
-        }
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let create_db_result = CreateUserDatabaseReply {
-            authentication_result: Some(auth_response),
-            is_created: is_database_created,
-            message: String::from(""),
-        };
-
+        let create_db_result = db::create_user_database(request.into_inner(), self).await;
         Ok(Response::new(create_db_result))
     }
 
@@ -135,31 +80,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<EnableCoooperativeFeaturesRequest>,
     ) -> Result<Response<EnableCoooperativeFeaturesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-
-        if is_authenticated {
-            self.dbi().enable_coooperative_features(&db_name);
-        }
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let enable_cooperative_features_reply = EnableCoooperativeFeaturesReply {
-            authentication_result: Some(auth_response),
-            is_successful: true,
-            message: String::from(""),
-        };
-
+        let enable_cooperative_features_reply =
+            db::enable_coooperative_features(request.into_inner(), self).await;
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
@@ -196,33 +118,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<HasTableRequest>,
     ) -> Result<Response<HasTableReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        let mut has_table = false;
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-        let table_name = message.table_name;
-
-        if is_authenticated {
-            has_table = self.dbi().has_table(&db_name, table_name.as_str())
-        }
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let has_table_reply = HasTableReply {
-            authentication_result: Some(auth_response),
-            has_table: has_table,
-        };
-
+        let has_table_reply = db::has_table(request.into_inner(), self).await;
         Ok(Response::new(has_table_reply))
     }
 
@@ -231,7 +127,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<SetLogicalStoragePolicyRequest>,
     ) -> Result<Response<SetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let set_policy_reply = logical_storage_policy::set_logical_storage_policy(request.into_inner(), self).await;
+        let set_policy_reply =
+            logical_storage_policy::set_logical_storage_policy(request.into_inner(), self).await;
         Ok(Response::new(set_policy_reply))
     }
 
@@ -240,37 +137,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetLogicalStoragePolicyRequest>,
     ) -> Result<Response<GetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let mut policy = LogicalStoragePolicy::None;
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-        let table_name = message.table_name;
-
-        if is_authenticated {
-            let i_policy = self
-                .dbi()
-                .get_logical_storage_policy(&db_name, &table_name)
-                .unwrap();
-
-            policy = LogicalStoragePolicy::from_i64(i_policy as i64);
-        }
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let get_policy_reply = GetLogicalStoragePolicyReply {
-            authentication_result: Some(auth_response),
-            policy_mode: LogicalStoragePolicy::to_u32(policy),
-        };
-
+        let get_policy_reply =
+            logical_storage_policy::get_logical_storage_policy(request.into_inner(), self).await;
         Ok(Response::new(get_policy_reply))
     }
 
@@ -279,51 +147,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GenerateContractRequest>,
     ) -> Result<Response<GenerateContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let mut is_successful = false;
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-        let desc = message.description;
-        let i_remote_delete_behavior = message.remote_delete_behavior;
-        let host_name = message.host_name;
-
-        let mut reply_message = String::from("");
-
-        if is_authenticated {
-            let result = self.dbi().generate_contract(
-                &db_name,
-                &host_name,
-                &desc,
-                RemoteDeleteBehavior::from_u32(i_remote_delete_behavior),
-            );
-
-            match result {
-                Ok(r) => is_successful = r,
-                Err(e) => {
-                    is_successful = false;
-                    if let RcdGenerateContractError::NotAllTablesSet(msg) = e {
-                        reply_message = msg;
-                    }
-                }
-            }
-        };
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let generate_contract_reply = GenerateContractReply {
-            authentication_result: Some(auth_response),
-            is_successful: is_successful,
-            message: reply_message,
-        };
-
+        let generate_contract_reply = db::generate_contract(request.into_inner(), self).await;
         Ok(Response::new(generate_contract_reply))
     }
 
@@ -332,39 +156,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-        let alias = message.alias;
-        let ip4addr = message.ip4_address;
-        let db_port: u32 = message.port;
-
-        let reply_message = String::from("");
-        let mut is_successful = false;
-
-        if is_authenticated {
-            is_successful = self
-                .dbi()
-                .add_participant(&db_name, &alias, &ip4addr, db_port);
-        };
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let add_participant_reply = AddParticipantReply {
-            authentication_result: Some(auth_response),
-            is_successful: is_successful,
-            message: reply_message,
-        };
-
+        let add_participant_reply = participant::add_participant(request.into_inner(), self).await;
         Ok(Response::new(add_participant_reply))
     }
 
@@ -373,49 +165,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<SendParticipantContractRequest>,
     ) -> Result<Response<SendParticipantContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let db_name = message.database_name;
-        let participant_alias = message.participant_alias;
-
-        let reply_message = String::from("");
-        let mut is_successful = false;
-
-        if is_authenticated {
-            if self.dbi().has_participant(&db_name, &participant_alias) {
-                let participant = self
-                    .dbi()
-                    .get_participant_by_alias(&db_name, &participant_alias);
-                let active_contract = self.dbi().get_active_contract(&db_name);
-                let db_schema = self.dbi().get_database_schema(&db_name);
-                let host_info = HostInfo::get(&self.dbi());
-                is_successful = remote_db_srv::send_participant_contract(
-                    participant,
-                    host_info,
-                    active_contract,
-                    self.own_db_addr_port.clone(),
-                    db_schema,
-                )
-                .await;
-            }
-        };
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let send_participant_contract_reply = SendParticipantContractReply {
-            authentication_result: Some(auth_response),
-            is_sent: is_successful,
-            message: reply_message,
-        };
-
+        let send_participant_contract_reply =
+            participant::send_participant_contract(request.into_inner(), self).await;
         Ok(Response::new(send_participant_contract_reply))
     }
 
@@ -424,30 +175,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<ViewPendingContractsRequest>,
     ) -> Result<Response<ViewPendingContractsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-
-        let mut pending_contracts: Vec<Contract> = Vec::new();
-
-        if is_authenticated {
-            pending_contracts = self.dbi().get_pending_contracts();
-        };
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let review_pending_contracts_reply = ViewPendingContractsReply {
-            authentication_result: Some(auth_response),
-            contracts: pending_contracts,
-        };
-
+        let review_pending_contracts_reply =
+            contract::review_pending_contracts(request.into_inner(), self).await;
         Ok(Response::new(review_pending_contracts_reply))
     }
 
@@ -456,74 +185,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AcceptPendingContractRequest>,
     ) -> Result<Response<AcceptPendingContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // check if the user is authenticated
-        let message = request.into_inner();
-        let a = message.authentication.unwrap();
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-        let mut is_accepted = false;
-        let mut return_message = String::from("");
-
-        if is_authenticated {
-            // 1 - we need to update the rcd_db record that we are accepting this contract
-            // 2 - then we actually need to create the database with the properties of the
-            // contract
-            // 3 - we need to notify the host that we have accepted the contract
-
-            let contracts = self.dbi().get_pending_contracts();
-            let pending_contract = contracts
-                .iter()
-                .enumerate()
-                .filter(|&(_, c)| {
-                    c.host_info.as_ref().unwrap().host_name.to_string() == message.host_alias
-                })
-                .map(|(_, c)| c);
-
-            let param_contract = pending_contract.last().unwrap().clone();
-
-            // 1 - accept the contract
-            let is_contract_updated = self.dbi().accept_pending_contract(&message.host_alias);
-
-            // 2 - create the database with the properties of the contract
-            // make the database
-            let db_is_created = self
-                .dbi()
-                .create_partial_database_from_contract(&param_contract);
-
-            let self_host_info = self.dbi().rcd_get_host_info();
-            // 3 - notify the host that we've accepted the contract
-            let is_host_notified = remote_db_srv::notify_host_of_acceptance_of_contract(
-                &param_contract,
-                &self_host_info,
-                self.own_db_addr_port.clone(),
-            )
-            .await;
-
-            if is_contract_updated && db_is_created && is_host_notified {
-                is_accepted = true;
-                return_message = String::from("accepted contract successfuly");
-            } else if !is_contract_updated {
-                return_message = String::from("failed to update contract in rcd db");
-            } else if !db_is_created {
-                return_message = String::from("failed to to create partial db from contract");
-            } else if !is_host_notified {
-                return_message = String::from("failed to notify host of acceptance of contract");
-            }
-        };
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let accepted_reply = AcceptPendingContractReply {
-            authentication_result: Some(auth_response),
-            is_successful: is_accepted,
-            message: return_message,
-        };
-
+        let accepted_reply = contract::accept_pending_contract(request.into_inner(), self).await;
         Ok(Response::new(accepted_reply))
     }
 
