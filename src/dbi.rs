@@ -314,7 +314,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::accept_pending_contract(host_name, &settings);
+                return sqlite::rcd_db::contract::accept_pending_contract(host_name, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -327,7 +327,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::get_pending_contracts(&settings);
+                return sqlite::rcd_db::contract::get_pending_contracts(&settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -340,7 +340,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::save_contract(contract, &settings);
+                return sqlite::rcd_db::contract::save_contract(contract, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
