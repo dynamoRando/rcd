@@ -13,7 +13,6 @@ use crate::{
 use chrono::Utc;
 use rusqlite::{named_params, Connection, Result};
 
-#[allow(dead_code, unused_variables, unused_mut)]
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
 
@@ -508,7 +507,6 @@ fn save_contract_metadata(contract: &Contract, conn: &Connection) {
 }
 
 /// save's a contract's table schema information to CDS_CONTRACTS_TABLE_SCHEMAS
-#[allow(dead_code, unused_variables)]
 fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
     let tables = contract.schema.as_ref().unwrap().tables.clone();
 

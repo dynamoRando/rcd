@@ -5,7 +5,9 @@ use crate::{
         ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
     },
     host_info::HostInfo,
-    query_parser, remote_db_srv, rcd_enum::DmlType,
+    query_parser,
+    rcd_enum::DmlType,
+    remote_db_srv,
 };
 use conv::UnwrapOk;
 use conv::ValueFrom;
@@ -95,23 +97,22 @@ pub async fn execute_read(request: ExecuteReadRequest, client: &SqlClientImpl) -
     return execute_read_reply;
 }
 
-#[allow(unused_variables)]
 pub async fn execute_write(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
 ) -> ExecuteWriteReply {
-    let rows_affected: u32 = 0;
+    let mut rows_affected: u32 = 0;
 
     // check if the user is authenticated
     let message = request.clone();
     let a = message.authentication.unwrap();
-    let conn = client.get_rcd_db();
+
     let is_authenticated = client.verify_login(&a.user_name, &a.pw);
     let db_name = message.database_name;
     let statement = message.sql_statement;
 
     if is_authenticated {
-        let rows_affected = client.dbi().execute_write(&db_name, &statement);
+        rows_affected = client.dbi().execute_write(&db_name, &statement) as u32;
     }
 
     let auth_response = AuthResult {

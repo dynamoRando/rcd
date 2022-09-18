@@ -4,8 +4,7 @@ use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
 use crate::{cdata::*, };
 use chrono::Utc;
-use rusqlite::{Connection, Result};
-use std::path::Path;
+use rusqlite::{Result};
 use tonic::{transport::Server, Request, Response, Status};
 
 mod contract;
@@ -25,11 +24,6 @@ pub struct SqlClientImpl {
 }
 
 impl SqlClientImpl {
-    fn get_rcd_db(self: &Self) -> Connection {
-        let db_path = Path::new(&self.root_folder).join(&self.database_name);
-        return Connection::open(&db_path).unwrap();
-    }
-
     fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
         let dbi = self.db_interface.as_ref().unwrap().clone();
         return crate::rcd_db::verify_login(&login, &pw, &dbi);

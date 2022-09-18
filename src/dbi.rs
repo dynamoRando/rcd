@@ -640,7 +640,6 @@ impl Dbi {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     pub fn has_cooperative_tables(self: &Self, db_name: &str, cmd: &str) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
