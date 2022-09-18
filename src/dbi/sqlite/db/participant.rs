@@ -1,0 +1,403 @@
+use guid_create::GUID;
+use rusqlite::{named_params, Connection, Result};
+
+use crate::{
+    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    dbi::{
+        sqlite::{get_db_conn, has_any_rows},
+        DbiConfigSqlite,
+    },
+    defaults,
+    rcd_enum::ContractStatus,
+};
+
+/// Creates the COOP_PARTICIPANT table if it does not exist. This holds
+/// the participant information that are cooperating with this database.
+pub fn create_participant_table(conn: &Connection) {
+    let cmd = String::from(
+        "CREATE TABLE IF NOT EXISTS COOP_PARTICIPANT
+    (
+        INTERNAL_PARTICIPANT_ID CHAR(36) NOT NULL,
+        ALIAS VARCHAR(50) NOT NULL,
+        IP4ADDRESS VARCHAR(25),
+        IP6ADDRESS VARCHAR(25),
+        PORT INT,
+        CONTRACT_STATUS INT,
+        ACCEPTED_CONTRACT_VERSION_ID CHAR(36),
+        TOKEN BLOB NOT NULL,
+        PARTICIPANT_ID CHAR(36)
+    );",
+    );
+
+    conn.execute(&cmd, []).unwrap();
+}
+
+pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) {
+    if has_participant_at_conn(&participant.alias, &conn) {
+        // this is an update
+        let cmd = String::from(
+            "
+        UPDATE COOP_PARTICIPANT
+        SET
+            IP4ADDRESS = ':ip4addr',
+            IP6ADDRESS = ':ip6addr',
+            PORT = ':db_port',
+            CONTRACT_STATUS = ':contract_status',
+            ACCEPTED_CONTRACT_VERSION_ID = ':accepted_contract_version',
+            TOKEN = ':token',
+            PARTICIPANT_ID = ':id'
+        WHERE
+            ALIAS = ':alias'
+        ;
+        ",
+        );
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                    ":ip4addr": participant.ip4addr,
+                    ":ip6addr": participant.ip6addr,
+                    ":db_port": participant.db_port.to_string(),
+                    ":contract_status": &ContractStatus::to_u32(participant.contract_status),
+                    ":accepted_contract_version": &participant.accepted_contract_version.to_string(),
+                    ":token": &participant.token,
+                    ":id": &participant.id.to_string(),
+                    ":alias": &participant.alias,
+            })
+            .unwrap();
+    } else {
+        // this is an insert
+
+        // println!("{:?}", &self);
+
+        let cmd = String::from(
+            "
+        INSERT INTO COOP_PARTICIPANT
+        (
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        )
+        VALUES
+        (
+            :internal_id,
+            :alias,
+            :ip4addr,
+            :ip6addr,
+            :db_port,
+            :contract_status,
+            :accepted_contract_version,
+            :token,
+            :id
+        );
+        ",
+        );
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                    ":internal_id": &participant.internal_id.to_string(),
+                    ":alias": &participant.alias,
+                    ":ip4addr": &participant.ip4addr,
+                    ":ip6addr": &participant.ip6addr,
+                    ":db_port": &participant.db_port.to_string(),
+                    ":contract_status": &ContractStatus::to_u32(participant.contract_status),
+                    ":accepted_contract_version": &participant.accepted_contract_version.to_string(),
+                    ":token": &participant.token,
+                    ":id": &participant.id.to_string()
+            })
+            .unwrap();
+    }
+}
+
+pub fn add_participant(
+    db_name: &str,
+    alias: &str,
+    ip4addr: &str,
+    db_port: u32,
+    config: DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(&config, db_name);
+    let is_added: bool;
+
+    if has_participant(db_name, alias, config) {
+        is_added = false;
+    } else {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::rand(),
+            alias: alias.to_string(),
+            ip4addr: ip4addr.to_string(),
+            ip6addr: String::from(""),
+            db_port: db_port,
+            contract_status: ContractStatus::NotSent,
+            accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            token: Vec::new(),
+        };
+        save_participant(participant, conn);
+        is_added = true;
+    }
+
+    return is_added;
+}
+
+pub fn get_participant_by_internal_id(
+    db_name: &str,
+    internal_id: &str,
+    config: &DbiConfigSqlite,
+) -> CoopDatabaseParticipant {
+    let conn = get_db_conn(&config, db_name);
+    let cmd = String::from(
+        "
+        SELECT 
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        FROM
+            COOP_PARTICIPANT
+        WHERE
+            INTERNAL_PARTICIPANT_ID = :pid
+        ;
+        ",
+    );
+    // cmd = cmd.replace(":alias", &alias);
+
+    let row_to_participant = |internal_id: String,
+                              alias: String,
+                              ip4addr: String,
+                              ip6addr: String,
+                              port: u32,
+                              contract_status: u32,
+                              accepted_contract_version_id: String,
+                              token: Vec<u8>,
+                              id: String|
+     -> Result<CoopDatabaseParticipant> {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::parse(&internal_id).unwrap(),
+            alias: alias,
+            ip4addr: ip4addr,
+            ip6addr: ip6addr,
+            db_port: port,
+            contract_status: ContractStatus::from_i64(contract_status as i64),
+            accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+            token: token,
+            id: GUID::parse(&id).unwrap(),
+        };
+
+        Ok(participant)
+    };
+
+    let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let participants = statement
+        .query_and_then(&[(":pid", &internal_id)], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for participant in participants {
+        results.push(participant.unwrap());
+    }
+
+    return results.first().unwrap().clone();
+}
+
+pub fn get_participant_by_alias(
+    db_name: &str,
+    alias: &str,
+    config: DbiConfigSqlite,
+) -> CoopDatabaseParticipant {
+    let conn = get_db_conn(&config, db_name);
+    let cmd = String::from(
+        "
+        SELECT 
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID
+        FROM
+            COOP_PARTICIPANT
+        WHERE
+            ALIAS = :alias
+        ;
+        ",
+    );
+    // cmd = cmd.replace(":alias", &alias);
+
+    let row_to_participant = |internal_id: String,
+                              alias: String,
+                              ip4addr: String,
+                              ip6addr: String,
+                              port: u32,
+                              contract_status: u32,
+                              accepted_contract_version_id: String,
+                              token: Vec<u8>,
+                              id: String|
+     -> Result<CoopDatabaseParticipant> {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::parse(&internal_id).unwrap(),
+            alias: alias,
+            ip4addr: ip4addr,
+            ip6addr: ip6addr,
+            db_port: port,
+            contract_status: ContractStatus::from_i64(contract_status as i64),
+            accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+            token: token,
+            id: GUID::parse(&id).unwrap(),
+        };
+
+        Ok(participant)
+    };
+
+    let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let participants = statement
+        .query_and_then(&[(":alias", &alias)], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for participant in participants {
+        results.push(participant.unwrap());
+    }
+
+    return results.first().unwrap().clone();
+}
+
+pub fn get_participants_for_table(
+    db_name: &str,
+    table_name: &str,
+    config: DbiConfigSqlite,
+) -> Vec<CoopDatabaseParticipantData> {
+    // note - we will need another table to track the remote row id
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let conn = get_db_conn(&config, db_name);
+
+    let mut result: Vec<CoopDatabaseParticipantData> = Vec::new();
+
+    let mut cmd = String::from(
+        "
+        SELECT DISTINCT
+            INTERNAL_PARTICIPANT_ID
+        FROM
+            :table_name
+        ;",
+    );
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut participant_ids: Vec<String> = Vec::new();
+    let mut db_participants: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let row_to_id = |participant_id: String| -> Result<String> { Ok(participant_id) };
+
+    let participants = statement
+        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
+        .unwrap();
+
+    for p in participants {
+        participant_ids.push(p.unwrap());
+    }
+
+    for pid in &participant_ids {
+        let participant = get_participant_by_internal_id(db_name, pid, &config);
+        db_participants.push(participant);
+    }
+
+    let row_to_data = |row_id: u32, hash: Vec<u8>| -> Result<(u32, Vec<u8>)> { Ok((row_id, hash)) };
+
+    for p in &db_participants {
+        cmd = String::from(
+            "
+            SELECT
+                ROW_ID,
+                HASH
+            FROM
+                :table_name
+            WHERE
+                INTERNAL_PARTICIPANT_ID = ':pid'
+            ;",
+        );
+        cmd = cmd.replace(":table_name", &metadata_table_name);
+        cmd = cmd.replace(":pid", &p.internal_id.to_string());
+
+        statement = conn.prepare(&cmd).unwrap();
+
+        let row_data = statement
+            .query_and_then([], |row| {
+                row_to_data(row.get(0).unwrap(), row.get(1).unwrap())
+            })
+            .unwrap();
+
+        let mut row_data_results: Vec<(u32, Vec<u8>)> = Vec::new();
+
+        for data in row_data {
+            row_data_results.push(data.unwrap());
+        }
+
+        let participant_data = CoopDatabaseParticipantData {
+            participant: p.clone(),
+            db_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            row_data: row_data_results,
+        };
+
+        result.push(participant_data);
+    }
+
+    return result;
+}
+
+pub fn has_participant_at_conn(alias: &str, conn: &Connection) -> bool {
+    let mut cmd =
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
+    cmd = cmd.replace(":alias", alias);
+    return has_any_rows(cmd, &conn);
+}
+
+pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
+    let conn = &get_db_conn(&config, db_name);
+    let mut cmd =
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
+    cmd = cmd.replace(":alias", alias);
+    return has_any_rows(cmd, conn);
+}
