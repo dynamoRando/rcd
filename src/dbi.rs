@@ -114,6 +114,31 @@ impl Dbi {
         }
     }
 
+    pub fn delete_metadata_in_host_db(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+        internal_participant_id: &str,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::delete_metadata_in_host_db(
+                    db_name,
+                    table_name,
+                    row_id,
+                    internal_participant_id,
+                    settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn update_metadata_in_host_db(
         self: &Self,
         db_name: &str,

@@ -386,7 +386,37 @@ impl SqlClient for SqlClientImpl {
                             }
                         }
                     }
-                    DmlType::Delete => todo!(),
+                    DmlType::Delete => {
+                        let remote_delete_result = remote_db_srv::remove_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                            &where_clause,
+                        )
+                        .await;
+
+                        if remote_delete_result.is_successful {
+                            let row_id = remote_delete_result.rows.first().unwrap().rowid;
+
+                            let internal_participant_id =
+                                db_participant_reference.internal_id.to_string().clone();
+
+                            let local_delete_is_successful = self.dbi().delete_metadata_in_host_db(
+                                &db_name,
+                                &cmd_table_name,
+                                row_id,
+                                &internal_participant_id,
+                            );
+
+                            if local_delete_is_successful {
+                                is_remote_action_successful = true;
+                            }
+                        }
+
+                        unimplemented!()
+                    }
                     DmlType::Select => panic!(),
                 }
             }

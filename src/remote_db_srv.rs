@@ -8,7 +8,7 @@ use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
     AuthRequest, Contract, DatabaseSchema, GetRowFromPartialDatabaseRequest, InsertDataRequest,
     InsertDataResult, MessageInfo, Participant, ParticipantAcceptsContractRequest,
-    RowParticipantAddress, SaveContractRequest, UpdateDataResult, UpdateDataRequest,
+    RowParticipantAddress, SaveContractRequest, UpdateDataResult, UpdateDataRequest, DeleteDataResult, DeleteDataRequest,
 };
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::rcd_enum::ContractStatus;
@@ -16,6 +16,34 @@ use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
+
+pub async fn remove_row_at_participant(
+    participant: CoopDatabaseParticipant,
+    own_host_info: &HostInfo,
+    db_name: &str,
+    table_name: &str,
+    sql: &str,
+    where_clause: &str,
+) -> DeleteDataResult {
+    let auth = get_auth_request(own_host_info);
+
+    let request = DeleteDataRequest {
+        authentication: Some(auth),
+        database_name: db_name.to_string(),
+        table_name: table_name.to_string(),
+        cmd: sql.to_string(),
+        where_clause: where_clause.to_string(),
+    };
+
+    let client = get_client(participant);
+    let response = client
+        .await
+        .delete_command_into_table(request)
+        .await
+        .unwrap();
+
+    return response.into_inner();
+}
 
 pub async fn update_row_at_participant(
     participant: CoopDatabaseParticipant,

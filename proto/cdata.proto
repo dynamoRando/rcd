@@ -291,6 +291,7 @@ message DeleteDataRequest {
 	string databaseName = 2;
 	string tableName = 3;
 	string cmd = 4;
+	string whereClause = 5;
 }
 
 message DeleteDataResult {
