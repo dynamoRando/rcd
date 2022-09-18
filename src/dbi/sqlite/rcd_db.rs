@@ -11,6 +11,7 @@ use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
 pub mod contract;
+pub mod role;
 
 pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
     println!("host_id: {}", host_id);
@@ -70,56 +71,6 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
     return do_vecs_match(&token, returned_tokens.last().unwrap());
 }
 
-pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
-    let conn = get_rcd_conn(&config);
-    let mut has_role = false;
-
-    let cmd = &String::from(&CDS::text_get_role());
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
-        row.get(0)
-    })?;
-
-    for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            has_role = true;
-        }
-    }
-
-    return Ok(has_role);
-}
-
-pub fn add_login_to_role(login: &str, role_name: &str, config: &DbiConfigSqlite) {
-    let conn = get_rcd_conn(&config);
-    let cmd = &String::from(&CDS::text_add_user_role());
-    let mut statement = conn.prepare(cmd).unwrap();
-    statement
-        .execute(named_params! { ":username": login, ":rolename": role_name })
-        .unwrap();
-}
-
-pub fn login_is_in_role(login: &str, role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
-    let conn = get_rcd_conn(&config);
-    let mut login_is_in_role = false;
-    let cmd = &CDS::text_get_user_role();
-    let mut statement = conn.prepare(cmd).unwrap();
-
-    let params = [(":username", login), (":rolename", role_name)];
-
-    let rows = statement.query_map(&params, |row| row.get(0))?;
-
-    for item in rows {
-        let count: u64 = item.unwrap();
-        if count > 0 {
-            login_is_in_role = true;
-        }
-    }
-
-    return Ok(login_is_in_role);
-}
-
 pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
     let conn = get_rcd_conn(&config);
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
@@ -152,8 +103,8 @@ pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
         create_login(login, pw, &config);
     }
 
-    if !login_is_in_role(login, &String::from("SysAdmin"), &config).unwrap() {
-        add_login_to_role(login, &String::from("SysAdmin"), &config);
+    if !role::login_is_in_role(login, &String::from("SysAdmin"), &config).unwrap() {
+        role::add_login_to_role(login, &String::from("SysAdmin"), &config);
     }
 }
 
@@ -213,7 +164,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
         create_contracts_table_table(&db_conn);
         create_contracts_table_table_schemas(&db_conn);
 
-        let db_has_role = has_role_name(&String::from("SysAdmin"), config).unwrap();
+        let db_has_role = role::has_role_name(&String::from("SysAdmin"), config).unwrap();
 
         if !db_has_role {
             let statement = String::from("INSERT INTO CDS_ROLE (ROLENAME) VALUES ('SysAdmin');");
@@ -378,7 +329,6 @@ fn has_contract(contract_id: &str, conn: &Connection) -> bool {
 
     return has_any_rows(cmd, conn);
 }
-
 
 fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
     let matching = a.iter().zip(b.iter()).filter(|&(a, b)| a == b).count();

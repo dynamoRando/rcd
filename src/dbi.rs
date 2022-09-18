@@ -415,7 +415,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::has_role_name(role_name, &settings).unwrap();
+                return sqlite::rcd_db::role::has_role_name(role_name, &settings).unwrap();
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -428,7 +428,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::add_login_to_role(login, role_name, &settings);
+                sqlite::rcd_db::role::add_login_to_role(login, role_name, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -441,7 +441,8 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::login_is_in_role(login, role_name, &settings).unwrap();
+                return sqlite::rcd_db::role::login_is_in_role(login, role_name, &settings)
+                    .unwrap();
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -486,7 +487,9 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db::participant::add_participant(db_name, alias, ip4addr, db_port, settings);
+                return sqlite::db::participant::add_participant(
+                    db_name, alias, ip4addr, db_port, settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -516,7 +519,11 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db::participant::get_participant_by_alias(db_name, participant_alias, settings);
+                return sqlite::db::participant::get_participant_by_alias(
+                    db_name,
+                    participant_alias,
+                    settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -529,7 +536,11 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db::participant::has_participant(db_name, participant_alias, settings);
+                return sqlite::db::participant::has_participant(
+                    db_name,
+                    participant_alias,
+                    settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -559,7 +570,9 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db::logical_storage_policy::get_logical_storage_policy(db_name, table_name, &settings);
+                return sqlite::db::logical_storage_policy::get_logical_storage_policy(
+                    db_name, table_name, &settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -649,7 +662,9 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db::participant::get_participants_for_table(db_name, table_name, settings);
+                return sqlite::db::participant::get_participants_for_table(
+                    db_name, table_name, settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
