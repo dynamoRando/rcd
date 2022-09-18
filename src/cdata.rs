@@ -394,7 +394,7 @@ pub struct DeleteDataRequest {
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteDataResult {
     #[prost(message, optional, tag="1")]
-    pub authentication_result: ::core::option::Option<AuthRequest>,
+    pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(bool, tag="2")]
     pub is_successful: bool,
     #[prost(string, tag="3")]

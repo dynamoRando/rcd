@@ -26,6 +26,12 @@ pub struct UpdatePartialDataResult {
     pub data_hash: u64,
 }
 
+pub struct DeletePartialDataResult {
+    pub is_successful: bool,
+    pub row_id: u32,
+    pub data_hash: u64,
+}
+
 #[derive(Debug, Clone)]
 /// Database Interface: an abstraction over the underlying database layer. Supports:
 /// - Sqlite
@@ -184,6 +190,31 @@ impl Dbi {
                     hash,
                     internal_participant_id,
                     settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn delete_data_in_partial_db(
+        self: &Self,
+        part_db_name: &str,
+        table_name: &str,
+        cmd: &str,
+        where_clause: &str,
+    ) -> DeletePartialDataResult {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::delete_data_in_partial_db(
+                    part_db_name,
+                    table_name,
+                    cmd,
+                    where_clause,
+                    &settings,
                 );
             }
             DatabaseType::Unknown => unimplemented!(),

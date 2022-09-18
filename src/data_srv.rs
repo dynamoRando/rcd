@@ -1,6 +1,6 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
-use crate::dbi::{InsertPartialDataResult, UpdatePartialDataResult};
+use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
 use rusqlite::Result;
@@ -220,7 +220,53 @@ impl DataService for DataServiceImpl {
     ) -> Result<Response<DeleteDataResult>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
-        unimplemented!("not implemented");
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+        let db_name = message.database_name;
+        let table_name = message.table_name;
+        let where_clause = message.where_clause.clone();
+
+        let mut rows: Vec<RowInfo> = Vec::new();
+
+        let mut result = DeletePartialDataResult {
+            is_successful: false,
+            row_id: 0,
+            data_hash: 0,
+        };
+
+        if is_authenticated {
+            let cmd = &message.cmd;
+
+            result =
+                self.dbi()
+                    .delete_data_in_partial_db(&db_name, &table_name, cmd, &where_clause);
+
+            if result.is_successful {
+                let row = RowInfo {
+                    database_name: db_name,
+                    table_name,
+                    rowid: result.row_id,
+                    data_hash: result.data_hash,
+                };
+                rows.push(row);
+            }
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = DeleteDataResult {
+            authentication_result: Some(auth_response),
+            is_successful: result.is_successful,
+            message: String::from(""),
+            rows: rows,
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn get_row_from_partial_database(

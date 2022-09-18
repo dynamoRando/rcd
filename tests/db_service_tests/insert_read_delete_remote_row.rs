@@ -4,7 +4,6 @@ use rcd::rcd_sql_client::RcdClient;
 use std::sync::mpsc;
 use std::{thread, time};
 
-#[ignore = "functionality not written yet"]
 #[test]
 fn test() {
     let test_name = "add_read_delete_remote";
@@ -204,7 +203,19 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
 
     println!("{:?}", expected_value);
 
-    return value == expected_value;
+    assert_eq!(value, expected_value);
+
+    let delete_result = client
+        .execute_cooperative_write(
+            db_name,
+            "DELETE FROM EMPLOYEE WHERE Id = 999",
+            "participant",
+            "Id = 999",
+        )
+        .await
+        .unwrap();
+
+    return delete_result;
 }
 
 #[cfg(test)]

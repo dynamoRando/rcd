@@ -295,7 +295,7 @@ message DeleteDataRequest {
 }
 
 message DeleteDataResult {
-	AuthRequest authenticationResult = 1;
+	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	string message = 3;
 	repeated RowInfo rows = 4;

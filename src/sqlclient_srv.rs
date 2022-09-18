@@ -414,8 +414,6 @@ impl SqlClient for SqlClientImpl {
                                 is_remote_action_successful = true;
                             }
                         }
-
-                        unimplemented!()
                     }
                     DmlType::Select => panic!(),
                 }
