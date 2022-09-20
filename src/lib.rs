@@ -16,6 +16,7 @@ mod sqlclient_srv;
 mod table;
 pub mod dbi;
 
+use std::path::Path;
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
 use crate::rcd_settings::RcdSettings;
@@ -96,11 +97,6 @@ fn do_nothing() {
     println!("do nothing");
 }
 
-/// Test function that returns a call from the rcd mod
-pub fn hello() {
-    println!("hello rcd_service");
-}
-
 /// Returns an RcdService from the config file
 pub fn get_service_from_config_file() -> RcdService {
     let settings = get_config_from_settings_file();
@@ -122,11 +118,27 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
 }
 
 pub fn get_config_from_settings_file() -> RcdSettings {
+
+    let wd = env::current_dir().unwrap();
+    let cwd = wd.to_str().unwrap();
+    let settings_in_cwd = Path::new(cwd).join("Settings.toml");
+
+    let settings_location;
+
+    if Path::exists(&settings_in_cwd) {
+        settings_location = settings_in_cwd.to_str().unwrap();
+    }
+    else {
+        settings_location = "src/Settings";
+    }
+
+    let error_message = format!("{}{}", "Could not find Settings.toml in current directort or in default ", settings_location);
+
     let settings = Config::builder()
-        .add_source(config::File::with_name("src/Settings"))
+        .add_source(config::File::with_name(settings_location))
         .add_source(config::Environment::with_prefix("APP"))
         .build()
-        .unwrap();
+        .expect(&error_message);
 
     let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
     let database_type = DatabaseType::from_i64(i_database_type);
