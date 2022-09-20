@@ -383,6 +383,28 @@ impl DataService for DataServiceImpl {
     ) -> Result<Response<NotifyHostOfRemovedRowResponse>, Status> {
         unimplemented!("not implemented");
     }
+
+    async fn try_auth(
+        &self,
+        request: Request<TryAuthRequest>,
+    ) -> Result<Response<TryAuthResult>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let message = request.into_inner();
+        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = TryAuthResult {
+            authentication_result: Some(auth_response),
+        };
+
+        Ok(Response::new(result))
+    }
 }
 
 #[tokio::main]

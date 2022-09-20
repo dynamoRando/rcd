@@ -19,6 +19,34 @@ service SQLClient {
 	rpc AcceptPendingContract(AcceptPendingContractRequest) returns (AcceptPendingContractReply);
 	rpc RejectPendingContract(RejectPendingContractRequest) returns (RejectPendingContractReply);
 	rpc GenerateHostInfo(GenerateHostInfoRequest) returns (GenerateHostInfoReply);
+	rpc ChangeHostStatus(ChangeHostStatusRequest) returns (ChangeHostStatusReply);
+	rpc TryAuthAtParticipant(TryAuthAtParticipantRequest) returns (TryAuthAtPartipantReply);
+}
+
+message TryAuthAtParticipantRequest {
+	AuthRequest authentication = 1;
+	string participantId = 2;
+	string participantAlias = 3;
+	string dbName = 4;
+}
+
+message TryAuthAtPartipantReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message ChangeHostStatusRequest {
+	AuthRequest authentication = 1;
+	string hostAlias = 2;
+	string hostId = 3;
+	uint32 status = 4;
+}
+
+message ChangeHostStatusReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	uint32 status = 3;
 }
 
 message GenerateHostInfoRequest {
@@ -222,6 +250,15 @@ service DataService {
 	rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
 	rpc UpdateRowDataHashForHost(UpdateRowDataHashForHostRequest) returns (UpdateRowDataHashForHostResponse);
 	rpc NotifyHostOfRemovedRow(NotifyHostOfRemovedRowRequest) returns (NotifyHostOfRemovedRowResponse);
+	rpc TryAuth(TryAuthRequest) returns (TryAuthResult);
+}
+
+message TryAuthRequest {
+	AuthRequest authentication = 1;
+}
+
+message TryAuthResult {
+	AuthResult authenticationResult = 1;
 }
 
 // a message for creating a table in a database

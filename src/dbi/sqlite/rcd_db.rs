@@ -13,13 +13,43 @@ use std::path::Path;
 pub mod contract;
 pub mod role;
 
+pub fn change_host_status_by_id(host_id: &str, status: u32, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+
+    let cmd = String::from(
+        "
+    UPDATE CDS_HOSTS SET HOST_STATUS = :status WHERE HOST_ID = ':hid'",
+    );
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(named_params! {":status": status, ":hid" : host_id})
+        .unwrap();
+
+    return result > 0;
+}
+
+pub fn change_host_status_by_name(host_name: &str, status: u32, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+
+    let cmd = String::from(
+        "
+    UPDATE CDS_HOSTS SET HOST_STATUS = :status WHERE HOST_NAME = :name",
+    );
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(named_params! {":status": status, ":name" : host_name})
+        .unwrap();
+
+    return result > 0;
+}
+
 pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
     println!("host_id: {}", host_id);
 
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
         "
-    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_ID = ':hid'",
+    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_ID = ':hid' AND HOST_STATUS = 1",
     );
     cmd = cmd.replace(":hid", host_id);
 
@@ -50,7 +80,7 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
         "
-    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_NAME = ':name'",
+    SELECT TOKEN FROM CDS_HOSTS WHERE HOST_NAME = ':name' AND HOST_STATUS = 1",
     );
     cmd = cmd.replace(":name", host_name);
 
@@ -68,7 +98,11 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
         returned_tokens.push(t.unwrap());
     }
 
-    return do_vecs_match(&token, returned_tokens.last().unwrap());
+    if returned_tokens.len() == 0 {
+        return false;
+    } else {
+        return do_vecs_match(&token, returned_tokens.last().unwrap());
+    }
 }
 
 pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {

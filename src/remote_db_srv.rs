@@ -6,9 +6,10 @@ use tonic::transport::Channel;
 
 use crate::cdata::data_service_client::DataServiceClient;
 use crate::cdata::{
-    AuthRequest, Contract, DatabaseSchema, GetRowFromPartialDatabaseRequest, InsertDataRequest,
-    InsertDataResult, MessageInfo, Participant, ParticipantAcceptsContractRequest,
-    RowParticipantAddress, SaveContractRequest, UpdateDataResult, UpdateDataRequest, DeleteDataResult, DeleteDataRequest,
+    AuthRequest, Contract, DatabaseSchema, DeleteDataRequest, DeleteDataResult,
+    GetRowFromPartialDatabaseRequest, InsertDataRequest, InsertDataResult, MessageInfo,
+    Participant, ParticipantAcceptsContractRequest, RowParticipantAddress, SaveContractRequest,
+    TryAuthRequest, UpdateDataRequest, UpdateDataResult,
 };
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::rcd_enum::ContractStatus;
@@ -16,6 +17,21 @@ use crate::{
     cdata::GetRowFromPartialDatabaseResult, coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
+
+pub async fn try_auth_at_participant(
+    participant: CoopDatabaseParticipant,
+    own_host_info: &HostInfo,
+) -> bool {
+    let auth = get_auth_request(own_host_info);
+    let request = TryAuthRequest {
+        authentication: Some(auth),
+    };
+
+    let client = get_client(participant);
+    let response = client.await.try_auth(request).await;
+    let result = response.unwrap().into_inner();
+    return result.authentication_result.unwrap().is_authenticated;
+}
 
 pub async fn remove_row_at_participant(
     participant: CoopDatabaseParticipant,

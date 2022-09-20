@@ -86,7 +86,8 @@ impl CDS {
             IP4ADDRESS VARCHAR(25),
             IP6ADDRESS VARCHAR(25),
             PORT INT,
-            LAST_COMMUNICATION_UTC DATETIME
+            LAST_COMMUNICATION_UTC DATETIME,
+            HOST_STATUS INT
         );",
         );
     }

@@ -571,7 +571,8 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
         IP4ADDRESS,
         IP6ADDRESS,
         PORT,
-        LAST_COMMUNICATION_UTC
+        LAST_COMMUNICATION_UTC,
+        HOST_STATUS
     )
     VALUES
     (
@@ -581,7 +582,8 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
         :ip4,
         :ip6,
         :port,
-        :last_comm
+        :last_comm,
+        1
     )
     ;",
     );

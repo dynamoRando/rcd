@@ -94,6 +94,32 @@ impl Dbi {
         }
     }
 
+    pub fn change_host_status_by_id(self: &Self, host_id: &str, status: u32) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_host_status_by_id(host_id, status, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn change_host_status_by_name(self: &Self, host_name: &str, status: u32) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_host_status_by_name(host_name, status, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn verify_host_by_id(self: &Self, host_id: &str, token: Vec<u8>) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

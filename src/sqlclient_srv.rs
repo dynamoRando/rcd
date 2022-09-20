@@ -2,9 +2,9 @@ use crate::cdata::sql_client_server::{SqlClient, SqlClientServer};
 use crate::cdata::CreateUserDatabaseReply;
 use crate::cdata::{RejectPendingContractReply, RejectPendingContractRequest};
 use crate::dbi::Dbi;
-use crate::{cdata::*, };
+use crate::{cdata::*, remote_db_srv};
 use chrono::Utc;
-use rusqlite::{Result};
+use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
 mod contract;
@@ -189,6 +189,48 @@ impl SqlClient for SqlClientImpl {
         request: tonic::Request<RejectPendingContractRequest>,
     ) -> Result<tonic::Response<RejectPendingContractReply>, tonic::Status> {
         unimplemented!();
+    }
+
+    async fn change_host_status(
+        &self,
+        request: tonic::Request<ChangeHostStatusRequest>,
+    ) -> Result<tonic::Response<ChangeHostStatusReply>, tonic::Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::change_host_status(request.into_inner(), self).await;
+        Ok(Response::new(result))
+    }
+
+    async fn try_auth_at_participant(
+        &self,
+        request: tonic::Request<TryAuthAtParticipantRequest>,
+    ) -> Result<tonic::Response<TryAuthAtPartipantReply>, tonic::Status> {
+        println!("Request from {:?}", request.remote_addr());
+
+        let message = request.into_inner();
+        let own_host_info = self.dbi().rcd_get_host_info();
+        let a = message.authentication.unwrap();
+        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
+
+        let db_participant = self
+            .dbi()
+            .get_participant_by_alias(&message.db_name, &message.participant_alias);
+
+        let result = remote_db_srv::try_auth_at_participant(db_participant, &own_host_info).await;
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let response = TryAuthAtPartipantReply {
+            authentication_result: Some(auth_response),
+            is_successful: result,
+            message: String::from(""),
+        };
+
+        Ok(Response::new(response))
     }
 }
 

@@ -1,14 +1,54 @@
 use crate::{
     cdata::{
-        AuthResult, CreateUserDatabaseReply, CreateUserDatabaseRequest,
-        EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
-        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, HasTableReply,
-        HasTableRequest,
+        AuthResult, ChangeHostStatusReply, ChangeHostStatusRequest, CreateUserDatabaseReply,
+        CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
+        EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
+        GenerateHostInfoReply, GenerateHostInfoRequest, HasTableReply, HasTableRequest,
     },
     rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
 };
 
 use super::SqlClientImpl;
+
+pub async fn change_host_status(
+    request: ChangeHostStatusRequest,
+    client: &SqlClientImpl,
+) -> ChangeHostStatusReply {
+    // check if the user is authenticated
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+    let host_name = message.host_alias.clone();
+    let host_id = message.host_id.clone();
+    let status = message.status;
+
+    let mut name_result = false;
+    let mut id_result = false;
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+
+    if is_authenticated {
+        name_result = client.dbi().change_host_status_by_name(&host_name, status);
+
+        if !name_result {
+            id_result = client.dbi().change_host_status_by_id(&host_id, status);
+        }
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let result = ChangeHostStatusReply {
+        authentication_result: Some(auth_response),
+        is_successful: name_result || id_result,
+        status,
+    };
+
+    return result;
+}
 
 pub async fn generate_host_info(
     request: GenerateHostInfoRequest,

@@ -252,6 +252,9 @@ pub fn get_participant_by_alias(
     );
     // cmd = cmd.replace(":alias", &alias);
 
+    // println!("{:?}", cmd);
+    // println!("{}", alias);
+
     let row_to_participant = |internal_id: String,
                               alias: String,
                               ip4addr: String,

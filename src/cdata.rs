@@ -1,4 +1,44 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TryAuthAtParticipantRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub participant_id: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub participant_alias: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub db_name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TryAuthAtPartipantReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+    #[prost(string, tag="3")]
+    pub message: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChangeHostStatusRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub host_alias: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub host_id: ::prost::alloc::string::String,
+    #[prost(uint32, tag="4")]
+    pub status: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct ChangeHostStatusReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+    #[prost(uint32, tag="3")]
+    pub status: u32,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateHostInfoRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -281,6 +321,16 @@ pub struct EnableCoooperativeFeaturesReply {
     pub is_successful: bool,
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TryAuthRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TryAuthResult {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
 }
 /// a message for creating a table in a database
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1151,6 +1201,44 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn change_host_status(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ChangeHostStatusRequest>,
+        ) -> Result<tonic::Response<super::ChangeHostStatusReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/ChangeHostStatus",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn try_auth_at_participant(
+            &mut self,
+            request: impl tonic::IntoRequest<super::TryAuthAtParticipantRequest>,
+        ) -> Result<tonic::Response<super::TryAuthAtPartipantReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/TryAuthAtParticipant",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -1444,6 +1532,25 @@ pub mod data_service_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn try_auth(
+            &mut self,
+            request: impl tonic::IntoRequest<super::TryAuthRequest>,
+        ) -> Result<tonic::Response<super::TryAuthResult>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.DataService/TryAuth",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated server implementations.
@@ -1520,6 +1627,14 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GenerateHostInfoRequest>,
         ) -> Result<tonic::Response<super::GenerateHostInfoReply>, tonic::Status>;
+        async fn change_host_status(
+            &self,
+            request: tonic::Request<super::ChangeHostStatusRequest>,
+        ) -> Result<tonic::Response<super::ChangeHostStatusReply>, tonic::Status>;
+        async fn try_auth_at_participant(
+            &self,
+            request: tonic::Request<super::TryAuthAtParticipantRequest>,
+        ) -> Result<tonic::Response<super::TryAuthAtPartipantReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -2226,6 +2341,86 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
+                "/cdata.SQLClient/ChangeHostStatus" => {
+                    #[allow(non_camel_case_types)]
+                    struct ChangeHostStatusSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::ChangeHostStatusRequest>
+                    for ChangeHostStatusSvc<T> {
+                        type Response = super::ChangeHostStatusReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ChangeHostStatusRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).change_host_status(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ChangeHostStatusSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.SQLClient/TryAuthAtParticipant" => {
+                    #[allow(non_camel_case_types)]
+                    struct TryAuthAtParticipantSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::TryAuthAtParticipantRequest>
+                    for TryAuthAtParticipantSvc<T> {
+                        type Response = super::TryAuthAtPartipantReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::TryAuthAtParticipantRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).try_auth_at_participant(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = TryAuthAtParticipantSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
                 _ => {
                     Box::pin(async move {
                         Ok(
@@ -2328,6 +2523,10 @@ pub mod data_service_server {
             tonic::Response<super::NotifyHostOfRemovedRowResponse>,
             tonic::Status,
         >;
+        async fn try_auth(
+            &self,
+            request: tonic::Request<super::TryAuthRequest>,
+        ) -> Result<tonic::Response<super::TryAuthResult>, tonic::Status>;
     }
     /// a service for communication between different rcd stores
     #[derive(Debug)]
@@ -2822,6 +3021,44 @@ pub mod data_service_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = NotifyHostOfRemovedRowSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.DataService/TryAuth" => {
+                    #[allow(non_camel_case_types)]
+                    struct TryAuthSvc<T: DataService>(pub Arc<T>);
+                    impl<
+                        T: DataService,
+                    > tonic::server::UnaryService<super::TryAuthRequest>
+                    for TryAuthSvc<T> {
+                        type Response = super::TryAuthResult;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::TryAuthRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move { (*inner).try_auth(request).await };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = TryAuthSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
