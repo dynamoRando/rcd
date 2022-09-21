@@ -63,16 +63,14 @@ admin_pw = \"123456\"
             );
 
             let default_src_path = Path::new(&cwd).join("src/Settings.toml");
-            if !Path::exists(&default_src_path) {
-                let path = Path::new(&cwd).join("Settings.toml");
-                if !Path::exists(&path) {
-                    println!(
-                        "creating default Settings.toml at: {}",
-                        &path.to_str().unwrap()
-                    );
-                    let mut output = File::create(path).unwrap();
-                    write!(output, "{}", default_settings_content).unwrap();
-                }
+            let path = Path::new(&cwd).join("Settings.toml");
+            if !Path::exists(&default_src_path) && !Path::exists(&path) {
+                println!(
+                    "creating default Settings.toml at: {}",
+                    &path.to_str().unwrap()
+                );
+                let mut output = File::create(path).unwrap();
+                write!(output, "{}", default_settings_content).unwrap();
             } else {
             }
             println!("Settings.toml was found, skipping default settings");
