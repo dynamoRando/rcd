@@ -174,3 +174,9 @@ pub fn get_config_from_settings_file() -> RcdSettings {
 
     return rcd_setting;
 }
+
+pub fn get_current_directory() -> String {
+    let wd = env::current_dir().unwrap().clone();
+    let cwd = wd.to_str().unwrap().to_string().clone();
+    return cwd.to_string();
+}
