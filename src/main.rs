@@ -72,8 +72,8 @@ admin_pw = \"123456\"
                 let mut output = File::create(path).unwrap();
                 write!(output, "{}", default_settings_content).unwrap();
             } else {
-            }
-            println!("Settings.toml was found, skipping default settings");
+                println!("Settings.toml was found, skipping default settings");
+            }   
         }
     }
 }
