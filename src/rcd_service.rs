@@ -208,10 +208,7 @@ impl RcdService {
         root_folder: String,
         db_interface: Option<Dbi>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!(
-            "SERVICE START CLIENT: start_client_service_at_addr_alt: {}",
-            &address_port
-        );
+       
         let addr = address_port.parse().unwrap();
 
         let sql_client = SqlClientImpl {
@@ -227,7 +224,7 @@ impl RcdService {
             .unwrap();
 
         println!(
-            "start_client_service_at_addr_alt: sql client server listening on {}",
+            "Client Service Starting At: {}",
             addr
         );
 
@@ -322,11 +319,7 @@ impl RcdService {
         root_folder: String,
         db_interface: Option<Dbi>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        println!(
-            "SERVICE START DB: start_db_service_at_addr_alt: {}",
-            &address_port
-        );
-
+   
         let addr = address_port.parse().unwrap();
 
         let data_service = DataServiceImpl {
@@ -341,7 +334,7 @@ impl RcdService {
             .unwrap();
 
         println!(
-            "start_db_service_at_addr_alt: db server listening on {}",
+            "Database Service Starting At: {}",
             addr
         );
 

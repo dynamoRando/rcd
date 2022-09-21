@@ -1,8 +1,9 @@
 pub mod cdata;
-mod crypt;
-mod data_srv;
 mod coop_database_contract;
 mod coop_database_participant;
+mod crypt;
+mod data_srv;
+pub mod dbi;
 pub mod defaults;
 mod host_info;
 pub mod query_parser;
@@ -14,16 +15,14 @@ pub mod rcd_sql_client;
 mod remote_db_srv;
 mod sqlclient_srv;
 mod table;
-pub mod dbi;
 
-use std::path::Path;
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
 use crate::rcd_settings::RcdSettings;
 use config::Config;
-use dbi::{DbiConfigSqlite, Dbi};
+use dbi::{Dbi, DbiConfigSqlite};
 use std::env;
-
+use std::path::Path;
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(
@@ -33,15 +32,14 @@ fn configure_backing_store(
     admin_pw: &str,
 ) {
     let cwd = env::current_dir().unwrap();
-    
+
     match db_type {
         DatabaseType::Sqlite => {
-
             let config = DbiConfigSqlite {
                 root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
                 rcd_db_name: backing_db_name.to_string(),
             };
-        
+
             let dbi = Dbi {
                 db_type: DatabaseType::Sqlite,
                 mysql_config: None,
@@ -67,15 +65,13 @@ fn configure_backing_store_at_dir(
     admin_pw: &str,
     root_dir: &str,
 ) {
-  
     match db_type {
         DatabaseType::Sqlite => {
-
             let config = DbiConfigSqlite {
                 root_folder: root_dir.to_string(),
                 rcd_db_name: backing_db_name.to_string(),
             };
-        
+
             let dbi = Dbi {
                 db_type: DatabaseType::Sqlite,
                 mysql_config: None,
@@ -100,11 +96,18 @@ fn do_nothing() {
 /// Returns an RcdService from the config file
 pub fn get_service_from_config_file() -> RcdService {
     let settings = get_config_from_settings_file();
-    let service = RcdService {
+    let mut service = RcdService {
         rcd_settings: settings,
         root_dir: String::from(""),
         db_interface: None,
     };
+
+    if service.root_dir == "" {
+        let wd = env::current_dir().unwrap().clone();
+        let cwd = wd.to_str().unwrap().to_string().clone();
+        service.root_dir = cwd.to_string();
+    }
+
     return service;
 }
 
@@ -118,7 +121,6 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
 }
 
 pub fn get_config_from_settings_file() -> RcdSettings {
-
     let wd = env::current_dir().unwrap();
     let cwd = wd.to_str().unwrap();
     let settings_in_cwd = Path::new(cwd).join("Settings.toml");
@@ -127,12 +129,14 @@ pub fn get_config_from_settings_file() -> RcdSettings {
 
     if Path::exists(&settings_in_cwd) {
         settings_location = settings_in_cwd.to_str().unwrap();
-    }
-    else {
+    } else {
         settings_location = "src/Settings";
     }
 
-    let error_message = format!("{}{}", "Could not find Settings.toml in current directort or in default ", settings_location);
+    let error_message = format!(
+        "{}{}",
+        "Could not find Settings.toml in current directort or in default ", settings_location
+    );
 
     let settings = Config::builder()
         .add_source(config::File::with_name(settings_location))
@@ -155,9 +159,13 @@ pub fn get_config_from_settings_file() -> RcdSettings {
         .get_string(&String::from("data_service_addr_port"))
         .unwrap();
 
+    let admin_un = settings.get_string(&String::from("admin_un")).unwrap();
+
+    let admin_pw = settings.get_string(&String::from("admin_pw")).unwrap();
+
     let rcd_setting = RcdSettings {
-        admin_un: String::from("tester"),
-        admin_pw: String::from("123456"),
+        admin_un: admin_un,
+        admin_pw: admin_pw,
         database_type: database_type,
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
