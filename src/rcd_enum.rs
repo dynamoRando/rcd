@@ -1,11 +1,147 @@
 use std::{error::Error, fmt};
 use substring::Substring;
 
+/// From the perspective of a participant: if we execute an `DELETE` statement
+/// against our partial database, we can define how we want to notify the database host:
+/// 1. Send Notification - send a note to the host of deleted row id
+/// 2. Do Nothing - the host and the participant may potentially be out of sync
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum DeletesToHostBehavior {
+    Unknown = 0,
+    SendNotification = 1,
+    DoNothing = 2,
+}
+
+impl DeletesToHostBehavior {
+    pub fn from_u32(value: u32) -> DeletesToHostBehavior {
+        match value {
+            0 => DeletesToHostBehavior::Unknown,
+            1 => DeletesToHostBehavior::SendNotification,
+            2 => DeletesToHostBehavior::DoNothing,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(behavior: DeletesToHostBehavior) -> u32 {
+        match behavior {
+            DeletesToHostBehavior::Unknown => 0,
+            DeletesToHostBehavior::SendNotification => 1,
+            DeletesToHostBehavior::DoNothing => 2,
+        }
+    }
+}
+
+/// From the perspective of a participant: if we execute an `UPDATE` statement
+/// against our partial database, we can define how we want to notify the database host:
+/// 1. Send Data Hash Change - send a note to the host of the changed data hash, if applicable
+/// 2. Do Nothing - the host and the participant may potentially have out of sync data hashes
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum UpdatesToHostBehavior {
+    Unknown = 0,
+    SendDataHashChange = 1,
+    DoNothing = 2,
+}
+
+impl UpdatesToHostBehavior {
+    pub fn from_u32(value: u32) -> UpdatesToHostBehavior {
+        match value {
+            0 => UpdatesToHostBehavior::Unknown,
+            1 => UpdatesToHostBehavior::SendDataHashChange,
+            2 => UpdatesToHostBehavior::DoNothing,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(behavior: UpdatesToHostBehavior) -> u32 {
+        match behavior {
+            UpdatesToHostBehavior::Unknown => 0,
+            UpdatesToHostBehavior::SendDataHashChange => 1,
+            UpdatesToHostBehavior::DoNothing => 2,
+        }
+    }
+}
+
+/// From the perspective of a participant: if we get an `UPDATE` statement from a database host
+/// we can define how we want to respond: 
+/// 1. Allow Overwrite - will execute the `UPDATE` statement
+/// 2. Queue For Review  - will add a "Pending" flag on the row
+/// 3. Overwrite With Log - will copy the row to _HISTORY table and then overwrite
+/// 4. Ignore - will not update the row but respond to the host with FALSE on the success reply
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum UpdatesFromHostBehavior {
+    Unknown = 0,
+    AllowOverwrite = 1,
+    QueueForReview = 2,
+    OverwriteWithLog = 3,
+    Ignore = 4,
+}
+
+impl UpdatesFromHostBehavior {
+    pub fn from_u32(value: u32) -> UpdatesFromHostBehavior {
+        match value {
+            0 => UpdatesFromHostBehavior::Unknown,
+            1 => UpdatesFromHostBehavior::AllowOverwrite,
+            2 => UpdatesFromHostBehavior::QueueForReview,
+            3 => UpdatesFromHostBehavior::OverwriteWithLog,
+            4 => UpdatesFromHostBehavior::Ignore,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(behavior: UpdatesFromHostBehavior) -> u32 {
+        match behavior {
+            UpdatesFromHostBehavior::Unknown => 0,
+            UpdatesFromHostBehavior::AllowOverwrite => 1,
+            UpdatesFromHostBehavior::QueueForReview => 2,
+            UpdatesFromHostBehavior::OverwriteWithLog => 3,
+            UpdatesFromHostBehavior::Ignore => 4,
+        }
+    }
+}
+
+/// From the perspective of a participant: if we get an `DELETE` statement from a database host
+/// we can define how we want to respond: 
+/// 1. Allow Overwrite - will execute the `DELETE` statement
+/// 2. Queue For Review  - will add a "Pending" flag on the row
+/// 3. Delete With Log - will copy the row to _HISTORY table and then delete
+/// 4. Ignore - will not delete the row but respond to the host with FALSE on the success reply
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum DeletesFromHostBehavior {
+    Unknown = 0,
+    AllowOverwrite = 1,
+    QueueForReview = 2,
+    DeleteWithLog = 3,
+    Ignore = 4,
+}
+
+impl DeletesFromHostBehavior {
+    pub fn from_u32(value: u32) -> DeletesFromHostBehavior {
+        match value {
+            0 => DeletesFromHostBehavior::Unknown,
+            1 => DeletesFromHostBehavior::AllowOverwrite,
+            2 => DeletesFromHostBehavior::QueueForReview,
+            3 => DeletesFromHostBehavior::DeleteWithLog,
+            4 => DeletesFromHostBehavior::Ignore,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(behavior: DeletesFromHostBehavior) -> u32 {
+        match behavior {
+            DeletesFromHostBehavior::Unknown => 0,
+            DeletesFromHostBehavior::AllowOverwrite => 1,
+            DeletesFromHostBehavior::QueueForReview => 2,
+            DeletesFromHostBehavior::DeleteWithLog => 3,
+            DeletesFromHostBehavior::Ignore => 4,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum HostStatus {
     Unknown = 0,
     Allow = 1,
-    Deny = 2
+    Deny = 2,
 }
 
 impl HostStatus {
@@ -32,7 +168,7 @@ pub enum DmlType {
     Unknown = 0,
     Insert = 1,
     Update = 2,
-    Delete  = 3,
+    Delete = 3,
     Select = 4,
 }
 
@@ -250,7 +386,7 @@ impl ColumnType {
         return ColumnType::to_u32(ct);
     }
 
-    pub fn data_type_len(desc: String) -> u32 {   
+    pub fn data_type_len(desc: String) -> u32 {
         let idx_first_paren = desc.find("(");
 
         if idx_first_paren.is_none() {
