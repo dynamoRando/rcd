@@ -1,11 +1,13 @@
-# 2022-09-17
-Hopefully soon planned changes:
+# General Work Items
 - [X] Implement UPDATE from host to participant
 - [X] Implement DELETE from host to participant (this is a hard delete)
 - Implement greater authority for participants over UPDATE/DELETES
     - implement "behaviors" for participants on UPDATE/DELETE
 - Write logs to a rcd_log.db 
-- Modify INSERT/UPDATE/DELETE from host to participant so that at the participant we check if 
-    - the host has been banned
-    - if we will notify the host of local changes done our side (there is no well defined infastructure currently to handle this at the participant)
-        although we do have placeholder functions in the .proto for this
+- [X] Modify reqests from host to participant so that at the participant we check if the host has been banned
+- implement a cli for rcd
+    - ability to login
+    - ability to list databases, etc.
+    - ability to start/stop either client and/or data service
+- report warning if default password has not been changed
+- implement encryption key for rcd for encrypting data in database

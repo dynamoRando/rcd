@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 config = "0.13.1"
-rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled"] }
+rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 tonic = "0.8.1"
 tonic-reflection = "0.5.0"
 tokio = { version = "1.18.0", features = ["full"] }
