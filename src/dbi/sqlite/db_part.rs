@@ -1,5 +1,6 @@
 use std::path::Path;
 
+use super::rcd_db::get_updates_from_host_behavior;
 use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::db::get_col_names_of_table;
@@ -7,7 +8,7 @@ use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{
     DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
 };
-use crate::rcd_enum::{ColumnType, DatabaseType};
+use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use rusqlite::types::Type;
@@ -101,119 +102,16 @@ pub fn update_data_into_partial_db(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
-    let original_cmd = cmd.clone();
-
-    let mut cmd;
-    cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
-        .replace(":table_name", table_name);
-
-    if where_clause.len() > 0 {
-        cmd = cmd.replace(":where_clause", where_clause);
-    } else {
-        cmd = cmd.replace("WHERE", "");
-        cmd = cmd.replace(":where_clause", "");
-    }
-
-    // we need to determine the row_ids that we're going to update because we're going to need to update
-    // the data hashes for them
-    let conn = get_partial_db_connection(db_name, &config.root_folder);
-    let mut statement = conn.prepare(&cmd).unwrap();
-
-    // once we have the row ids, then we will need to get the hash of the rows after they've been updated.
-
-    let mut row_ids: Vec<u32> = Vec::new();
-    let row_to_id = |rowid: u32| -> Result<u32> { Ok(rowid) };
-
-    let ids = statement
-        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
-        .unwrap();
-
-    for id in ids {
-        row_ids.push(id.unwrap());
-    }
-
-    // println!("{:?}", row_ids);
-
-    let total_rows = execute_write(&conn, &original_cmd);
-
-    if total_rows != row_ids.len() {
-        panic!("the update statement did not match the expected count of affected rows");
-    }
-
-    // now we need to update the data hashes for every row that was changed
-    // ... how do we do that?
-    let col_names = get_col_names_of_table(table_name.to_string(), &conn);
-    let mut cmd;
-    cmd = String::from("SELECT :col_names FROM :table_name WHERE ROWID = :rid");
-    cmd = cmd.replace(":table_name", table_name);
-
-    let mut col_name_list = String::from("");
-
-    for name in &col_names {
-        col_name_list = col_name_list + name + ",";
-    }
-
-    let completed_col_name_list = &col_name_list[0..&col_name_list.len() - 1];
-    // println!("{}", completed_col_name_list);
-
-    cmd = cmd.replace(":col_names", &completed_col_name_list);
-
-    // println!("{:?}", cmd);
-
-    let mut row_hashes: Vec<(u32, u64)> = Vec::new();
-
-    for id in &row_ids {
-        let sql = cmd.replace(":rid", &id.to_string());
-
-        // println!("{:?}", sql);
-
-        let mut stmt = conn.prepare(&sql).unwrap();
-        let mut rows = stmt.query([]).unwrap();
-
-        // for a single row
-        while let Some(row) = rows.next().unwrap() {
-            let mut row_values: Vec<String> = Vec::new();
-            for i in 0..col_names.len() {
-                let dt = row.get_ref_unwrap(i).data_type();
-
-                let string_value: String = match dt {
-                    Type::Blob => String::from(""),
-                    Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                    Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                    Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                    _ => String::from(""),
-                };
-
-                row_values.push(string_value);
-            }
-
-            let hash_value = crypt::calculate_hash_for_struct(&row_values);
-            let row_hash: (u32, u64) = (*id, hash_value);
-            row_hashes.push(row_hash);
+    let behavior = get_updates_from_host_behavior(db_name, table_name, config);
+    match behavior {
+        UpdatesFromHostBehavior::AllowOverwrite => {
+            return execute_update_overwrite(db_name, table_name, cmd, where_clause, config);
         }
+        UpdatesFromHostBehavior::Unknown => todo!(),
+        UpdatesFromHostBehavior::QueueForReview => todo!(),
+        UpdatesFromHostBehavior::OverwriteWithLog => todo!(),
+        UpdatesFromHostBehavior::Ignore => todo!(),
     }
-
-    // now that we have the row hashes, we should save them back to the table
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
-    let mut cmd = String::from("UPDATE :table_name SET HASH = :hash WHERE ROW_ID = :rid");
-    cmd = cmd.replace(":table_name", &metadata_table_name);
-
-    for row in &row_hashes {
-        let mut statement = conn.prepare(&cmd).unwrap();
-        statement
-            .execute(named_params! {":hash": row.1.to_ne_bytes(), ":rid" : row.0})
-            .unwrap();
-    }
-
-    let row_data = row_hashes.first().unwrap();
-
-    let result = UpdatePartialDataResult {
-        is_successful: true,
-        row_id: row_data.0,
-        data_hash: row_data.1,
-    };
-
-    return result;
 }
 
 pub fn insert_data_into_partial_db(
@@ -383,4 +281,125 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     }
     cmd = cmd + " ) ";
     execute_write(conn, &cmd);
+}
+
+fn execute_update_overwrite(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult {
+    let original_cmd = cmd.clone();
+    let mut cmd;
+    cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
+        .replace(":table_name", table_name);
+
+    if where_clause.len() > 0 {
+        cmd = cmd.replace(":where_clause", where_clause);
+    } else {
+        cmd = cmd.replace("WHERE", "");
+        cmd = cmd.replace(":where_clause", "");
+    }
+
+    // we need to determine the row_ids that we're going to update because we're going to need to update
+    // the data hashes for them
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    // once we have the row ids, then we will need to get the hash of the rows after they've been updated.
+
+    let mut row_ids: Vec<u32> = Vec::new();
+    let row_to_id = |rowid: u32| -> Result<u32> { Ok(rowid) };
+
+    let ids = statement
+        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
+        .unwrap();
+
+    for id in ids {
+        row_ids.push(id.unwrap());
+    }
+
+    // println!("{:?}", row_ids);
+
+    let total_rows = execute_write(&conn, &original_cmd);
+
+    if total_rows != row_ids.len() {
+        panic!("the update statement did not match the expected count of affected rows");
+    }
+
+    // now we need to update the data hashes for every row that was changed
+    // ... how do we do that?
+    let col_names = get_col_names_of_table(table_name.to_string(), &conn);
+    let mut cmd;
+    cmd = String::from("SELECT :col_names FROM :table_name WHERE ROWID = :rid");
+    cmd = cmd.replace(":table_name", table_name);
+
+    let mut col_name_list = String::from("");
+
+    for name in &col_names {
+        col_name_list = col_name_list + name + ",";
+    }
+
+    let completed_col_name_list = &col_name_list[0..&col_name_list.len() - 1];
+    // println!("{}", completed_col_name_list);
+
+    cmd = cmd.replace(":col_names", &completed_col_name_list);
+
+    // println!("{:?}", cmd);
+
+    let mut row_hashes: Vec<(u32, u64)> = Vec::new();
+
+    for id in &row_ids {
+        let sql = cmd.replace(":rid", &id.to_string());
+
+        // println!("{:?}", sql);
+
+        let mut stmt = conn.prepare(&sql).unwrap();
+        let mut rows = stmt.query([]).unwrap();
+
+        // for a single row
+        while let Some(row) = rows.next().unwrap() {
+            let mut row_values: Vec<String> = Vec::new();
+            for i in 0..col_names.len() {
+                let dt = row.get_ref_unwrap(i).data_type();
+
+                let string_value: String = match dt {
+                    Type::Blob => String::from(""),
+                    Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                    Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                    Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                    _ => String::from(""),
+                };
+
+                row_values.push(string_value);
+            }
+
+            let hash_value = crypt::calculate_hash_for_struct(&row_values);
+            let row_hash: (u32, u64) = (*id, hash_value);
+            row_hashes.push(row_hash);
+        }
+    }
+
+    // now that we have the row hashes, we should save them back to the table
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let mut cmd = String::from("UPDATE :table_name SET HASH = :hash WHERE ROW_ID = :rid");
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+
+    for row in &row_hashes {
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {":hash": row.1.to_ne_bytes(), ":rid" : row.0})
+            .unwrap();
+    }
+
+    let row_data = row_hashes.first().unwrap();
+
+    let result = UpdatePartialDataResult {
+        is_successful: true,
+        row_id: row_data.0,
+        data_hash: row_data.1,
+    };
+
+    return result;
 }
