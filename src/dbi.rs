@@ -823,6 +823,19 @@ impl Dbi {
         }
     }
 
+    pub fn execute_write_at_partipant(self: &Self, db_name: &str, cmd: &str) -> usize {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::execute_write_on_connection_at_participant(db_name, cmd, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn execute_read_at_host(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
         match self.db_type {
             DatabaseType::Sqlite => {

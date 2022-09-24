@@ -97,7 +97,8 @@ pub async fn execute_read_at_host(request: ExecuteReadRequest, client: &SqlClien
     return execute_read_reply;
 }
 
-pub async fn execute_write_at_host(
+
+pub async fn execute_write_at_partipant(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
 ) -> ExecuteWriteReply {
@@ -112,7 +113,7 @@ pub async fn execute_write_at_host(
     let statement = message.sql_statement;
 
     if is_authenticated {
-        rows_affected = client.dbi().execute_write_at_host(&db_name, &statement) as u32;
+        rows_affected = client.dbi().execute_write_at_partipant(&db_name, &statement) as u32;
 
         let db_type = client.dbi().db_type();
         let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
@@ -161,6 +162,40 @@ pub async fn execute_write_at_host(
             // the UPDATES_TO_HOST_BEHAVIOR and/or the DELETES_TO_HOST_BEHAVIOR
             // and responding accordingly
         }
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let execute_write_reply = ExecuteWriteReply {
+        authentication_result: Some(auth_response),
+        is_successful: true,
+        total_rows_affected: rows_affected,
+    };
+
+    return execute_write_reply;
+}
+
+pub async fn execute_write_at_host(
+    request: ExecuteWriteRequest,
+    client: &SqlClientImpl,
+) -> ExecuteWriteReply {
+    let mut rows_affected: u32 = 0;
+
+    // check if the user is authenticated
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let statement = message.sql_statement;
+
+    if is_authenticated {
+        rows_affected = client.dbi().execute_write_at_host(&db_name, &statement) as u32;
     }
 
     let auth_response = AuthResult {

@@ -1,3 +1,5 @@
+use self::db_part::get_partial_db_connection;
+
 use super::DbiConfigSqlite;
 use crate::{
     cdata::{ColumnSchema, RowValue},
@@ -312,5 +314,10 @@ pub fn get_db_conn_with_result(config: &DbiConfigSqlite, db_name: &str) -> Resul
 
 pub fn execute_write_on_connection_at_host(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
     let conn = get_db_conn(&config, db_name);
+    return conn.execute(&cmd, []).unwrap();
+}
+
+pub fn execute_write_on_connection_at_participant(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
+    let conn = get_partial_db_connection(&db_name, &config.root_folder);
     return conn.execute(&cmd, []).unwrap();
 }

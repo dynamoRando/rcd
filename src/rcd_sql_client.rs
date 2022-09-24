@@ -517,6 +517,32 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
+    pub async fn execute_write_at_partcipant(
+        self: &Self,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ExecuteWriteRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.execute_write_at_participant(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
     pub async fn try_auth_at_participant(
         self: &Self,
         alias: &str,
