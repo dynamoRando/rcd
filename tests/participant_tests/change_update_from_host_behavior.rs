@@ -310,7 +310,11 @@ async fn participant_changes_update_behavior(
         String::from("123456"),
     );
 
-    unimplemented!()
+    let result = client
+        .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
+        .await;
+
+    return result.unwrap();
 }
 
 #[cfg(test)]

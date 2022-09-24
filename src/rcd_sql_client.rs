@@ -1,13 +1,16 @@
 use crate::cdata::{sql_client_client::SqlClientClient, AuthRequest};
 use crate::cdata::{
-    AcceptPendingContractRequest, AddParticipantRequest, ChangeHostStatusRequest, Contract,
-    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
-    ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
+    AcceptPendingContractRequest, AddParticipantRequest, ChangeHostStatusRequest,
+    ChangeUpdatesFromHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
+    EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
+    ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
     GetLogicalStoragePolicyRequest, HasTableRequest, SendParticipantContractRequest,
     SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
     ViewPendingContractsRequest,
 };
-use crate::rcd_enum::{DatabaseType, LogicalStoragePolicy, RemoteDeleteBehavior};
+use crate::rcd_enum::{
+    DatabaseType, LogicalStoragePolicy, RemoteDeleteBehavior, UpdatesFromHostBehavior,
+};
 use log::info;
 use std::error::Error;
 use tonic::transport::Channel;
@@ -30,6 +33,36 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn change_updates_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: UpdatesFromHostBehavior,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ChangeUpdatesFromHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            behavior: UpdatesFromHostBehavior::to_u32(behavior),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .change_updates_from_host_behavior(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
     }
 
     pub async fn change_host_status_by_id(
@@ -390,7 +423,12 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
-    pub async fn try_auth_at_participant(self: &Self, alias: &str, id: &str, db_name: &str) -> bool {
+    pub async fn try_auth_at_participant(
+        self: &Self,
+        alias: &str,
+        id: &str,
+        db_name: &str,
+    ) -> bool {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(TryAuthAtParticipantRequest {
