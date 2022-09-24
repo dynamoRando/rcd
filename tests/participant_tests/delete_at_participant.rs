@@ -131,9 +131,9 @@ fn test() {
     .join()
     .unwrap();
 
-    let status_change_is_successful = rx_p_deny_write.try_recv().unwrap();
+    let delete_at_participant_is_successful = rx_p_deny_write.try_recv().unwrap();
 
-    assert!(status_change_is_successful);
+    assert!(delete_at_participant_is_successful);
 
     thread::spawn(move || {
         let res = main_read_deleted_row_should_succeed(&db_name_copy, addr);

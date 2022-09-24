@@ -409,9 +409,48 @@ impl DataService for DataServiceImpl {
 
     async fn notify_host_of_removed_row(
         &self,
-        _request: Request<NotifyHostOfRemovedRowRequest>,
+        request: Request<NotifyHostOfRemovedRowRequest>,
     ) -> Result<Response<NotifyHostOfRemovedRowResponse>, Status> {
-        unimplemented!("not implemented");
+        println!(
+            "notify_host_of_removed_row: Request from {:?}",
+            request.remote_addr()
+        );
+        println! {"{:?}", request};
+
+        let message = request.into_inner();
+        let is_authenticated = authenticate_participant(
+            message.authentication.unwrap(),
+            &message.database_name,
+            &self.dbi(),
+        );
+        let mut is_successful = false;
+
+        if is_authenticated {
+            println!("is authenticated");
+            let db_name = message.database_name.clone();
+            let table_name = message.table_name.clone();
+            let row_id = message.row_id;
+
+            is_successful =
+                self.dbi()
+                    .remove_remote_row_reference_from_host(&db_name, &table_name, row_id);
+        } else {
+            println!("not authenticated!");
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = NotifyHostOfRemovedRowResponse {
+            authentication_result: Some(auth_response),
+            is_successful,
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn try_auth(
@@ -483,4 +522,17 @@ fn authenticate_host(authentication: AuthRequest, dbi: &Dbi) -> bool {
     }
 
     return is_authenticated;
+}
+
+fn authenticate_participant(authentication: AuthRequest, db_name: &str, dbi: &Dbi) -> bool {
+    let host_id = authentication.user_name;
+    let host_token = authentication.token;
+    let participant = dbi.get_participant_by_alias(db_name, &host_id);
+
+    return do_vecs_match(&participant.token, &host_token);
+}
+
+fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
+    let matching = a.iter().zip(b.iter()).filter(|&(a, b)| a == b).count();
+    matching == a.len() && matching == b.len()
 }

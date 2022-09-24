@@ -83,6 +83,7 @@ pub struct UpdatePartialDataResult {
     pub data_hash: u64,
 }
 
+#[derive(Debug, Clone)]
 pub struct DeletePartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
@@ -127,6 +128,26 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn remove_remote_row_reference_from_host(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::metadata::remove_remote_row_reference_from_host(
+                    db_name, table_name, row_id, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn get_cds_host_for_part_db(self: &Self, db_name: &str) -> CdsHosts {
         match self.db_type {
             DatabaseType::Sqlite => {

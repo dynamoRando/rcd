@@ -395,9 +395,11 @@ fn execute_delete(
         row_ids.push(id.unwrap());
     }
 
-    // println!("{:?}", row_ids);
+    println!("{:?}", row_ids);
 
     let total_rows = execute_write(&conn, &original_cmd);
+
+    println!("total rows deleted: {}", total_rows);
 
     if total_rows != row_ids.len() {
         panic!("the delete statement did not match the expected count of affected rows");
@@ -411,6 +413,7 @@ fn execute_delete(
     for row in &row_ids {
         let mut statement = conn.prepare(&cmd).unwrap();
         statement.execute(named_params! {":rid" : row}).unwrap();
+        println!("{:?}", statement);
     }
 
     let deleted_row_id = row_ids.first().unwrap();
@@ -420,6 +423,8 @@ fn execute_delete(
         row_id: *deleted_row_id,
         data_hash: 0,
     };
+
+    println!("{:?}", result);
 
     return result;
 }

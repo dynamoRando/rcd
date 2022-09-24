@@ -1,6 +1,40 @@
-use rusqlite::{named_params};
+use rusqlite::named_params;
 
-use crate::{dbi::{DbiConfigSqlite, sqlite::{has_table, get_db_conn, sql_text, execute_write}}, defaults};
+use crate::{
+    dbi::{
+        sqlite::{execute_write, get_db_conn, has_table, sql_text},
+        DbiConfigSqlite,
+    },
+    defaults,
+};
+
+pub fn remove_remote_row_reference_from_host(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    config: &DbiConfigSqlite,
+) -> bool {
+    let conn = get_db_conn(config, db_name);
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+
+    let mut cmd = String::from(
+        "DELETE FROM :table_name
+         WHERE ROW_ID = :rid
+    ;",
+    );
+
+    println!("{}", cmd);
+
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let rows = statement.execute(named_params! {":rid": row_id}).unwrap();
+
+    println!("total row_references_deleted: {}", rows);
+
+    return rows > 0;
+}
 
 pub fn insert_metadata_into_host_db(
     db_name: &str,
