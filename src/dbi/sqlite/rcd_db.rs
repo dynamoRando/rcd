@@ -1,9 +1,10 @@
-use super::{has_any_rows, sql_text::CDS};
+use super::{get_scalar_as_u32, has_any_rows, sql_text::CDS};
 use crate::{
     crypt,
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
     host_info::HostInfo,
     rcd_db::User,
+    rcd_enum::UpdatesFromHostBehavior,
 };
 use guid_create::GUID;
 use log::info;
@@ -12,6 +13,146 @@ use std::path::Path;
 
 pub mod contract;
 pub mod role;
+
+pub fn get_updates_from_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatesFromHostBehavior {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+        SELECT 
+            UPDATES_FROM_HOST_BEHAVIOR
+        FROM
+            CDS_CONTRACTS_TABLES 
+        WHERE
+            DATABASE_NAME = ':db_name'
+        AND
+            TABLE_NAME = ':table_name'
+        ;",
+    );
+    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":table_name", table_name);
+
+    let result = get_scalar_as_u32(cmd, &conn);
+
+    let behavior = UpdatesFromHostBehavior::from_u32(result);
+
+    return behavior;
+}
+
+pub fn change_updates_from_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    behavior: u32,
+    config: &DbiConfigSqlite,
+) -> bool {
+    let conn = get_rcd_conn(config);
+    let cmd = String::from(
+        "
+        UPDATE CDS_CONTRACTS_TABLES 
+        SET UPDATES_FROM_HOST_BEHAVIOR = :behavior 
+        WHERE
+            DATABASE_NAME = :db_name
+        AND
+            TABLE_NAME = :table_name
+        ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(
+            named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
+        )
+        .unwrap();
+
+    return result > 0;
+}
+
+pub fn change_deletes_from_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    behavior: u32,
+    config: &DbiConfigSqlite,
+) -> bool {
+    let conn = get_rcd_conn(config);
+    let cmd = String::from(
+        "
+        UPDATE CDS_CONTRACTS_TABLES 
+        SET DELETES_FROM_HOST_BEHAVIOR = :behavior 
+        WHERE
+            DATABASE_NAME = :db_name
+        AND
+            TABLE_NAME = :table_name
+        ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(
+            named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
+        )
+        .unwrap();
+
+    return result > 0;
+}
+
+pub fn change_updates_to_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    behavior: u32,
+    config: &DbiConfigSqlite,
+) -> bool {
+    let conn = get_rcd_conn(config);
+    let cmd = String::from(
+        "
+        UPDATE CDS_CONTRACTS_TABLES 
+        SET UPDATES_TO_HOST_BEHAVIOR = :behavior 
+        WHERE
+            DATABASE_NAME = :db_name
+        AND
+            TABLE_NAME = :table_name
+        ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(
+            named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
+        )
+        .unwrap();
+
+    return result > 0;
+}
+
+pub fn change_deletes_to_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    behavior: u32,
+    config: &DbiConfigSqlite,
+) -> bool {
+    let conn = get_rcd_conn(config);
+    let cmd = String::from(
+        "
+        UPDATE CDS_CONTRACTS_TABLES 
+        SET DELETES_TO_HOST_BEHAVIOR = :behavior 
+        WHERE
+            DATABASE_NAME = :db_name
+        AND
+            TABLE_NAME = :table_name
+        ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let result = statement
+        .execute(
+            named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
+        )
+        .unwrap();
+
+    return result > 0;
+}
 
 pub fn change_host_status_by_id(host_id: &str, status: u32, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);

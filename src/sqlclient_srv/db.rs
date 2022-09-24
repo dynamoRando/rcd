@@ -236,12 +236,40 @@ pub async fn enable_coooperative_features(
     return enable_cooperative_features_reply;
 }
 
-#[allow(dead_code, unused_variables)]
 pub async fn change_updates_from_host_behavior(
     request: ChangeUpdatesFromHostBehaviorRequest,
     client: &SqlClientImpl,
 ) -> ChangesUpdatesFromHostBehaviorReply {
-    unimplemented!()
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let behavior = message.behavior;
+    let mut is_successful = false;
+
+    if is_authenticated {
+        is_successful =
+            client
+                .dbi()
+                .change_updates_from_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let enable_cooperative_features_reply = ChangesUpdatesFromHostBehaviorReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return enable_cooperative_features_reply;
 }
 
 #[allow(dead_code, unused_variables)]

@@ -7,7 +7,7 @@ use crate::{
     host_info::HostInfo,
     rcd_enum::{
         DatabaseType, LogicalStoragePolicy, RcdDbError, RcdGenerateContractError,
-        RemoteDeleteBehavior,
+        RemoteDeleteBehavior, UpdatesFromHostBehavior,
     },
     table::Table,
 };
@@ -72,6 +72,105 @@ pub struct DbiConfigPostgres {
 impl Dbi {
     pub fn db_type(self: &Self) -> DatabaseType {
         return self.db_type;
+    }
+
+    pub fn get_updates_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> UpdatesFromHostBehavior {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_updates_from_host_behavior(
+                    db_name, table_name, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn change_updates_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_updates_from_host_behavior(
+                    db_name, table_name, behavior, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn change_deletes_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_deletes_from_host_behavior(
+                    db_name, table_name, behavior, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn change_updates_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_updates_to_host_behavior(
+                    db_name, table_name, behavior, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn change_deletes_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: u32,
+    ) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::change_deletes_to_host_behavior(
+                    db_name, table_name, behavior, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn get_row_from_partial_database(
