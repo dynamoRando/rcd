@@ -112,7 +112,7 @@ async fn main_service_client(
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
     client
-        .execute_write(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type)
+        .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type)
         .await
         .unwrap();
 
@@ -120,7 +120,7 @@ async fn main_service_client(
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
     client
-        .execute_write(db_name, &create_table_statement, database_type)
+        .execute_write_at_host(db_name, &create_table_statement, database_type)
         .await
         .unwrap();
 
@@ -167,7 +167,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
     );
 
     client
-        .execute_cooperative_write(
+        .execute_cooperative_write_at_host(
             db_name,
             "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
             "participant",
@@ -177,7 +177,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
         .unwrap();
 
     let data = client
-        .execute_read(
+        .execute_read_at_host(
             db_name,
             "SELECT ID FROM EMPLOYEE",
             DatabaseType::to_u32(DatabaseType::Sqlite),
@@ -206,7 +206,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
     assert_eq!(value, expected_value);
 
     let update_result = client
-        .execute_cooperative_write(
+        .execute_cooperative_write_at_host(
             db_name,
             "UPDATE EMPLOYEE SET NAME = 'Bob' WHERE Id = 999;",
             "participant",
@@ -218,7 +218,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
     assert!(update_result);
 
     let new_data = client
-        .execute_read(
+        .execute_read_at_host(
             db_name,
             "SELECT Name FROM EMPLOYEE",
             DatabaseType::to_u32(DatabaseType::Sqlite),

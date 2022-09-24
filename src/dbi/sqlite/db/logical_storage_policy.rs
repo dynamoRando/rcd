@@ -1,7 +1,7 @@
 use crate::{
     dbi::{
         sqlite::{
-            execute_write_on_connection, get_db_conn, get_scalar_as_u32, has_any_rows, has_table,
+            execute_write_on_connection_at_host, get_db_conn, get_scalar_as_u32, has_any_rows, has_table,
         },
         DbiConfigSqlite,
     },
@@ -57,7 +57,7 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection(db_name, &cmd, &config);
+            execute_write_on_connection_at_host(db_name, &cmd, &config);
         } else {
             // then this is an insert
             let mut cmd = String::from(
@@ -75,7 +75,7 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection(db_name, &cmd, &config);
+            execute_write_on_connection_at_host(db_name, &cmd, &config);
         }
 
         populate_data_host_tables(db_name, &conn);

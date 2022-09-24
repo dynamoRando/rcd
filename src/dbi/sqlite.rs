@@ -217,7 +217,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     return Ok(table);
 }
 
-pub fn execute_read(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> rusqlite::Result<Table> {
+pub fn execute_read_at_host(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> rusqlite::Result<Table> {
     let conn = get_db_conn(&config, db_name);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
@@ -310,7 +310,7 @@ pub fn get_db_conn_with_result(config: &DbiConfigSqlite, db_name: &str) -> Resul
     return Connection::open(&db_path);
 }
 
-pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
+pub fn execute_write_on_connection_at_host(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
     let conn = get_db_conn(&config, db_name);
     return conn.execute(&cmd, []).unwrap();
 }

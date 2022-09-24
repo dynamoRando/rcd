@@ -1024,7 +1024,7 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn execute_read(
+        pub async fn execute_read_at_host(
             &mut self,
             request: impl tonic::IntoRequest<super::ExecuteReadRequest>,
         ) -> Result<tonic::Response<super::ExecuteReadReply>, tonic::Status> {
@@ -1039,11 +1039,11 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/cdata.SQLClient/ExecuteRead",
+                "/cdata.SQLClient/ExecuteReadAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn execute_write(
+        pub async fn execute_write_at_host(
             &mut self,
             request: impl tonic::IntoRequest<super::ExecuteWriteRequest>,
         ) -> Result<tonic::Response<super::ExecuteWriteReply>, tonic::Status> {
@@ -1058,11 +1058,11 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/cdata.SQLClient/ExecuteWrite",
+                "/cdata.SQLClient/ExecuteWriteAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn execute_cooperative_write(
+        pub async fn execute_cooperative_write_at_host(
             &mut self,
             request: impl tonic::IntoRequest<super::ExecuteCooperativeWriteRequest>,
         ) -> Result<
@@ -1080,7 +1080,45 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/cdata.SQLClient/ExecuteCooperativeWrite",
+                "/cdata.SQLClient/ExecuteCooperativeWriteAtHost",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn execute_read_at_participant(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExecuteReadRequest>,
+        ) -> Result<tonic::Response<super::ExecuteReadReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/ExecuteReadAtParticipant",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn execute_write_at_participant(
+            &mut self,
+            request: impl tonic::IntoRequest<super::ExecuteWriteRequest>,
+        ) -> Result<tonic::Response<super::ExecuteWriteReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/ExecuteWriteAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1743,18 +1781,26 @@ pub mod sql_client_server {
             tonic::Response<super::EnableCoooperativeFeaturesReply>,
             tonic::Status,
         >;
-        async fn execute_read(
+        async fn execute_read_at_host(
             &self,
             request: tonic::Request<super::ExecuteReadRequest>,
         ) -> Result<tonic::Response<super::ExecuteReadReply>, tonic::Status>;
-        async fn execute_write(
+        async fn execute_write_at_host(
             &self,
             request: tonic::Request<super::ExecuteWriteRequest>,
         ) -> Result<tonic::Response<super::ExecuteWriteReply>, tonic::Status>;
-        async fn execute_cooperative_write(
+        async fn execute_cooperative_write_at_host(
             &self,
             request: tonic::Request<super::ExecuteCooperativeWriteRequest>,
         ) -> Result<tonic::Response<super::ExecuteCooperativeWriteReply>, tonic::Status>;
+        async fn execute_read_at_participant(
+            &self,
+            request: tonic::Request<super::ExecuteReadRequest>,
+        ) -> Result<tonic::Response<super::ExecuteReadReply>, tonic::Status>;
+        async fn execute_write_at_participant(
+            &self,
+            request: tonic::Request<super::ExecuteWriteRequest>,
+        ) -> Result<tonic::Response<super::ExecuteWriteReply>, tonic::Status>;
         async fn has_table(
             &self,
             request: tonic::Request<super::HasTableRequest>,
@@ -2011,13 +2057,13 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
-                "/cdata.SQLClient/ExecuteRead" => {
+                "/cdata.SQLClient/ExecuteReadAtHost" => {
                     #[allow(non_camel_case_types)]
-                    struct ExecuteReadSvc<T: SqlClient>(pub Arc<T>);
+                    struct ExecuteReadAtHostSvc<T: SqlClient>(pub Arc<T>);
                     impl<
                         T: SqlClient,
                     > tonic::server::UnaryService<super::ExecuteReadRequest>
-                    for ExecuteReadSvc<T> {
+                    for ExecuteReadAtHostSvc<T> {
                         type Response = super::ExecuteReadReply;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
@@ -2029,7 +2075,7 @@ pub mod sql_client_server {
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).execute_read(request).await
+                                (*inner).execute_read_at_host(request).await
                             };
                             Box::pin(fut)
                         }
@@ -2039,7 +2085,7 @@ pub mod sql_client_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = ExecuteReadSvc(inner);
+                        let method = ExecuteReadAtHostSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2051,13 +2097,13 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
-                "/cdata.SQLClient/ExecuteWrite" => {
+                "/cdata.SQLClient/ExecuteWriteAtHost" => {
                     #[allow(non_camel_case_types)]
-                    struct ExecuteWriteSvc<T: SqlClient>(pub Arc<T>);
+                    struct ExecuteWriteAtHostSvc<T: SqlClient>(pub Arc<T>);
                     impl<
                         T: SqlClient,
                     > tonic::server::UnaryService<super::ExecuteWriteRequest>
-                    for ExecuteWriteSvc<T> {
+                    for ExecuteWriteAtHostSvc<T> {
                         type Response = super::ExecuteWriteReply;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
@@ -2069,7 +2115,7 @@ pub mod sql_client_server {
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).execute_write(request).await
+                                (*inner).execute_write_at_host(request).await
                             };
                             Box::pin(fut)
                         }
@@ -2079,7 +2125,7 @@ pub mod sql_client_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = ExecuteWriteSvc(inner);
+                        let method = ExecuteWriteAtHostSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -2091,13 +2137,13 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
-                "/cdata.SQLClient/ExecuteCooperativeWrite" => {
+                "/cdata.SQLClient/ExecuteCooperativeWriteAtHost" => {
                     #[allow(non_camel_case_types)]
-                    struct ExecuteCooperativeWriteSvc<T: SqlClient>(pub Arc<T>);
+                    struct ExecuteCooperativeWriteAtHostSvc<T: SqlClient>(pub Arc<T>);
                     impl<
                         T: SqlClient,
                     > tonic::server::UnaryService<super::ExecuteCooperativeWriteRequest>
-                    for ExecuteCooperativeWriteSvc<T> {
+                    for ExecuteCooperativeWriteAtHostSvc<T> {
                         type Response = super::ExecuteCooperativeWriteReply;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
@@ -2111,7 +2157,7 @@ pub mod sql_client_server {
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).execute_cooperative_write(request).await
+                                (*inner).execute_cooperative_write_at_host(request).await
                             };
                             Box::pin(fut)
                         }
@@ -2121,7 +2167,87 @@ pub mod sql_client_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = ExecuteCooperativeWriteSvc(inner);
+                        let method = ExecuteCooperativeWriteAtHostSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.SQLClient/ExecuteReadAtParticipant" => {
+                    #[allow(non_camel_case_types)]
+                    struct ExecuteReadAtParticipantSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::ExecuteReadRequest>
+                    for ExecuteReadAtParticipantSvc<T> {
+                        type Response = super::ExecuteReadReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ExecuteReadRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).execute_read_at_participant(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ExecuteReadAtParticipantSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.SQLClient/ExecuteWriteAtParticipant" => {
+                    #[allow(non_camel_case_types)]
+                    struct ExecuteWriteAtParticipantSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::ExecuteWriteRequest>
+                    for ExecuteWriteAtParticipantSvc<T> {
+                        type Response = super::ExecuteWriteReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::ExecuteWriteRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).execute_write_at_participant(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = ExecuteWriteAtParticipantSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

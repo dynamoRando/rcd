@@ -83,7 +83,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
     assert!(enable_coop_features);
     let mut execute_write_drop_is_successful = false;
     execute_write_drop_is_successful = client
-        .execute_write(db_name, &drop_table_statement, database_type)
+        .execute_write_at_host(db_name, &drop_table_statement, database_type)
         .await
         .unwrap();
 
@@ -94,7 +94,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
 
     let mut execute_write_create_reply_is_successful = false;
     execute_write_create_reply_is_successful = client
-        .execute_write(db_name, &create_table_statement, database_type)
+        .execute_write_at_host(db_name, &create_table_statement, database_type)
         .await
         .unwrap();
 
@@ -104,7 +104,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
 
     let mut execute_write_add_record_is_successful = false;
     execute_write_add_record_is_successful = client
-        .execute_write(db_name, &add_record_statement, database_type)
+        .execute_write_at_host(db_name, &add_record_statement, database_type)
         .await
         .unwrap();
 
@@ -112,7 +112,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
 
     let read_record_statement = String::from("SELECT Id, Name FROM EMPLOYEE");
     let read_reply = client
-        .execute_read(db_name, &read_record_statement, database_type)
+        .execute_read_at_host(db_name, &read_record_statement, database_type)
         .await
         .unwrap();
 

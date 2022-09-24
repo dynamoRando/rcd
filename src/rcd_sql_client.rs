@@ -238,7 +238,7 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
-    pub async fn execute_cooperative_write(
+    pub async fn execute_cooperative_write_at_host(
         self: &Self,
         db_name: &str,
         cmd: &str,
@@ -261,7 +261,7 @@ impl RcdClient {
 
         let mut client = self.get_client().await;
         let response = client
-            .execute_cooperative_write(request)
+            .execute_cooperative_write_at_host(request)
             .await
             .unwrap()
             .into_inner();
@@ -491,7 +491,7 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
-    pub async fn execute_write(
+    pub async fn execute_write_at_host(
         self: &Self,
         db_name: &str,
         sql_statement: &str,
@@ -510,7 +510,7 @@ impl RcdClient {
 
         let mut client = self.get_client().await;
 
-        let response = client.execute_write(request).await.unwrap().into_inner();
+        let response = client.execute_write_at_host(request).await.unwrap().into_inner();
         println!("RESPONSE={:?}", response);
         info!("response back");
 
@@ -547,7 +547,7 @@ impl RcdClient {
         return response.is_successful;
     }
 
-    pub async fn execute_read(
+    pub async fn execute_read_at_host(
         self: &Self,
         db_name: &str,
         sql_statement: &str,
@@ -566,7 +566,7 @@ impl RcdClient {
 
         let mut client = self.get_client().await;
 
-        let response = client.execute_read(request).await.unwrap().into_inner();
+        let response = client.execute_read_at_host(request).await.unwrap().into_inner();
         println!("RESPONSE={:?}", response);
         info!("response back");
 

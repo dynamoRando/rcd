@@ -6,9 +6,11 @@ service SQLClient {
 	rpc IsOnline(TestRequest) returns (TestReply);
 	rpc CreateUserDatabase(CreateUserDatabaseRequest) returns (CreateUserDatabaseReply);
 	rpc EnableCoooperativeFeatures(EnableCoooperativeFeaturesRequest) returns (EnableCoooperativeFeaturesReply);
-	rpc ExecuteRead(ExecuteReadRequest) returns (ExecuteReadReply);
-	rpc ExecuteWrite(ExecuteWriteRequest) returns (ExecuteWriteReply);
-	rpc ExecuteCooperativeWrite(ExecuteCooperativeWriteRequest) returns (ExecuteCooperativeWriteReply);
+	rpc ExecuteReadAtHost(ExecuteReadRequest) returns (ExecuteReadReply);
+	rpc ExecuteWriteAtHost(ExecuteWriteRequest) returns (ExecuteWriteReply);
+	rpc ExecuteCooperativeWriteAtHost(ExecuteCooperativeWriteRequest) returns (ExecuteCooperativeWriteReply);
+	rpc ExecuteReadAtParticipant(ExecuteReadRequest) returns (ExecuteReadReply);
+	rpc ExecuteWriteAtParticipant(ExecuteWriteRequest) returns (ExecuteWriteReply);
 	rpc HasTable(HasTableRequest) returns (HasTableReply);
 	rpc SetLogicalStoragePolicy(SetLogicalStoragePolicyRequest) returns (SetLogicalStoragePolicyReply);
 	rpc GetLogicalStoragePolicy(GetLogicalStoragePolicyRequest) returns (GetLogicalStoragePolicyReply);

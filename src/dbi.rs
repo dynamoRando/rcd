@@ -810,11 +810,11 @@ impl Dbi {
         }
     }
 
-    pub fn execute_write(self: &Self, db_name: &str, cmd: &str) -> usize {
+    pub fn execute_write_at_host(self: &Self, db_name: &str, cmd: &str) -> usize {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::execute_write_on_connection(db_name, cmd, &settings);
+                return sqlite::execute_write_on_connection_at_host(db_name, cmd, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -823,11 +823,11 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+    pub fn execute_read_at_host(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::execute_read(db_name, cmd, settings);
+                return sqlite::execute_read_at_host(db_name, cmd, settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

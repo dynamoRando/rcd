@@ -79,31 +79,47 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
-    async fn execute_read(
+    async fn execute_read_at_host(
         &self,
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_read_reply = io::execute_read(request.into_inner(), self).await;
+        let execute_read_reply = io::execute_read_at_host(request.into_inner(), self).await;
         Ok(Response::new(execute_read_reply))
     }
 
-    async fn execute_write(
+    async fn execute_read_at_participant(
+        &self,
+        request: Request<ExecuteReadRequest>,
+    ) -> Result<Response<ExecuteReadReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!();
+    }
+
+    async fn execute_write_at_host(
         &self,
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_write(request.into_inner(), self).await;
+        let execute_write_reply = io::execute_write_at_host(request.into_inner(), self).await;
         Ok(Response::new(execute_write_reply))
     }
 
+    async fn execute_write_at_participant(
+        &self,
+        request: Request<ExecuteWriteRequest>,
+    ) -> Result<Response<ExecuteWriteReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!();
+    }
+
     #[allow(unused_assignments)]
-    async fn execute_cooperative_write(
+    async fn execute_cooperative_write_at_host(
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_cooperative_write(request.into_inner(), self).await;
+        let execute_write_reply = io::execute_cooperative_write_at_host(request.into_inner(), self).await;
         Ok(Response::new(execute_write_reply))
     }
 

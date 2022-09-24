@@ -12,7 +12,7 @@ use crate::{
 use conv::UnwrapOk;
 use conv::ValueFrom;
 
-pub async fn execute_read(request: ExecuteReadRequest, client: &SqlClientImpl) -> ExecuteReadReply {
+pub async fn execute_read_at_host(request: ExecuteReadRequest, client: &SqlClientImpl) -> ExecuteReadReply {
     // check if the user is authenticated
     let message = request.clone();
     let a = message.authentication.unwrap();
@@ -63,7 +63,7 @@ pub async fn execute_read(request: ExecuteReadRequest, client: &SqlClientImpl) -
 
             statement_result_set.rows = result_table;
         } else {
-            let query_result = client.dbi().execute_read(&db_name, &sql);
+            let query_result = client.dbi().execute_read_at_host(&db_name, &sql);
 
             if query_result.is_ok() {
                 let result_rows = query_result.unwrap().to_cdata_rows();
@@ -97,7 +97,7 @@ pub async fn execute_read(request: ExecuteReadRequest, client: &SqlClientImpl) -
     return execute_read_reply;
 }
 
-pub async fn execute_write(
+pub async fn execute_write_at_host(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
 ) -> ExecuteWriteReply {
@@ -112,7 +112,7 @@ pub async fn execute_write(
     let statement = message.sql_statement;
 
     if is_authenticated {
-        rows_affected = client.dbi().execute_write(&db_name, &statement) as u32;
+        rows_affected = client.dbi().execute_write_at_host(&db_name, &statement) as u32;
 
         let db_type = client.dbi().db_type();
         let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
@@ -179,7 +179,7 @@ pub async fn execute_write(
     return execute_write_reply;
 }
 
-pub async fn execute_cooperative_write(
+pub async fn execute_cooperative_write_at_host(
     request: ExecuteCooperativeWriteRequest,
     client: &SqlClientImpl,
 ) -> ExecuteCooperativeWriteReply {
