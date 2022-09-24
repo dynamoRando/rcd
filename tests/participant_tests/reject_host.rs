@@ -4,13 +4,37 @@ use rcd::rcd_sql_client::RcdClient;
 use std::sync::mpsc;
 use std::{thread, time};
 
+/* 
+# Test Description
+
+## Purpose:
+This test checks to see if the setting for authenticating a host is respected. This is the value in the rcd db for HOST_STATUS in
+the table CDS_HOSTS.
+
+## Feature Background
+We want to make sure the participants have full authority with who they interact with. In this test, after a host and a participant
+agree to participate (by the participant accepting a contract) we want to deny the host from taking any further actions.
+
+## Test Steps
+- Start an rcd instance for a main (host) and a participant
+- Host:
+    - Generate a db and tables and a contract to send to particpant
+- Participant:
+    - Accept contract
+- Host:
+    - Send one row to participant to be inserted and test to make sure can read from participant
+- Participant:
+    - Change the host status to Deny
+- Host:
+    - Attempt to check authentication status.
+
+### Expected Results:
+The authentication status should return a failure.
+
+*/
+
 #[test]
 fn test() {
-    /*
-        We will need to kick off two services, the host and the participant
-        and we will need to also kick off two clients, one for each
-    */
-
     let test_name = "reject_host";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");

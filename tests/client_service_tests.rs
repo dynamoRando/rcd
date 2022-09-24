@@ -28,3 +28,23 @@ fn get_harness_value() {
         .get_next_avail_port();
     assert_eq!(current + 1, next);
 }
+
+
+/* 
+# Test Module Overview
+
+This module is intended to group tests related to ensuring the rcd sql client service is working correctly - mainly from the perspective of the host. While
+the rcd sql client service presents actions for both a host and a participant, this module will mainly focus on actions that would be taken from a host.
+
+For test that relate to the perspective of a participant, see the `participant_tests` module.
+
+## Test Module Background
+We want to make sure that all functionality with a host is working correctly. This includes basic actions such as:
+
+- being able to create a database
+- being able to generate a contract
+- being able to enable cooperative features
+
+and so on.
+
+*/
