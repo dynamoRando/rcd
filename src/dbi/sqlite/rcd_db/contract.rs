@@ -427,7 +427,11 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
         DATABASE_NAME,
         TABLE_ID,
         TABLE_NAME,
-        LOGICAL_STORAGE_POLICY
+        LOGICAL_STORAGE_POLICY,
+        UPDATES_FROM_HOST_BEHAVIOR,
+        DELETES_FROM_HOST_BEHAVIOR,
+        UPDATES_TO_HOST_BEHAVIOR,
+        DELETES_TO_HOST_BEHAVIOR
     )
     VALUES
     (
@@ -435,7 +439,11 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
         :dbname,
         :tid,
         :tname,
-        :policy
+        :policy,
+        1,
+        1,
+        1,
+        1
     )
     ;
     ",

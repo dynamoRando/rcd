@@ -21,6 +21,20 @@ service SQLClient {
 	rpc GenerateHostInfo(GenerateHostInfoRequest) returns (GenerateHostInfoReply);
 	rpc ChangeHostStatus(ChangeHostStatusRequest) returns (ChangeHostStatusReply);
 	rpc TryAuthAtParticipant(TryAuthAtParticipantRequest) returns (TryAuthAtPartipantReply);
+	rpc ChangeUpdatesFromHostBehavior(ChangeUpdatesFromHostBehaviorRequest) returns (ChangesUpdatesFromHostBehaviorReply);
+}
+
+message ChangeUpdatesFromHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 behavior = 4;
+}
+
+message ChangesUpdatesFromHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
 }
 
 message TryAuthAtParticipantRequest {

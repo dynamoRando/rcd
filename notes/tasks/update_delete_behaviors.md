@@ -9,7 +9,7 @@ When a host sends either an UPDATE or DELETE statement to a participant, the par
 - UpdatesFromHostBehavior
 
 # Implementation Tasks
-- On contract generation, default to allow update and delete
+- [X] On contract generation, default to allow update and delete
 - Modify the `cdata.proto` for new function calls for update/delete
 - in SQL Client Service, implement to modify for partial db table UPDATE/DELETE  status
 - in rcd SQL Client, add corresponding functions to call methods
