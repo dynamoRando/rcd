@@ -517,7 +517,7 @@ impl RcdClient {
         Ok(response.is_successful)
     }
 
-    pub async fn execute_write_at_partcipant(
+    pub async fn execute_write_at_participant(
         self: &Self,
         db_name: &str,
         sql_statement: &str,

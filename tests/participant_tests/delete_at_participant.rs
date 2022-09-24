@@ -7,9 +7,35 @@ use std::{thread, time};
 
 /*
 # Test Description
+
+## Purpose:
+This test checks to see if the setting at the participant for DELETES_TO_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES 
+is being respected.
+
+## Feature Background
+We want to make sure the participants have full authority over their data. This means that they have the option to change
+how actions on their side are reported back to the host. In this test, if a participant DELETEs a row on the partial database, we will communicate
+back to the host that the row has been deleted. We expect that when the host tries to read the rows again, there should not be anything.
+
+## Test Steps
+- Start an rcd instance for a main (host) and a participant
+- Host:
+    - Generate a db and tables and a contract to send to particpant
+- Participant:
+    - Accept contract
+- Host:
+    - Send one row to participant to be inserted and test to make sure can read from participant
+- Participant:
+    - Change DeletesToHostBehavior to Send Notification
+    - Delete the newly added row from the previous step
+- Host:
+    - Attempt to read previously inserted row, and should return no records.
+
+### Expected Results:
+The read attempt should return 0 rows.
+
 */
 
-#[ignore = "code not written"]
 #[test]
 fn test() {
     let test_name = "delta_delete_from_part";
@@ -116,9 +142,9 @@ fn test() {
     .join()
     .unwrap();
 
-    let should_fail = rx_h_auth_fail.try_recv().unwrap();
+    let should_not_have_rows = rx_h_auth_fail.try_recv().unwrap();
 
-    assert!(!should_fail);
+    assert!(should_not_have_rows);
 }
 
 #[cfg(test)]
@@ -304,7 +330,7 @@ async fn participant_changes_delete_behavior(
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     info!(
-        "participant_changes_update_behavior attempting to connect {}",
+        "participant_changes_delete_behavior attempting to connect {}",
         participant_client_addr.to_full_string_with_http()
     );
 
@@ -314,11 +340,20 @@ async fn participant_changes_delete_behavior(
         String::from("123456"),
     );
 
-    let result = client
+    let change_delete_behavior = client
         .change_deletes_to_host_behavior(db_name, "EMPLOYEE", behavior)
         .await;
 
-    return result.unwrap();
+    assert!(change_delete_behavior.unwrap());
+
+    let statement = String::from("DELETE FROM EMPLOYEE WHERE ID = 999");
+    let delete_result = client.execute_write_at_participant(
+        db_name,
+        &statement,
+        DatabaseType::to_u32(DatabaseType::Sqlite),
+    ).await;
+
+    return delete_result.unwrap();
 }
 
 #[cfg(test)]
@@ -337,10 +372,12 @@ async fn main_read_deleted_row_should_succeed(
     );
 
     let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
-    let update_result = client
+    let read_result = client
         .execute_read_at_host(db_name, &cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
         .await;
     // we should expect to get zero rows back
 
-    unimplemented!();
+    let results = read_result.unwrap();
+
+    return results.rows.len() == 0;
 }
