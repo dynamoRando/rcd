@@ -93,7 +93,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!();
+        let execute_read_reply = io::execute_read_at_participant(request.into_inner(), self).await;
+        Ok(Response::new(execute_read_reply))
     }
 
     async fn execute_write_at_host(

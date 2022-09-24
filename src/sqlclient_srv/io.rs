@@ -1,8 +1,9 @@
 use super::SqlClientImpl;
 use crate::{
     cdata::{
-        AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
-        ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
+        AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest,
+        ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
+        StatementResultset,
     },
     host_info::HostInfo,
     query_parser,
@@ -12,7 +13,10 @@ use crate::{
 use conv::UnwrapOk;
 use conv::ValueFrom;
 
-pub async fn execute_read_at_host(request: ExecuteReadRequest, client: &SqlClientImpl) -> ExecuteReadReply {
+pub async fn execute_read_at_host(
+    request: ExecuteReadRequest,
+    client: &SqlClientImpl,
+) -> ExecuteReadReply {
     // check if the user is authenticated
     let message = request.clone();
     let a = message.authentication.unwrap();
@@ -97,6 +101,58 @@ pub async fn execute_read_at_host(request: ExecuteReadRequest, client: &SqlClien
     return execute_read_reply;
 }
 
+pub async fn execute_read_at_participant(
+    request: ExecuteReadRequest,
+    client: &SqlClientImpl,
+) -> ExecuteReadReply {
+    // check if the user is authenticated
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let sql = message.sql_statement;
+
+    let mut statement_result_set = StatementResultset {
+        is_error: true,
+        result_message: String::from(""),
+        number_of_rows_affected: 0,
+        rows: Vec::new(),
+        execution_error_message: String::from(""),
+    };
+
+    if is_authenticated {
+        let query_result = client.dbi().execute_read_at_host(&db_name, &sql);
+
+        if query_result.is_ok() {
+            let result_rows = query_result.unwrap().to_cdata_rows();
+            statement_result_set.number_of_rows_affected =
+                u64::value_from(result_rows.len()).unwrap_ok();
+            statement_result_set.rows = result_rows;
+            statement_result_set.is_error = false;
+        } else {
+            statement_result_set.execution_error_message = query_result.unwrap_err().to_string();
+        }
+    }
+
+    let mut statement_results = Vec::new();
+    statement_results.push(statement_result_set);
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let execute_read_reply = ExecuteReadReply {
+        authentication_result: Some(auth_response),
+        total_resultsets: 1,
+        results: statement_results,
+    };
+
+    return execute_read_reply;
+}
 
 pub async fn execute_write_at_partipant(
     request: ExecuteWriteRequest,
@@ -113,7 +169,9 @@ pub async fn execute_write_at_partipant(
     let statement = message.sql_statement;
 
     if is_authenticated {
-        rows_affected = client.dbi().execute_write_at_partipant(&db_name, &statement) as u32;
+        rows_affected = client
+            .dbi()
+            .execute_write_at_partipant(&db_name, &statement) as u32;
 
         let db_type = client.dbi().db_type();
         let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
