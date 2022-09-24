@@ -6,7 +6,7 @@ use crate::{
     },
     host_info::HostInfo,
     query_parser,
-    rcd_enum::DmlType,
+    rcd_enum::{DmlType, RcdDatabaseType},
     remote_db_srv,
 };
 use conv::UnwrapOk;
@@ -113,6 +113,31 @@ pub async fn execute_write(
 
     if is_authenticated {
         rows_affected = client.dbi().execute_write(&db_name, &statement) as u32;
+
+        let db_type = client.dbi().db_type();
+        let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
+
+        if rcd_db_type == RcdDatabaseType::Partial {
+            let statement_type = query_parser::determine_dml_type(&statement, db_type);
+
+            match statement_type {
+                DmlType::Unknown => todo!(),
+                DmlType::Insert => todo!(),
+                DmlType::Update => {
+                    // UpdateRowDataHashForHost
+                }
+                DmlType::Delete => {
+                    // NotifyHostOfRemovedRow
+                }
+                DmlType::Select => todo!(),
+            }
+
+            // we need to determine the statement type (INSERT/UPDATE/DELETE)
+            // and check to see if we need to communicate changes upstream to the host
+            // we do this by looking at the CDS_CONTRACTS_TABLES and checking
+            // the UPDATES_TO_HOST_BEHAVIOR and/or the DELETES_TO_HOST_BEHAVIOR
+            // and responding accordingly
+        }
     }
 
     let auth_response = AuthResult {

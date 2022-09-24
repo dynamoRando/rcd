@@ -1,6 +1,41 @@
 use std::{error::Error, fmt};
 use substring::Substring;
 
+/// Represents the kinds of databases in rcd
+/// # Kinds
+/// - 0 - Unknown
+/// - 1 - Rcd database itself
+/// - 2 - Host database
+/// - 3 - Partial database
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum RcdDatabaseType {
+    Unknown = 0,
+    Rcd = 1,
+    Host = 2,
+    Partial = 3,
+}
+
+impl RcdDatabaseType {
+    pub fn from_u32(value: u32) -> RcdDatabaseType {
+        match value {
+            0 => RcdDatabaseType::Unknown,
+            1 => RcdDatabaseType::Rcd,
+            2 => RcdDatabaseType::Host,
+            3 => RcdDatabaseType::Partial,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(db: RcdDatabaseType) -> u32 {
+        match db {
+            RcdDatabaseType::Unknown => 0,
+            RcdDatabaseType::Rcd => 1,
+            RcdDatabaseType::Host => 2,
+            RcdDatabaseType::Partial => 3,
+        }
+    }
+}
+
 /// From the perspective of a participant: if we execute an `DELETE` statement
 /// against our partial database, we can define how we want to notify the database host:
 /// 1. Send Notification - send a note to the host of deleted row id
@@ -62,7 +97,7 @@ impl UpdatesToHostBehavior {
 }
 
 /// From the perspective of a participant: if we get an `UPDATE` statement from a database host
-/// we can define how we want to respond: 
+/// we can define how we want to respond:
 /// 1. Allow Overwrite - will execute the `UPDATE` statement
 /// 2. Queue For Review  - will add a "Pending" flag on the row
 /// 3. Overwrite With Log - will copy the row to _HISTORY table and then overwrite
@@ -100,7 +135,7 @@ impl UpdatesFromHostBehavior {
 }
 
 /// From the perspective of a participant: if we get an `DELETE` statement from a database host
-/// we can define how we want to respond: 
+/// we can define how we want to respond:
 /// 1. Allow Removal - will execute the `DELETE` statement
 /// 2. Queue For Review  - will add a "Pending" flag on the row
 /// 3. Delete With Log - will copy the row to _HISTORY table and then delete

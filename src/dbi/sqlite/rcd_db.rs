@@ -4,7 +4,10 @@ use crate::{
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
     host_info::HostInfo,
     rcd_db::User,
-    rcd_enum::{UpdatesFromHostBehavior, DeletesFromHostBehavior},
+    rcd_enum::{
+        DeletesFromHostBehavior, DeletesToHostBehavior, RcdDatabaseType, UpdatesFromHostBehavior,
+        UpdatesToHostBehavior,
+    },
 };
 use guid_create::GUID;
 use log::info;
@@ -13,6 +16,87 @@ use std::path::Path;
 
 pub mod contract;
 pub mod role;
+
+pub fn get_rcd_db_type(db_name: &str, config: &DbiConfigSqlite) -> RcdDatabaseType {
+    if db_name == config.rcd_db_name {
+        return RcdDatabaseType::Rcd;
+    }
+
+    if db_name.contains("dbpart") {
+        return RcdDatabaseType::Partial;
+    }
+
+    let mut db_part_name = db_name.replace(".db", "");
+    db_part_name = db_part_name.replace(".dbpart", "");
+    db_part_name = format!("{}{}", db_part_name, String::from(".dbpart"));
+    let db_path = Path::new(&config.root_folder).join(&db_part_name);
+    if db_path.exists() {
+        return RcdDatabaseType::Partial;
+    }
+
+    let path = Path::new(&config.root_folder).join(&db_name);
+    if path.exists() {
+        return RcdDatabaseType::Host;
+    }
+
+    return RcdDatabaseType::Unknown;
+}
+
+pub fn get_updates_to_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatesToHostBehavior {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+        SELECT 
+            UPDATES_TO_HOST_BEHAVIOR
+        FROM
+            CDS_CONTRACTS_TABLES 
+        WHERE
+            DATABASE_NAME = ':db_name'
+        AND
+            TABLE_NAME = ':table_name'
+        ;",
+    );
+    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":table_name", table_name);
+
+    let result = get_scalar_as_u32(cmd, &conn);
+
+    let behavior = UpdatesToHostBehavior::from_u32(result);
+
+    return behavior;
+}
+
+pub fn get_deletes_to_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> DeletesToHostBehavior {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+        SELECT 
+            DELETES_TO_HOST_BEHAVIOR
+        FROM
+            CDS_CONTRACTS_TABLES 
+        WHERE
+            DATABASE_NAME = ':db_name'
+        AND
+            TABLE_NAME = ':table_name'
+        ;",
+    );
+    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":table_name", table_name);
+
+    let result = get_scalar_as_u32(cmd, &conn);
+
+    let behavior = DeletesToHostBehavior::from_u32(result);
+
+    return behavior;
+}
 
 pub fn get_deletes_from_host_behavior(
     db_name: &str,

@@ -6,8 +6,9 @@ use crate::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     host_info::HostInfo,
     rcd_enum::{
-        DatabaseType, LogicalStoragePolicy, RcdDbError, RcdGenerateContractError,
-        RemoteDeleteBehavior, UpdatesFromHostBehavior, DeletesFromHostBehavior,
+        DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
+        RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
+        UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
     table::Table,
 };
@@ -70,8 +71,59 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn get_rcd_db_type(self: &Self, db_name: &str) -> RcdDatabaseType {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_rcd_db_type(db_name, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn db_type(self: &Self) -> DatabaseType {
         return self.db_type;
+    }
+
+    pub fn get_updates_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> UpdatesToHostBehavior {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_updates_to_host_behavior(
+                    db_name, table_name, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_deletes_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> DeletesToHostBehavior {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_deletes_to_host_behavior(
+                    db_name, table_name, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn get_deletes_from_host_behavior(
