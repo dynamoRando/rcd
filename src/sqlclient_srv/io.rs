@@ -119,15 +119,38 @@ pub async fn execute_write(
 
         if rcd_db_type == RcdDatabaseType::Partial {
             let statement_type = query_parser::determine_dml_type(&statement, db_type);
+            let table_name = query_parser::get_table_name(&statement, db_type);
 
             match statement_type {
                 DmlType::Unknown => todo!(),
                 DmlType::Insert => todo!(),
                 DmlType::Update => {
-                    // UpdateRowDataHashForHost
+                    let update_behavior = client
+                        .dbi()
+                        .get_updates_to_host_behavior(&db_name, &table_name);
+
+                    match update_behavior {
+                        crate::rcd_enum::UpdatesToHostBehavior::Unknown => todo!(),
+                        crate::rcd_enum::UpdatesToHostBehavior::SendDataHashChange => {
+                            // UpdateRowDataHashForHost
+                            todo!()
+                        }
+                        crate::rcd_enum::UpdatesToHostBehavior::DoNothing => todo!(),
+                    }
                 }
                 DmlType::Delete => {
-                    // NotifyHostOfRemovedRow
+                    let delete_behavior = client
+                        .dbi()
+                        .get_deletes_to_host_behavior(&db_name, &table_name);
+
+                    match delete_behavior {
+                        crate::rcd_enum::DeletesToHostBehavior::Unknown => todo!(),
+                        crate::rcd_enum::DeletesToHostBehavior::SendNotification => {
+                            // NotifyHostOfRemovedRow
+                            todo!()
+                        }
+                        crate::rcd_enum::DeletesToHostBehavior::DoNothing => todo!(),
+                    }
                 }
                 DmlType::Select => todo!(),
             }
