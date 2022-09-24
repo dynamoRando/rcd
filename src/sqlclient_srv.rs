@@ -232,6 +232,46 @@ impl SqlClient for SqlClientImpl {
 
         Ok(Response::new(response))
     }
+
+    #[allow(dead_code, unused_variables)]
+    async fn change_updates_from_host_behavior(
+        &self,
+        request: Request<ChangeUpdatesFromHostBehaviorRequest>,
+    ) -> Result<Response<ChangesUpdatesFromHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::change_updates_from_host_behavior(request.into_inner(), self).await;
+        Ok(Response::new(result))
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn change_deletes_from_host_behavior(
+        &self,
+        request: Request<ChangeDeletesFromHostBehaviorRequest>,
+    ) -> Result<Response<ChangeDeletesFromHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::change_deletes_from_host_behavior(request.into_inner(), self).await;
+        Ok(Response::new(result))
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn change_updates_to_host_behavior(
+        &self,
+        request: Request<ChangeUpdatesToHostBehaviorRequest>,
+    ) -> Result<Response<ChangeUpdatesToHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::change_updates_to_host_behavior(request.into_inner(), self).await;
+        Ok(Response::new(result))
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn change_deletes_to_host_behavior(
+        &self,
+        request: Request<ChangeDeletesToHostBehaviorRequest>,
+    ) -> Result<Response<ChangeDeletesToHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::change_deletes_to_host_behavior(request.into_inner(), self).await;
+        Ok(Response::new(result))
+    }
 }
 
 #[tokio::main]

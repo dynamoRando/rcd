@@ -1,9 +1,13 @@
 use crate::{
     cdata::{
-        AuthResult, ChangeHostStatusReply, ChangeHostStatusRequest, CreateUserDatabaseReply,
-        CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
-        EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
-        GenerateHostInfoReply, GenerateHostInfoRequest, HasTableReply, HasTableRequest,
+        AuthResult, ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+        ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest,
+        ChangeHostStatusReply, ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+        ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
+        ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
+        EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
+        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, HasTableReply,
+        HasTableRequest,
     },
     rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
 };
@@ -230,4 +234,36 @@ pub async fn enable_coooperative_features(
     };
 
     return enable_cooperative_features_reply;
+}
+
+#[allow(dead_code, unused_variables)]
+pub async fn change_updates_from_host_behavior(
+    request: ChangeUpdatesFromHostBehaviorRequest,
+    client: &SqlClientImpl,
+) -> ChangesUpdatesFromHostBehaviorReply {
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_variables)]
+pub async fn change_deletes_from_host_behavior(
+    request: ChangeDeletesFromHostBehaviorRequest,
+    client: &SqlClientImpl,
+) -> ChangeDeletesFromHostBehaviorReply {
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_variables)]
+pub async fn change_updates_to_host_behavior(
+    request: ChangeUpdatesToHostBehaviorRequest,
+    client: &SqlClientImpl,
+) -> ChangeUpdatesToHostBehaviorReply {
+    unimplemented!()
+}
+
+#[allow(dead_code, unused_variables)]
+pub async fn change_deletes_to_host_behavior(
+    request: ChangeDeletesToHostBehaviorRequest,
+    client: &SqlClientImpl,
+) -> ChangeDeletesToHostBehaviorReply {
+    unimplemented!()
 }

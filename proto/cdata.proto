@@ -22,6 +22,48 @@ service SQLClient {
 	rpc ChangeHostStatus(ChangeHostStatusRequest) returns (ChangeHostStatusReply);
 	rpc TryAuthAtParticipant(TryAuthAtParticipantRequest) returns (TryAuthAtPartipantReply);
 	rpc ChangeUpdatesFromHostBehavior(ChangeUpdatesFromHostBehaviorRequest) returns (ChangesUpdatesFromHostBehaviorReply);
+	rpc ChangeDeletesFromHostBehavior(ChangeDeletesFromHostBehaviorRequest) returns (ChangeDeletesFromHostBehaviorReply);
+	rpc ChangeUpdatesToHostBehavior(ChangeUpdatesToHostBehaviorRequest) returns (ChangeUpdatesToHostBehaviorReply);
+	rpc ChangeDeletesToHostBehavior(ChangeDeletesToHostBehaviorRequest) returns (ChangeDeletesToHostBehaviorReply);
+}
+
+message ChangeDeletesToHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 behavior = 4;
+}
+
+message ChangeDeletesToHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message ChangeUpdatesToHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 behavior = 4;
+}
+
+message ChangeUpdatesToHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
+}
+
+message ChangeDeletesFromHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 behavior = 4;
+}
+
+message ChangeDeletesFromHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+	string message = 3;
 }
 
 message ChangeUpdatesFromHostBehaviorRequest {
