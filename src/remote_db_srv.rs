@@ -86,6 +86,8 @@ pub async fn update_row_at_participant(
         .await
         .unwrap();
 
+    // println!("{:?}", response);
+
     return response.into_inner();
 }
 

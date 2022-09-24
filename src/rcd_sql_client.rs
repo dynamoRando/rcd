@@ -174,6 +174,8 @@ impl RcdClient {
             .unwrap()
             .into_inner();
 
+        // println!("{:?}", response);
+
         return Ok(response.is_successful);
     }
 

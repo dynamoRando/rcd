@@ -5,7 +5,6 @@ use rcd::rcd_sql_client::RcdClient;
 use std::sync::mpsc;
 use std::{thread, time};
 
-#[ignore = "code not written"]
 #[test]
 fn test() {
     let test_name = "delta_update_from_host";
@@ -327,5 +326,9 @@ async fn main_update_should_fail(db_name: &str, main_client_addr: ServiceAddr) -
         String::from("123456"),
     );
 
-    unimplemented!()
+    let cmd = String::from("UPDATE EMPLOYEE SET NAME = 'Fail' WHERE Id = 999");
+    let update_result = client
+        .execute_cooperative_write(db_name, &cmd, "participant", "Id = 999")
+        .await;
+    return update_result.unwrap();
 }
