@@ -210,6 +210,8 @@ pub struct ExecuteWriteRequest {
     pub sql_statement: ::prost::alloc::string::String,
     #[prost(uint32, tag="4")]
     pub database_type: u32,
+    #[prost(string, tag="5")]
+    pub where_clause: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteWriteReply {

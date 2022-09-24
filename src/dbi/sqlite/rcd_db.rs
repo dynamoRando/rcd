@@ -1,7 +1,7 @@
-use super::{get_scalar_as_u32, has_any_rows, sql_text::CDS};
+use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
 use crate::{
     crypt,
-    dbi::{sqlite::get_db_conn, DbiConfigSqlite},
+    dbi::{sqlite::get_db_conn, DbiConfigSqlite, CdsHosts},
     host_info::HostInfo,
     rcd_db::User,
     rcd_enum::{
@@ -457,6 +457,84 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
             execute_write_on_connection(&db_name, &statement, config);
         }
     }
+}
+
+pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> CdsHosts {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+    SELECT 
+        HOST_ID
+    FROM 
+        CDS_CONTRACTS 
+    WHERE 
+        DATABASE_NAME = ':db_name'
+    ;",
+    );
+
+    cmd = cmd.replace(":db_name", db_name);
+    let host_id = get_scalar_as_string(cmd, &conn);
+
+    let mut cds_host_infos: Vec<CdsHosts> = Vec::new();
+
+    let cmd = String::from(
+        "
+        SELECT 
+            HOST_ID,
+            HOST_NAME,
+            TOKEN,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            LAST_COMMUNICATION_UTC
+        FROM
+            CDS_HOSTS
+        WHERE
+            HOST_ID = :hid
+    ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let row_to_host = |host_id: String,
+                       host_name: String,
+                       token: Vec<u8>,
+                       ip4: String,
+                       ip6: String,
+                       port: u32,
+                       last_comm_utc: String|
+     -> Result<CdsHosts> {
+        let host = CdsHosts {
+            host_id,
+            host_name,
+            token,
+            ip4,
+            ip6,
+            port,
+            last_comm_utc,
+        };
+        Ok(host)
+    };
+
+    let table_hosts = statement
+        .query_and_then(&[(":hid", &host_id)], |row| {
+            row_to_host(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for h in table_hosts {
+        cds_host_infos.push(h.unwrap());
+    }
+
+    return cds_host_infos.first().unwrap().clone();
 }
 
 fn create_user_table(conn: &Connection) {

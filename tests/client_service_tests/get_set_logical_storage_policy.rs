@@ -87,7 +87,7 @@ async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
     assert!(enable_coop_features_is_successful);
 
     let drop_table_is_successful = client
-        .execute_write_at_host(db_name, &drop_table_statement, database_type)
+        .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
         .await
         .unwrap();
 
@@ -97,7 +97,7 @@ async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
     let create_table_is_successful = client
-        .execute_write_at_host(db_name, &create_table_statement, database_type)
+        .execute_write_at_host(db_name, &create_table_statement, database_type, "")
         .await
         .unwrap();
 
@@ -106,7 +106,7 @@ async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
     let add_record_statement = String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
     let execute_write_is_successful = client
-        .execute_write_at_host(db_name, &add_record_statement, database_type)
+        .execute_write_at_host(db_name, &add_record_statement, database_type, "")
         .await
         .unwrap();
 

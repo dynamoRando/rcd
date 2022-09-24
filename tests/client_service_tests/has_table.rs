@@ -72,7 +72,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
     let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
     client
-        .execute_write_at_host(db_name, &drop_table_statement, database_type)
+        .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
         .await
         .unwrap();
 
@@ -80,7 +80,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
     client
-        .execute_write_at_host(db_name, &create_table_statement, database_type)
+        .execute_write_at_host(db_name, &create_table_statement, database_type, "")
         .await
         .unwrap();
 

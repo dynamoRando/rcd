@@ -1,9 +1,8 @@
 use super::SqlClientImpl;
 use crate::{
     cdata::{
-        AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest,
-        ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
-        StatementResultset,
+        AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
+        ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
     },
     host_info::HostInfo,
     query_parser,
@@ -159,6 +158,7 @@ pub async fn execute_write_at_partipant(
     client: &SqlClientImpl,
 ) -> ExecuteWriteReply {
     let mut rows_affected: u32 = 0;
+    let mut is_overall_successful = false;
 
     // check if the user is authenticated
     let message = request.clone();
@@ -167,12 +167,9 @@ pub async fn execute_write_at_partipant(
     let is_authenticated = client.verify_login(&a.user_name, &a.pw);
     let db_name = message.database_name;
     let statement = message.sql_statement;
+    let where_clause = message.where_clause;
 
     if is_authenticated {
-        rows_affected = client
-            .dbi()
-            .execute_write_at_partipant(&db_name, &statement) as u32;
-
         let db_type = client.dbi().db_type();
         let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
 
@@ -202,11 +199,34 @@ pub async fn execute_write_at_partipant(
                         .dbi()
                         .get_deletes_to_host_behavior(&db_name, &table_name);
 
+                    let delete_result = client.dbi().delete_data_in_partial_db(
+                        &db_name,
+                        &table_name,
+                        &statement,
+                        &where_clause,
+                    );
+
                     match delete_behavior {
                         crate::rcd_enum::DeletesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::DeletesToHostBehavior::SendNotification => {
-                            // NotifyHostOfRemovedRow
-                            todo!()
+                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name);
+                            let own_host_info = client.dbi().rcd_get_host_info().clone();
+                            let own_db_addr_port = client.own_db_addr_port.clone();
+
+                            let notify_result = remote_db_srv::notify_host_of_removed_row(
+                                &remote_host,
+                                &own_host_info,
+                                own_db_addr_port,
+                                &db_name,
+                                &table_name,
+                                delete_result.row_id,
+                            )
+                            .await;
+
+                            if delete_result.is_successful && notify_result {
+                                is_overall_successful = true;
+                                rows_affected = 1;
+                            }
                         }
                         crate::rcd_enum::DeletesToHostBehavior::DoNothing => todo!(),
                     }
@@ -231,7 +251,7 @@ pub async fn execute_write_at_partipant(
 
     let execute_write_reply = ExecuteWriteReply {
         authentication_result: Some(auth_response),
-        is_successful: true,
+        is_successful: is_overall_successful,
         total_rows_affected: rows_affected,
     };
 

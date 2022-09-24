@@ -112,7 +112,7 @@ async fn main_service_client(
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
     client
-        .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type)
+        .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type, "")
         .await
         .unwrap();
 
@@ -120,7 +120,7 @@ async fn main_service_client(
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
     client
-        .execute_write_at_host(db_name, &create_table_statement, database_type)
+        .execute_write_at_host(db_name, &create_table_statement, database_type, "")
         .await
         .unwrap();
 

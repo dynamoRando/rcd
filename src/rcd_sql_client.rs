@@ -496,6 +496,7 @@ impl RcdClient {
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
+        where_clause: &str
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -504,6 +505,7 @@ impl RcdClient {
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
+            where_clause: where_clause.to_string()
         });
 
         info!("sending request");
@@ -522,6 +524,7 @@ impl RcdClient {
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
+        where_clause: &str
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -530,6 +533,7 @@ impl RcdClient {
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
+            where_clause: where_clause.to_string()
         });
 
         info!("sending request");

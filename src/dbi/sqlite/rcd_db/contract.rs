@@ -3,10 +3,9 @@ use crate::{
     cdata::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema},
     dbi::{
         sqlite::{
-            cds_types::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts},
             execute_write, get_scalar_as_string, has_any_rows,
         },
-        DbiConfigSqlite,
+        DbiConfigSqlite, CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts,
     },
     rcd_enum::ContractStatus,
 };

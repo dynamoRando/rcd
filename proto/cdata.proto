@@ -167,6 +167,7 @@ message ExecuteWriteRequest {
   string databaseName = 2;
   string sqlStatement = 3;
   uint32 databaseType = 4;
+  string whereClause = 5;
 }
 
 message ExecuteWriteReply {

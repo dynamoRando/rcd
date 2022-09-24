@@ -10,8 +10,6 @@ use crate::{
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
-
-mod cds_types;
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;
