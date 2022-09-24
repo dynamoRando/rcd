@@ -1,15 +1,17 @@
 use crate::cdata::{sql_client_client::SqlClientClient, AuthRequest};
 use crate::cdata::{
-    AcceptPendingContractRequest, AddParticipantRequest, ChangeHostStatusRequest,
-    ChangeUpdatesFromHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
-    EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
-    ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
+    AcceptPendingContractRequest, AddParticipantRequest, ChangeDeletesFromHostBehaviorRequest,
+    ChangeDeletesToHostBehaviorRequest, ChangeHostStatusRequest,
+    ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
+    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
+    ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
     GetLogicalStoragePolicyRequest, HasTableRequest, SendParticipantContractRequest,
     SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
     ViewPendingContractsRequest,
 };
 use crate::rcd_enum::{
-    DatabaseType, LogicalStoragePolicy, RemoteDeleteBehavior, UpdatesFromHostBehavior,
+    DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
+    RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
 };
 use log::info;
 use std::error::Error;
@@ -33,6 +35,96 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn change_deletes_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: DeletesToHostBehavior,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ChangeDeletesToHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            behavior: DeletesToHostBehavior::to_u32(behavior),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .change_deletes_to_host_behavior(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    pub async fn change_updates_to_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: UpdatesToHostBehavior,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ChangeUpdatesToHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            behavior: UpdatesToHostBehavior::to_u32(behavior),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .change_updates_to_host_behavior(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
+    }
+
+    pub async fn change_deletes_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        behavior: DeletesFromHostBehavior,
+    ) -> Result<bool, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ChangeDeletesFromHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            behavior: DeletesFromHostBehavior::to_u32(behavior),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .change_deletes_from_host_behavior(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.is_successful)
     }
 
     pub async fn change_updates_from_host_behavior(

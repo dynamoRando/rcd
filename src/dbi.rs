@@ -7,7 +7,7 @@ use crate::{
     host_info::HostInfo,
     rcd_enum::{
         DatabaseType, LogicalStoragePolicy, RcdDbError, RcdGenerateContractError,
-        RemoteDeleteBehavior, UpdatesFromHostBehavior,
+        RemoteDeleteBehavior, UpdatesFromHostBehavior, DeletesFromHostBehavior,
     },
     table::Table,
 };
@@ -72,6 +72,25 @@ pub struct DbiConfigPostgres {
 impl Dbi {
     pub fn db_type(self: &Self) -> DatabaseType {
         return self.db_type;
+    }
+
+    pub fn get_deletes_from_host_behavior(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> DeletesFromHostBehavior {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_deletes_from_host_behavior(
+                    db_name, table_name, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn get_updates_from_host_behavior(

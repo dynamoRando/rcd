@@ -263,13 +263,13 @@ pub async fn change_updates_from_host_behavior(
         authentication_message: String::from(""),
     };
 
-    let enable_cooperative_features_reply = ChangesUpdatesFromHostBehaviorReply {
+    let reply = ChangesUpdatesFromHostBehaviorReply {
         authentication_result: Some(auth_response),
         is_successful: is_successful,
         message: String::from(""),
     };
 
-    return enable_cooperative_features_reply;
+    return reply;
 }
 
 #[allow(dead_code, unused_variables)]
@@ -277,7 +277,36 @@ pub async fn change_deletes_from_host_behavior(
     request: ChangeDeletesFromHostBehaviorRequest,
     client: &SqlClientImpl,
 ) -> ChangeDeletesFromHostBehaviorReply {
-    unimplemented!()
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let behavior = message.behavior;
+    let mut is_successful = false;
+
+    if is_authenticated {
+        is_successful =
+            client
+                .dbi()
+                .change_deletes_from_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = ChangeDeletesFromHostBehaviorReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
 }
 
 #[allow(dead_code, unused_variables)]
@@ -285,7 +314,36 @@ pub async fn change_updates_to_host_behavior(
     request: ChangeUpdatesToHostBehaviorRequest,
     client: &SqlClientImpl,
 ) -> ChangeUpdatesToHostBehaviorReply {
-    unimplemented!()
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let behavior = message.behavior;
+    let mut is_successful = false;
+
+    if is_authenticated {
+        is_successful =
+            client
+                .dbi()
+                .change_updates_to_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = ChangeUpdatesToHostBehaviorReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
 }
 
 #[allow(dead_code, unused_variables)]
@@ -293,5 +351,34 @@ pub async fn change_deletes_to_host_behavior(
     request: ChangeDeletesToHostBehaviorRequest,
     client: &SqlClientImpl,
 ) -> ChangeDeletesToHostBehaviorReply {
-    unimplemented!()
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let behavior = message.behavior;
+    let mut is_successful = false;
+
+    if is_authenticated {
+        is_successful =
+            client
+                .dbi()
+                .change_deletes_to_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = ChangeDeletesToHostBehaviorReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
 }

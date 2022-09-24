@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use super::rcd_db::get_updates_from_host_behavior;
+use super::rcd_db::{get_deletes_from_host_behavior, get_updates_from_host_behavior};
 use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::db::get_col_names_of_table;
@@ -36,63 +36,17 @@ pub fn delete_data_in_partial_db(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> DeletePartialDataResult {
-    let original_cmd = cmd.clone();
+    let behavior = get_deletes_from_host_behavior(db_name, table_name, config);
 
-    let mut cmd;
-    cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
-        .replace(":table_name", table_name);
-
-    if where_clause.len() > 0 {
-        cmd = cmd.replace(":where_clause", where_clause);
-    } else {
-        cmd = cmd.replace("WHERE", "");
-        cmd = cmd.replace(":where_clause", "");
+    match behavior {
+        crate::rcd_enum::DeletesFromHostBehavior::Unknown => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::AllowRemoval => {
+            return execute_delete(db_name, table_name, cmd, where_clause, config)
+        }
+        crate::rcd_enum::DeletesFromHostBehavior::QueueForReview => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::DeleteWithLog => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::Ignore => todo!(),
     }
-
-    // we need to determine the row_ids that we're going to update because we're going to need to delete them
-    let conn = get_partial_db_connection(db_name, &config.root_folder);
-    let mut statement = conn.prepare(&cmd).unwrap();
-
-    // once we have the row ids, then we will delete the rows in the actual and metadata table
-
-    let mut row_ids: Vec<u32> = Vec::new();
-    let row_to_id = |rowid: u32| -> Result<u32> { Ok(rowid) };
-
-    let ids = statement
-        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
-        .unwrap();
-
-    for id in ids {
-        row_ids.push(id.unwrap());
-    }
-
-    // println!("{:?}", row_ids);
-
-    let total_rows = execute_write(&conn, &original_cmd);
-
-    if total_rows != row_ids.len() {
-        panic!("the delete statement did not match the expected count of affected rows");
-    }
-
-    // now we need to delete data from the metadata table
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
-    let mut cmd = String::from("DELETE FROM :table_name WHERE ROW_ID = :rid");
-    cmd = cmd.replace(":table_name", &metadata_table_name);
-
-    for row in &row_ids {
-        let mut statement = conn.prepare(&cmd).unwrap();
-        statement.execute(named_params! {":rid" : row}).unwrap();
-    }
-
-    let deleted_row_id = row_ids.first().unwrap();
-
-    let result = DeletePartialDataResult {
-        is_successful: true,
-        row_id: *deleted_row_id,
-        data_hash: 0,
-    };
-
-    return result;
 }
 
 pub fn update_data_into_partial_db(
@@ -399,6 +353,72 @@ fn execute_update_overwrite(
         is_successful: true,
         row_id: row_data.0,
         data_hash: row_data.1,
+    };
+
+    return result;
+}
+
+fn execute_delete(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> DeletePartialDataResult {
+    let original_cmd = cmd.clone();
+
+    let mut cmd;
+    cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
+        .replace(":table_name", table_name);
+
+    if where_clause.len() > 0 {
+        cmd = cmd.replace(":where_clause", where_clause);
+    } else {
+        cmd = cmd.replace("WHERE", "");
+        cmd = cmd.replace(":where_clause", "");
+    }
+
+    // we need to determine the row_ids that we're going to update because we're going to need to delete them
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    // once we have the row ids, then we will delete the rows in the actual and metadata table
+
+    let mut row_ids: Vec<u32> = Vec::new();
+    let row_to_id = |rowid: u32| -> Result<u32> { Ok(rowid) };
+
+    let ids = statement
+        .query_and_then([], |row| row_to_id(row.get(0).unwrap()))
+        .unwrap();
+
+    for id in ids {
+        row_ids.push(id.unwrap());
+    }
+
+    // println!("{:?}", row_ids);
+
+    let total_rows = execute_write(&conn, &original_cmd);
+
+    if total_rows != row_ids.len() {
+        panic!("the delete statement did not match the expected count of affected rows");
+    }
+
+    // now we need to delete data from the metadata table
+    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let mut cmd = String::from("DELETE FROM :table_name WHERE ROW_ID = :rid");
+    cmd = cmd.replace(":table_name", &metadata_table_name);
+
+    for row in &row_ids {
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement.execute(named_params! {":rid" : row}).unwrap();
+    }
+
+    let deleted_row_id = row_ids.first().unwrap();
+
+    let result = DeletePartialDataResult {
+        is_successful: true,
+        row_id: *deleted_row_id,
+        data_hash: 0,
     };
 
     return result;

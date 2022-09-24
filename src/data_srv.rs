@@ -1,7 +1,7 @@
 use crate::cdata::data_service_server::DataServiceServer;
 use crate::cdata::*;
 use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
-use crate::rcd_enum::UpdatesFromHostBehavior;
+use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior};
 use crate::{cdata::data_service_server::DataService, dbi::Dbi};
 use chrono::Utc;
 use rusqlite::Result;
@@ -242,6 +242,7 @@ impl DataService for DataServiceImpl {
         let db_name = message.database_name;
         let table_name = message.table_name;
         let where_clause = message.where_clause.clone();
+        let mut action_message = String::from("");
 
         let mut rows: Vec<RowInfo> = Vec::new();
 
@@ -252,20 +253,32 @@ impl DataService for DataServiceImpl {
         };
 
         if is_authenticated {
-            let cmd = &message.cmd;
+            // need to check if this is allowed
+            let behavior = self
+                .dbi()
+                .get_deletes_from_host_behavior(&db_name, &table_name);
 
-            result =
-                self.dbi()
-                    .delete_data_in_partial_db(&db_name, &table_name, cmd, &where_clause);
+            if behavior != DeletesFromHostBehavior::Ignore {
+                let cmd = &message.cmd;
 
-            if result.is_successful {
-                let row = RowInfo {
-                    database_name: db_name,
-                    table_name,
-                    rowid: result.row_id,
-                    data_hash: result.data_hash,
-                };
-                rows.push(row);
+                result =
+                    self.dbi()
+                        .delete_data_in_partial_db(&db_name, &table_name, cmd, &where_clause);
+
+                if result.is_successful {
+                    let row = RowInfo {
+                        database_name: db_name,
+                        table_name,
+                        rowid: result.row_id,
+                        data_hash: result.data_hash,
+                    };
+                    rows.push(row);
+                }
+            } else {
+                action_message = format!(
+                    "The participant does not allow updates for db {} table: {}",
+                    db_name, table_name
+                );
             }
         }
 
@@ -279,7 +292,7 @@ impl DataService for DataServiceImpl {
         let result = DeleteDataResult {
             authentication_result: Some(auth_response),
             is_successful: result.is_successful,
-            message: String::from(""),
+            message: action_message,
             rows: rows,
         };
 

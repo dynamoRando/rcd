@@ -6,7 +6,8 @@ mod reject_host;
 mod delete_at_participant;
 #[path ="participant_tests/change_update_from_host_behavior.rs"]
 mod change_update_from_host_behavior;
-
+#[path ="participant_tests/change_delete_from_host_behavior.rs"]
+mod change_delete_from_host_behavior;
 /* 
 # Test Module Overview
 

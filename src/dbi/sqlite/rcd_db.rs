@@ -4,7 +4,7 @@ use crate::{
     dbi::{sqlite::get_db_conn, DbiConfigSqlite},
     host_info::HostInfo,
     rcd_db::User,
-    rcd_enum::UpdatesFromHostBehavior,
+    rcd_enum::{UpdatesFromHostBehavior, DeletesFromHostBehavior},
 };
 use guid_create::GUID;
 use log::info;
@@ -13,6 +13,34 @@ use std::path::Path;
 
 pub mod contract;
 pub mod role;
+
+pub fn get_deletes_from_host_behavior(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> DeletesFromHostBehavior {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from(
+        "
+        SELECT 
+            DELETES_FROM_HOST_BEHAVIOR
+        FROM
+            CDS_CONTRACTS_TABLES 
+        WHERE
+            DATABASE_NAME = ':db_name'
+        AND
+            TABLE_NAME = ':table_name'
+        ;",
+    );
+    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":table_name", table_name);
+
+    let result = get_scalar_as_u32(cmd, &conn);
+
+    let behavior = DeletesFromHostBehavior::from_u32(result);
+
+    return behavior;
+}
 
 pub fn get_updates_from_host_behavior(
     db_name: &str,
