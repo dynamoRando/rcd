@@ -7,12 +7,12 @@ pub struct GetReadRowIdsRequest {
     #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
-    pub sql_statement: ::prost::alloc::string::String,
+    pub where_clause: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetReadRowIdsReply {
     #[prost(message, optional, tag="1")]
-    pub authentication: ::core::option::Option<AuthRequest>,
+    pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(uint64, repeated, tag="2")]
     pub row_ids: ::prost::alloc::vec::Vec<u64>,
 }

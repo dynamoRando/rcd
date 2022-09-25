@@ -1,7 +1,10 @@
 use std::path::Path;
 
 use super::rcd_db::{get_deletes_from_host_behavior, get_updates_from_host_behavior};
-use super::{execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32};
+use super::{
+    execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32,
+    get_scalar_as_u64,
+};
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::db::get_col_names_of_table;
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
@@ -181,6 +184,22 @@ pub fn update_row_in_partial_database(db_name: &str, table_name: &str, row_data:
 #[allow(dead_code, unused_assignments, unused_variables)]
 pub fn save_contract(db_name: &str, table_name: &str, row_data: Table) -> String {
     unimplemented!();
+}
+
+pub fn read_row_id_from_part_db(
+    db_name: &str,
+    table_name: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> u64 {
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let mut cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause");
+    cmd = cmd.replace(":table_name", table_name);
+    cmd = cmd.replace(":where_clause", where_clause);
+
+    let row_id = get_scalar_as_u64(cmd, &conn);
+
+    return row_id;
 }
 
 pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {

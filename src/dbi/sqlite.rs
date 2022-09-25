@@ -42,6 +42,23 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     return value;
 }
 
+/// Runs any SQL statement that returns a single value and attempts
+/// to return the result as a u64
+pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> u64 {
+    // println!("get_scalar_as_u32: {:?}", cmd);
+
+    let mut value: u64 = 0;
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let rows = statement.query_map([], |row| row.get(0)).unwrap();
+
+    for item in rows {
+        value = item.unwrap();
+    }
+
+    return value;
+}
+
+
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
     println!("{}", cmd);
     println!("{:?}", conn);

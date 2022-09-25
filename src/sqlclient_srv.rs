@@ -306,7 +306,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetReadRowIdsRequest>,
     ) -> Result<Response<GetReadRowIdsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!()
+        let result = db::read_row_id_at_participant(request.into_inner(), self).await;
+        Ok(Response::new(result))
     }
 
     #[allow(dead_code, unused_variables)]

@@ -37,11 +37,11 @@ message GetReadRowIdsRequest {
 	AuthRequest authentication = 1;
 	string databaseName = 2;
 	string tableName = 3;
-	string sqlStatement = 4;
+	string whereClause = 4;
 }
 
 message GetReadRowIdsReply {
-	AuthRequest authentication = 1;
+	AuthResult authenticationResult = 1;
 	repeated uint64 rowIds = 2;
 }
 

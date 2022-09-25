@@ -128,6 +128,29 @@ pub struct DbiConfigPostgres {
 }
 
 impl Dbi {
+    pub fn read_row_id_from_part_db(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        where_clause: &str,
+    ) -> u64 {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::read_row_id_from_part_db(
+                    db_name,
+                    table_name,
+                    where_clause,
+                    &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn remove_remote_row_reference_from_host(
         self: &Self,
         db_name: &str,

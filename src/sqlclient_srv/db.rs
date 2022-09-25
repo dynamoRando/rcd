@@ -6,8 +6,8 @@ use crate::{
         ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
         ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
         EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
-        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, HasTableReply,
-        HasTableRequest,
+        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+        GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
     },
     rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
 };
@@ -378,6 +378,46 @@ pub async fn change_deletes_to_host_behavior(
         authentication_result: Some(auth_response),
         is_successful: is_successful,
         message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn read_row_id_at_participant(
+    request: GetReadRowIdsRequest,
+    client: &SqlClientImpl,
+) -> GetReadRowIdsReply {
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let where_clause = message.where_clause;
+    let mut row_id = 0;
+
+    let mut row_ids: Vec<u64> = Vec::new();
+
+    if is_authenticated {
+        row_id = client
+            .dbi()
+            .read_row_id_from_part_db(&db_name, &table_name, &where_clause);
+    }
+
+    if row_id > 0 {
+        row_ids.push(row_id);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = GetReadRowIdsReply {
+        authentication_result: Some(auth_response),
+        row_ids: row_ids,
     };
 
     return reply;
