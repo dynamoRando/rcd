@@ -380,10 +380,13 @@ impl DataService for DataServiceImpl {
 
         let participant_message = message.participant.as_ref().unwrap().clone();
 
-        let accepted_participant = self.dbi().get_participant_by_alias(
-            &message.database_name,
-            &message.participant.as_ref().unwrap().alias,
-        ).unwrap();
+        let accepted_participant = self
+            .dbi()
+            .get_participant_by_alias(
+                &message.database_name,
+                &message.participant.as_ref().unwrap().alias,
+            )
+            .unwrap();
 
         let is_successful = self.dbi().update_participant_accepts_contract(
             &message.database_name,
@@ -402,9 +405,58 @@ impl DataService for DataServiceImpl {
 
     async fn update_row_data_hash_for_host(
         &self,
-        _request: Request<UpdateRowDataHashForHostRequest>,
+        request: Request<UpdateRowDataHashForHostRequest>,
     ) -> Result<Response<UpdateRowDataHashForHostResponse>, Status> {
-        unimplemented!("not implemented");
+        println!(
+            "update_row_data_hash_for_host: Request from {:?}",
+            request.remote_addr()
+        );
+        println! {"{:?}", request};
+
+        let message = request.into_inner();
+        let authentication = message.authentication.unwrap();
+
+        let is_authenticated =
+            authenticate_participant(authentication.clone(), &message.database_name, &self.dbi());
+        let mut is_successful = false;
+
+        if is_authenticated {
+            println!("is authenticated");
+            let db_name = message.database_name.clone();
+            let table_name = message.table_name.clone();
+            let row_id = message.row_id;
+            let hash = message.updated_hash_value;
+
+            let internal_participant_id = self
+                .dbi()
+                .get_participant_by_alias(&db_name, &authentication.user_name)
+                .unwrap()
+                .internal_id;
+
+            is_successful = self.dbi().update_metadata_in_host_db(
+                &db_name,
+                &table_name,
+                row_id,
+                hash,
+                &internal_participant_id.to_string(),
+            );
+        } else {
+            println!("not authenticated!");
+        }
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        let result = UpdateRowDataHashForHostResponse {
+            authentication_result: Some(auth_response),
+            is_successful,
+        };
+
+        Ok(Response::new(result))
     }
 
     async fn notify_host_of_removed_row(

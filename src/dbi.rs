@@ -10,7 +10,7 @@ use crate::{
         RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
         UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
-    table::Table,
+    table::Table, defaults,
 };
 
 mod sqlite;
@@ -127,13 +127,52 @@ pub struct DbiConfigPostgres {
     pub connect_options: String,
 }
 
+pub fn get_metadata_table_name(table_name: &str ) -> String {
+    return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+}
+
 impl Dbi {
+    pub fn get_data_hash_at_host(self: &Self, db_name: &str, table_name: &str, row_id: u32) -> u64 {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::metadata::get_data_hash_at_host(
+                    db_name, table_name, row_id, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_data_hash_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> u64 {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::get_data_hash_at_participant(
+                    db_name, table_name, row_id, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn read_row_id_from_part_db(
         self: &Self,
         db_name: &str,
         table_name: &str,
         where_clause: &str,
-    ) -> u64 {
+    ) -> u32 {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

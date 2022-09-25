@@ -6,8 +6,9 @@ use crate::{
         ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
         ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
         EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
-        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-        GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
+        GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
+        GetDataHashRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
+        HasTableRequest,
     },
     rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
 };
@@ -396,7 +397,7 @@ pub async fn read_row_id_at_participant(
     let where_clause = message.where_clause;
     let mut row_id = 0;
 
-    let mut row_ids: Vec<u64> = Vec::new();
+    let mut row_ids: Vec<u32> = Vec::new();
 
     if is_authenticated {
         row_id = client
@@ -418,6 +419,70 @@ pub async fn read_row_id_at_participant(
     let reply = GetReadRowIdsReply {
         authentication_result: Some(auth_response),
         row_ids: row_ids,
+    };
+
+    return reply;
+}
+
+pub async fn get_data_hash_at_host(
+    request: GetDataHashRequest,
+    client: &SqlClientImpl,
+) -> GetDataHashReply {
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let requested_row_id = message.row_id;
+    let mut row_hash: u64 = 0;
+
+    if is_authenticated {
+        row_hash = client.dbi().get_data_hash_at_host(&db_name, &table_name, requested_row_id);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = GetDataHashReply {
+        authentication_result: Some(auth_response),
+        data_hash: row_hash,
+    };
+
+    return reply;
+}
+
+pub async fn get_data_hash_at_participant(
+    request: GetDataHashRequest,
+    client: &SqlClientImpl,
+) -> GetDataHashReply {
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+    let db_name = message.database_name;
+    let table_name = message.table_name;
+    let requested_row_id = message.row_id;
+    let mut row_hash: u64 = 0;
+
+    if is_authenticated {
+        row_hash = client.dbi().get_data_hash_at_participant(&db_name, &table_name, requested_row_id);
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let reply = GetDataHashReply {
+        authentication_result: Some(auth_response),
+        data_hash: row_hash,
     };
 
     return reply;

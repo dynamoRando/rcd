@@ -9,13 +9,28 @@ use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::db::get_col_names_of_table;
 use crate::dbi::sqlite::{execute_write, has_table, sql_text};
 use crate::dbi::{
-    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
+    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult, get_metadata_table_name,
 };
 use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
+
+pub fn get_data_hash_at_participant(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    config: &DbiConfigSqlite,
+) -> u64 {
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let metadata_table_name = get_metadata_table_name(table_name);
+    let mut cmd = String::from("SELECT HASH FROM :metadata WHERE ROW_ID = :row_id");
+    cmd = cmd.replace(":metadata", &metadata_table_name);
+    cmd = cmd.replace(":row_id", &row_id.to_string());
+
+    return get_scalar_as_u64(cmd, &conn).unwrap();
+}
 
 pub fn get_row_from_partial_database(
     db_name: &str,
@@ -94,7 +109,7 @@ pub fn insert_data_into_partial_db(
     // we need to determine if there is a metadata table for this table or not
     // and if there is not one, create it
     // then we need to save the data hash along with the row id
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let metadata_table_name = get_metadata_table_name(table_name);
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
@@ -191,13 +206,13 @@ pub fn read_row_id_from_part_db(
     table_name: &str,
     where_clause: &str,
     config: &DbiConfigSqlite,
-) -> u64 {
+) -> u32 {
     let conn = get_partial_db_connection(db_name, &config.root_folder);
     let mut cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause");
     cmd = cmd.replace(":table_name", table_name);
     cmd = cmd.replace(":where_clause", where_clause);
 
-    let row_id = get_scalar_as_u64(cmd, &conn);
+    let row_id = get_scalar_as_u32(cmd, &conn);
 
     return row_id;
 }

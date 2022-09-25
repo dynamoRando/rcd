@@ -292,15 +292,6 @@ impl SqlClient for SqlClientImpl {
     }
 
     #[allow(dead_code, unused_variables)]
-    async fn read_row_id_at_host(
-        &self,
-        request: Request<GetReadRowIdsRequest>,
-    ) -> Result<Response<GetReadRowIdsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
-        unimplemented!()
-    }
-
-    #[allow(dead_code, unused_variables)]
     async fn read_row_id_at_participant(
         &self,
         request: Request<GetReadRowIdsRequest>,
@@ -316,7 +307,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!()
+        let result = db::get_data_hash_at_host(request.into_inner(), self).await;
+        Ok(Response::new(result))
     }
 
     #[allow(dead_code, unused_variables)]
@@ -325,7 +317,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!()
+        let result = db::get_data_hash_at_participant(request.into_inner(), self).await;
+        Ok(Response::new(result))
     }
 }
 

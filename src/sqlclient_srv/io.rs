@@ -185,11 +185,35 @@ pub async fn execute_write_at_partipant(
                         .dbi()
                         .get_updates_to_host_behavior(&db_name, &table_name);
 
+                    let update_result = client.dbi().update_data_into_partial_db(
+                        &db_name,
+                        &table_name,
+                        &statement,
+                        &where_clause,
+                    );
+
                     match update_behavior {
                         crate::rcd_enum::UpdatesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::UpdatesToHostBehavior::SendDataHashChange => {
-                            // UpdateRowDataHashForHost
-                            todo!()
+                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name);
+                            let own_host_info = client.dbi().rcd_get_host_info().clone();
+                            let own_db_addr_port = client.own_db_addr_port.clone();
+
+                            let notify_result = remote_db_srv::notify_host_of_updated_hash(
+                                &remote_host,
+                                &own_host_info,
+                                own_db_addr_port,
+                                &db_name,
+                                &table_name,
+                                update_result.row_id,
+                                update_result.data_hash,
+                            )
+                            .await;
+
+                            if update_result.is_successful && notify_result {
+                                is_overall_successful = true;
+                                rows_affected = 1;
+                            }
                         }
                         crate::rcd_enum::UpdatesToHostBehavior::DoNothing => todo!(),
                     }
@@ -311,7 +335,8 @@ pub async fn execute_cooperative_write_at_host(
             let dml_type = query_parser::determine_dml_type(&statement, client.dbi().db_type());
             let db_participant = client
                 .dbi()
-                .get_participant_by_alias(&db_name, &message.alias).unwrap();
+                .get_participant_by_alias(&db_name, &message.alias)
+                .unwrap();
             let host_info = client.dbi().rcd_get_host_info();
             let cmd_table_name = query_parser::get_table_name(&statement, client.dbi().db_type());
             let where_clause = message.where_clause.clone();

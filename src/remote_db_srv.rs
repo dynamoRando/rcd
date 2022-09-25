@@ -10,7 +10,7 @@ use crate::cdata::{
     GetRowFromPartialDatabaseRequest, Host, InsertDataRequest, InsertDataResult, MessageInfo,
     NotifyHostOfRemovedRowRequest, Participant, ParticipantAcceptsContractRequest,
     RowParticipantAddress, SaveContractRequest, TryAuthRequest, UpdateDataRequest,
-    UpdateDataResult,
+    UpdateDataResult, UpdateRowDataHashForHostRequest,
 };
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::dbi::CdsHosts;
@@ -33,6 +33,45 @@ pub async fn try_auth_at_participant(
     let response = client.await.try_auth(request).await;
     let result = response.unwrap().into_inner();
     return result.authentication_result.unwrap().is_authenticated;
+}
+
+pub async fn notify_host_of_updated_hash(
+    host: &CdsHosts,
+    own_host_info: &HostInfo,
+    own_db_addr_port: String,
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    hash: u64,
+) -> bool {
+    let auth = get_auth_request(own_host_info);
+    let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
+
+    let chost = Host {
+        host_guid: own_host_info.id.clone(),
+        host_name: own_host_info.name.clone(),
+        ip4_address: String::from(""),
+        ip6_address: String::from(""),
+        database_port_number: 0,
+        token: own_host_info.token.clone(),
+    };
+
+    let request = UpdateRowDataHashForHostRequest {
+        authentication: Some(auth),
+        message_info: Some(message_info),
+        host_info: Some(chost),
+        database_name: db_name.to_string(),
+        database_id: String::from(""),
+        table_name: table_name.to_string(),
+        table_id: 0,
+        row_id,
+        updated_hash_value: hash,
+    };
+
+    let client = get_client_from_cds_host(host);
+    let response = client.await.update_row_data_hash_for_host(request).await;
+    let result = response.unwrap().into_inner();
+    return result.is_successful;
 }
 
 pub async fn notify_host_of_removed_row(
@@ -294,7 +333,10 @@ async fn get_client_from_cds_host(host: &CdsHosts) -> DataServiceClient<Channel>
     // let addr_port = format!("{}{}", host.ip4, host.port.to_string());
     let addr_port = host.ip4.clone();
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
-    println!("configuring to connect to rcd from cds host at: {}", addr_port);
+    println!(
+        "configuring to connect to rcd from cds host at: {}",
+        addr_port
+    );
 
     println!("{}", http_addr_port);
 

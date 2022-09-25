@@ -26,10 +26,59 @@ pub fn total_count(cmd: String, conn: &Connection) -> u32 {
     return get_scalar_as_u32(cmd, conn);
 }
 
+#[allow(dead_code)]
+pub fn get_scalar_as_vec_u8(cmd: String, conn: &Connection) -> Option<Vec<u8>> {
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut returned_arrays: Vec<Vec<u8>> = Vec::new();
+
+    let row_to_token = |data: Vec<u8>| -> Result<Vec<u8>> { Ok(data) };
+
+    let tokens = statement
+        .query_and_then([], |row| row_to_token(row.get(0).unwrap()))
+        .unwrap();
+
+    for t in tokens {
+        returned_arrays.push(t.unwrap());
+    }
+
+    if returned_arrays.len() >= 1 {
+        return Some(returned_arrays.first().unwrap().clone());
+    } else {
+        return None;
+    }
+}
+
+pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
+    println!("{:?}", cmd);
+    println!("{:?}", conn);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut returned_arrays: Vec<Vec<u8>> = Vec::new();
+
+    let row_to_token = |data: Vec<u8>| -> Result<Vec<u8>> { Ok(data) };
+
+    let tokens = statement
+        .query_and_then([], |row| row_to_token(row.get(0).unwrap()))
+        .unwrap();
+
+    for t in tokens {
+        returned_arrays.push(t.unwrap());
+    }
+
+    if returned_arrays.len() >= 1 {
+        let array = returned_arrays.first().unwrap().clone();
+        let value: u64 = u64::from_ne_bytes(vec_to_array(array));
+        return Some(value);
+    } else {
+        return None;
+    }
+}
+
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
-    // println!("get_scalar_as_u32: {:?}", cmd);
+     println!("get_scalar_as_u32: {:?}", cmd);
+     println!("get_scalar_as_u32: {:?}", conn);
 
     let mut value: u32 = 0;
     let mut statement = conn.prepare(&cmd).unwrap();
@@ -41,23 +90,6 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
 
     return value;
 }
-
-/// Runs any SQL statement that returns a single value and attempts
-/// to return the result as a u64
-pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> u64 {
-    // println!("get_scalar_as_u32: {:?}", cmd);
-
-    let mut value: u64 = 0;
-    let mut statement = conn.prepare(&cmd).unwrap();
-    let rows = statement.query_map([], |row| row.get(0)).unwrap();
-
-    for item in rows {
-        value = item.unwrap();
-    }
-
-    return value;
-}
-
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
     println!("{}", cmd);
@@ -234,7 +266,11 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     return Ok(table);
 }
 
-pub fn execute_read_at_host(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> rusqlite::Result<Table> {
+pub fn execute_read_at_host(
+    db_name: &str,
+    cmd: &str,
+    config: DbiConfigSqlite,
+) -> rusqlite::Result<Table> {
     let conn = get_db_conn(&config, db_name);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
@@ -327,12 +363,25 @@ pub fn get_db_conn_with_result(config: &DbiConfigSqlite, db_name: &str) -> Resul
     return Connection::open(&db_path);
 }
 
-pub fn execute_write_on_connection_at_host(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
+pub fn execute_write_on_connection_at_host(
+    db_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> usize {
     let conn = get_db_conn(&config, db_name);
     return conn.execute(&cmd, []).unwrap();
 }
 
-pub fn execute_write_on_connection_at_participant(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
+pub fn execute_write_on_connection_at_participant(
+    db_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> usize {
     let conn = get_partial_db_connection(&db_name, &config.root_folder);
     return conn.execute(&cmd, []).unwrap();
+}
+
+fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
+    v.try_into()
+        .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }

@@ -1,12 +1,25 @@
 use rusqlite::named_params;
 
-use crate::{
-    dbi::{
-        sqlite::{execute_write, get_db_conn, has_table, sql_text},
-        DbiConfigSqlite,
-    },
-    defaults,
+use crate::dbi::{
+    get_metadata_table_name,
+    sqlite::{execute_write, get_db_conn, get_scalar_as_u64, has_table, sql_text},
+    DbiConfigSqlite,
 };
+
+pub fn get_data_hash_at_host(
+    db_name: &str,
+    table_name: &str,
+    row_id: u32,
+    config: &DbiConfigSqlite,
+) -> u64 {
+    let conn = get_db_conn(config, db_name);
+    let metadata_table_name = get_metadata_table_name(table_name);
+    let mut cmd = String::from("SELECT HASH FROM :metadata WHERE ROW_ID = :row_id");
+    cmd = cmd.replace(":metadata", &metadata_table_name);
+    cmd = cmd.replace(":row_id", &row_id.to_string());
+
+    return get_scalar_as_u64(cmd, &conn).unwrap();
+}
 
 pub fn remove_remote_row_reference_from_host(
     db_name: &str,
@@ -15,7 +28,7 @@ pub fn remove_remote_row_reference_from_host(
     config: &DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(config, db_name);
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let metadata_table_name = get_metadata_table_name(table_name);
 
     let mut cmd = String::from(
         "DELETE FROM :table_name
@@ -45,7 +58,7 @@ pub fn insert_metadata_into_host_db(
     config: DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let metadata_table_name = get_metadata_table_name(table_name);
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
@@ -73,7 +86,7 @@ pub fn delete_metadata_in_host_db(
     config: DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let metadata_table_name = get_metadata_table_name(table_name);
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
@@ -102,7 +115,7 @@ pub fn update_metadata_in_host_db(
     config: DbiConfigSqlite,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    let metadata_table_name = get_metadata_table_name(table_name);
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table

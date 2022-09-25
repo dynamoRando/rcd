@@ -5,9 +5,9 @@ use crate::cdata::{
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
     ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetLogicalStoragePolicyRequest, HasTableRequest, SendParticipantContractRequest,
-    SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
-    ViewPendingContractsRequest,
+    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetReadRowIdsRequest, HasTableRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 use crate::rcd_enum::{
     DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
@@ -35,6 +35,96 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn get_row_id_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        where_clause: &str,
+    ) -> Result<Vec<u32>, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetReadRowIdsRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            where_clause: where_clause.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .read_row_id_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.row_ids)
+    }
+
+    pub async fn get_data_hash_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> Result<u64, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetDataHashRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            row_id: row_id,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .get_data_hash_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.data_hash)
+    }
+
+    pub async fn get_data_hash_at_host(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> Result<u64, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetDataHashRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            row_id: row_id,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .get_data_hash_at_host(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.data_hash)
     }
 
     pub async fn change_deletes_to_host_behavior(
@@ -496,7 +586,7 @@ impl RcdClient {
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
-        where_clause: &str
+        where_clause: &str,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -505,14 +595,18 @@ impl RcdClient {
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
-            where_clause: where_clause.to_string()
+            where_clause: where_clause.to_string(),
         });
 
         info!("sending request");
 
         let mut client = self.get_client().await;
 
-        let response = client.execute_write_at_host(request).await.unwrap().into_inner();
+        let response = client
+            .execute_write_at_host(request)
+            .await
+            .unwrap()
+            .into_inner();
         println!("RESPONSE={:?}", response);
         info!("response back");
 
@@ -524,7 +618,7 @@ impl RcdClient {
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
-        where_clause: &str
+        where_clause: &str,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -533,14 +627,18 @@ impl RcdClient {
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
-            where_clause: where_clause.to_string()
+            where_clause: where_clause.to_string(),
         });
 
         info!("sending request");
 
         let mut client = self.get_client().await;
 
-        let response = client.execute_write_at_participant(request).await.unwrap().into_inner();
+        let response = client
+            .execute_write_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
         println!("RESPONSE={:?}", response);
         info!("response back");
 
@@ -596,7 +694,11 @@ impl RcdClient {
 
         let mut client = self.get_client().await;
 
-        let response = client.execute_read_at_host(request).await.unwrap().into_inner();
+        let response = client
+            .execute_read_at_host(request)
+            .await
+            .unwrap()
+            .into_inner();
         println!("RESPONSE={:?}", response);
         info!("response back");
 

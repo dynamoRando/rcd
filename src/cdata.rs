@@ -13,8 +13,8 @@ pub struct GetReadRowIdsRequest {
 pub struct GetReadRowIdsReply {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
-    #[prost(uint64, repeated, tag="2")]
-    pub row_ids: ::prost::alloc::vec::Vec<u64>,
+    #[prost(uint32, repeated, tag="2")]
+    pub row_ids: ::prost::alloc::vec::Vec<u32>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDataHashRequest {
@@ -643,8 +643,8 @@ pub struct UpdateRowDataHashForHostRequest {
     pub table_id: u32,
     #[prost(uint32, tag="8")]
     pub row_id: u32,
-    #[prost(bytes="vec", tag="9")]
-    pub updated_hash_value: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint64, tag="9")]
+    pub updated_hash_value: u64,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowDataHashForHostResponse {
@@ -1521,25 +1521,6 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn read_row_id_at_host(
-            &mut self,
-            request: impl tonic::IntoRequest<super::GetReadRowIdsRequest>,
-        ) -> Result<tonic::Response<super::GetReadRowIdsReply>, tonic::Status> {
-            self.inner
-                .ready()
-                .await
-                .map_err(|e| {
-                    tonic::Status::new(
-                        tonic::Code::Unknown,
-                        format!("Service was not ready: {}", e.into()),
-                    )
-                })?;
-            let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/cdata.SQLClient/ReadRowIdAtHost",
-            );
-            self.inner.unary(request.into_request(), path, codec).await
-        }
         pub async fn read_row_id_at_participant(
             &mut self,
             request: impl tonic::IntoRequest<super::GetReadRowIdsRequest>,
@@ -1999,10 +1980,6 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GetDataHashRequest>,
         ) -> Result<tonic::Response<super::GetDataHashReply>, tonic::Status>;
-        async fn read_row_id_at_host(
-            &self,
-            request: tonic::Request<super::GetReadRowIdsRequest>,
-        ) -> Result<tonic::Response<super::GetReadRowIdsReply>, tonic::Status>;
         async fn read_row_id_at_participant(
             &self,
             request: tonic::Request<super::GetReadRowIdsRequest>,
@@ -3114,46 +3091,6 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetDataHashAtParticipantSvc(inner);
-                        let codec = tonic::codec::ProstCodec::default();
-                        let mut grpc = tonic::server::Grpc::new(codec)
-                            .apply_compression_config(
-                                accept_compression_encodings,
-                                send_compression_encodings,
-                            );
-                        let res = grpc.unary(method, req).await;
-                        Ok(res)
-                    };
-                    Box::pin(fut)
-                }
-                "/cdata.SQLClient/ReadRowIdAtHost" => {
-                    #[allow(non_camel_case_types)]
-                    struct ReadRowIdAtHostSvc<T: SqlClient>(pub Arc<T>);
-                    impl<
-                        T: SqlClient,
-                    > tonic::server::UnaryService<super::GetReadRowIdsRequest>
-                    for ReadRowIdAtHostSvc<T> {
-                        type Response = super::GetReadRowIdsReply;
-                        type Future = BoxFuture<
-                            tonic::Response<Self::Response>,
-                            tonic::Status,
-                        >;
-                        fn call(
-                            &mut self,
-                            request: tonic::Request<super::GetReadRowIdsRequest>,
-                        ) -> Self::Future {
-                            let inner = self.0.clone();
-                            let fut = async move {
-                                (*inner).read_row_id_at_host(request).await
-                            };
-                            Box::pin(fut)
-                        }
-                    }
-                    let accept_compression_encodings = self.accept_compression_encodings;
-                    let send_compression_encodings = self.send_compression_encodings;
-                    let inner = self.inner.clone();
-                    let fut = async move {
-                        let inner = inner.0;
-                        let method = ReadRowIdAtHostSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
