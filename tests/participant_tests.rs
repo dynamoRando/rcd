@@ -6,6 +6,8 @@ mod reject_host;
 mod delete_at_participant;
 #[path ="participant_tests/update_at_participant.rs"]
 mod update_at_participant;
+#[path ="participant_tests/update_at_participant_negative.rs"]
+mod update_at_participant_negative;
 #[path ="participant_tests/change_update_from_host_behavior.rs"]
 mod change_update_from_host_behavior;
 #[path ="participant_tests/change_delete_from_host_behavior.rs"]

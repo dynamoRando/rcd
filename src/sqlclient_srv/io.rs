@@ -215,7 +215,10 @@ pub async fn execute_write_at_partipant(
                                 rows_affected = 1;
                             }
                         }
-                        crate::rcd_enum::UpdatesToHostBehavior::DoNothing => todo!(),
+                        crate::rcd_enum::UpdatesToHostBehavior::DoNothing => {
+                            is_overall_successful = true;
+                            rows_affected = 1;
+                        }
                     }
                 }
                 DmlType::Delete => {
