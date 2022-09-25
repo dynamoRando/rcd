@@ -290,6 +290,42 @@ impl SqlClient for SqlClientImpl {
         let result = db::change_deletes_to_host_behavior(request.into_inner(), self).await;
         Ok(Response::new(result))
     }
+
+    #[allow(dead_code, unused_variables)]
+    async fn read_row_id_at_host(
+        &self,
+        request: Request<GetReadRowIdsRequest>,
+    ) -> Result<Response<GetReadRowIdsReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn read_row_id_at_participant(
+        &self,
+        request: Request<GetReadRowIdsRequest>,
+    ) -> Result<Response<GetReadRowIdsReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn get_data_hash_at_host(
+        &self,
+        request: Request<GetDataHashRequest>,
+    ) -> Result<Response<GetDataHashReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    async fn get_data_hash_at_participant(
+        &self,
+        request: Request<GetDataHashRequest>,
+    ) -> Result<Response<GetDataHashReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!()
+    }
 }
 
 #[tokio::main]

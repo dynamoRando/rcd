@@ -27,6 +27,34 @@ service SQLClient {
 	rpc ChangeDeletesFromHostBehavior(ChangeDeletesFromHostBehaviorRequest) returns (ChangeDeletesFromHostBehaviorReply);
 	rpc ChangeUpdatesToHostBehavior(ChangeUpdatesToHostBehaviorRequest) returns (ChangeUpdatesToHostBehaviorReply);
 	rpc ChangeDeletesToHostBehavior(ChangeDeletesToHostBehaviorRequest) returns (ChangeDeletesToHostBehaviorReply);
+	rpc GetDataHashAtHost (GetDataHashRequest) returns (GetDataHashReply);
+	rpc GetDataHashAtParticipant (GetDataHashRequest) returns (GetDataHashReply);
+	rpc ReadRowIdAtHost (GetReadRowIdsRequest) returns (GetReadRowIdsReply);
+	rpc ReadRowIdAtParticipant (GetReadRowIdsRequest) returns (GetReadRowIdsReply);
+}
+
+message GetReadRowIdsRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	string sqlStatement = 4;
+}
+
+message GetReadRowIdsReply {
+	AuthRequest authentication = 1;
+	repeated uint64 rowIds = 2;
+}
+
+message GetDataHashRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 rowId = 4;
+}
+
+message GetDataHashReply {
+	AuthResult authenticationResult = 1;
+	uint64 dataHash = 2;
 }
 
 message ChangeDeletesToHostBehaviorRequest {

@@ -4,6 +4,8 @@ pub mod test_harness;
 mod reject_host;
 #[path ="participant_tests/delete_at_participant.rs"]
 mod delete_at_participant;
+#[path ="participant_tests/update_at_participant.rs"]
+mod update_at_participant;
 #[path ="participant_tests/change_update_from_host_behavior.rs"]
 mod change_update_from_host_behavior;
 #[path ="participant_tests/change_delete_from_host_behavior.rs"]
