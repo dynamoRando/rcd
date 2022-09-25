@@ -18,6 +18,9 @@ pub async fn execute_read_at_host(
 ) -> ExecuteReadReply {
     // check if the user is authenticated
     let message = request.clone();
+
+    // println!("execute_read_at_host: {:?}", message);
+
     let a = message.authentication.unwrap();
 
     let is_authenticated = client.verify_login(&a.user_name, &a.pw);
@@ -36,6 +39,8 @@ pub async fn execute_read_at_host(
 
     if is_authenticated {
         if client.dbi().has_cooperative_tables(&db_name, &sql) {
+            // println!("cooperative tables found for {}", sql);
+
             // we would need to get a list of participants for each of the cooperative tables
             let cooperative_tables = client.dbi().get_cooperative_tables(&db_name, &sql);
 
@@ -60,6 +65,13 @@ pub async fn execute_read_at_host(
                     if data_hash_for_row == saved_hash_for_row {
                         let row = remote_data_result.row.as_ref().unwrap().clone();
                         result_table.push(row);
+                        statement_result_set.is_error = false;
+                    } else {
+                        let row = remote_data_result.row.as_ref().unwrap().clone();
+                        result_table.push(row);
+                        statement_result_set.result_message = String::from(
+                            "warning: data hashes for host and participant rows do not match!",
+                        );
                     }
                 }
             }

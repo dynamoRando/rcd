@@ -35,7 +35,7 @@ back to the host that the row has been deleted. We expect that when the host tri
     - Get the data hash saved at the host
 
 ### Expected Results:
-The read attempt should return the same name as the updated row. The data hashes for both should match.
+The read attempt should return the same name as the updated row. The data hashes for both SHOULD NOT match.
 
 */
 
@@ -190,7 +190,7 @@ fn test() {
 
     let h_data_hash = rx_h_data_hash.try_recv().unwrap();
 
-    assert_eq!(p_data_hash, h_data_hash);
+    assert_ne!(p_data_hash, h_data_hash);
 }
 
 #[cfg(test)]
