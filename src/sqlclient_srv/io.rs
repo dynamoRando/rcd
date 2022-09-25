@@ -311,7 +311,7 @@ pub async fn execute_cooperative_write_at_host(
             let dml_type = query_parser::determine_dml_type(&statement, client.dbi().db_type());
             let db_participant = client
                 .dbi()
-                .get_participant_by_alias(&db_name, &message.alias);
+                .get_participant_by_alias(&db_name, &message.alias).unwrap();
             let host_info = client.dbi().rcd_get_host_info();
             let cmd_table_name = query_parser::get_table_name(&statement, client.dbi().db_type());
             let where_clause = message.where_clause.clone();

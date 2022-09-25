@@ -231,7 +231,7 @@ impl SqlClient for SqlClientImpl {
 
         let db_participant = self
             .dbi()
-            .get_participant_by_alias(&message.db_name, &message.participant_alias);
+            .get_participant_by_alias(&message.db_name, &message.participant_alias).unwrap();
 
         let result = remote_db_srv::try_auth_at_participant(db_participant, &own_host_info).await;
 

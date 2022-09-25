@@ -801,7 +801,7 @@ impl Dbi {
         self: &Self,
         db_name: &str,
         participant_alias: &str,
-    ) -> CoopDatabaseParticipant {
+    ) -> Option<CoopDatabaseParticipant> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

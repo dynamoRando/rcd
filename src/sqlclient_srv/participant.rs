@@ -66,7 +66,7 @@ pub async fn send_participant_contract(
         if client.dbi().has_participant(&db_name, &participant_alias) {
             let participant = client
                 .dbi()
-                .get_participant_by_alias(&db_name, &participant_alias);
+                .get_participant_by_alias(&db_name, &participant_alias).unwrap();
             let active_contract = client.dbi().get_active_contract(&db_name);
             let db_schema = client.dbi().get_database_schema(&db_name);
             let host_info = HostInfo::get(&client.dbi());

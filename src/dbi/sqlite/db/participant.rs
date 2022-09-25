@@ -229,7 +229,7 @@ pub fn get_participant_by_alias(
     db_name: &str,
     alias: &str,
     config: DbiConfigSqlite,
-) -> CoopDatabaseParticipant {
+) -> Option<CoopDatabaseParticipant> {
     let conn = get_db_conn(&config, db_name);
     let cmd = String::from(
         "
@@ -303,7 +303,11 @@ pub fn get_participant_by_alias(
         results.push(participant.unwrap());
     }
 
-    return results.first().unwrap().clone();
+    if results.len() >= 1 {
+        return Some(results.first().unwrap().clone());
+    } else {
+        return None;
+    }
 }
 
 pub fn get_participants_for_table(

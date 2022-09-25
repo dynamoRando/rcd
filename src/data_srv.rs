@@ -383,7 +383,7 @@ impl DataService for DataServiceImpl {
         let accepted_participant = self.dbi().get_participant_by_alias(
             &message.database_name,
             &message.participant.as_ref().unwrap().alias,
-        );
+        ).unwrap();
 
         let is_successful = self.dbi().update_participant_accepts_contract(
             &message.database_name,
@@ -529,7 +529,10 @@ fn authenticate_participant(authentication: AuthRequest, db_name: &str, dbi: &Db
     let host_token = authentication.token;
     let participant = dbi.get_participant_by_alias(db_name, &host_id);
 
-    return do_vecs_match(&participant.token, &host_token);
+    match participant {
+        Some(p) => return do_vecs_match(&p.token, &host_token),
+        None => return false,
+    }
 }
 
 fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
