@@ -12,10 +12,14 @@ use std::{thread, time};
 This test checks to see if the setting at the participant for UPDATES_TO_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
 is being respected.
 
+In this test, we cover the settings UpdatesToHostBehavior::DoNothing.
+
 ## Feature Background
 We want to make sure the participants have full authority over their data. This means that they have the option to change
-how actions on their side are reported back to the host. In this test, if a participant DELETEs a row on the partial database, we will communicate
-back to the host that the row has been deleted. We expect that when the host tries to read the rows again, there should not be anything.
+how actions on their side are reported back to the host. In this test, if a participant UPDATEs a row on the partial database, we will NOT notify the host that we have
+changed the row.
+
+We expect that when the host tries to read the rows again, that it should succeed BUT that the hashes between the rows should no longer match.
 
 ## Test Steps
 - Start an rcd instance for a main (host) and a participant

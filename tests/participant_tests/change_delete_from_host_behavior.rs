@@ -14,7 +14,7 @@ is being respected.
 
 ## Feature Background
 We want to make sure the participants have full authority over their data. This means that they have the option to change
-how modifications being sent from the host are handled. In this test, if a host sends an UPDATE statmement to be processed
+how modifications being sent from the host are handled. In this test, if a host sends an DELETE statmement to be processed
 at the participant, we want to ignore it.
 
 ## Test Steps
