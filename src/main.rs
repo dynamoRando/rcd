@@ -62,8 +62,8 @@ debug = false
 database_type = 1
 backing_database_name = \"rcd.db\"
 rcd_schema = \"rcd\"
-client_service_addr_port = \"[::1]:50051\"
-data_service_addr_port = \"[::1]:50052\"
+client_service_addr_port = \"0.0.0.0:50051\"
+data_service_addr_port = \"0.0.0.0:50052\"
 admin_un = \"tester\"
 admin_pw = \"123456\"
     ",

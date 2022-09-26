@@ -33,5 +33,11 @@ RUN apt-get update \
 # Copy from the previous build
 COPY --from=build /rcd/target/release/rcd /usr/src/rcd
 
+EXPOSE 50051/tcp
+EXPOSE 50052/tcp
+
 # Run the binary
 CMD ["/usr/src/rcd"]
+
+# To build, run this
+# docker build -t rcd .
