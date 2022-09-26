@@ -17,4 +17,43 @@ When a host sends either an UPDATE or DELETE statement to a participant, the par
 - [.] Write tests for each arm of the ENUM for both
 
 
+# Details
+## DELETE
 
+### Deletes To Host
+- [X] Send Notification
+- [ ] Do Nothing
+
+## Deletes From Host
+- [X] Allow Removal
+- [ ] Queue For Review
+- [ ] Delete With Log
+- [X] Ignore
+
+## UPDATE
+
+### Updates To Host
+- [X] Send Data Hash Change
+- [X] Do Nothing
+
+### Updates From Host
+- [ ] Allow Overwrite
+- [ ] Queue For Review
+- [ ] Overwrite With Log
+- [X] Ignore
+
+# Data Queue Notes (Unorganized)
+We need a queue table for any pending changes. 
+
+## Schema
+- (Table Columns)
+- Requested Date Time UTC
+- Host Id
+- Host Token
+
+# Data Log Notes (Unorganized)
+Use Triggers?
+- https://www.sqlitetutorial.net/sqlite-trigger/
+- http://souptonuts.sourceforge.net/readme_sqlite_tutorial.html
+- https://stackoverflow.com/questions/422951/keeping-a-log-table-in-sqlite-database
+- https://stackoverflow.com/questions/67136895/update-and-log-only-changed-rows-with-sql-in-sqlite
