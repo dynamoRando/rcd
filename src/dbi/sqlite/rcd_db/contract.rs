@@ -430,7 +430,8 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
         UPDATES_FROM_HOST_BEHAVIOR,
         DELETES_FROM_HOST_BEHAVIOR,
         UPDATES_TO_HOST_BEHAVIOR,
-        DELETES_TO_HOST_BEHAVIOR
+        DELETES_TO_HOST_BEHAVIOR,
+        USE_DATA_LOG_TABLE
     )
     VALUES
     (
@@ -442,7 +443,8 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
         1,
         1,
         1,
-        1
+        1,
+        0
     )
     ;
     ",

@@ -1,4 +1,38 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetDataLogTableStatusRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+    #[prost(bool, tag="4")]
+    pub use_data_log: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SetDataLogTableStatusReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub is_successful: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDataLogTableStatusRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDataLogTableStatusReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(bool, tag="2")]
+    pub use_data_log: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetReadRowIdsRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -1540,6 +1574,44 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn get_data_log_table_status_at_participant(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDataLogTableStatusRequest>,
+        ) -> Result<tonic::Response<super::GetDataLogTableStatusReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/GetDataLogTableStatusAtParticipant",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn set_data_log_table_status_at_participant(
+            &mut self,
+            request: impl tonic::IntoRequest<super::SetDataLogTableStatusRequest>,
+        ) -> Result<tonic::Response<super::SetDataLogTableStatusReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/cdata.SQLClient/SetDataLogTableStatusAtParticipant",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -1984,6 +2056,14 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GetReadRowIdsRequest>,
         ) -> Result<tonic::Response<super::GetReadRowIdsReply>, tonic::Status>;
+        async fn get_data_log_table_status_at_participant(
+            &self,
+            request: tonic::Request<super::GetDataLogTableStatusRequest>,
+        ) -> Result<tonic::Response<super::GetDataLogTableStatusReply>, tonic::Status>;
+        async fn set_data_log_table_status_at_participant(
+            &self,
+            request: tonic::Request<super::SetDataLogTableStatusRequest>,
+        ) -> Result<tonic::Response<super::SetDataLogTableStatusReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -3131,6 +3211,94 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = ReadRowIdAtParticipantSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.SQLClient/GetDataLogTableStatusAtParticipant" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetDataLogTableStatusAtParticipantSvc<T: SqlClient>(
+                        pub Arc<T>,
+                    );
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetDataLogTableStatusRequest>
+                    for GetDataLogTableStatusAtParticipantSvc<T> {
+                        type Response = super::GetDataLogTableStatusReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetDataLogTableStatusRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner)
+                                    .get_data_log_table_status_at_participant(request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetDataLogTableStatusAtParticipantSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/cdata.SQLClient/SetDataLogTableStatusAtParticipant" => {
+                    #[allow(non_camel_case_types)]
+                    struct SetDataLogTableStatusAtParticipantSvc<T: SqlClient>(
+                        pub Arc<T>,
+                    );
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::SetDataLogTableStatusRequest>
+                    for SetDataLogTableStatusAtParticipantSvc<T> {
+                        type Response = super::SetDataLogTableStatusReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::SetDataLogTableStatusRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner)
+                                    .set_data_log_table_status_at_participant(request)
+                                    .await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = SetDataLogTableStatusAtParticipantSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

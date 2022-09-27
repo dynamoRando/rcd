@@ -57,3 +57,12 @@ Use Triggers?
 - http://souptonuts.sourceforge.net/readme_sqlite_tutorial.html
 - https://stackoverflow.com/questions/422951/keeping-a-log-table-in-sqlite-database
 - https://stackoverflow.com/questions/67136895/update-and-log-only-changed-rows-with-sql-in-sqlite
+
+# Log Table Design
+- Existing Columns, plus Row Id, Action (INSERT/UPDATE/DELETE), and ts (timestamp)
+- [X] on CDS_HOSTS_TABLES, add flag for table USE_DATA_LOG_TABLE
+- [X] Add commands (get/set) in SQLService to set flag
+- Expose API for get/set of the setting
+- Write tests
+
+Note: To read the table, just use the execute read command against the participant connection.

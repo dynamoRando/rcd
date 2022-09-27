@@ -124,7 +124,8 @@ impl CDS {
             UPDATES_FROM_HOST_BEHAVIOR INT,
             DELETES_FROM_HOST_BEHAVIOR INT,
             UPDATES_TO_HOST_BEHAVIOR INT,
-            DELETES_TO_HOST_BEHAVIOR INT
+            DELETES_TO_HOST_BEHAVIOR INT,
+            USE_DATA_LOG_TABLE INT
         );",
         );
     }

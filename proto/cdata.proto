@@ -30,6 +30,31 @@ service SQLClient {
 	rpc GetDataHashAtHost (GetDataHashRequest) returns (GetDataHashReply);
 	rpc GetDataHashAtParticipant (GetDataHashRequest) returns (GetDataHashReply);
 	rpc ReadRowIdAtParticipant (GetReadRowIdsRequest) returns (GetReadRowIdsReply);
+	rpc GetDataLogTableStatusAtParticipant (GetDataLogTableStatusRequest) returns (GetDataLogTableStatusReply);
+	rpc SetDataLogTableStatusAtParticipant (SetDataLogTableStatusRequest) returns (SetDataLogTableStatusReply);
+}
+
+message SetDataLogTableStatusRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	bool useDataLog = 4;
+}
+
+message SetDataLogTableStatusReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
+}
+
+message GetDataLogTableStatusRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetDataLogTableStatusReply {
+	AuthResult authenticationResult = 1;
+	bool useDataLog = 2;
 }
 
 message GetReadRowIdsRequest {

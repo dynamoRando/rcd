@@ -51,6 +51,22 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_data_log_table_status_at_participant(
+        &self,
+        request: Request<GetDataLogTableStatusRequest>,
+    ) -> Result<Response<GetDataLogTableStatusReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!();
+    }
+
+    async fn set_data_log_table_status_at_participant(
+        &self,
+        request: Request<SetDataLogTableStatusRequest>,
+    ) -> Result<Response<SetDataLogTableStatusReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!();
+    }
+
     async fn generate_host_info(
         &self,
         request: Request<GenerateHostInfoRequest>,
@@ -121,7 +137,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_cooperative_write_at_host(request.into_inner(), self).await;
+        let execute_write_reply =
+            io::execute_cooperative_write_at_host(request.into_inner(), self).await;
         Ok(Response::new(execute_write_reply))
     }
 
@@ -231,7 +248,8 @@ impl SqlClient for SqlClientImpl {
 
         let db_participant = self
             .dbi()
-            .get_participant_by_alias(&message.db_name, &message.participant_alias).unwrap();
+            .get_participant_by_alias(&message.db_name, &message.participant_alias)
+            .unwrap();
 
         let result = remote_db_srv::try_auth_at_participant(db_participant, &own_host_info).await;
 
