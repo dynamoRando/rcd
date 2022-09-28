@@ -179,7 +179,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 /// 4. NotNull
 /// 5. defaultValue
 /// 6. IsPK
-fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
+pub fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
     let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
     cmd = cmd.replace(":table_name", &table_name);
 

@@ -67,7 +67,7 @@ pub fn delete_data_in_partial_db(
     }
 }
 
-#[allow(dead_code, unused_variables, unused_mut)]
+#[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
 pub fn update_data_into_partial_db(
     db_name: &str,
     table_name: &str,
@@ -90,8 +90,10 @@ pub fn update_data_into_partial_db(
             if !has_table(data_log_table, conn) {
                 let mut cmd = sql_text::COOP::text_create_data_log_table();
                 let table_col_names = get_table_column_names(db_name, table_name, config);
-                
-                todo!("create data log table");
+                cmd = cmd.replace(":column_list", &table_col_names);
+                cmd = cmd.replace(":table_name", table_name);
+
+                execute_write(conn, &cmd);
             }
 
             unimplemented!()

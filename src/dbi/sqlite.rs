@@ -5,7 +5,7 @@ use crate::{
     cdata::{ColumnSchema, RowValue},
     defaults,
     rcd_enum::ColumnType,
-    table::{Column, Data, Table, Value},
+    table::{Column, Data, Table, Value}, dbi::sqlite::db::get_schema_of_table,
 };
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
@@ -396,9 +396,20 @@ pub fn execute_write_on_connection_at_participant(
     return conn.execute(&cmd, []).unwrap();
 }
 
-#[allow(dead_code, unused_variables)]
 pub fn get_table_column_names(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
-    unimplemented!();
+    let pdbc = get_partial_db_connection(db_name, &config.root_folder);
+    let table = get_schema_of_table(table_name.to_string(), &pdbc).unwrap();
+    let mut col_names = String::from("");
+
+    for column in &table.cols {
+        let col_name = column.name.clone();
+        let data_type = column.data_type.clone();
+        col_names = format!("{}{}{}{}", col_names, col_name, data_type, ",");
+    }
+
+    let result: &str = &col_names[1..col_names.len() - 1];
+
+    return result.to_string();
 }
 
 fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {

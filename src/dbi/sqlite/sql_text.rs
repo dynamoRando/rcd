@@ -158,7 +158,7 @@ impl COOP {
             ACTION VARCHAR(20),
             TS_UTC DATETIME
         )
-        ");
+        ;");
     }
 
     pub fn text_delete_row_metadata_table() -> String {
