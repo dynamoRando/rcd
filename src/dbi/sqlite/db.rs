@@ -2,7 +2,7 @@ use self::participant::create_participant_table;
 
 use super::{
     execute_read_on_connection, get_db_conn, get_scalar_as_string, has_table, sql_text,
-    DbiConfigSqlite,
+    DbiConfigSqlite, get_schema_of_table,
 };
 use crate::{
     cdata::{ColumnSchema, DatabaseSchema, TableSchema},
@@ -171,41 +171,6 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
     }
 }
 
-/// Returns a table describing the schema of the table
-/// # Columns:
-/// 1. columnId
-/// 2. name
-/// 3. type
-/// 4. NotNull
-/// 5. defaultValue
-/// 6. IsPK
-pub fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
-    let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
-    cmd = cmd.replace(":table_name", &table_name);
-
-    return Ok(execute_read_on_connection(cmd, conn).unwrap());
-}
-
-pub fn get_col_names_of_table(table_name: String, conn: &Connection) -> Vec<String> {
-    let mut result: Vec<String> = Vec::new();
-
-    let mut cmd = String::from("select NAME from pragma_table_info(\":table_name\") as tblInfo;");
-    cmd = cmd.replace(":table_name", &table_name);
-
-    let row_to_string = |column_name: String| -> Result<String> { Ok(column_name) };
-
-    let mut statement = conn.prepare(&cmd).unwrap();
-
-    let names = statement
-        .query_and_then([], |row| row_to_string(row.get(0).unwrap()))
-        .unwrap();
-
-    for name in names {
-        result.push(name.unwrap());
-    }
-
-    return result;
-}
 
 /// Queries the COOP_REMOTES table for the table name and policy for each table in the database.
 /// If this returns an empty vector it means either this is a new database or we haven't audited the

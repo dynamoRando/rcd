@@ -5,7 +5,7 @@ use crate::{
     cdata::{ColumnSchema, RowValue},
     defaults,
     rcd_enum::ColumnType,
-    table::{Column, Data, Table, Value}, dbi::sqlite::db::get_schema_of_table,
+    table::{Column, Data, Table, Value},
 };
 use log::info;
 use rusqlite::{types::Type, Connection, Result};
@@ -396,7 +396,7 @@ pub fn execute_write_on_connection_at_participant(
     return conn.execute(&cmd, []).unwrap();
 }
 
-pub fn get_table_column_names(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
+pub fn get_table_col_names_with_data_type_as_string(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
     let pdbc = get_partial_db_connection(db_name, &config.root_folder);
     let table = get_schema_of_table(table_name.to_string(), &pdbc).unwrap();
     let mut col_names = String::from("");
@@ -412,7 +412,44 @@ pub fn get_table_column_names(db_name: &str, table_name: &str, config: &DbiConfi
     return result.to_string();
 }
 
+/// Returns a table describing the schema of the table
+/// # Columns:
+/// 1. columnId
+/// 2. name
+/// 3. type
+/// 4. NotNull
+/// 5. defaultValue
+/// 6. IsPK
+pub fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
+    let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
+    cmd = cmd.replace(":table_name", &table_name);
+
+    return Ok(execute_read_on_connection(cmd, conn).unwrap());
+}
+
+pub fn get_table_col_names(table_name: String, conn: &Connection) -> Vec<String> {
+    let mut result: Vec<String> = Vec::new();
+
+    let mut cmd = String::from("select NAME from pragma_table_info(\":table_name\") as tblInfo;");
+    cmd = cmd.replace(":table_name", &table_name);
+
+    let row_to_string = |column_name: String| -> Result<String> { Ok(column_name) };
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let names = statement
+        .query_and_then([], |row| row_to_string(row.get(0).unwrap()))
+        .unwrap();
+
+    for name in names {
+        result.push(name.unwrap());
+    }
+
+    return result;
+}
+
 fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
     v.try_into()
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
+
