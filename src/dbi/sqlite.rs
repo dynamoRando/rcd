@@ -1,6 +1,6 @@
 use self::db_part::get_partial_db_connection;
 
-use super::DbiConfigSqlite;
+use super::{DbiConfigSqlite};
 use crate::{
     cdata::{ColumnSchema, RowValue},
     defaults,
@@ -394,6 +394,11 @@ pub fn execute_write_on_connection_at_participant(
 ) -> usize {
     let conn = get_partial_db_connection(&db_name, &config.root_folder);
     return conn.execute(&cmd, []).unwrap();
+}
+
+#[allow(dead_code, unused_variables)]
+pub fn get_table_column_names(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
+    unimplemented!();
 }
 
 fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {

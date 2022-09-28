@@ -131,6 +131,10 @@ pub fn get_metadata_table_name(table_name: &str ) -> String {
     return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
 }
 
+pub fn get_data_log_table_name(table_name: &str ) -> String {
+    return format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX);
+}
+
 impl Dbi {
     pub fn get_data_hash_at_host(self: &Self, db_name: &str, table_name: &str, row_id: u32) -> u64 {
         match self.db_type {

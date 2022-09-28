@@ -7,9 +7,9 @@ use super::{
 };
 use crate::cdata::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::db::get_col_names_of_table;
-use crate::dbi::sqlite::{execute_write, has_table, sql_text};
+use crate::dbi::sqlite::{execute_write, has_table, sql_text, get_table_column_names};
 use crate::dbi::{
-    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult, get_metadata_table_name,
+    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult, get_metadata_table_name, get_data_log_table_name,
 };
 use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
@@ -67,6 +67,7 @@ pub fn delete_data_in_partial_db(
     }
 }
 
+#[allow(dead_code, unused_variables, unused_mut)]
 pub fn update_data_into_partial_db(
     db_name: &str,
     table_name: &str,
@@ -81,7 +82,20 @@ pub fn update_data_into_partial_db(
         }
         UpdatesFromHostBehavior::Unknown => todo!(),
         UpdatesFromHostBehavior::QueueForReview => todo!(),
-        UpdatesFromHostBehavior::OverwriteWithLog => todo!(),
+        UpdatesFromHostBehavior::OverwriteWithLog => {
+
+            let data_log_table = get_data_log_table_name(table_name);
+            let conn = &get_partial_db_connection(db_name, &config.root_folder);
+
+            if !has_table(data_log_table, conn) {
+                let mut cmd = sql_text::COOP::text_create_data_log_table();
+                let table_col_names = get_table_column_names(db_name, table_name, config);
+                
+                todo!("create data log table");
+            }
+
+            unimplemented!()
+        },
         UpdatesFromHostBehavior::Ignore => todo!(),
     }
 }
