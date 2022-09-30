@@ -4,13 +4,14 @@ use crate::{
     cdata::{ColumnSchema, Contract, DatabaseSchema, Participant, Row},
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    defaults,
     host_info::HostInfo,
     rcd_enum::{
         DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
         RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
         UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
-    table::Table, defaults,
+    table::Table,
 };
 
 mod sqlite;
@@ -127,11 +128,15 @@ pub struct DbiConfigPostgres {
     pub connect_options: String,
 }
 
-pub fn get_metadata_table_name(table_name: &str ) -> String {
+pub fn get_metadata_table_name(table_name: &str) -> String {
     return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
 }
 
-pub fn get_data_log_table_name(table_name: &str ) -> String {
+pub fn get_data_log_table_name(table_name: &str) -> String {
+    println!(
+        "get_data_log_table_name: {}",
+        format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX)
+    );
     return format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX);
 }
 
@@ -984,6 +989,19 @@ impl Dbi {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 return sqlite::execute_write_on_connection_at_participant(db_name, cmd, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn execute_read_at_participant(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::execute_read_at_participant(db_name, cmd, settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

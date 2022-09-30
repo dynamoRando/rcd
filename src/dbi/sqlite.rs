@@ -1,6 +1,6 @@
 use self::db_part::get_partial_db_connection;
 
-use super::{DbiConfigSqlite};
+use super::DbiConfigSqlite;
 use crate::{
     cdata::{ColumnSchema, RowValue},
     defaults,
@@ -281,6 +281,71 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     return Ok(table);
 }
 
+pub fn execute_read_at_participant(
+    db_name: &str,
+    cmd: &str,
+    config: DbiConfigSqlite,
+) -> rusqlite::Result<Table> {
+    let conn = get_partial_db_connection(&db_name, &config.root_folder);
+    let mut statement = conn.prepare(cmd).unwrap();
+    let total_columns = statement.column_count();
+    let cols = statement.columns();
+    let mut table = Table::new();
+
+    for col in cols {
+        let col_idx = statement.column_index(col.name()).unwrap();
+
+        let c = Column {
+            name: col.name().to_string(),
+            is_nullable: false,
+            idx: col_idx,
+            data_type: col.decl_type().unwrap().to_string(),
+            is_primary_key: false,
+        };
+
+        info!("adding col {}", c.name);
+
+        table.add_column(c);
+    }
+
+    let mut rows = statement.query([])?;
+
+    while let Some(row) = rows.next()? {
+        let mut data_row = crate::table::Row::new();
+
+        for i in 0..total_columns {
+            let dt = row.get_ref_unwrap(i).data_type();
+
+            let string_value: String = match dt {
+                Type::Blob => String::from(""),
+                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                _ => String::from(""),
+            };
+
+            let string_value = string_value;
+            let col = table.get_column_by_index(i).unwrap();
+
+            let data_item = Data {
+                data_string: string_value,
+                data_byte: Vec::new(),
+            };
+
+            let data_value = Value {
+                data: Some(data_item),
+                col: col,
+            };
+
+            data_row.add_value(data_value);
+        }
+
+        table.add_row(data_row);
+    }
+
+    return Ok(table);
+}
+
 pub fn execute_read_at_host(
     db_name: &str,
     cmd: &str,
@@ -384,6 +449,10 @@ pub fn execute_write_on_connection_at_host(
     config: &DbiConfigSqlite,
 ) -> usize {
     let conn = get_db_conn(&config, db_name);
+
+    // println!("{:?}", conn);
+    // println!("{:?}", cmd);
+
     return conn.execute(&cmd, []).unwrap();
 }
 
@@ -396,18 +465,27 @@ pub fn execute_write_on_connection_at_participant(
     return conn.execute(&cmd, []).unwrap();
 }
 
-pub fn get_table_col_names_with_data_type_as_string(db_name: &str, table_name: &str, config: &DbiConfigSqlite) -> String {
+pub fn get_table_col_names_with_data_type_as_string(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> String {
     let pdbc = get_partial_db_connection(db_name, &config.root_folder);
     let table = get_schema_of_table(table_name.to_string(), &pdbc).unwrap();
+
     let mut col_names = String::from("");
 
-    for column in &table.cols {
-        let col_name = column.name.clone();
-        let data_type = column.data_type.clone();
-        col_names = format!("{}{}{}{}", col_names, col_name, data_type, ",");
+    for row in &table.rows {
+        let col_name = row.vals[1].data.as_ref().unwrap().data_string.clone();
+        let data_type = row.vals[2].data.as_ref().unwrap().data_string.clone();
+        col_names = format!("{} {} {}{}", col_names, col_name, data_type, ",");
     }
 
+    // println!("{:?}", col_names);
+
     let result: &str = &col_names[1..col_names.len() - 1];
+
+    // println!("{:?}", result);
 
     return result.to_string();
 }
@@ -452,4 +530,3 @@ fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {
     v.try_into()
         .unwrap_or_else(|v: Vec<T>| panic!("Expected a Vec of length {} but it was {}", N, v.len()))
 }
-

@@ -133,7 +133,7 @@ pub async fn execute_read_at_participant(
     };
 
     if is_authenticated {
-        let query_result = client.dbi().execute_read_at_host(&db_name, &sql);
+        let query_result = client.dbi().execute_read_at_participant(&db_name, &sql);
 
         if query_result.is_ok() {
             let result_rows = query_result.unwrap().to_cdata_rows();
@@ -312,7 +312,10 @@ pub async fn execute_write_at_host(
     let statement = message.sql_statement;
 
     if is_authenticated {
+        // println!("{:?}", &statement);
         rows_affected = client.dbi().execute_write_at_host(&db_name, &statement) as u32;
+    } else {
+        println!("WARNING: execute_write_at_host not authenticated!");
     }
 
     let auth_response = AuthResult {

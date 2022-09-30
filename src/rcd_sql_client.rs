@@ -675,6 +675,36 @@ impl RcdClient {
         return response.is_successful;
     }
 
+    pub async fn execute_read_at_participant(
+        self: &Self,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<StatementResultset, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(ExecuteReadRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .execute_read_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response.results[0].clone())
+    }
+
     pub async fn execute_read_at_host(
         self: &Self,
         db_name: &str,
