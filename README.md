@@ -19,6 +19,16 @@ In this situation, `rcd` enables data to physically be split in a database syste
 
 The idea for `rcd` (and other related projects) is inspired by agricultural and/or food cooperatives.
 
+# Project Layout
+- `rcdx` - the actual rcd binary that runs.
+- `rcdproto` - library that implements the `rcdp.proto` file in Rust.
+- `rcdclient` - library that is an abstraction over the `SQLClient` definition in the `rcdp.proto` file. This is intended to be used by other applications.
+- `rcdt` - short for `rcd terminal` - intended to be a terminal line application for interacting with `rcdx` (in the future.)
+
+# Other Referenced Projects
+- Antlr, at [antlr.org](https://www.antlr.org/license.html) under BSD-3 license. Used for parsing SQLite statements
+- gRPC, at [grpc.io](https://grpc.io/), under Apache 2.0 and Creative Commons 4.0. Used to implement the `proto` file.
+
 # License
 This software is licensed under the Apache 2.0 license. 
 
