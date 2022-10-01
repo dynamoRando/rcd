@@ -8,45 +8,9 @@ use std::{thread, time};
 /*
 # Test Description
 
-## Purpose:
-This test checks to see if when an UPDATE statement is sent from the host if the participant's settings to 
-`UpdatesFromHostBehavior::OverwriteWithLog` that rcd copies the row it's about to overwrite to a `_COOP_DATA_LOG` 
-table before actually executing the overwrite.
-
-## Feature Background
-We want to make sure that participants have full authority over their data. This means that if they want to see
-a history of changes that are being made to their data, they can do so. In this test, a value is initially set by a host
-and later is UPDATEd. 
-
-We expect that the UPDATE from the host should succeed, but that we should also have a record of the changed row
-in the `EMPLOYEE_COOP_DATA_LOG` table in the partial database that the participant can review.
-
-## Test Steps
-- Start an rcd instance for a main (host) and a participant
-- Host:
-    - Generate a db and tables and a contract to send to particpant
-- Participant:
-    - Accept contract
-- Host:
-    - Send one row to participant to be inserted and test to make sure can read from participant
-- Participant:
-    - Change UpdatesFromHostBehavior to Overwrite With Log
-    - Update the newly added row from the previous step
-    - Get the row id for the newly updated row
-    - Get the data hash for the newly updated row
-- Host:
-    - Attempt to read previously inserted row, and should returning matching data.
-    - Get the data hash saved at the host
-    - Check to make sure the hashes match (ensure that the update is correct)
-- Participant:
-    - Send a query to `SELECT * FROM EMPLOYEE_COOP_DATA_LOG` locally at the participant. There should only
-    be one row that is returned.
-
-### Expected Results:
-The row returned at the participant should match the previously inserted value instead of the UPDATEd value.
-
 */
 
+#[ignore = "code not written"]
 #[test]
 fn test() {
     let test_name = "update_from_host_log";

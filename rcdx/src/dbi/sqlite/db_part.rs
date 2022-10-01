@@ -5,7 +5,6 @@ use super::{
     execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32,
     get_scalar_as_u64, get_table_col_names,
 };
-use rcdproto::rcdp::{ColumnSchema, Contract, TableSchema};
 use crate::dbi::sqlite::{
     execute_write, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
@@ -17,6 +16,7 @@ use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use chrono::Utc;
+use rcdproto::rcdp::{ColumnSchema, Contract, TableSchema};
 use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
 
@@ -86,91 +86,7 @@ pub fn update_data_into_partial_db(
         UpdatesFromHostBehavior::Unknown => todo!(),
         UpdatesFromHostBehavior::QueueForReview => todo!(),
         UpdatesFromHostBehavior::OverwriteWithLog => {
-            let data_log_table = get_data_log_table_name(table_name);
-            let conn = &get_partial_db_connection(db_name, &config.root_folder);
-
-            if !has_table(data_log_table.clone(), conn) {
-                let mut cmd = sql_text::COOP::text_create_data_log_table();
-                let table_col_names =
-                    get_table_col_names_with_data_type_as_string(db_name, table_name, config);
-                cmd = cmd.replace(":column_list", &table_col_names);
-                cmd = cmd.replace(":table_name", &data_log_table);
-
-                execute_write(conn, &cmd);
-            }
-
-            // we first need to determine the rows that we're about to overwrite and get them so we can insert them
-            let col_names_vec = get_table_col_names(table_name.to_string(), conn);
-            let mut col_names = String::from("");
-            let mut original_col_names = String::from("");
-
-            for name in &col_names_vec {
-                let item = format!("{}{}", name, ",");
-                col_names = format!("{}{}", col_names, item);
-                original_col_names = format!("{}{}", original_col_names, item);
-            }
-
-            // remove the final comma from the list of original column names
-            original_col_names = original_col_names[0..original_col_names.len() - 1].to_string();
-
-            // for the list of column names, add rowid as a column to get from the db
-            col_names = format!("{}{}", col_names, "ROWID");
-
-            let mut select_cmd =
-                String::from("SELECT :col_names FROM :table_name WHERE :where_clause");
-            select_cmd = select_cmd.replace(":col_names", &col_names);
-            select_cmd = select_cmd.replace(":table_name", table_name);
-            select_cmd = select_cmd.replace(":where_clause", where_clause);
-
-            let mut stmt = conn.prepare(&select_cmd).unwrap();
-            let mut rows = stmt.query([]).unwrap();
-
-            // for every row that we find that we're going to change, we want to insert a copy of it into the data_log_table
-            while let Some(row) = rows.next().unwrap() {
-                let mut insert_cmd = String::from("INSERT INTO :data_log_table ( :cols, ROW_ID, ACTION, TS_UTC ) VALUES ( :col_vals, :rid, ':action', ':ts_utc') ");
-                insert_cmd = insert_cmd.replace(":data_log_table", &data_log_table);
-                insert_cmd = insert_cmd.replace(":cols", &original_col_names);
-
-                // need to build the rest of the insert statement - the column values, rowid, etc.
-                let mut col_vals = String::from("");
-                let total_cols = col_names_vec.len();
-
-                // iterate over the column names and get the value for each as a string
-                // remember, the last item is the ROWID, which is not in this list and we will need to get
-                for i in 0..col_names_vec.len() {
-                    let dt = row.get_ref_unwrap(i).data_type();
-
-                    let string_value: String = match dt {
-                        Type::Blob => String::from(""),
-                        Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                        Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                        Type::Text => {
-                            format!("'{}'", row.get_ref_unwrap(i).as_str().unwrap().to_string())
-                        }
-                        _ => String::from(""),
-                    };
-
-                    // add the value to the list of values to insert
-                    col_vals = format!("{}{}{}", col_vals, string_value, ",");
-                }
-
-                col_vals = col_vals[0..col_vals.len() - 1].to_string();
-                insert_cmd = insert_cmd.replace(":col_vals", &col_vals);
-
-                println!("{:?}", insert_cmd);
-
-                let row_id_val = row.get_ref_unwrap(total_cols).as_i64().unwrap().to_string();
-
-                insert_cmd = insert_cmd.replace(":rid", &row_id_val);
-                insert_cmd = insert_cmd.replace(":action", "UPDATE");
-                insert_cmd = insert_cmd.replace(":ts_utc", &Utc::now().to_string());
-
-                println!("{:?}", insert_cmd);
-
-                execute_write(conn, &insert_cmd);
-            }
-
-            execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
+            execute_update_with_log(db_name, table_name, cmd, where_clause, config)
         }
         UpdatesFromHostBehavior::Ignore => todo!(),
     }
@@ -359,6 +275,99 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     }
     cmd = cmd + " ) ";
     execute_write(conn, &cmd);
+}
+
+fn execute_update_with_log(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult {
+    let data_log_table = get_data_log_table_name(table_name);
+    let conn = &get_partial_db_connection(db_name, &config.root_folder);
+
+    if !has_table(data_log_table.clone(), conn) {
+        let mut cmd = sql_text::COOP::text_create_data_log_table();
+        let table_col_names =
+            get_table_col_names_with_data_type_as_string(db_name, table_name, config);
+        cmd = cmd.replace(":column_list", &table_col_names);
+        cmd = cmd.replace(":table_name", &data_log_table);
+
+        execute_write(conn, &cmd);
+    }
+
+    // we first need to determine the rows that we're about to overwrite and get them so we can insert them
+    let col_names_vec = get_table_col_names(table_name.to_string(), conn);
+    let mut col_names = String::from("");
+    let mut original_col_names = String::from("");
+
+    for name in &col_names_vec {
+        let item = format!("{}{}", name, ",");
+        col_names = format!("{}{}", col_names, item);
+        original_col_names = format!("{}{}", original_col_names, item);
+    }
+
+    // remove the final comma from the list of original column names
+    original_col_names = original_col_names[0..original_col_names.len() - 1].to_string();
+
+    // for the list of column names, add rowid as a column to get from the db
+    col_names = format!("{}{}", col_names, "ROWID");
+
+    let mut select_cmd = String::from("SELECT :col_names FROM :table_name WHERE :where_clause");
+    select_cmd = select_cmd.replace(":col_names", &col_names);
+    select_cmd = select_cmd.replace(":table_name", table_name);
+    select_cmd = select_cmd.replace(":where_clause", where_clause);
+
+    let mut stmt = conn.prepare(&select_cmd).unwrap();
+    let mut rows = stmt.query([]).unwrap();
+
+    // for every row that we find that we're going to change, we want to insert a copy of it into the data_log_table
+    while let Some(row) = rows.next().unwrap() {
+        let mut insert_cmd = String::from("INSERT INTO :data_log_table ( :cols, ROW_ID, ACTION, TS_UTC ) VALUES ( :col_vals, :rid, ':action', ':ts_utc') ");
+        insert_cmd = insert_cmd.replace(":data_log_table", &data_log_table);
+        insert_cmd = insert_cmd.replace(":cols", &original_col_names);
+
+        // need to build the rest of the insert statement - the column values, rowid, etc.
+        let mut col_vals = String::from("");
+        let total_cols = col_names_vec.len();
+
+        // iterate over the column names and get the value for each as a string
+        // remember, the last item is the ROWID, which is not in this list and we will need to get
+        for i in 0..col_names_vec.len() {
+            let dt = row.get_ref_unwrap(i).data_type();
+
+            let string_value: String = match dt {
+                Type::Blob => String::from(""),
+                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                Type::Text => {
+                    format!("'{}'", row.get_ref_unwrap(i).as_str().unwrap().to_string())
+                }
+                _ => String::from(""),
+            };
+
+            // add the value to the list of values to insert
+            col_vals = format!("{}{}{}", col_vals, string_value, ",");
+        }
+
+        col_vals = col_vals[0..col_vals.len() - 1].to_string();
+        insert_cmd = insert_cmd.replace(":col_vals", &col_vals);
+
+        println!("{:?}", insert_cmd);
+
+        let row_id_val = row.get_ref_unwrap(total_cols).as_i64().unwrap().to_string();
+
+        insert_cmd = insert_cmd.replace(":rid", &row_id_val);
+        insert_cmd = insert_cmd.replace(":action", "UPDATE");
+        insert_cmd = insert_cmd.replace(":ts_utc", &Utc::now().to_string());
+
+        println!("{:?}", insert_cmd);
+
+        execute_write(conn, &insert_cmd);
+    }
+
+    execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
 }
 
 fn execute_update_overwrite(
