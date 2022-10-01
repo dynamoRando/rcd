@@ -1342,7 +1342,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rcd"
+name = "rcdclient"
 version = "0.1.0"
 dependencies = [
  "antlr-rust",
@@ -1357,6 +1357,67 @@ dependencies = [
  "log",
  "prost",
  "prost-types",
+ "rcdproto",
+ "rcdx",
+ "rusqlite",
+ "sodiumoxide",
+ "substring",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+]
+
+[[package]]
+name = "rcdproto"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "config",
+ "conv",
+ "endianness",
+ "env_logger",
+ "futures",
+ "guid-create",
+ "lazy_static",
+ "log",
+ "prost",
+ "prost-types",
+ "rusqlite",
+ "sodiumoxide",
+ "substring",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+]
+
+[[package]]
+name = "rcdt"
+version = "0.1.0"
+dependencies = [
+ "rcdclient",
+ "rcdproto",
+ "rcdx",
+]
+
+[[package]]
+name = "rcdx"
+version = "0.1.0"
+dependencies = [
+ "antlr-rust",
+ "chrono",
+ "config",
+ "conv",
+ "endianness",
+ "env_logger",
+ "futures",
+ "guid-create",
+ "lazy_static",
+ "log",
+ "prost",
+ "prost-types",
+ "rcdproto",
  "rusqlite",
  "sodiumoxide",
  "substring",

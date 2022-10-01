@@ -8,19 +8,15 @@ RUN apt-get update \
 RUN USER=root cargo new --bin rcd
 WORKDIR /rcd
 
-# Copy our manifests
 COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
-
-# Build only the dependencies to cache them
-RUN cargo build --release
-RUN rm src/*.rs
-
-# Copy the source code
-COPY ./src ./src
+COPY ./rcdclient ./rcdclient
+COPY ./rcdx ./rcdx
+COPY ./rcdproto ./rcdproto
+COPY ./rcdt ./rcdt
 
 # Build for release.
-RUN rm ./target/release/deps/rcd*
+# RUN rm ./target/release/*
 RUN cargo build --release
 
 # The final base image
@@ -31,13 +27,14 @@ RUN apt-get update \
     openssl libglib2.0-dev libgtk2.0-dev
 
 # Copy from the previous build
-COPY --from=build /rcd/target/release/rcd /usr/src/rcd
+COPY --from=build /rcd/target/release/rcdx /usr/src/rcdx
+COPY --from=build /rcd/target/release/rcdt /usr/src/rcdt
 
 EXPOSE 50051/tcp
 EXPOSE 50052/tcp
 
 # Run the binary
-CMD ["/usr/src/rcd"]
+CMD ["/usr/src/rcdx"]
 
 # To build, run this
 # docker build -t rcd .

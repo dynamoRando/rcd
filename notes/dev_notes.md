@@ -100,9 +100,9 @@ let default_addr_port = "http://[::1]:50051";
 
 ```rust
         #[cfg(test)]
-        use crate::cdata::sql_client_client::SqlClientClient;
+        use rcdproto::rcdp::sql_client_client::SqlClientClient;
         #[cfg(test)]
-        use crate::cdata::{CreateUserDatabaseRequest, TestRequest};
+        use rcdproto::rcdp::{CreateUserDatabaseRequest, TestRequest};
         #[cfg(test)]
         use log::info;
         extern crate futures;
