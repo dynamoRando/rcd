@@ -1,9 +1,9 @@
 use log::info;
+use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::TestRequest;
 use rcdx::get_service_from_config_file;
 use std::sync::mpsc;
 use std::{thread, time};
-use rcdproto::rcdp::sql_client_client::SqlClientClient;
 
 #[tokio::main]
 async fn client(test_message: &str, addr_port: &str) -> String {

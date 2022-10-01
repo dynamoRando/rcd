@@ -1,14 +1,15 @@
-use rcdproto::rcdp::{
-    AcceptPendingContractRequest, AddParticipantRequest, ChangeDeletesFromHostBehaviorRequest,
-    ChangeDeletesToHostBehaviorRequest, ChangeHostStatusRequest,
-    ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
-    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
-    ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetReadRowIdsRequest, HasTableRequest,
-    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest, AuthRequest
-};
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
+use rcdproto::rcdp::{
+    AcceptPendingContractRequest, AddParticipantRequest, AuthRequest,
+    ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorRequest,
+    ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+    ChangeUpdatesToHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
+    EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
+    ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest, GetDataHashRequest,
+    GetLogicalStoragePolicyRequest, GetReadRowIdsRequest, HasTableRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+};
 
 use rcdx::rcd_enum::{
     DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,

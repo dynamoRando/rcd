@@ -13,7 +13,7 @@ mod insert_row;
 #[path = "db_service_tests/save_contract.rs"]
 mod save_contract;
 
-/* 
+/*
 # Test Module Overview
 
 This module is intended to group tests related to ensuring the rcd db service is working correctly. This module may be deprecated in favor of expanding

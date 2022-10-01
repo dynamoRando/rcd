@@ -1,10 +1,9 @@
 use chrono::{TimeZone, Utc};
 use guid_create::GUID;
-use rusqlite::{named_params, Connection, Result};
 use rcdproto::rcdp::Participant;
+use rusqlite::{named_params, Connection, Result};
 
 use crate::{
-    
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant,
     dbi::{

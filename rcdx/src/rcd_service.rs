@@ -1,4 +1,3 @@
-use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use crate::configure_backing_store_at_dir;
 use crate::data_srv::DataServiceImpl;
 use crate::dbi::{Dbi, DbiConfigSqlite};
@@ -6,6 +5,7 @@ use crate::rcd_enum::DatabaseType;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use log::info;
+use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::{env, thread};
 use tonic::transport::Server;
 
@@ -207,7 +207,6 @@ impl RcdService {
         root_folder: String,
         db_interface: Option<Dbi>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-       
         let addr = address_port.parse().unwrap();
 
         let sql_client = SqlClientImpl {
@@ -222,10 +221,7 @@ impl RcdService {
             .build()
             .unwrap();
 
-        println!(
-            "Client Service Starting At: {}",
-            addr
-        );
+        println!("Client Service Starting At: {}", addr);
 
         Server::builder()
             .add_service(SqlClientServer::new(sql_client))
@@ -318,7 +314,6 @@ impl RcdService {
         root_folder: String,
         db_interface: Option<Dbi>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-   
         let addr = address_port.parse().unwrap();
 
         let data_service = DataServiceImpl {
@@ -332,10 +327,7 @@ impl RcdService {
             .build()
             .unwrap();
 
-        println!(
-            "Database Service Starting At: {}",
-            addr
-        );
+        println!("Database Service Starting At: {}", addr);
 
         Server::builder()
             .add_service(DataServiceServer::new(data_service))

@@ -1,6 +1,6 @@
 use super::get_rcd_conn;
-use crate::dbi::{DbiConfigSqlite, sqlite::sql_text::CDS};
-use rusqlite::{Result, named_params};
+use crate::dbi::{sqlite::sql_text::CDS, DbiConfigSqlite};
+use rusqlite::{named_params, Result};
 
 pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
     let conn = get_rcd_conn(&config);

@@ -326,8 +326,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
 
     fn exit_join_constraint(&mut self, _ctx: &sqliteparser::Join_constraintContext<'input>) {}
 
-    fn enter_select_core(&mut self, _ctx: &sqliteparser::Select_coreContext<'input>) {
-    }
+    fn enter_select_core(&mut self, _ctx: &sqliteparser::Select_coreContext<'input>) {}
 
     fn exit_select_core(&mut self, _ctx: &sqliteparser::Select_coreContext<'input>) {}
 
@@ -416,7 +415,9 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     fn exit_new_table_name(&mut self, _ctx: &sqliteparser::New_table_nameContext<'input>) {}
 
     fn enter_column_name(&mut self, _ctx: &sqliteparser::Column_nameContext<'input>) {
-        self.insert_data.column_names.push(_ctx.start().text.to_string());
+        self.insert_data
+            .column_names
+            .push(_ctx.start().text.to_string());
     }
 
     fn exit_column_name(&mut self, _ctx: &sqliteparser::Column_nameContext<'input>) {}

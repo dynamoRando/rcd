@@ -29,8 +29,7 @@ fn get_harness_value() {
     assert_eq!(current + 1, next);
 }
 
-
-/* 
+/*
 # Test Module Overview
 
 This module is intended to group tests related to ensuring the rcd sql client service is working correctly - mainly from the perspective of the host. While

@@ -1,8 +1,10 @@
 use crate::dbi::Dbi;
-use crate::{remote_db_srv};
-use rcdproto::rcdp::{RejectPendingContractRequest, RejectPendingContractReply, CreateUserDatabaseReply};
-use rcdproto::rcdp::{sql_client_server::{SqlClient, SqlClientServer}};
+use crate::remote_db_srv;
+use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
+use rcdproto::rcdp::{
+    CreateUserDatabaseReply, RejectPendingContractReply, RejectPendingContractRequest,
+};
 
 use chrono::Utc;
 use rusqlite::Result;

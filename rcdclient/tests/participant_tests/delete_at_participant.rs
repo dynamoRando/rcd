@@ -1,7 +1,7 @@
 use crate::test_harness::ServiceAddr;
 use log::info;
-use rcdx::rcd_enum::DeletesToHostBehavior;
 use rcdclient::RcdClient;
+use rcdx::rcd_enum::DeletesToHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,7 +9,7 @@ use std::{thread, time};
 # Test Description
 
 ## Purpose:
-This test checks to see if the setting at the participant for DELETES_TO_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES 
+This test checks to see if the setting at the participant for DELETES_TO_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
 is being respected.
 
 ## Feature Background
@@ -156,8 +156,8 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -278,8 +278,8 @@ async fn participant_service_client(
     contract_desc: String,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
@@ -324,8 +324,8 @@ async fn participant_changes_delete_behavior(
     behavior: DeletesToHostBehavior,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -347,12 +347,14 @@ async fn participant_changes_delete_behavior(
     assert!(change_delete_behavior.unwrap());
 
     let statement = String::from("DELETE FROM EMPLOYEE WHERE ID = 999");
-    let delete_result = client.execute_write_at_participant(
-        db_name,
-        &statement,
-        DatabaseType::to_u32(DatabaseType::Sqlite),
-        "ID = 999"
-    ).await;
+    let delete_result = client
+        .execute_write_at_participant(
+            db_name,
+            &statement,
+            DatabaseType::to_u32(DatabaseType::Sqlite),
+            "ID = 999",
+        )
+        .await;
 
     return delete_result.unwrap();
 }

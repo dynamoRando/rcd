@@ -1,7 +1,7 @@
 use crate::test_harness::ServiceAddr;
 use log::info;
-use rcdx::rcd_enum::UpdatesToHostBehavior;
 use rcdclient::RcdClient;
+use rcdx::rcd_enum::UpdatesToHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -17,7 +17,7 @@ In this test, we cover the settings UpdatesToHostBehavior::SendDataHashChange.
 ## Feature Background
 We want to make sure the participants have full authority over their data. This means that they have the option to change
 how actions on their side are reported back to the host. In this test, if a participant UPDATEs a row on the partial database, we will communicate
-back to the host that the row has been updated via the changed hash for the row. 
+back to the host that the row has been updated via the changed hash for the row.
 
 We expect that when the host tries to read the rows again, that it should succeed and the hashes for the row between the host and participant should match.
 
@@ -206,8 +206,8 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -328,8 +328,8 @@ async fn participant_service_client(
     contract_desc: String,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
@@ -374,8 +374,8 @@ async fn participant_changes_update_behavior(
     behavior: UpdatesToHostBehavior,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -414,8 +414,8 @@ async fn participant_changes_update_behavior(
 #[allow(dead_code, unused_variables)]
 async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -448,8 +448,8 @@ async fn get_data_hash_for_changed_row_at_participant(
     row_id: u32,
 ) -> u64 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -481,8 +481,8 @@ async fn get_data_hash_for_changed_row_at_host(
     row_id: u32,
 ) -> u64 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

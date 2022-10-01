@@ -1,9 +1,9 @@
-use rcdproto::rcdp::{AuthResult, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
-SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};
-
-use crate::{
-    rcd_enum::LogicalStoragePolicy,
+use rcdproto::rcdp::{
+    AuthResult, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
+
+use crate::rcd_enum::LogicalStoragePolicy;
 
 use super::SqlClientImpl;
 

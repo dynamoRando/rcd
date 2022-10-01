@@ -4,21 +4,21 @@ use guid_create::GUID;
 use log::info;
 use tonic::transport::Channel;
 
+use crate::coop_database_participant::CoopDatabaseParticipantData;
+use crate::dbi::CdsHosts;
+use crate::rcd_enum::ContractStatus;
+use crate::{
+    coop_database_contract::CoopDatabaseContract,
+    coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
+};
 use rcdproto::rcdp::data_service_client::DataServiceClient;
+use rcdproto::rcdp::GetRowFromPartialDatabaseResult;
 use rcdproto::rcdp::{
     AuthRequest, Contract, DatabaseSchema, DeleteDataRequest, DeleteDataResult,
     GetRowFromPartialDatabaseRequest, Host, InsertDataRequest, InsertDataResult, MessageInfo,
     NotifyHostOfRemovedRowRequest, Participant, ParticipantAcceptsContractRequest,
     RowParticipantAddress, SaveContractRequest, TryAuthRequest, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest,
-};
-use crate::coop_database_participant::CoopDatabaseParticipantData;
-use crate::dbi::CdsHosts;
-use crate::rcd_enum::ContractStatus;
-use rcdproto::rcdp::GetRowFromPartialDatabaseResult;
-use crate::{
-    coop_database_contract::CoopDatabaseContract,
-    coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
 
 pub async fn try_auth_at_participant(

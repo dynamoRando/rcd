@@ -4,303 +4,602 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 use antlr_rust::atn::ATN;
+use antlr_rust::atn_deserializer::ATNDeserializer;
 use antlr_rust::char_stream::CharStream;
+use antlr_rust::dfa::DFA;
+use antlr_rust::error_listener::ErrorListener;
 use antlr_rust::int_stream::IntStream;
 use antlr_rust::lexer::{BaseLexer, Lexer, LexerRecog};
-use antlr_rust::atn_deserializer::ATNDeserializer;
-use antlr_rust::dfa::DFA;
-use antlr_rust::lexer_atn_simulator::{LexerATNSimulator, ILexerATNSimulator};
-use antlr_rust::PredictionContextCache;
-use antlr_rust::recognizer::{Recognizer,Actions};
-use antlr_rust::error_listener::ErrorListener;
-use antlr_rust::TokenSource;
-use antlr_rust::token_factory::{TokenFactory,CommonTokenFactory,TokenAware};
+use antlr_rust::lexer_atn_simulator::{ILexerATNSimulator, LexerATNSimulator};
+use antlr_rust::parser_rule_context::{cast, BaseParserRuleContext, ParserRuleContext};
+use antlr_rust::recognizer::{Actions, Recognizer};
+use antlr_rust::rule_context::{BaseRuleContext, EmptyContext, EmptyCustomRuleContext};
 use antlr_rust::token::*;
-use antlr_rust::rule_context::{BaseRuleContext,EmptyCustomRuleContext,EmptyContext};
-use antlr_rust::parser_rule_context::{ParserRuleContext,BaseParserRuleContext,cast};
-use antlr_rust::vocabulary::{Vocabulary,VocabularyImpl};
+use antlr_rust::token_factory::{CommonTokenFactory, TokenAware, TokenFactory};
+use antlr_rust::vocabulary::{Vocabulary, VocabularyImpl};
+use antlr_rust::PredictionContextCache;
+use antlr_rust::TokenSource;
 
-use antlr_rust::{lazy_static,Tid,TidAble,TidExt};
+use antlr_rust::{lazy_static, Tid, TidAble, TidExt};
 
-use std::sync::Arc;
 use std::cell::RefCell;
-use std::rc::Rc;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use std::rc::Rc;
+use std::sync::Arc;
 
+pub const SCOL: isize = 1;
+pub const DOT: isize = 2;
+pub const OPEN_PAR: isize = 3;
+pub const CLOSE_PAR: isize = 4;
+pub const COMMA: isize = 5;
+pub const ASSIGN: isize = 6;
+pub const STAR: isize = 7;
+pub const PLUS: isize = 8;
+pub const MINUS: isize = 9;
+pub const TILDE: isize = 10;
+pub const PIPE2: isize = 11;
+pub const DIV: isize = 12;
+pub const MOD: isize = 13;
+pub const LT2: isize = 14;
+pub const GT2: isize = 15;
+pub const AMP: isize = 16;
+pub const PIPE: isize = 17;
+pub const LT: isize = 18;
+pub const LT_EQ: isize = 19;
+pub const GT: isize = 20;
+pub const GT_EQ: isize = 21;
+pub const EQ: isize = 22;
+pub const NOT_EQ1: isize = 23;
+pub const NOT_EQ2: isize = 24;
+pub const K_ABORT: isize = 25;
+pub const K_ACTION: isize = 26;
+pub const K_ADD: isize = 27;
+pub const K_AFTER: isize = 28;
+pub const K_ALL: isize = 29;
+pub const K_ALTER: isize = 30;
+pub const K_ANALYZE: isize = 31;
+pub const K_AND: isize = 32;
+pub const K_AS: isize = 33;
+pub const K_ASC: isize = 34;
+pub const K_ATTACH: isize = 35;
+pub const K_AUTOINCREMENT: isize = 36;
+pub const K_BEFORE: isize = 37;
+pub const K_BEGIN: isize = 38;
+pub const K_BETWEEN: isize = 39;
+pub const K_BY: isize = 40;
+pub const K_CASCADE: isize = 41;
+pub const K_CASE: isize = 42;
+pub const K_CAST: isize = 43;
+pub const K_CHECK: isize = 44;
+pub const K_COLLATE: isize = 45;
+pub const K_COLUMN: isize = 46;
+pub const K_COMMIT: isize = 47;
+pub const K_CONFLICT: isize = 48;
+pub const K_CONSTRAINT: isize = 49;
+pub const K_CREATE: isize = 50;
+pub const K_CROSS: isize = 51;
+pub const K_CURRENT_DATE: isize = 52;
+pub const K_CURRENT_TIME: isize = 53;
+pub const K_CURRENT_TIMESTAMP: isize = 54;
+pub const K_DATABASE: isize = 55;
+pub const K_DEFAULT: isize = 56;
+pub const K_DEFERRABLE: isize = 57;
+pub const K_DEFERRED: isize = 58;
+pub const K_DELETE: isize = 59;
+pub const K_DESC: isize = 60;
+pub const K_DETACH: isize = 61;
+pub const K_DISTINCT: isize = 62;
+pub const K_DROP: isize = 63;
+pub const K_EACH: isize = 64;
+pub const K_ELSE: isize = 65;
+pub const K_END: isize = 66;
+pub const K_ESCAPE: isize = 67;
+pub const K_EXCEPT: isize = 68;
+pub const K_EXCLUSIVE: isize = 69;
+pub const K_EXISTS: isize = 70;
+pub const K_EXPLAIN: isize = 71;
+pub const K_FAIL: isize = 72;
+pub const K_FOR: isize = 73;
+pub const K_FOREIGN: isize = 74;
+pub const K_FROM: isize = 75;
+pub const K_FULL: isize = 76;
+pub const K_GLOB: isize = 77;
+pub const K_GROUP: isize = 78;
+pub const K_HAVING: isize = 79;
+pub const K_IF: isize = 80;
+pub const K_IGNORE: isize = 81;
+pub const K_IMMEDIATE: isize = 82;
+pub const K_IN: isize = 83;
+pub const K_INDEX: isize = 84;
+pub const K_INDEXED: isize = 85;
+pub const K_INITIALLY: isize = 86;
+pub const K_INNER: isize = 87;
+pub const K_INSERT: isize = 88;
+pub const K_INSTEAD: isize = 89;
+pub const K_INTERSECT: isize = 90;
+pub const K_INTO: isize = 91;
+pub const K_IS: isize = 92;
+pub const K_ISNULL: isize = 93;
+pub const K_JOIN: isize = 94;
+pub const K_KEY: isize = 95;
+pub const K_LEFT: isize = 96;
+pub const K_LIKE: isize = 97;
+pub const K_LIMIT: isize = 98;
+pub const K_MATCH: isize = 99;
+pub const K_NATURAL: isize = 100;
+pub const K_NO: isize = 101;
+pub const K_NOT: isize = 102;
+pub const K_NOTNULL: isize = 103;
+pub const K_NULL: isize = 104;
+pub const K_OF: isize = 105;
+pub const K_OFFSET: isize = 106;
+pub const K_ON: isize = 107;
+pub const K_OR: isize = 108;
+pub const K_ORDER: isize = 109;
+pub const K_OUTER: isize = 110;
+pub const K_PLAN: isize = 111;
+pub const K_PRAGMA: isize = 112;
+pub const K_PRIMARY: isize = 113;
+pub const K_QUERY: isize = 114;
+pub const K_RAISE: isize = 115;
+pub const K_RECURSIVE: isize = 116;
+pub const K_REFERENCES: isize = 117;
+pub const K_REGEXP: isize = 118;
+pub const K_REINDEX: isize = 119;
+pub const K_RELEASE: isize = 120;
+pub const K_RENAME: isize = 121;
+pub const K_REPLACE: isize = 122;
+pub const K_RESTRICT: isize = 123;
+pub const K_RIGHT: isize = 124;
+pub const K_ROLLBACK: isize = 125;
+pub const K_ROW: isize = 126;
+pub const K_SAVEPOINT: isize = 127;
+pub const K_SELECT: isize = 128;
+pub const K_SET: isize = 129;
+pub const K_TABLE: isize = 130;
+pub const K_TEMP: isize = 131;
+pub const K_TEMPORARY: isize = 132;
+pub const K_THEN: isize = 133;
+pub const K_TO: isize = 134;
+pub const K_TRANSACTION: isize = 135;
+pub const K_TRIGGER: isize = 136;
+pub const K_UNION: isize = 137;
+pub const K_UNIQUE: isize = 138;
+pub const K_UPDATE: isize = 139;
+pub const K_USING: isize = 140;
+pub const K_VACUUM: isize = 141;
+pub const K_VALUES: isize = 142;
+pub const K_VIEW: isize = 143;
+pub const K_VIRTUAL: isize = 144;
+pub const K_WHEN: isize = 145;
+pub const K_WHERE: isize = 146;
+pub const K_WITH: isize = 147;
+pub const K_WITHOUT: isize = 148;
+pub const IDENTIFIER: isize = 149;
+pub const NUMERIC_LITERAL: isize = 150;
+pub const BIND_PARAMETER: isize = 151;
+pub const STRING_LITERAL: isize = 152;
+pub const BLOB_LITERAL: isize = 153;
+pub const SINGLE_LINE_COMMENT: isize = 154;
+pub const MULTILINE_COMMENT: isize = 155;
+pub const SPACES: isize = 156;
+pub const UNEXPECTED_CHAR: isize = 157;
+pub const channelNames: [&'static str; 0 + 2] = ["DEFAULT_TOKEN_CHANNEL", "HIDDEN"];
 
-	pub const SCOL:isize=1; 
-	pub const DOT:isize=2; 
-	pub const OPEN_PAR:isize=3; 
-	pub const CLOSE_PAR:isize=4; 
-	pub const COMMA:isize=5; 
-	pub const ASSIGN:isize=6; 
-	pub const STAR:isize=7; 
-	pub const PLUS:isize=8; 
-	pub const MINUS:isize=9; 
-	pub const TILDE:isize=10; 
-	pub const PIPE2:isize=11; 
-	pub const DIV:isize=12; 
-	pub const MOD:isize=13; 
-	pub const LT2:isize=14; 
-	pub const GT2:isize=15; 
-	pub const AMP:isize=16; 
-	pub const PIPE:isize=17; 
-	pub const LT:isize=18; 
-	pub const LT_EQ:isize=19; 
-	pub const GT:isize=20; 
-	pub const GT_EQ:isize=21; 
-	pub const EQ:isize=22; 
-	pub const NOT_EQ1:isize=23; 
-	pub const NOT_EQ2:isize=24; 
-	pub const K_ABORT:isize=25; 
-	pub const K_ACTION:isize=26; 
-	pub const K_ADD:isize=27; 
-	pub const K_AFTER:isize=28; 
-	pub const K_ALL:isize=29; 
-	pub const K_ALTER:isize=30; 
-	pub const K_ANALYZE:isize=31; 
-	pub const K_AND:isize=32; 
-	pub const K_AS:isize=33; 
-	pub const K_ASC:isize=34; 
-	pub const K_ATTACH:isize=35; 
-	pub const K_AUTOINCREMENT:isize=36; 
-	pub const K_BEFORE:isize=37; 
-	pub const K_BEGIN:isize=38; 
-	pub const K_BETWEEN:isize=39; 
-	pub const K_BY:isize=40; 
-	pub const K_CASCADE:isize=41; 
-	pub const K_CASE:isize=42; 
-	pub const K_CAST:isize=43; 
-	pub const K_CHECK:isize=44; 
-	pub const K_COLLATE:isize=45; 
-	pub const K_COLUMN:isize=46; 
-	pub const K_COMMIT:isize=47; 
-	pub const K_CONFLICT:isize=48; 
-	pub const K_CONSTRAINT:isize=49; 
-	pub const K_CREATE:isize=50; 
-	pub const K_CROSS:isize=51; 
-	pub const K_CURRENT_DATE:isize=52; 
-	pub const K_CURRENT_TIME:isize=53; 
-	pub const K_CURRENT_TIMESTAMP:isize=54; 
-	pub const K_DATABASE:isize=55; 
-	pub const K_DEFAULT:isize=56; 
-	pub const K_DEFERRABLE:isize=57; 
-	pub const K_DEFERRED:isize=58; 
-	pub const K_DELETE:isize=59; 
-	pub const K_DESC:isize=60; 
-	pub const K_DETACH:isize=61; 
-	pub const K_DISTINCT:isize=62; 
-	pub const K_DROP:isize=63; 
-	pub const K_EACH:isize=64; 
-	pub const K_ELSE:isize=65; 
-	pub const K_END:isize=66; 
-	pub const K_ESCAPE:isize=67; 
-	pub const K_EXCEPT:isize=68; 
-	pub const K_EXCLUSIVE:isize=69; 
-	pub const K_EXISTS:isize=70; 
-	pub const K_EXPLAIN:isize=71; 
-	pub const K_FAIL:isize=72; 
-	pub const K_FOR:isize=73; 
-	pub const K_FOREIGN:isize=74; 
-	pub const K_FROM:isize=75; 
-	pub const K_FULL:isize=76; 
-	pub const K_GLOB:isize=77; 
-	pub const K_GROUP:isize=78; 
-	pub const K_HAVING:isize=79; 
-	pub const K_IF:isize=80; 
-	pub const K_IGNORE:isize=81; 
-	pub const K_IMMEDIATE:isize=82; 
-	pub const K_IN:isize=83; 
-	pub const K_INDEX:isize=84; 
-	pub const K_INDEXED:isize=85; 
-	pub const K_INITIALLY:isize=86; 
-	pub const K_INNER:isize=87; 
-	pub const K_INSERT:isize=88; 
-	pub const K_INSTEAD:isize=89; 
-	pub const K_INTERSECT:isize=90; 
-	pub const K_INTO:isize=91; 
-	pub const K_IS:isize=92; 
-	pub const K_ISNULL:isize=93; 
-	pub const K_JOIN:isize=94; 
-	pub const K_KEY:isize=95; 
-	pub const K_LEFT:isize=96; 
-	pub const K_LIKE:isize=97; 
-	pub const K_LIMIT:isize=98; 
-	pub const K_MATCH:isize=99; 
-	pub const K_NATURAL:isize=100; 
-	pub const K_NO:isize=101; 
-	pub const K_NOT:isize=102; 
-	pub const K_NOTNULL:isize=103; 
-	pub const K_NULL:isize=104; 
-	pub const K_OF:isize=105; 
-	pub const K_OFFSET:isize=106; 
-	pub const K_ON:isize=107; 
-	pub const K_OR:isize=108; 
-	pub const K_ORDER:isize=109; 
-	pub const K_OUTER:isize=110; 
-	pub const K_PLAN:isize=111; 
-	pub const K_PRAGMA:isize=112; 
-	pub const K_PRIMARY:isize=113; 
-	pub const K_QUERY:isize=114; 
-	pub const K_RAISE:isize=115; 
-	pub const K_RECURSIVE:isize=116; 
-	pub const K_REFERENCES:isize=117; 
-	pub const K_REGEXP:isize=118; 
-	pub const K_REINDEX:isize=119; 
-	pub const K_RELEASE:isize=120; 
-	pub const K_RENAME:isize=121; 
-	pub const K_REPLACE:isize=122; 
-	pub const K_RESTRICT:isize=123; 
-	pub const K_RIGHT:isize=124; 
-	pub const K_ROLLBACK:isize=125; 
-	pub const K_ROW:isize=126; 
-	pub const K_SAVEPOINT:isize=127; 
-	pub const K_SELECT:isize=128; 
-	pub const K_SET:isize=129; 
-	pub const K_TABLE:isize=130; 
-	pub const K_TEMP:isize=131; 
-	pub const K_TEMPORARY:isize=132; 
-	pub const K_THEN:isize=133; 
-	pub const K_TO:isize=134; 
-	pub const K_TRANSACTION:isize=135; 
-	pub const K_TRIGGER:isize=136; 
-	pub const K_UNION:isize=137; 
-	pub const K_UNIQUE:isize=138; 
-	pub const K_UPDATE:isize=139; 
-	pub const K_USING:isize=140; 
-	pub const K_VACUUM:isize=141; 
-	pub const K_VALUES:isize=142; 
-	pub const K_VIEW:isize=143; 
-	pub const K_VIRTUAL:isize=144; 
-	pub const K_WHEN:isize=145; 
-	pub const K_WHERE:isize=146; 
-	pub const K_WITH:isize=147; 
-	pub const K_WITHOUT:isize=148; 
-	pub const IDENTIFIER:isize=149; 
-	pub const NUMERIC_LITERAL:isize=150; 
-	pub const BIND_PARAMETER:isize=151; 
-	pub const STRING_LITERAL:isize=152; 
-	pub const BLOB_LITERAL:isize=153; 
-	pub const SINGLE_LINE_COMMENT:isize=154; 
-	pub const MULTILINE_COMMENT:isize=155; 
-	pub const SPACES:isize=156; 
-	pub const UNEXPECTED_CHAR:isize=157;
-	pub const channelNames: [&'static str;0+2] = [
-		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
-	];
+pub const modeNames: [&'static str; 1] = ["DEFAULT_MODE"];
 
-	pub const modeNames: [&'static str;1] = [
-		"DEFAULT_MODE"
-	];
+pub const ruleNames: [&'static str; 184] = [
+    "SCOL",
+    "DOT",
+    "OPEN_PAR",
+    "CLOSE_PAR",
+    "COMMA",
+    "ASSIGN",
+    "STAR",
+    "PLUS",
+    "MINUS",
+    "TILDE",
+    "PIPE2",
+    "DIV",
+    "MOD",
+    "LT2",
+    "GT2",
+    "AMP",
+    "PIPE",
+    "LT",
+    "LT_EQ",
+    "GT",
+    "GT_EQ",
+    "EQ",
+    "NOT_EQ1",
+    "NOT_EQ2",
+    "K_ABORT",
+    "K_ACTION",
+    "K_ADD",
+    "K_AFTER",
+    "K_ALL",
+    "K_ALTER",
+    "K_ANALYZE",
+    "K_AND",
+    "K_AS",
+    "K_ASC",
+    "K_ATTACH",
+    "K_AUTOINCREMENT",
+    "K_BEFORE",
+    "K_BEGIN",
+    "K_BETWEEN",
+    "K_BY",
+    "K_CASCADE",
+    "K_CASE",
+    "K_CAST",
+    "K_CHECK",
+    "K_COLLATE",
+    "K_COLUMN",
+    "K_COMMIT",
+    "K_CONFLICT",
+    "K_CONSTRAINT",
+    "K_CREATE",
+    "K_CROSS",
+    "K_CURRENT_DATE",
+    "K_CURRENT_TIME",
+    "K_CURRENT_TIMESTAMP",
+    "K_DATABASE",
+    "K_DEFAULT",
+    "K_DEFERRABLE",
+    "K_DEFERRED",
+    "K_DELETE",
+    "K_DESC",
+    "K_DETACH",
+    "K_DISTINCT",
+    "K_DROP",
+    "K_EACH",
+    "K_ELSE",
+    "K_END",
+    "K_ESCAPE",
+    "K_EXCEPT",
+    "K_EXCLUSIVE",
+    "K_EXISTS",
+    "K_EXPLAIN",
+    "K_FAIL",
+    "K_FOR",
+    "K_FOREIGN",
+    "K_FROM",
+    "K_FULL",
+    "K_GLOB",
+    "K_GROUP",
+    "K_HAVING",
+    "K_IF",
+    "K_IGNORE",
+    "K_IMMEDIATE",
+    "K_IN",
+    "K_INDEX",
+    "K_INDEXED",
+    "K_INITIALLY",
+    "K_INNER",
+    "K_INSERT",
+    "K_INSTEAD",
+    "K_INTERSECT",
+    "K_INTO",
+    "K_IS",
+    "K_ISNULL",
+    "K_JOIN",
+    "K_KEY",
+    "K_LEFT",
+    "K_LIKE",
+    "K_LIMIT",
+    "K_MATCH",
+    "K_NATURAL",
+    "K_NO",
+    "K_NOT",
+    "K_NOTNULL",
+    "K_NULL",
+    "K_OF",
+    "K_OFFSET",
+    "K_ON",
+    "K_OR",
+    "K_ORDER",
+    "K_OUTER",
+    "K_PLAN",
+    "K_PRAGMA",
+    "K_PRIMARY",
+    "K_QUERY",
+    "K_RAISE",
+    "K_RECURSIVE",
+    "K_REFERENCES",
+    "K_REGEXP",
+    "K_REINDEX",
+    "K_RELEASE",
+    "K_RENAME",
+    "K_REPLACE",
+    "K_RESTRICT",
+    "K_RIGHT",
+    "K_ROLLBACK",
+    "K_ROW",
+    "K_SAVEPOINT",
+    "K_SELECT",
+    "K_SET",
+    "K_TABLE",
+    "K_TEMP",
+    "K_TEMPORARY",
+    "K_THEN",
+    "K_TO",
+    "K_TRANSACTION",
+    "K_TRIGGER",
+    "K_UNION",
+    "K_UNIQUE",
+    "K_UPDATE",
+    "K_USING",
+    "K_VACUUM",
+    "K_VALUES",
+    "K_VIEW",
+    "K_VIRTUAL",
+    "K_WHEN",
+    "K_WHERE",
+    "K_WITH",
+    "K_WITHOUT",
+    "IDENTIFIER",
+    "NUMERIC_LITERAL",
+    "BIND_PARAMETER",
+    "STRING_LITERAL",
+    "BLOB_LITERAL",
+    "SINGLE_LINE_COMMENT",
+    "MULTILINE_COMMENT",
+    "SPACES",
+    "UNEXPECTED_CHAR",
+    "DIGIT",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+];
 
-	pub const ruleNames: [&'static str;184] = [
-		"SCOL", "DOT", "OPEN_PAR", "CLOSE_PAR", "COMMA", "ASSIGN", "STAR", "PLUS", 
-		"MINUS", "TILDE", "PIPE2", "DIV", "MOD", "LT2", "GT2", "AMP", "PIPE", 
-		"LT", "LT_EQ", "GT", "GT_EQ", "EQ", "NOT_EQ1", "NOT_EQ2", "K_ABORT", "K_ACTION", 
-		"K_ADD", "K_AFTER", "K_ALL", "K_ALTER", "K_ANALYZE", "K_AND", "K_AS", 
-		"K_ASC", "K_ATTACH", "K_AUTOINCREMENT", "K_BEFORE", "K_BEGIN", "K_BETWEEN", 
-		"K_BY", "K_CASCADE", "K_CASE", "K_CAST", "K_CHECK", "K_COLLATE", "K_COLUMN", 
-		"K_COMMIT", "K_CONFLICT", "K_CONSTRAINT", "K_CREATE", "K_CROSS", "K_CURRENT_DATE", 
-		"K_CURRENT_TIME", "K_CURRENT_TIMESTAMP", "K_DATABASE", "K_DEFAULT", "K_DEFERRABLE", 
-		"K_DEFERRED", "K_DELETE", "K_DESC", "K_DETACH", "K_DISTINCT", "K_DROP", 
-		"K_EACH", "K_ELSE", "K_END", "K_ESCAPE", "K_EXCEPT", "K_EXCLUSIVE", "K_EXISTS", 
-		"K_EXPLAIN", "K_FAIL", "K_FOR", "K_FOREIGN", "K_FROM", "K_FULL", "K_GLOB", 
-		"K_GROUP", "K_HAVING", "K_IF", "K_IGNORE", "K_IMMEDIATE", "K_IN", "K_INDEX", 
-		"K_INDEXED", "K_INITIALLY", "K_INNER", "K_INSERT", "K_INSTEAD", "K_INTERSECT", 
-		"K_INTO", "K_IS", "K_ISNULL", "K_JOIN", "K_KEY", "K_LEFT", "K_LIKE", "K_LIMIT", 
-		"K_MATCH", "K_NATURAL", "K_NO", "K_NOT", "K_NOTNULL", "K_NULL", "K_OF", 
-		"K_OFFSET", "K_ON", "K_OR", "K_ORDER", "K_OUTER", "K_PLAN", "K_PRAGMA", 
-		"K_PRIMARY", "K_QUERY", "K_RAISE", "K_RECURSIVE", "K_REFERENCES", "K_REGEXP", 
-		"K_REINDEX", "K_RELEASE", "K_RENAME", "K_REPLACE", "K_RESTRICT", "K_RIGHT", 
-		"K_ROLLBACK", "K_ROW", "K_SAVEPOINT", "K_SELECT", "K_SET", "K_TABLE", 
-		"K_TEMP", "K_TEMPORARY", "K_THEN", "K_TO", "K_TRANSACTION", "K_TRIGGER", 
-		"K_UNION", "K_UNIQUE", "K_UPDATE", "K_USING", "K_VACUUM", "K_VALUES", 
-		"K_VIEW", "K_VIRTUAL", "K_WHEN", "K_WHERE", "K_WITH", "K_WITHOUT", "IDENTIFIER", 
-		"NUMERIC_LITERAL", "BIND_PARAMETER", "STRING_LITERAL", "BLOB_LITERAL", 
-		"SINGLE_LINE_COMMENT", "MULTILINE_COMMENT", "SPACES", "UNEXPECTED_CHAR", 
-		"DIGIT", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", 
-		"N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"
-	];
+pub const _LITERAL_NAMES: [Option<&'static str>; 25] = [
+    None,
+    Some("';'"),
+    Some("'.'"),
+    Some("'('"),
+    Some("')'"),
+    Some("','"),
+    Some("'='"),
+    Some("'*'"),
+    Some("'+'"),
+    Some("'-'"),
+    Some("'~'"),
+    Some("'||'"),
+    Some("'/'"),
+    Some("'%'"),
+    Some("'<<'"),
+    Some("'>>'"),
+    Some("'&'"),
+    Some("'|'"),
+    Some("'<'"),
+    Some("'<='"),
+    Some("'>'"),
+    Some("'>='"),
+    Some("'=='"),
+    Some("'!='"),
+    Some("'<>'"),
+];
+pub const _SYMBOLIC_NAMES: [Option<&'static str>; 158] = [
+    None,
+    Some("SCOL"),
+    Some("DOT"),
+    Some("OPEN_PAR"),
+    Some("CLOSE_PAR"),
+    Some("COMMA"),
+    Some("ASSIGN"),
+    Some("STAR"),
+    Some("PLUS"),
+    Some("MINUS"),
+    Some("TILDE"),
+    Some("PIPE2"),
+    Some("DIV"),
+    Some("MOD"),
+    Some("LT2"),
+    Some("GT2"),
+    Some("AMP"),
+    Some("PIPE"),
+    Some("LT"),
+    Some("LT_EQ"),
+    Some("GT"),
+    Some("GT_EQ"),
+    Some("EQ"),
+    Some("NOT_EQ1"),
+    Some("NOT_EQ2"),
+    Some("K_ABORT"),
+    Some("K_ACTION"),
+    Some("K_ADD"),
+    Some("K_AFTER"),
+    Some("K_ALL"),
+    Some("K_ALTER"),
+    Some("K_ANALYZE"),
+    Some("K_AND"),
+    Some("K_AS"),
+    Some("K_ASC"),
+    Some("K_ATTACH"),
+    Some("K_AUTOINCREMENT"),
+    Some("K_BEFORE"),
+    Some("K_BEGIN"),
+    Some("K_BETWEEN"),
+    Some("K_BY"),
+    Some("K_CASCADE"),
+    Some("K_CASE"),
+    Some("K_CAST"),
+    Some("K_CHECK"),
+    Some("K_COLLATE"),
+    Some("K_COLUMN"),
+    Some("K_COMMIT"),
+    Some("K_CONFLICT"),
+    Some("K_CONSTRAINT"),
+    Some("K_CREATE"),
+    Some("K_CROSS"),
+    Some("K_CURRENT_DATE"),
+    Some("K_CURRENT_TIME"),
+    Some("K_CURRENT_TIMESTAMP"),
+    Some("K_DATABASE"),
+    Some("K_DEFAULT"),
+    Some("K_DEFERRABLE"),
+    Some("K_DEFERRED"),
+    Some("K_DELETE"),
+    Some("K_DESC"),
+    Some("K_DETACH"),
+    Some("K_DISTINCT"),
+    Some("K_DROP"),
+    Some("K_EACH"),
+    Some("K_ELSE"),
+    Some("K_END"),
+    Some("K_ESCAPE"),
+    Some("K_EXCEPT"),
+    Some("K_EXCLUSIVE"),
+    Some("K_EXISTS"),
+    Some("K_EXPLAIN"),
+    Some("K_FAIL"),
+    Some("K_FOR"),
+    Some("K_FOREIGN"),
+    Some("K_FROM"),
+    Some("K_FULL"),
+    Some("K_GLOB"),
+    Some("K_GROUP"),
+    Some("K_HAVING"),
+    Some("K_IF"),
+    Some("K_IGNORE"),
+    Some("K_IMMEDIATE"),
+    Some("K_IN"),
+    Some("K_INDEX"),
+    Some("K_INDEXED"),
+    Some("K_INITIALLY"),
+    Some("K_INNER"),
+    Some("K_INSERT"),
+    Some("K_INSTEAD"),
+    Some("K_INTERSECT"),
+    Some("K_INTO"),
+    Some("K_IS"),
+    Some("K_ISNULL"),
+    Some("K_JOIN"),
+    Some("K_KEY"),
+    Some("K_LEFT"),
+    Some("K_LIKE"),
+    Some("K_LIMIT"),
+    Some("K_MATCH"),
+    Some("K_NATURAL"),
+    Some("K_NO"),
+    Some("K_NOT"),
+    Some("K_NOTNULL"),
+    Some("K_NULL"),
+    Some("K_OF"),
+    Some("K_OFFSET"),
+    Some("K_ON"),
+    Some("K_OR"),
+    Some("K_ORDER"),
+    Some("K_OUTER"),
+    Some("K_PLAN"),
+    Some("K_PRAGMA"),
+    Some("K_PRIMARY"),
+    Some("K_QUERY"),
+    Some("K_RAISE"),
+    Some("K_RECURSIVE"),
+    Some("K_REFERENCES"),
+    Some("K_REGEXP"),
+    Some("K_REINDEX"),
+    Some("K_RELEASE"),
+    Some("K_RENAME"),
+    Some("K_REPLACE"),
+    Some("K_RESTRICT"),
+    Some("K_RIGHT"),
+    Some("K_ROLLBACK"),
+    Some("K_ROW"),
+    Some("K_SAVEPOINT"),
+    Some("K_SELECT"),
+    Some("K_SET"),
+    Some("K_TABLE"),
+    Some("K_TEMP"),
+    Some("K_TEMPORARY"),
+    Some("K_THEN"),
+    Some("K_TO"),
+    Some("K_TRANSACTION"),
+    Some("K_TRIGGER"),
+    Some("K_UNION"),
+    Some("K_UNIQUE"),
+    Some("K_UPDATE"),
+    Some("K_USING"),
+    Some("K_VACUUM"),
+    Some("K_VALUES"),
+    Some("K_VIEW"),
+    Some("K_VIRTUAL"),
+    Some("K_WHEN"),
+    Some("K_WHERE"),
+    Some("K_WITH"),
+    Some("K_WITHOUT"),
+    Some("IDENTIFIER"),
+    Some("NUMERIC_LITERAL"),
+    Some("BIND_PARAMETER"),
+    Some("STRING_LITERAL"),
+    Some("BLOB_LITERAL"),
+    Some("SINGLE_LINE_COMMENT"),
+    Some("MULTILINE_COMMENT"),
+    Some("SPACES"),
+    Some("UNEXPECTED_CHAR"),
+];
+lazy_static! {
+    static ref _shared_context_cache: Arc<PredictionContextCache> =
+        Arc::new(PredictionContextCache::new());
+    static ref VOCABULARY: Box<dyn Vocabulary> = Box::new(VocabularyImpl::new(
+        _LITERAL_NAMES.iter(),
+        _SYMBOLIC_NAMES.iter(),
+        None
+    ));
+}
 
-
-	pub const _LITERAL_NAMES: [Option<&'static str>;25] = [
-		None, Some("';'"), Some("'.'"), Some("'('"), Some("')'"), Some("','"), 
-		Some("'='"), Some("'*'"), Some("'+'"), Some("'-'"), Some("'~'"), Some("'||'"), 
-		Some("'/'"), Some("'%'"), Some("'<<'"), Some("'>>'"), Some("'&'"), Some("'|'"), 
-		Some("'<'"), Some("'<='"), Some("'>'"), Some("'>='"), Some("'=='"), Some("'!='"), 
-		Some("'<>'")
-	];
-	pub const _SYMBOLIC_NAMES: [Option<&'static str>;158]  = [
-		None, Some("SCOL"), Some("DOT"), Some("OPEN_PAR"), Some("CLOSE_PAR"), 
-		Some("COMMA"), Some("ASSIGN"), Some("STAR"), Some("PLUS"), Some("MINUS"), 
-		Some("TILDE"), Some("PIPE2"), Some("DIV"), Some("MOD"), Some("LT2"), Some("GT2"), 
-		Some("AMP"), Some("PIPE"), Some("LT"), Some("LT_EQ"), Some("GT"), Some("GT_EQ"), 
-		Some("EQ"), Some("NOT_EQ1"), Some("NOT_EQ2"), Some("K_ABORT"), Some("K_ACTION"), 
-		Some("K_ADD"), Some("K_AFTER"), Some("K_ALL"), Some("K_ALTER"), Some("K_ANALYZE"), 
-		Some("K_AND"), Some("K_AS"), Some("K_ASC"), Some("K_ATTACH"), Some("K_AUTOINCREMENT"), 
-		Some("K_BEFORE"), Some("K_BEGIN"), Some("K_BETWEEN"), Some("K_BY"), Some("K_CASCADE"), 
-		Some("K_CASE"), Some("K_CAST"), Some("K_CHECK"), Some("K_COLLATE"), Some("K_COLUMN"), 
-		Some("K_COMMIT"), Some("K_CONFLICT"), Some("K_CONSTRAINT"), Some("K_CREATE"), 
-		Some("K_CROSS"), Some("K_CURRENT_DATE"), Some("K_CURRENT_TIME"), Some("K_CURRENT_TIMESTAMP"), 
-		Some("K_DATABASE"), Some("K_DEFAULT"), Some("K_DEFERRABLE"), Some("K_DEFERRED"), 
-		Some("K_DELETE"), Some("K_DESC"), Some("K_DETACH"), Some("K_DISTINCT"), 
-		Some("K_DROP"), Some("K_EACH"), Some("K_ELSE"), Some("K_END"), Some("K_ESCAPE"), 
-		Some("K_EXCEPT"), Some("K_EXCLUSIVE"), Some("K_EXISTS"), Some("K_EXPLAIN"), 
-		Some("K_FAIL"), Some("K_FOR"), Some("K_FOREIGN"), Some("K_FROM"), Some("K_FULL"), 
-		Some("K_GLOB"), Some("K_GROUP"), Some("K_HAVING"), Some("K_IF"), Some("K_IGNORE"), 
-		Some("K_IMMEDIATE"), Some("K_IN"), Some("K_INDEX"), Some("K_INDEXED"), 
-		Some("K_INITIALLY"), Some("K_INNER"), Some("K_INSERT"), Some("K_INSTEAD"), 
-		Some("K_INTERSECT"), Some("K_INTO"), Some("K_IS"), Some("K_ISNULL"), Some("K_JOIN"), 
-		Some("K_KEY"), Some("K_LEFT"), Some("K_LIKE"), Some("K_LIMIT"), Some("K_MATCH"), 
-		Some("K_NATURAL"), Some("K_NO"), Some("K_NOT"), Some("K_NOTNULL"), Some("K_NULL"), 
-		Some("K_OF"), Some("K_OFFSET"), Some("K_ON"), Some("K_OR"), Some("K_ORDER"), 
-		Some("K_OUTER"), Some("K_PLAN"), Some("K_PRAGMA"), Some("K_PRIMARY"), 
-		Some("K_QUERY"), Some("K_RAISE"), Some("K_RECURSIVE"), Some("K_REFERENCES"), 
-		Some("K_REGEXP"), Some("K_REINDEX"), Some("K_RELEASE"), Some("K_RENAME"), 
-		Some("K_REPLACE"), Some("K_RESTRICT"), Some("K_RIGHT"), Some("K_ROLLBACK"), 
-		Some("K_ROW"), Some("K_SAVEPOINT"), Some("K_SELECT"), Some("K_SET"), Some("K_TABLE"), 
-		Some("K_TEMP"), Some("K_TEMPORARY"), Some("K_THEN"), Some("K_TO"), Some("K_TRANSACTION"), 
-		Some("K_TRIGGER"), Some("K_UNION"), Some("K_UNIQUE"), Some("K_UPDATE"), 
-		Some("K_USING"), Some("K_VACUUM"), Some("K_VALUES"), Some("K_VIEW"), Some("K_VIRTUAL"), 
-		Some("K_WHEN"), Some("K_WHERE"), Some("K_WITH"), Some("K_WITHOUT"), Some("IDENTIFIER"), 
-		Some("NUMERIC_LITERAL"), Some("BIND_PARAMETER"), Some("STRING_LITERAL"), 
-		Some("BLOB_LITERAL"), Some("SINGLE_LINE_COMMENT"), Some("MULTILINE_COMMENT"), 
-		Some("SPACES"), Some("UNEXPECTED_CHAR")
-	];
-	lazy_static!{
-	    static ref _shared_context_cache: Arc<PredictionContextCache> = Arc::new(PredictionContextCache::new());
-		static ref VOCABULARY: Box<dyn Vocabulary> = Box::new(VocabularyImpl::new(_LITERAL_NAMES.iter(), _SYMBOLIC_NAMES.iter(), None));
-	}
-
-
-pub type LexerContext<'input> = BaseRuleContext<'input,EmptyCustomRuleContext<'input,LocalTokenFactory<'input> >>;
+pub type LexerContext<'input> =
+    BaseRuleContext<'input, EmptyCustomRuleContext<'input, LocalTokenFactory<'input>>>;
 pub type LocalTokenFactory<'input> = CommonTokenFactory;
 
-type From<'a> = <LocalTokenFactory<'a> as TokenFactory<'a> >::From;
+type From<'a> = <LocalTokenFactory<'a> as TokenFactory<'a>>::From;
 
-pub struct SQLiteLexer<'input, Input:CharStream<From<'input> >> {
-	base: BaseLexer<'input,SQLiteLexerActions,Input,LocalTokenFactory<'input>>,
+pub struct SQLiteLexer<'input, Input: CharStream<From<'input>>> {
+    base: BaseLexer<'input, SQLiteLexerActions, Input, LocalTokenFactory<'input>>,
 }
 
 antlr_rust::tid! { impl<'input,Input> TidAble<'input> for SQLiteLexer<'input,Input> where Input:CharStream<From<'input> > }
 
-impl<'input, Input:CharStream<From<'input> >> Deref for SQLiteLexer<'input,Input>{
-	type Target = BaseLexer<'input,SQLiteLexerActions,Input,LocalTokenFactory<'input>>;
+impl<'input, Input: CharStream<From<'input>>> Deref for SQLiteLexer<'input, Input> {
+    type Target = BaseLexer<'input, SQLiteLexerActions, Input, LocalTokenFactory<'input>>;
 
-	fn deref(&self) -> &Self::Target {
-		&self.base
-	}
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
 }
 
-impl<'input, Input:CharStream<From<'input> >> DerefMut for SQLiteLexer<'input,Input>{
-	fn deref_mut(&mut self) -> &mut Self::Target {
-		&mut self.base
-	}
+impl<'input, Input: CharStream<From<'input>>> DerefMut for SQLiteLexer<'input, Input> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.base
+    }
 }
 
-
-impl<'input, Input:CharStream<From<'input> >> SQLiteLexer<'input,Input>{
+impl<'input, Input: CharStream<From<'input>>> SQLiteLexer<'input, Input> {
     fn get_rule_names(&self) -> &'static [&'static str] {
         &ruleNames
     }
@@ -316,50 +615,58 @@ impl<'input, Input:CharStream<From<'input> >> SQLiteLexer<'input,Input>{
         "SQLiteLexer.g4"
     }
 
-	pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
-		antlr_rust::recognizer::check_version("0","3");
-    	Self {
-			base: BaseLexer::new_base_lexer(
-				input,
-				LexerATNSimulator::new_lexer_atnsimulator(
-					_ATN.clone(),
-					_decision_to_DFA.clone(),
-					_shared_context_cache.clone(),
-				),
-				SQLiteLexerActions{},
-				tf
-			)
-	    }
-	}
+    pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
+        antlr_rust::recognizer::check_version("0", "3");
+        Self {
+            base: BaseLexer::new_base_lexer(
+                input,
+                LexerATNSimulator::new_lexer_atnsimulator(
+                    _ATN.clone(),
+                    _decision_to_DFA.clone(),
+                    _shared_context_cache.clone(),
+                ),
+                SQLiteLexerActions {},
+                tf,
+            ),
+        }
+    }
 }
 
-impl<'input, Input:CharStream<From<'input> >> SQLiteLexer<'input,Input> where &'input LocalTokenFactory<'input>:Default{
-	pub fn new(input: Input) -> Self{
-		SQLiteLexer::new_with_token_factory(input, <&LocalTokenFactory<'input> as Default>::default())
-	}
+impl<'input, Input: CharStream<From<'input>>> SQLiteLexer<'input, Input>
+where
+    &'input LocalTokenFactory<'input>: Default,
+{
+    pub fn new(input: Input) -> Self {
+        SQLiteLexer::new_with_token_factory(
+            input,
+            <&LocalTokenFactory<'input> as Default>::default(),
+        )
+    }
 }
 
-pub struct SQLiteLexerActions {
+pub struct SQLiteLexerActions {}
+
+impl SQLiteLexerActions {}
+
+impl<'input, Input: CharStream<From<'input>>>
+    Actions<'input, BaseLexer<'input, SQLiteLexerActions, Input, LocalTokenFactory<'input>>>
+    for SQLiteLexerActions
+{
 }
 
-impl SQLiteLexerActions{
+impl<'input, Input: CharStream<From<'input>>> SQLiteLexer<'input, Input> {}
+
+impl<'input, Input: CharStream<From<'input>>>
+    LexerRecog<'input, BaseLexer<'input, SQLiteLexerActions, Input, LocalTokenFactory<'input>>>
+    for SQLiteLexerActions
+{
+}
+impl<'input> TokenAware<'input> for SQLiteLexerActions {
+    type TF = LocalTokenFactory<'input>;
 }
 
-impl<'input, Input:CharStream<From<'input> >> Actions<'input,BaseLexer<'input,SQLiteLexerActions,Input,LocalTokenFactory<'input>>> for SQLiteLexerActions{
-	}
-
-	impl<'input, Input:CharStream<From<'input> >> SQLiteLexer<'input,Input>{
-
-}
-
-impl<'input, Input:CharStream<From<'input> >> LexerRecog<'input,BaseLexer<'input,SQLiteLexerActions,Input,LocalTokenFactory<'input>>> for SQLiteLexerActions{
-}
-impl<'input> TokenAware<'input> for SQLiteLexerActions{
-	type TF = LocalTokenFactory<'input>;
-}
-
-impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for SQLiteLexer<'input,Input>{
-	type TF = LocalTokenFactory<'input>;
+impl<'input, Input: CharStream<From<'input>>> TokenSource<'input> for SQLiteLexer<'input, Input> {
+    type TF = LocalTokenFactory<'input>;
 
     fn next_token(&mut self) -> <Self::TF as TokenFactory<'input>>::Tok {
         self.base.next_token()
@@ -377,38 +684,30 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for SQLiteLexe
         self.base.get_input_stream()
     }
 
-	fn get_source_name(&self) -> String {
-		self.base.get_source_name()
-	}
+    fn get_source_name(&self) -> String {
+        self.base.get_source_name()
+    }
 
     fn get_token_factory(&self) -> &'input Self::TF {
         self.base.get_token_factory()
     }
 }
 
+lazy_static! {
+    static ref _ATN: Arc<ATN> =
+        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+    static ref _decision_to_DFA: Arc<Vec<antlr_rust::RwLock<DFA>>> = {
+        let mut dfa = Vec::new();
+        let size = _ATN.decision_to_state.len();
+        for i in 0..size {
+            dfa.push(DFA::new(_ATN.clone(), _ATN.get_decision_state(i), i as isize).into())
+        }
+        Arc::new(dfa)
+    };
+}
 
-
-	lazy_static! {
-	    static ref _ATN: Arc<ATN> =
-	        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
-	    static ref _decision_to_DFA: Arc<Vec<antlr_rust::RwLock<DFA>>> = {
-	        let mut dfa = Vec::new();
-	        let size = _ATN.decision_to_state.len();
-	        for i in 0..size {
-	            dfa.push(DFA::new(
-	                _ATN.clone(),
-	                _ATN.get_decision_state(i),
-	                i as isize,
-	            ).into())
-	        }
-	        Arc::new(dfa)
-	    };
-	}
-
-
-
-	const _serializedATN:&'static str =
-		"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
+const _serializedATN: &'static str =
+    "\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
 		\u{9f}\u{5ae}\x08\x01\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\
 		\x05\x09\x05\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\
 		\x09\x04\x0a\x09\x0a\x04\x0b\x09\x0b\x04\x0c\x09\x0c\x04\x0d\x09\x0d\x04\

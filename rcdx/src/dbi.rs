@@ -1,5 +1,3 @@
-use rusqlite::{Connection, Error};
-use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, Row};
 use crate::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
@@ -12,6 +10,8 @@ use crate::{
     },
     table::Table,
 };
+use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, Row};
+use rusqlite::{Connection, Error};
 
 mod sqlite;
 
@@ -996,7 +996,11 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read_at_participant(self: &Self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+    pub fn execute_read_at_participant(
+        self: &Self,
+        db_name: &str,
+        cmd: &str,
+    ) -> rusqlite::Result<Table> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

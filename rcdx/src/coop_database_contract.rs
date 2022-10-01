@@ -1,8 +1,8 @@
-use rcdproto::rcdp::{Contract, DatabaseSchema, Host};
 use crate::host_info::HostInfo;
 use crate::rcd_enum::ContractStatus;
 use chrono::{DateTime, Utc};
 use guid_create::GUID;
+use rcdproto::rcdp::{Contract, DatabaseSchema, Host};
 
 /*
     "CREATE TABLE IF NOT EXISTS COOP_DATABASE_CONTRACT

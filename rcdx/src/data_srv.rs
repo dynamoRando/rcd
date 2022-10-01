@@ -1,9 +1,9 @@
-use rcdproto::rcdp::{data_service_server::DataServiceServer, data_service_server::DataService};
-use rcdproto::rcdp::*;
+use crate::dbi::Dbi;
 use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior};
-use crate::{dbi::Dbi};
 use chrono::Utc;
+use rcdproto::rcdp::*;
+use rcdproto::rcdp::{data_service_server::DataService, data_service_server::DataServiceServer};
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 

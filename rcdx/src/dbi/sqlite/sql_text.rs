@@ -150,7 +150,8 @@ impl CDS {
 
 impl COOP {
     pub fn text_create_data_log_table() -> String {
-        return String::from ("
+        return String::from(
+            "
         CREATE TABLE IF NOT EXISTS :table_name
         (
             :column_list,
@@ -158,7 +159,8 @@ impl COOP {
             ACTION VARCHAR(20),
             TS_UTC DATETIME
         )
-        ;");
+        ;",
+        );
     }
 
     pub fn text_delete_row_metadata_table() -> String {

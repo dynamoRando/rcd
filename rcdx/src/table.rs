@@ -1,4 +1,4 @@
-use crate::{ rcd_enum::ColumnType};
+use crate::rcd_enum::ColumnType;
 use guid_create::GUID;
 use substring::Substring;
 
@@ -173,12 +173,13 @@ impl Table {
                 c_values.push(c_val);
             }
 
-            let c_remote_data: rcdproto::rcdp::RowRemoteMetadata = rcdproto::rcdp::RowRemoteMetadata {
-                is_hash_out_of_sync_with_host: false,
-                is_local_deleted: false,
-                is_remote_deleted: false,
-                is_remote_out_of_sync_with_host: false,
-            };
+            let c_remote_data: rcdproto::rcdp::RowRemoteMetadata =
+                rcdproto::rcdp::RowRemoteMetadata {
+                    is_hash_out_of_sync_with_host: false,
+                    is_local_deleted: false,
+                    is_remote_deleted: false,
+                    is_remote_out_of_sync_with_host: false,
+                };
 
             let c_row = rcdproto::rcdp::Row {
                 row_id: idx,

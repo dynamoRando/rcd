@@ -1,8 +1,8 @@
 use log::info;
+use rcdclient::RcdClient;
 use rcdx::get_service_from_config_file;
 use std::sync::mpsc;
 use std::{thread, time};
-use rcdclient::RcdClient;
 
 #[test]
 fn test() {

@@ -2,7 +2,6 @@ use crate::rcd_enum::{DatabaseType, DmlType};
 
 pub mod sqlite;
 
-
 /// Takes a SQL statement and returns a list of tables involved in that SQL statement
 pub fn get_table_names(cmd: &str, db_type: DatabaseType) -> Vec<String> {
     match db_type {

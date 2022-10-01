@@ -1,7 +1,7 @@
 use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
 use crate::{
     crypt,
-    dbi::{sqlite::get_db_conn, DbiConfigSqlite, CdsHosts},
+    dbi::{sqlite::get_db_conn, CdsHosts, DbiConfigSqlite},
     host_info::HostInfo,
     rcd_db::User,
     rcd_enum::{

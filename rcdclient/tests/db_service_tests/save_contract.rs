@@ -1,4 +1,3 @@
-
 use crate::test_harness::ServiceAddr;
 use log::info;
 use std::sync::mpsc;
@@ -98,8 +97,8 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -167,8 +166,8 @@ async fn participant_service_client(
     participant_client_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;

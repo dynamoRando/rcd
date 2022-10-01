@@ -3,10 +3,8 @@ use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema};
 use super::{get_rcd_conn, has_contract};
 use crate::{
     dbi::{
-        sqlite::{
-            execute_write, get_scalar_as_string, has_any_rows,
-        },
-        DbiConfigSqlite, CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts,
+        sqlite::{execute_write, get_scalar_as_string, has_any_rows},
+        CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite,
     },
     rcd_enum::ContractStatus,
 };

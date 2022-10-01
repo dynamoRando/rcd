@@ -1,7 +1,8 @@
 use crate::{
     dbi::{
         sqlite::{
-            execute_write_on_connection_at_host, get_db_conn, get_scalar_as_u32, has_any_rows, has_table,
+            execute_write_on_connection_at_host, get_db_conn, get_scalar_as_u32, has_any_rows,
+            has_table,
         },
         DbiConfigSqlite,
     },

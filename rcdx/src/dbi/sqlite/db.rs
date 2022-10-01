@@ -1,12 +1,12 @@
 use self::participant::create_participant_table;
 
 use super::{
-    execute_read_on_connection, get_db_conn, get_scalar_as_string, has_table, sql_text,
-    DbiConfigSqlite, get_schema_of_table,
+    execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table, has_table,
+    sql_text, DbiConfigSqlite,
 };
 use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 
-use crate::{    
+use crate::{
     dbi::sqlite::has_any_rows,
     query_parser,
     rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy},
@@ -171,7 +171,6 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
         }
     }
 }
-
 
 /// Queries the COOP_REMOTES table for the table name and policy for each table in the database.
 /// If this returns an empty vector it means either this is a new database or we haven't audited the

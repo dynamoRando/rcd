@@ -1,7 +1,7 @@
 use crate::test_harness::ServiceAddr;
 use log::info;
-use rcdx::rcd_enum::UpdatesFromHostBehavior;
 use rcdclient::RcdClient;
+use rcdx::rcd_enum::UpdatesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,14 +9,14 @@ use std::{thread, time};
 # Test Description
 
 ## Purpose:
-This test checks to see if when an UPDATE statement is sent from the host if the participant's settings to 
-`UpdatesFromHostBehavior::OverwriteWithLog` that rcd copies the row it's about to overwrite to a `_COOP_DATA_LOG` 
+This test checks to see if when an UPDATE statement is sent from the host if the participant's settings to
+`UpdatesFromHostBehavior::OverwriteWithLog` that rcd copies the row it's about to overwrite to a `_COOP_DATA_LOG`
 table before actually executing the overwrite.
 
 ## Feature Background
 We want to make sure that participants have full authority over their data. This means that if they want to see
 a history of changes that are being made to their data, they can do so. In this test, a value is initially set by a host
-and later is UPDATEd. 
+and later is UPDATEd.
 
 We expect that the UPDATE from the host should succeed, but that we should also have a record of the changed row
 in the `EMPLOYEE_COOP_DATA_LOG` table in the partial database that the participant can review.
@@ -224,8 +224,8 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -346,8 +346,8 @@ async fn participant_service_client(
     contract_desc: String,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
@@ -392,8 +392,8 @@ async fn participant_changes_update_behavior(
     behavior: UpdatesFromHostBehavior,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -420,8 +420,8 @@ async fn participant_changes_update_behavior(
 #[allow(dead_code, unused_variables)]
 async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -454,8 +454,8 @@ async fn get_data_hash_for_changed_row_at_participant(
     row_id: u32,
 ) -> u64 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -487,8 +487,8 @@ async fn get_data_hash_for_changed_row_at_host(
     row_id: u32,
 ) -> u64 {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -562,8 +562,8 @@ async fn get_data_logs_at_participant(
     row_id: u32,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

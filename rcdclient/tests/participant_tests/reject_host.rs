@@ -4,7 +4,7 @@ use rcdclient::RcdClient;
 use std::sync::mpsc;
 use std::{thread, time};
 
-/* 
+/*
 # Test Description
 
 ## Purpose:
@@ -152,8 +152,8 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::LogicalStoragePolicy;
     use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -274,8 +274,8 @@ async fn participant_service_client(
     contract_desc: String,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::DatabaseType;
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
@@ -320,8 +320,8 @@ async fn participant_rejects_host(
     contract_desc: String,
 ) -> bool {
     use log::info;
-    use rcdx::rcd_enum::{DatabaseType, HostStatus};
     use rcdclient::RcdClient;
+    use rcdx::rcd_enum::{DatabaseType, HostStatus};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -355,7 +355,9 @@ async fn main_read_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> 
         String::from("123456"),
     );
 
-    let attempt = client.try_auth_at_participant("participant", "", db_name).await;
+    let attempt = client
+        .try_auth_at_participant("participant", "", db_name)
+        .await;
 
     return attempt;
 }
