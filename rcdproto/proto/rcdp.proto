@@ -432,6 +432,11 @@ message UpdateDataResult {
 	bool isSuccessful = 2;
 	string message = 3;
 	repeated RowInfo rows = 4;
+	// 0 - unknown
+	// 1 - success (overwrite or overwrite with log)
+	// 2 - pending (queue for review)
+	// 3 - ignored (ignore)
+	uint32 updateStatus = 5;
 }
 
 message DeleteDataRequest {

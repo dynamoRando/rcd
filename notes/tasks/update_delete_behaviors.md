@@ -50,6 +50,15 @@ We will need to expose for the participant the ability to get pending updates by
 
 We also on the host side when we decide to shelve the UPDATE command need to send a refence and indicator to the host to let them know that their command is pending acceptance. This means changing the `proto` and also potentially having a record of pending updates on the host side (which means another table.)
 
+## Design on sending messages back to host
+
+Maybe add a u32 UpdateStatus field? Options would be:
+- Success (covers overwrite and overwrite with log)
+- Pending (covers queue for review)
+- Ignored (covers ignored behavior)
+
+Note: The `is_successful` flag is truly only for errors: meaning the database was not found, or the schema has differed in some manner, etc.
+
 ## Data Queue Schema
 - Id (which will be used to accept/reject the command later)
 - Raw SQL Statement (TEXT)

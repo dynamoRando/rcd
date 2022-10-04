@@ -486,6 +486,7 @@ fn execute_update_overwrite(
         is_successful: true,
         row_id: row_data.0,
         data_hash: row_data.1,
+        update_staus: 1,
     };
 
     return result;

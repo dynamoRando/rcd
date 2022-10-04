@@ -579,6 +579,12 @@ pub struct UpdateDataResult {
     pub message: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="4")]
     pub rows: ::prost::alloc::vec::Vec<RowInfo>,
+    /// 0 - unknown
+    /// 1 - success (overwrite or overwrite with log)
+    /// 2 - pending (queue for review)
+    /// 3 - ignored (ignore)
+    #[prost(uint32, tag="5")]
+    pub update_status: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteDataRequest {

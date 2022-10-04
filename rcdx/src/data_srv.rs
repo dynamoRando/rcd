@@ -179,6 +179,7 @@ impl DataService for DataServiceImpl {
             is_successful: false,
             row_id: 0,
             data_hash: 0,
+            update_staus: 0,
         };
 
         if is_authenticated {
@@ -226,6 +227,7 @@ impl DataService for DataServiceImpl {
             is_successful: result.is_successful,
             message: action_message,
             rows: rows,
+            update_status: 0,
         };
 
         Ok(Response::new(result))
