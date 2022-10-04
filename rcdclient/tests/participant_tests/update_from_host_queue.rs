@@ -10,10 +10,9 @@ use std::{thread, time};
 
 */
 
-#[ignore = "code not written"]
 #[test]
 fn test() {
-    let test_name = "update_from_host_log";
+    let test_name = "update_from_host_queue";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
@@ -113,7 +112,7 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = UpdatesFromHostBehavior::OverwriteWithLog;
+    let new_behavior = UpdatesFromHostBehavior::QueueForReview;
 
     thread::spawn(move || {
         let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);

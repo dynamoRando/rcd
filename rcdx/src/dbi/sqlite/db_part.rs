@@ -84,7 +84,9 @@ pub fn update_data_into_partial_db(
             return execute_update_overwrite(db_name, table_name, cmd, where_clause, config);
         }
         UpdatesFromHostBehavior::Unknown => todo!(),
-        UpdatesFromHostBehavior::QueueForReview => todo!(),
+        UpdatesFromHostBehavior::QueueForReview => {
+            return execute_update_as_pending(db_name, table_name, cmd, where_clause, config);
+        }
         UpdatesFromHostBehavior::OverwriteWithLog => {
             execute_update_with_log(db_name, table_name, cmd, where_clause, config)
         }
@@ -275,6 +277,16 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     }
     cmd = cmd + " ) ";
     execute_write(conn, &cmd);
+}
+
+fn execute_update_as_pending(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult {
+    unimplemented!()
 }
 
 fn execute_update_with_log(
