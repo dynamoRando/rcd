@@ -149,6 +149,23 @@ impl CDS {
 }
 
 impl COOP {
+    pub fn text_create_data_queue_table() -> String {
+        return String::from(
+            "
+        CREATE TABLE IF NOT EXISTS :table_name
+        (
+            ID INT NOT NULL,
+            STATEMENT TEXT NOT NULL,
+            REQUESTED_TS_UTC DATETIME NOT NULL,
+            HOST_ID CHAR(36) NOT NULL,
+            TOKEN BLOB NOT NULL,
+            IP4ADDRESS VARCHAR(25),
+            IP6ADDRESS VARCHAR(25)
+        )
+        ;",
+        );
+    }
+
     pub fn text_create_data_log_table() -> String {
         return String::from(
             "

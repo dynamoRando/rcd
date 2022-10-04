@@ -10,7 +10,7 @@ use crate::dbi::sqlite::{
 };
 use crate::dbi::{
     get_data_log_table_name, get_metadata_table_name, DbiConfigSqlite, DeletePartialDataResult,
-    InsertPartialDataResult, UpdatePartialDataResult,
+    InsertPartialDataResult, UpdatePartialDataResult, get_data_queue_table_name,
 };
 use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
@@ -286,6 +286,22 @@ fn execute_update_as_pending(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
+
+    let queue_log_table = get_data_queue_table_name(table_name);
+    let conn = &get_partial_db_connection(db_name, &config.root_folder);
+
+    if !has_table(queue_log_table.clone(), conn) {
+        let mut cmd = sql_text::COOP::text_create_data_queue_table();
+        cmd = cmd.replace(":table_name", &queue_log_table);
+        execute_write(conn, &cmd);
+    }
+
+    let mut cmd = String::from("SELECT MAX(ID) FROM :table_name");
+    cmd = cmd.replace(":table_name", &queue_log_table);
+
+    let max_id = get_scalar_as_u32(cmd, conn);
+    let next_id = max_id + 1;
+
     unimplemented!()
 }
 

@@ -65,6 +65,8 @@ Note: The `is_successful` flag is truly only for errors: meaning the database wa
 - Requested Date Time UTC
 - Host Id
 - Host Token
+- IP4
+- IP6
 
 # Data Log Notes (Unorganized)
 Use Triggers?

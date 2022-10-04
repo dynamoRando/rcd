@@ -172,7 +172,7 @@ impl DataService for DataServiceImpl {
         let table_name = message.table_name;
         let where_clause = message.where_clause.clone();
         let mut action_message = String::from("");
-
+        let mut update_status: u32 = 0;
         let mut rows: Vec<RowInfo> = Vec::new();
 
         let mut result = UpdatePartialDataResult {
@@ -190,28 +190,61 @@ impl DataService for DataServiceImpl {
                 .dbi()
                 .get_updates_from_host_behavior(&db_name, &table_name);
 
-            if behavior != UpdatesFromHostBehavior::Ignore {
-                result = self.dbi().update_data_into_partial_db(
-                    &db_name,
-                    &table_name,
-                    cmd,
-                    &where_clause,
-                );
-
-                if result.is_successful {
-                    let row = RowInfo {
-                        database_name: db_name,
-                        table_name,
-                        rowid: result.row_id,
-                        data_hash: result.data_hash,
-                    };
-                    rows.push(row);
+            match behavior {
+                UpdatesFromHostBehavior::Ignore => {
+                    action_message = format!(
+                        "The participant does not allow updates for db {} table: {}",
+                        db_name, table_name
+                    );
+                    update_status = 3;
                 }
-            } else {
-                action_message = format!(
-                    "The participant does not allow updates for db {} table: {}",
-                    db_name, table_name
-                );
+                UpdatesFromHostBehavior::AllowOverwrite => {
+                    result = self.dbi().update_data_into_partial_db(
+                        &db_name,
+                        &table_name,
+                        cmd,
+                        &where_clause,
+                    );
+
+                    if result.is_successful {
+                        let row = RowInfo {
+                            database_name: db_name,
+                            table_name,
+                            rowid: result.row_id,
+                            data_hash: result.data_hash,
+                        };
+                        rows.push(row);
+                        update_status = 1;
+                    }
+                }
+                UpdatesFromHostBehavior::OverwriteWithLog => {
+                    result = self.dbi().update_data_into_partial_db(
+                        &db_name,
+                        &table_name,
+                        cmd,
+                        &where_clause,
+                    );
+
+                    if result.is_successful {
+                        let row = RowInfo {
+                            database_name: db_name,
+                            table_name,
+                            rowid: result.row_id,
+                            data_hash: result.data_hash,
+                        };
+                        rows.push(row);
+                        update_status = 1;
+                    }
+                }
+                UpdatesFromHostBehavior::QueueForReview => {
+                    // we need to lookup known hosts and then
+                    // find the host that matches
+                    // because we want to record who the host was that sent this update
+                    // in the queue table
+                    let known_hosts = self.dbi().get_cds_host_for_part_db(&db_name);
+                    unimplemented!();
+                }
+                UpdatesFromHostBehavior::Unknown => unimplemented!(),
             }
         }
 
@@ -227,7 +260,7 @@ impl DataService for DataServiceImpl {
             is_successful: result.is_successful,
             message: action_message,
             rows: rows,
-            update_status: 0,
+            update_status: update_status,
         };
 
         Ok(Response::new(result))
