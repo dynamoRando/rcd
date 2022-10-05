@@ -208,7 +208,7 @@ pub async fn execute_write_at_partipant(
                     match update_behavior {
                         crate::rcd_enum::UpdatesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::UpdatesToHostBehavior::SendDataHashChange => {
-                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name);
+                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
                             let own_db_addr_port = client.own_db_addr_port.clone();
 
@@ -249,7 +249,7 @@ pub async fn execute_write_at_partipant(
                     match delete_behavior {
                         crate::rcd_enum::DeletesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::DeletesToHostBehavior::SendNotification => {
-                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name);
+                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
                             let own_db_addr_port = client.own_db_addr_port.clone();
 

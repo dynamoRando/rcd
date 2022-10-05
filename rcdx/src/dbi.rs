@@ -227,7 +227,7 @@ impl Dbi {
         }
     }
 
-    pub fn get_cds_host_for_part_db(self: &Self, db_name: &str) -> CdsHosts {
+    pub fn get_cds_host_for_part_db(self: &Self, db_name: &str) -> Option<CdsHosts> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -579,6 +579,33 @@ impl Dbi {
                     table_name,
                     cmd,
                     where_clause,
+                    &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn update_data_into_partial_db_queue(
+        self: &Self,
+        part_db_name: &str,
+        table_name: &str,
+        cmd: &str,
+        where_clause: &str,
+        host: &CdsHosts,
+    ) -> UpdatePartialDataResult {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::update_data_into_partial_db_queue(
+                    part_db_name,
+                    table_name,
+                    cmd,
+                    where_clause,
+                    host,
                     &settings,
                 );
             }

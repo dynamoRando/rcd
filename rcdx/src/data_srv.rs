@@ -167,7 +167,8 @@ impl DataService for DataServiceImpl {
         println!("Request from {:?}", request.remote_addr());
 
         let message = request.into_inner();
-        let is_authenticated = authenticate_host(message.authentication.unwrap(), &self.dbi());
+        let authentication = message.authentication.unwrap().clone();
+        let is_authenticated = authenticate_host(authentication.clone(), &self.dbi());
         let db_name = message.database_name;
         let table_name = message.table_name;
         let where_clause = message.where_clause.clone();
@@ -241,8 +242,23 @@ impl DataService for DataServiceImpl {
                     // find the host that matches
                     // because we want to record who the host was that sent this update
                     // in the queue table
-                    let known_hosts = self.dbi().get_cds_host_for_part_db(&db_name);
-                    unimplemented!();
+                    let known_host = self.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+
+                    if known_host.host_id == authentication.user_name
+                        || known_host.host_name == authentication.user_name
+                    {
+                        let update_result = self.dbi().update_data_into_partial_db_queue(
+                            &db_name,
+                            &table_name,
+                            cmd,
+                            &where_clause,
+                            &known_host,
+                        );
+
+                        unimplemented!();
+                    } else {
+                        panic!("Update statement from authenticated host but not known for partial database")
+                    }
                 }
                 UpdatesFromHostBehavior::Unknown => unimplemented!(),
             }

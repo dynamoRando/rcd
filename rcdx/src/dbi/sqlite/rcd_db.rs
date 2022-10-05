@@ -459,7 +459,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     }
 }
 
-pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> CdsHosts {
+pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Option<CdsHosts> {
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
         "
@@ -534,7 +534,11 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> CdsH
         cds_host_infos.push(h.unwrap());
     }
 
-    return cds_host_infos.first().unwrap().clone();
+    if cds_host_infos.len() > 0 {
+        return Some(cds_host_infos.first().unwrap().clone());
+    } else {
+        return None;
+    }
 }
 
 fn create_user_table(conn: &Connection) {

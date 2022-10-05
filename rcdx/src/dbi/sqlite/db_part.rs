@@ -9,8 +9,8 @@ use crate::dbi::sqlite::{
     execute_write, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use crate::dbi::{
-    get_data_log_table_name, get_metadata_table_name, DbiConfigSqlite, DeletePartialDataResult,
-    InsertPartialDataResult, UpdatePartialDataResult, get_data_queue_table_name,
+    get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, CdsHosts,
+    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
 };
 use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
 use crate::table::Table;
@@ -71,6 +71,17 @@ pub fn delete_data_in_partial_db(
 }
 
 #[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
+pub fn update_data_into_partial_db_queue(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    host: &CdsHosts,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult {
+    unimplemented!();
+}
+
 pub fn update_data_into_partial_db(
     db_name: &str,
     table_name: &str,
@@ -286,7 +297,6 @@ fn execute_update_as_pending(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
-
     let queue_log_table = get_data_queue_table_name(table_name);
     let conn = &get_partial_db_connection(db_name, &config.root_folder);
 
