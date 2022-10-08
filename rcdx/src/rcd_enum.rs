@@ -36,6 +36,37 @@ impl RcdDatabaseType {
     }
 }
 
+/// Specifies the UpdateStatus in a UpdateDataResult message
+/// in rcdp.proto
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum UpdateStatusForPartialData{
+    Unknown = 0,
+    SucessOverwriteOrLog = 1,
+    Pending = 2,
+    Ignored = 3,
+}
+
+impl UpdateStatusForPartialData {
+    pub fn from_u32(value: u32) -> UpdateStatusForPartialData {
+        match value {
+            0 => UpdateStatusForPartialData::Unknown,
+            1 => UpdateStatusForPartialData::SucessOverwriteOrLog,
+            2 => UpdateStatusForPartialData::Pending,
+            3 => UpdateStatusForPartialData::Ignored,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(db: UpdateStatusForPartialData) -> u32 {
+        match db {
+            UpdateStatusForPartialData::Unknown => 0,
+            UpdateStatusForPartialData::SucessOverwriteOrLog => 1,
+            UpdateStatusForPartialData::Pending => 2,
+            UpdateStatusForPartialData::Ignored => 3,
+        }
+    }
+}
+
 /// From the perspective of a participant: if we execute an `DELETE` statement
 /// against our partial database, we can define how we want to notify the database host:
 /// 1. Send Notification - send a note to the host of deleted row id

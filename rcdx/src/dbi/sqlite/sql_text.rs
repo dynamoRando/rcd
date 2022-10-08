@@ -157,10 +157,7 @@ impl COOP {
             ID INT NOT NULL,
             STATEMENT TEXT NOT NULL,
             REQUESTED_TS_UTC DATETIME NOT NULL,
-            HOST_ID CHAR(36) NOT NULL,
-            TOKEN BLOB NOT NULL,
-            IP4ADDRESS VARCHAR(25),
-            IP6ADDRESS VARCHAR(25)
+            HOST_ID CHAR(36) NOT NULL
         )
         ;",
         );

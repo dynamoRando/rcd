@@ -181,7 +181,7 @@ impl DataService for DataServiceImpl {
         let mut result = UpdatePartialDataResult {
             is_successful: false,
             row_id: 0,
-            data_hash: 0,
+            data_hash: None,
             update_status: 0,
         };
 
@@ -207,7 +207,7 @@ impl DataService for DataServiceImpl {
                         &db_name,
                         &table_name,
                         cmd,
-                        &known_host,
+                        &known_host.host_id,
                         &where_clause,
                     );
 
@@ -216,7 +216,7 @@ impl DataService for DataServiceImpl {
                             database_name: db_name,
                             table_name,
                             rowid: result.row_id,
-                            data_hash: result.data_hash,
+                            data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
                         update_status = 1;
@@ -227,7 +227,7 @@ impl DataService for DataServiceImpl {
                         &db_name,
                         &table_name,
                         cmd,
-                        &known_host,
+                        &known_host.host_id,
                         &where_clause,
                     );
 
@@ -236,7 +236,7 @@ impl DataService for DataServiceImpl {
                             database_name: db_name,
                             table_name,
                             rowid: result.row_id,
-                            data_hash: result.data_hash,
+                            data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
                         update_status = 1;

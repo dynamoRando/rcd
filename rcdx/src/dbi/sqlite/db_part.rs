@@ -12,7 +12,9 @@ use crate::dbi::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, CdsHosts,
     DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
 };
-use crate::rcd_enum::{ColumnType, DatabaseType, UpdatesFromHostBehavior};
+use crate::rcd_enum::{
+    ColumnType, DatabaseType, UpdateStatusForPartialData, UpdatesFromHostBehavior,
+};
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use chrono::Utc;
@@ -74,9 +76,9 @@ pub fn delete_data_in_partial_db(
 pub fn update_data_into_partial_db_queue(
     db_name: &str,
     table_name: &str,
-    cmd: &str,
+    update_statement: &str,
     where_clause: &str,
-    host: &CdsHosts,
+    host_id: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
     let queue_log_table = get_data_queue_table_name(table_name);
@@ -94,7 +96,43 @@ pub fn update_data_into_partial_db_queue(
     let max_id = get_scalar_as_u32(cmd, conn);
     let next_id = max_id + 1;
 
-    unimplemented!()
+    cmd = String::from(
+        "
+        INSERT INTO :table_name 
+        (
+            ID,
+            STATEMENT,
+            REQUESTED_TS_UTC,
+            HOST_ID
+        )
+        VALUES
+        (
+            :id,
+            :statement,
+            :ts,
+            :hid
+        )
+    ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let rows_inserted = statement
+        .execute(named_params! {
+            ":id": next_id,
+            ":statement": update_statement,
+            ":ts": Utc::now().to_string(),
+            ":hid": host_id,
+        })
+        .unwrap();
+
+    let update_result = UpdatePartialDataResult {
+        is_successful: rows_inserted > 0,
+        row_id: next_id,
+        data_hash: None,
+        update_status: UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending),
+    };
+
+    return update_result;
 }
 
 pub fn update_data_into_partial_db(
@@ -102,7 +140,7 @@ pub fn update_data_into_partial_db(
     table_name: &str,
     cmd: &str,
     where_clause: &str,
-    host: &CdsHosts,
+    host_id: &str,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
     let behavior = get_updates_from_host_behavior(db_name, table_name, config);
@@ -117,7 +155,7 @@ pub fn update_data_into_partial_db(
                 table_name,
                 cmd,
                 where_clause,
-                host,
+                host_id,
                 config,
             );
         }
@@ -521,7 +559,7 @@ fn execute_update_overwrite(
     let result = UpdatePartialDataResult {
         is_successful: true,
         row_id: row_data.0,
-        data_hash: row_data.1,
+        data_hash: Some(row_data.1),
         update_status: 1,
     };
 

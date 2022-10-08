@@ -80,7 +80,7 @@ pub struct InsertPartialDataResult {
 pub struct UpdatePartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
-    pub data_hash: u64,
+    pub data_hash: Option<u64>,
     pub update_status: u32,
 }
 
@@ -605,7 +605,7 @@ impl Dbi {
                     table_name,
                     cmd,
                     where_clause,
-                    host,
+                    &host.host_id,
                     &settings,
                 );
             }
@@ -621,7 +621,7 @@ impl Dbi {
         part_db_name: &str,
         table_name: &str,
         cmd: &str,
-        host: &CdsHosts,
+        host_id: &str,
         where_clause: &str,
     ) -> UpdatePartialDataResult {
         match self.db_type {
@@ -632,7 +632,7 @@ impl Dbi {
                     table_name,
                     cmd,
                     where_clause,
-                    host,
+                    host_id,
                     &settings,
                 );
             }

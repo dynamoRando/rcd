@@ -203,7 +203,7 @@ pub async fn execute_write_at_partipant(
                         &db_name,
                         &table_name,
                         &statement,
-                        &known_host,
+                        &known_host.host_id,
                         &where_clause,
                     );
 
@@ -221,7 +221,7 @@ pub async fn execute_write_at_partipant(
                                 &db_name,
                                 &table_name,
                                 update_result.row_id,
-                                update_result.data_hash,
+                                update_result.data_hash.unwrap(),
                             )
                             .await;
 
