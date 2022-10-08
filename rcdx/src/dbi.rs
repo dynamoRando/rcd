@@ -81,7 +81,7 @@ pub struct UpdatePartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
     pub data_hash: u64,
-    pub update_staus: u32,
+    pub update_status: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -621,6 +621,7 @@ impl Dbi {
         part_db_name: &str,
         table_name: &str,
         cmd: &str,
+        host: &CdsHosts,
         where_clause: &str,
     ) -> UpdatePartialDataResult {
         match self.db_type {
@@ -631,6 +632,7 @@ impl Dbi {
                     table_name,
                     cmd,
                     where_clause,
+                    host,
                     &settings,
                 );
             }

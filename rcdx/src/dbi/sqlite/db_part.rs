@@ -79,7 +79,22 @@ pub fn update_data_into_partial_db_queue(
     host: &CdsHosts,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
-    unimplemented!();
+    let queue_log_table = get_data_queue_table_name(table_name);
+    let conn = &get_partial_db_connection(db_name, &config.root_folder);
+
+    if !has_table(queue_log_table.clone(), conn) {
+        let mut cmd = sql_text::COOP::text_create_data_queue_table();
+        cmd = cmd.replace(":table_name", &queue_log_table);
+        execute_write(conn, &cmd);
+    }
+
+    let mut cmd = String::from("SELECT MAX(ID) FROM :table_name");
+    cmd = cmd.replace(":table_name", &queue_log_table);
+
+    let max_id = get_scalar_as_u32(cmd, conn);
+    let next_id = max_id + 1;
+
+    unimplemented!()
 }
 
 pub fn update_data_into_partial_db(
@@ -87,6 +102,7 @@ pub fn update_data_into_partial_db(
     table_name: &str,
     cmd: &str,
     where_clause: &str,
+    host: &CdsHosts,
     config: &DbiConfigSqlite,
 ) -> UpdatePartialDataResult {
     let behavior = get_updates_from_host_behavior(db_name, table_name, config);
@@ -96,7 +112,14 @@ pub fn update_data_into_partial_db(
         }
         UpdatesFromHostBehavior::Unknown => todo!(),
         UpdatesFromHostBehavior::QueueForReview => {
-            return execute_update_as_pending(db_name, table_name, cmd, where_clause, config);
+            return update_data_into_partial_db_queue(
+                db_name,
+                table_name,
+                cmd,
+                where_clause,
+                host,
+                config,
+            );
         }
         UpdatesFromHostBehavior::OverwriteWithLog => {
             execute_update_with_log(db_name, table_name, cmd, where_clause, config)
@@ -288,31 +311,6 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     }
     cmd = cmd + " ) ";
     execute_write(conn, &cmd);
-}
-
-fn execute_update_as_pending(
-    db_name: &str,
-    table_name: &str,
-    cmd: &str,
-    where_clause: &str,
-    config: &DbiConfigSqlite,
-) -> UpdatePartialDataResult {
-    let queue_log_table = get_data_queue_table_name(table_name);
-    let conn = &get_partial_db_connection(db_name, &config.root_folder);
-
-    if !has_table(queue_log_table.clone(), conn) {
-        let mut cmd = sql_text::COOP::text_create_data_queue_table();
-        cmd = cmd.replace(":table_name", &queue_log_table);
-        execute_write(conn, &cmd);
-    }
-
-    let mut cmd = String::from("SELECT MAX(ID) FROM :table_name");
-    cmd = cmd.replace(":table_name", &queue_log_table);
-
-    let max_id = get_scalar_as_u32(cmd, conn);
-    let next_id = max_id + 1;
-
-    unimplemented!()
 }
 
 fn execute_update_with_log(
@@ -524,7 +522,7 @@ fn execute_update_overwrite(
         is_successful: true,
         row_id: row_data.0,
         data_hash: row_data.1,
-        update_staus: 1,
+        update_status: 1,
     };
 
     return result;

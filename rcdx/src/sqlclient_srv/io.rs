@@ -185,6 +185,7 @@ pub async fn execute_write_at_partipant(
     if is_authenticated {
         let db_type = client.dbi().db_type();
         let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
+        let known_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
 
         if rcd_db_type == RcdDatabaseType::Partial {
             let statement_type = query_parser::determine_dml_type(&statement, db_type);
@@ -202,6 +203,7 @@ pub async fn execute_write_at_partipant(
                         &db_name,
                         &table_name,
                         &statement,
+                        &known_host,
                         &where_clause,
                     );
 

@@ -1,5 +1,6 @@
 use crate::dbi::Dbi;
 use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
+use crate::defaults;
 use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior};
 use chrono::Utc;
 use rcdproto::rcdp::*;
@@ -35,6 +36,7 @@ impl DataService for DataServiceImpl {
         let response = TestReply {
             reply_time_utc: String::from(Utc::now().to_rfc2822()),
             reply_echo_message: String::from(item),
+            rcdx_version: defaults::VERSION.to_string(),
         };
         Ok(Response::new(response))
     }
@@ -180,10 +182,11 @@ impl DataService for DataServiceImpl {
             is_successful: false,
             row_id: 0,
             data_hash: 0,
-            update_staus: 0,
+            update_status: 0,
         };
 
         if is_authenticated {
+            let known_host = self.dbi().get_cds_host_for_part_db(&db_name).unwrap();
             let cmd = &message.cmd;
 
             // need to check if this is allowed
@@ -204,6 +207,7 @@ impl DataService for DataServiceImpl {
                         &db_name,
                         &table_name,
                         cmd,
+                        &known_host,
                         &where_clause,
                     );
 
@@ -223,6 +227,7 @@ impl DataService for DataServiceImpl {
                         &db_name,
                         &table_name,
                         cmd,
+                        &known_host,
                         &where_clause,
                     );
 
@@ -238,27 +243,15 @@ impl DataService for DataServiceImpl {
                     }
                 }
                 UpdatesFromHostBehavior::QueueForReview => {
-                    // we need to lookup known hosts and then
-                    // find the host that matches
-                    // because we want to record who the host was that sent this update
-                    // in the queue table
-                    let known_host = self.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                    let update_result = self.dbi().update_data_into_partial_db_queue(
+                        &db_name,
+                        &table_name,
+                        cmd,
+                        &where_clause,
+                        &known_host,
+                    );
 
-                    if known_host.host_id == authentication.user_name
-                        || known_host.host_name == authentication.user_name
-                    {
-                        let update_result = self.dbi().update_data_into_partial_db_queue(
-                            &db_name,
-                            &table_name,
-                            cmd,
-                            &where_clause,
-                            &known_host,
-                        );
-
-                        unimplemented!();
-                    } else {
-                        panic!("Update statement from authenticated host but not known for partial database")
-                    }
+                    unimplemented!();
                 }
                 UpdatesFromHostBehavior::Unknown => unimplemented!(),
             }

@@ -1,5 +1,6 @@
 use crate::dbi::Dbi;
 use crate::remote_db_srv;
+use crate::defaults;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
@@ -50,6 +51,7 @@ impl SqlClient for SqlClientImpl {
         let response = TestReply {
             reply_time_utc: String::from(Utc::now().to_rfc2822()),
             reply_echo_message: String::from(item),
+            rcdx_version: defaults::VERSION.to_string(),
         };
         Ok(Response::new(response))
     }

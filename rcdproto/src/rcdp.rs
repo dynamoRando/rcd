@@ -742,6 +742,8 @@ pub struct TestReply {
     pub reply_time_utc: ::prost::alloc::string::String,
     #[prost(string, tag="2")]
     pub reply_echo_message: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub rcdx_version: ::prost::alloc::string::String,
 }
 /// a message for general information
 #[derive(Clone, PartialEq, ::prost::Message)]

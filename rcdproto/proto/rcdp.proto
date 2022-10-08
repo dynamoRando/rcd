@@ -538,6 +538,7 @@ message TestRequest {
 message TestReply {
 	string replyTimeUTC = 1;
 	string replyEchoMessage = 2;
+	string rcdxVersion = 3;
 }
 
 // a message for general information

@@ -85,7 +85,7 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     let rows = statement.query_map([], |row| row.get(0)).unwrap();
 
     for item in rows {
-        value = item.unwrap();
+        value = item.unwrap_or_default();
     }
 
     return value;
