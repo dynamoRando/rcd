@@ -166,7 +166,7 @@ pub async fn execute_read_at_participant(
     return execute_read_reply;
 }
 
-pub async fn execute_write_at_partipant(
+pub async fn execute_write_at_participant(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
 ) -> ExecuteWriteReply {

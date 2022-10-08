@@ -132,7 +132,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_write_at_partipant(request.into_inner(), self).await;
+        let execute_write_reply = io::execute_write_at_participant(request.into_inner(), self).await;
         Ok(Response::new(execute_write_reply))
     }
 
