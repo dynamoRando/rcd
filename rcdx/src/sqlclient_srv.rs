@@ -60,6 +60,10 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AcceptPendingUpdateRequest>,
     ) -> Result<Response<AcceptPendingUpdateReply>, Status> {
+        // 1 - we should execute the update statement
+        // 2 - we should clear the row from the queue table 
+        // 3 - and then send the updated row_id and hash back to the host
+        // update_row_data_hash_for_host on the data service
         unimplemented!()
     }
 
