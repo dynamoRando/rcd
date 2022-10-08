@@ -39,7 +39,7 @@ impl RcdDatabaseType {
 /// Specifies the UpdateStatus in a UpdateDataResult message
 /// in rcdp.proto
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum UpdateStatusForPartialData{
+pub enum UpdateStatusForPartialData {
     Unknown = 0,
     SucessOverwriteOrLog = 1,
     Pending = 2,

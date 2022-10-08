@@ -2,15 +2,15 @@ use std::path::Path;
 
 use super::rcd_db::{get_deletes_from_host_behavior, get_updates_from_host_behavior};
 use super::{
-    execute_read_on_connection_for_row, get_db_conn_with_result, get_scalar_as_u32,
-    get_scalar_as_u64, get_table_col_names,
+    execute_read_at_participant, execute_read_on_connection_for_row, get_db_conn_with_result,
+    get_scalar_as_u32, get_scalar_as_u64, get_table_col_names,
 };
 use crate::dbi::sqlite::{
     execute_write, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use crate::dbi::{
-    get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name,
-    DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
+    get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
+    DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
 };
 use crate::rcd_enum::{
     ColumnType, DatabaseType, UpdateStatusForPartialData, UpdatesFromHostBehavior,
@@ -18,7 +18,7 @@ use crate::rcd_enum::{
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use chrono::Utc;
-use rcdproto::rcdp::{ColumnSchema, Contract, TableSchema};
+use rcdproto::rcdp::{ColumnSchema, Contract, PendingUpdateStatement, TableSchema};
 use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
 
@@ -35,6 +35,75 @@ pub fn get_data_hash_at_participant(
     cmd = cmd.replace(":row_id", &row_id.to_string());
 
     return get_scalar_as_u64(cmd, &conn).unwrap();
+}
+
+pub fn get_pending_updates(
+    db_name: &str,
+    table_name: &str,
+    config: &DbiConfigSqlite,
+) -> Vec<PendingUpdateStatement> {
+    let update_queue = get_data_queue_table_name(table_name);
+
+    let mut pending_statements: Vec<PendingUpdateStatement> = Vec::new();
+
+    let mut cmd = String::from(
+        "
+        SELECT 
+            ID,
+            STATEMENT,
+            REQUESTED_TS_UTC,
+            HOST_ID
+        FROM
+            :table
+        ;",
+    );
+    cmd = cmd.replace(":table", &update_queue);
+
+    let c = config.clone();
+
+    let pending_rows = execute_read_at_participant(db_name, &cmd.to_string(), c).unwrap();
+
+    for row in &pending_rows.rows {
+        let mut rid: u32 = 0;
+        let mut statement: String = String::from("");
+        let mut ts: String = String::from("");
+        let mut host_id: String = String::from("");
+
+        for val in &row.vals {
+            if val.col.name == "ID" {
+                rid = val
+                    .data
+                    .as_ref()
+                    .unwrap()
+                    .data_string
+                    .parse::<u32>()
+                    .unwrap();
+            }
+
+            if val.col.name == "STATEMENT" {
+                statement = val.data.as_ref().unwrap().data_string.clone();
+            }
+
+            if val.col.name == "REQUESTED_TS_UTC" {
+                ts = val.data.as_ref().unwrap().data_string.clone();
+            }
+
+            if val.col.name == "HOST_ID" {
+                host_id = val.data.as_ref().unwrap().data_string.clone();
+            }
+        }
+
+        let ps = PendingUpdateStatement {
+            row_id: rid,
+            statement,
+            requested_ts_utc: ts,
+            host_id,
+        };
+
+        pending_statements.push(ps);
+    }
+
+    return pending_statements;
 }
 
 pub fn get_row_from_partial_database(

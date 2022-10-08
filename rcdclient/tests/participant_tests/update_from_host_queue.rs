@@ -25,6 +25,8 @@ fn test() {
     let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
     let (tx_h_can_read, rx_h_can_read) = mpsc::channel();
 
+    let (tx_p_has_update, rx_p_has_update) = mpsc::channel();
+
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
     let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
@@ -41,9 +43,11 @@ fn test() {
     let main_db_name = test_db_name.clone();
     let participant_db_name = test_db_name.clone();
     let pdn = participant_db_name.clone();
+    let pdn2 = pdn.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
     let addr_1 = participant_addrs.0.clone();
+    let addr_1_1 = addr_1.clone();
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
 
@@ -122,10 +126,24 @@ fn test() {
     let can_read_rows = rx_h_can_read.try_recv().unwrap();
     assert!(!can_read_rows);
 
-    unimplemented!()
     // participant - gets pending updates and later accepts the update
+    thread::spawn(move || {
+        let res = participant_get_and_approve_pending_update(
+            &pdn2,
+            "EMPLOYEE",
+            addr_1_1,
+            update_statement3,
+        );
+        tx_p_has_update.send(res).unwrap();
+    })
+    .join()
+    .unwrap();
+
+    let has_and_accept_update = rx_p_has_update.try_recv().unwrap();
+    assert!(has_and_accept_update);
 
     // main - checks the update value again and should match
+    unimplemented!();
 }
 
 #[cfg(test)]
@@ -343,7 +361,10 @@ async fn participant_get_and_approve_pending_update(
         String::from("123456"),
     );
 
-    let pending_updates = client.get_pending_updates_at_participant(db_name, table_name).await.unwrap();
+    let pending_updates = client
+        .get_pending_updates_at_participant(db_name, table_name)
+        .await
+        .unwrap();
 
     for statement in &pending_updates.pending_statements {
         if statement.statement == update_statement {
@@ -352,12 +373,14 @@ async fn participant_get_and_approve_pending_update(
         }
     }
 
+    assert!(has_statement);
+
     if has_statement {
         // need to accept the statement
         // the participant should send a message back to the host with the changed hash
     }
 
-   unimplemented!();
+    unimplemented!();
 }
 
 #[cfg(test)]
@@ -393,7 +416,11 @@ async fn get_row_id_at_participant(db_name: &str, participant_client_addr: Servi
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: ServiceAddr, update_statement: &str) -> bool {
+async fn main_read_updated_row_should_fail(
+    db_name: &str,
+    main_client_addr: ServiceAddr,
+    update_statement: &str,
+) -> bool {
     use rcdx::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
@@ -402,7 +429,6 @@ async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: Serv
         String::from("123456"),
     );
 
-  
     let update_result = client
         .execute_cooperative_write_at_host(db_name, &update_statement, "participant", "ID = 999")
         .await;

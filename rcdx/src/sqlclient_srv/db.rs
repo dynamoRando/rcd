@@ -21,11 +21,14 @@ pub async fn get_pending_updates_at_participant(
     let message = request.clone();
     let a = message.authentication.unwrap();
 
+    let db_name = &message.database_name;
+    let table_name = &message.table_name;
+
     let is_authenticated = client.verify_login(&a.user_name, &a.pw);
     let mut pending_statements: Vec<PendingUpdateStatement> = Vec::new();
 
     if is_authenticated {
-        unimplemented!();
+        pending_statements = client.dbi().get_pending_updates(db_name, table_name);
     }
 
     let auth_response = AuthResult {

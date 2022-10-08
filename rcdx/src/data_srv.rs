@@ -1,7 +1,9 @@
 use crate::dbi::Dbi;
 use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::defaults;
-use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior, UpdateStatusForPartialData};
+use crate::rcd_enum::{
+    DeletesFromHostBehavior, UpdateStatusForPartialData, UpdatesFromHostBehavior,
+};
 use chrono::Utc;
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{data_service_server::DataService, data_service_server::DataServiceServer};
@@ -200,7 +202,8 @@ impl DataService for DataServiceImpl {
                         "The participant does not allow updates for db {} table: {}",
                         db_name, table_name
                     );
-                    update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Ignored);
+                    update_status =
+                        UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Ignored);
                 }
                 UpdatesFromHostBehavior::AllowOverwrite => {
                     result = self.dbi().update_data_into_partial_db(
@@ -219,7 +222,9 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::SucessOverwriteOrLog);
+                        update_status = UpdateStatusForPartialData::to_u32(
+                            UpdateStatusForPartialData::SucessOverwriteOrLog,
+                        );
                     }
                 }
                 UpdatesFromHostBehavior::OverwriteWithLog => {
@@ -239,7 +244,9 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::SucessOverwriteOrLog);
+                        update_status = UpdateStatusForPartialData::to_u32(
+                            UpdateStatusForPartialData::SucessOverwriteOrLog,
+                        );
                     }
                 }
                 UpdatesFromHostBehavior::QueueForReview => {
@@ -252,8 +259,10 @@ impl DataService for DataServiceImpl {
                     );
 
                     if result.is_successful {
-                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
-                        action_message = String::from("The update statement has been logged for review");
+                        update_status =
+                            UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
+                        action_message =
+                            String::from("The update statement has been logged for review");
                     }
                 }
                 UpdatesFromHostBehavior::Unknown => unimplemented!(),

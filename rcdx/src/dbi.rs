@@ -10,7 +10,9 @@ use crate::{
     },
     table::Table,
 };
-use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, Row};
+use rcdproto::rcdp::{
+    ColumnSchema, Contract, DatabaseSchema, Participant, PendingUpdateStatement, Row,
+};
 use rusqlite::{Connection, Error};
 
 mod sqlite;
@@ -151,6 +153,23 @@ pub fn get_data_queue_table_name(table_name: &str) -> String {
 }
 
 impl Dbi {
+    pub fn get_pending_updates(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Vec<PendingUpdateStatement> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::get_pending_updates(db_name, table_name, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn get_data_hash_at_host(self: &Self, db_name: &str, table_name: &str, row_id: u32) -> u64 {
         match self.db_type {
             DatabaseType::Sqlite => {

@@ -6,9 +6,10 @@ use rcdproto::rcdp::{
     ChangeUpdatesToHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
     ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest, GetDataHashRequest,
-    GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetReadRowIdsRequest, HasTableRequest,
-    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest, GetPendingUpdatesRequest,
+    GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetPendingUpdatesRequest,
+    GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
+    SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
+    ViewPendingContractsRequest,
 };
 
 use rcdx::rcd_enum::{

@@ -1,6 +1,6 @@
 use crate::dbi::Dbi;
-use crate::remote_db_srv;
 use crate::defaults;
+use crate::remote_db_srv;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
@@ -61,7 +61,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetPendingUpdatesRequest>,
     ) -> Result<Response<GetPendingUpdatesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let pending_updates = db::get_pending_updates_at_participant(request.into_inner(), self).await;
+        let pending_updates =
+            db::get_pending_updates_at_participant(request.into_inner(), self).await;
         Ok(Response::new(pending_updates))
     }
 
@@ -141,7 +142,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_write_at_participant(request.into_inner(), self).await;
+        let execute_write_reply =
+            io::execute_write_at_participant(request.into_inner(), self).await;
         Ok(Response::new(execute_write_reply))
     }
 
