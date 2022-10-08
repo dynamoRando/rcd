@@ -33,6 +33,19 @@ service SQLClient {
 	rpc GetDataLogTableStatusAtParticipant (GetDataLogTableStatusRequest) returns (GetDataLogTableStatusReply);
 	rpc SetDataLogTableStatusAtParticipant (SetDataLogTableStatusRequest) returns (SetDataLogTableStatusReply);
 	rpc GetPendingUpdatesAtParticipant (GetPendingUpdatesRequest) returns (GetPendingUpdatesReply);
+	rpc AcceptPendingUpdateAtParticipant (AcceptPendingUpdateRequest) returns (AcceptPendingUpdateReply);
+}
+
+message AcceptPendingUpdateRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+	uint32 rowId = 4;
+}
+
+message AcceptPendingUpdateReply {
+	AuthResult authenticationResult = 1;
+	bool isSuccessful = 2;
 }
 
 message GetPendingUpdatesRequest {

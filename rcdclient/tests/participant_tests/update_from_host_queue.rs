@@ -347,6 +347,8 @@ async fn participant_get_and_approve_pending_update(
     use log::info;
     use rcdclient::RcdClient;
 
+    let mut is_succesful = false;
+
     let mut has_statement = false;
     let mut statement_row_id = 0;
 
@@ -376,10 +378,18 @@ async fn participant_get_and_approve_pending_update(
     assert!(has_statement);
 
     if has_statement {
-        // need to accept the statement
-        // the participant should send a message back to the host with the changed hash
-    }
+        println!("has statement");
 
+        // need to accept the statement
+        let accept_update_result = client
+            .accept_pending_update_at_participant(db_name, table_name, statement_row_id)
+            .await
+            .unwrap();
+
+        if accept_update_result.is_successful {
+            // the participant should send a message back to the host with the changed hash
+        }
+    }
     unimplemented!();
 }
 

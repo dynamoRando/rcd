@@ -9,7 +9,7 @@ use rcdproto::rcdp::{
     GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetPendingUpdatesRequest,
     GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
     SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
-    ViewPendingContractsRequest,
+    ViewPendingContractsRequest, AcceptPendingContractReply, AcceptPendingUpdateRequest, AcceptPendingUpdateReply,
 };
 
 use rcdx::rcd_enum::{
@@ -39,6 +39,25 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn accept_pending_update_at_participant(self: &Self, db_name: &str, table_name: &str, row_id: u32)
+    -> Result<AcceptPendingUpdateReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let request = AcceptPendingUpdateRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+            row_id,
+        };
+
+        let response = client.accept_pending_update_at_participant(request).await.unwrap().into_inner();
+
+        Ok(response)
     }
 
     pub async fn get_pending_updates_at_participant(

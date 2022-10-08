@@ -56,6 +56,13 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn accept_pending_update_at_participant(
+        &self,
+        request: Request<AcceptPendingUpdateRequest>,
+    ) -> Result<Response<AcceptPendingUpdateReply>, Status> {
+        unimplemented!()
+    }
+
     async fn get_pending_updates_at_participant(
         &self,
         request: Request<GetPendingUpdatesRequest>,
