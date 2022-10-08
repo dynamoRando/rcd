@@ -61,9 +61,9 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetPendingUpdatesRequest>,
     ) -> Result<Response<GetPendingUpdatesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        unimplemented!();
+        let pending_updates = db::get_pending_updates_at_participant(request.into_inner(), self).await;
+        Ok(Response::new(pending_updates))
     }
-
 
     async fn get_data_log_table_status_at_participant(
         &self,
