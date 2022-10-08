@@ -7,7 +7,7 @@ use super::SqlClientImpl;
 use crate::{
     host_info::HostInfo,
     query_parser,
-    rcd_enum::{DmlType, RcdDatabaseType},
+    rcd_enum::{DmlType, RcdDatabaseType, UpdateStatusForPartialData},
     remote_db_srv,
 };
 use conv::UnwrapOk;
@@ -210,7 +210,8 @@ pub async fn execute_write_at_partipant(
                     match update_behavior {
                         crate::rcd_enum::UpdatesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::UpdatesToHostBehavior::SendDataHashChange => {
-                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                            let remote_host =
+                                client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
                             let own_db_addr_port = client.own_db_addr_port.clone();
 
@@ -251,7 +252,8 @@ pub async fn execute_write_at_partipant(
                     match delete_behavior {
                         crate::rcd_enum::DeletesToHostBehavior::Unknown => todo!(),
                         crate::rcd_enum::DeletesToHostBehavior::SendNotification => {
-                            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                            let remote_host =
+                                client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
                             let own_db_addr_port = client.own_db_addr_port.clone();
 
@@ -411,22 +413,43 @@ pub async fn execute_cooperative_write_at_host(
                     .await;
 
                     if remote_update_result.is_successful {
-                        let data_hash = remote_update_result.rows.first().unwrap().data_hash;
-                        let row_id = remote_update_result.rows.first().unwrap().rowid;
+                        let data_hash: u64;
+                        let row_id: u32;
 
-                        let internal_participant_id =
-                            db_participant_reference.internal_id.to_string().clone();
-
-                        let local_update_is_successful = client.dbi().update_metadata_in_host_db(
-                            &db_name,
-                            &cmd_table_name,
-                            row_id,
-                            data_hash,
-                            &internal_participant_id,
+                        let update_result = UpdateStatusForPartialData::from_u32(
+                            remote_update_result.update_status,
                         );
 
-                        if local_update_is_successful {
-                            is_remote_action_successful = true;
+                        match update_result {
+                            UpdateStatusForPartialData::Unknown => todo!(),
+                            UpdateStatusForPartialData::SucessOverwriteOrLog => {
+                                data_hash = remote_update_result.rows.first().unwrap().data_hash;
+                                row_id = remote_update_result.rows.first().unwrap().rowid;
+                                let internal_participant_id =
+                                    db_participant_reference.internal_id.to_string().clone();
+
+                                let local_update_is_successful =
+                                    client.dbi().update_metadata_in_host_db(
+                                        &db_name,
+                                        &cmd_table_name,
+                                        row_id,
+                                        data_hash,
+                                        &internal_participant_id,
+                                    );
+
+                                println!(
+                                    "local update is successful: {}",
+                                    local_update_is_successful.to_string()
+                                );
+
+                                if local_update_is_successful {
+                                    is_remote_action_successful = true;
+                                }
+                            }
+                            UpdateStatusForPartialData::Pending => {
+                                is_remote_action_successful = true;
+                            }
+                            UpdateStatusForPartialData::Ignored => todo!(),
                         }
                     }
                 }
@@ -476,6 +499,8 @@ pub async fn execute_cooperative_write_at_host(
         is_successful: is_remote_action_successful,
         total_rows_affected: 0,
     };
+
+    println!("{:?}", execute_write_reply);
 
     return execute_write_reply;
 }

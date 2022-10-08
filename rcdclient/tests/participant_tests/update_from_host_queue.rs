@@ -22,12 +22,6 @@ fn test() {
     let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
     let (tx_h_can_read, rx_h_can_read) = mpsc::channel();
 
-    let (tx_h_data_hash, rx_h_data_hash) = mpsc::channel();
-    let (tx_p_data_hash, rx_p_data_hash) = mpsc::channel();
-
-    let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
-    let (tx_p_read_data_log, rx_p_read_data_log) = mpsc::channel();
-
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
     let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
@@ -46,22 +40,11 @@ fn test() {
     let pdn = participant_db_name.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
-
-    let db_p_name = db_name_copy.clone();
-    let db_p_name2 = db_p_name.clone();
-    let db_pname3 = db_p_name2.clone();
-    let db_h_name = db_name_copy.clone();
-
     let addr_1 = participant_addrs.0.clone();
-
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
 
-    let h_addr = addr.clone();
-    let p_addr = participant_addrs.clone().0;
-    let p_addr2 = p_addr.clone();
-    let p_addr3 = p_addr.clone();
-
+    // main - normal database setup
     thread::spawn(move || {
         let res = main_service_client(
             &main_db_name,
@@ -74,6 +57,7 @@ fn test() {
     .join()
     .unwrap();
 
+    // main - setup contract
     let sent_participant_contract = rx_main.try_recv().unwrap();
     println!(
         "send_participant_contract: got: {}",
@@ -82,12 +66,9 @@ fn test() {
 
     assert!(sent_participant_contract);
 
+    // participant - accept contract
     thread::spawn(move || {
-        let res = participant_service_client(
-            &participant_db_name,
-            participant_addrs.0,
-            participant_contract_desc,
-        );
+        let res = participant_service_client(participant_addrs.0, participant_contract_desc);
         tx_participant.send(res).unwrap();
     })
     .join()
@@ -101,6 +82,7 @@ fn test() {
 
     assert!(participant_accepted_contract);
 
+    // main - inserts remote row and tests to make sure it works
     thread::spawn(move || {
         let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
         tx_main_write.send(res).unwrap();
@@ -114,6 +96,7 @@ fn test() {
 
     let new_behavior = UpdatesFromHostBehavior::QueueForReview;
 
+    // participant - changes behavior to log updates but not execute them
     thread::spawn(move || {
         let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
         tx_p_change_update.send(res).unwrap();
@@ -125,62 +108,25 @@ fn test() {
 
     assert!(update_at_participant_is_successful);
 
+    // main - attempts to execute update but does not get requested value back (this is intentional)
     thread::spawn(move || {
-        let res = main_read_updated_row_should_succeed(&db_name_copy, addr);
+        let res = main_read_updated_row_should_fail(&db_name_copy, addr);
         tx_h_can_read.send(res).unwrap();
     })
     .join()
     .unwrap();
 
     let can_read_rows = rx_h_can_read.try_recv().unwrap();
-    assert!(can_read_rows);
+    assert!(!can_read_rows);
 
-    thread::spawn(move || {
-        let res = get_row_id_at_participant(&db_p_name, p_addr);
-        tx_p_row_id.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
+    unimplemented!()
+    // participant - gets pending updates and later accepts the update
 
-    let p_row_id = rx_p_row_id.try_recv().unwrap();
-    let rid = p_row_id;
-    let rid2 = p_row_id;
-
-    thread::spawn(move || {
-        let res = get_data_hash_for_changed_row_at_participant(&db_p_name2, p_addr2, rid);
-        tx_p_data_hash.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let p_data_hash = rx_p_data_hash.try_recv().unwrap();
-
-    thread::spawn(move || {
-        let res = get_data_hash_for_changed_row_at_host(&db_h_name, h_addr, rid2);
-        tx_h_data_hash.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let h_data_hash = rx_h_data_hash.try_recv().unwrap();
-
-    assert_eq!(p_data_hash, h_data_hash);
-
-    thread::spawn(move || {
-        let res = get_data_logs_at_participant(&db_pname3, p_addr3, rid);
-        tx_p_read_data_log.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let p_read_data_log_is_correct = rx_p_read_data_log.try_recv().unwrap();
-
-    assert!(p_read_data_log_is_correct);
+    // main - checks the update value again and should match
 }
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(unused_variables)]
 async fn main_service_client(
     db_name: &str,
     main_client_addr: ServiceAddr,
@@ -250,7 +196,6 @@ async fn main_service_client(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(unused_variables)]
 async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     use rcdx::rcd_enum::DatabaseType;
 
@@ -302,17 +247,13 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
 async fn participant_service_client(
-    db_name: &str,
     participant_client_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
 
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
 
     info!(
@@ -326,7 +267,7 @@ async fn participant_service_client(
         String::from("123456"),
     );
 
-    let is_generated_host = client.generate_host_info("participant").await.unwrap();
+    let _ = client.generate_host_info("participant").await.unwrap();
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -348,7 +289,6 @@ async fn participant_service_client(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
 async fn participant_changes_update_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
@@ -356,9 +296,6 @@ async fn participant_changes_update_behavior(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     info!(
         "participant_changes_update_behavior attempting to connect {}",
@@ -410,77 +347,8 @@ async fn get_row_id_at_participant(db_name: &str, participant_client_addr: Servi
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_data_hash_for_changed_row_at_participant(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    row_id: u32,
-) -> u64 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let data_hash_result = client
-        .get_data_hash_at_participant(db_name, "EMPLOYEE", row_id)
-        .await
-        .unwrap();
-
-    return data_hash_result;
-}
-
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_data_hash_for_changed_row_at_host(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    row_id: u32,
-) -> u64 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let data_hash_result = client
-        .get_data_hash_at_host(db_name, "EMPLOYEE", row_id)
-        .await
-        .unwrap();
-
-    return data_hash_result;
-}
-
-#[cfg(test)]
-#[tokio::main]
 #[allow(unused_variables)]
-async fn main_read_updated_row_should_succeed(
-    db_name: &str,
-    main_client_addr: ServiceAddr,
-) -> bool {
+async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     use rcdx::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
@@ -493,6 +361,8 @@ async fn main_read_updated_row_should_succeed(
     let update_result = client
         .execute_cooperative_write_at_host(db_name, &statement, "participant", "ID = 999")
         .await;
+
+    println!("{:?}", update_result);
 
     assert!(update_result.unwrap());
 
@@ -511,50 +381,6 @@ async fn main_read_updated_row_should_succeed(
 
     let expected_value = "TESTER".as_bytes().to_vec();
 
-    println!("{:?}", expected_value);
-
-    return *value == expected_value;
-}
-
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_data_logs_at_participant(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    row_id: u32,
-) -> bool {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_logs_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let cmd = "SELECT * FROM EMPLOYEE_COOP_DATA_LOG";
-    let read_result = client
-        .execute_read_at_participant(db_name, cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
-        .await
-        .unwrap();
-
-    println!("{:?}", read_result);
-
-    let row = read_result.rows.first().unwrap();
-    let value = &row.values[1].value.clone();
-
-    println!("{:?}", value);
-
-    let expected_value = "ASDF".as_bytes().to_vec();
     println!("{:?}", expected_value);
 
     return *value == expected_value;

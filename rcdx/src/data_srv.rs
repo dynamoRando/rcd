@@ -1,7 +1,7 @@
 use crate::dbi::Dbi;
 use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
 use crate::defaults;
-use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior};
+use crate::rcd_enum::{DeletesFromHostBehavior, UpdatesFromHostBehavior, UpdateStatusForPartialData};
 use chrono::Utc;
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{data_service_server::DataService, data_service_server::DataServiceServer};
@@ -200,7 +200,7 @@ impl DataService for DataServiceImpl {
                         "The participant does not allow updates for db {} table: {}",
                         db_name, table_name
                     );
-                    update_status = 3;
+                    update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Ignored);
                 }
                 UpdatesFromHostBehavior::AllowOverwrite => {
                     result = self.dbi().update_data_into_partial_db(
@@ -219,7 +219,7 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = 1;
+                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::SucessOverwriteOrLog);
                     }
                 }
                 UpdatesFromHostBehavior::OverwriteWithLog => {
@@ -239,11 +239,11 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = 1;
+                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::SucessOverwriteOrLog);
                     }
                 }
                 UpdatesFromHostBehavior::QueueForReview => {
-                    let update_result = self.dbi().update_data_into_partial_db_queue(
+                    result = self.dbi().update_data_into_partial_db_queue(
                         &db_name,
                         &table_name,
                         cmd,
@@ -251,7 +251,10 @@ impl DataService for DataServiceImpl {
                         &known_host,
                     );
 
-                    unimplemented!();
+                    if result.is_successful {
+                        update_status = UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
+                        action_message = String::from("The update statement has been logged for review");
+                    }
                 }
                 UpdatesFromHostBehavior::Unknown => unimplemented!(),
             }

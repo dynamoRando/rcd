@@ -71,12 +71,14 @@ pub struct CdsHosts {
     pub last_comm_utc: String,
 }
 
+#[derive(Debug, Clone)]
 pub struct InsertPartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
     pub data_hash: u64,
 }
 
+#[derive(Debug, Clone)]
 pub struct UpdatePartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,

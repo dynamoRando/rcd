@@ -9,7 +9,7 @@ use crate::dbi::sqlite::{
     execute_write, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use crate::dbi::{
-    get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, CdsHosts,
+    get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name,
     DbiConfigSqlite, DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult,
 };
 use crate::rcd_enum::{
@@ -114,6 +114,8 @@ pub fn update_data_into_partial_db_queue(
         )
     ;",
     );
+
+    cmd = cmd.replace(":table_name", &queue_log_table);
 
     let mut statement = conn.prepare(&cmd).unwrap();
     let rows_inserted = statement
