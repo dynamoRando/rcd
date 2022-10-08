@@ -56,6 +56,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_pending_updates_at_participant(
+        &self,
+        request: Request<GetPendingUpdatesRequest>,
+    ) -> Result<Response<GetPendingUpdatesReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        unimplemented!();
+    }
+
+
     async fn get_data_log_table_status_at_participant(
         &self,
         request: Request<GetDataLogTableStatusRequest>,

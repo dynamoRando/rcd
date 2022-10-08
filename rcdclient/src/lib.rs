@@ -6,9 +6,9 @@ use rcdproto::rcdp::{
     ChangeUpdatesToHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
     ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest, GetDataHashRequest,
-    GetLogicalStoragePolicyRequest, GetReadRowIdsRequest, HasTableRequest,
+    GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetReadRowIdsRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest, GetPendingUpdatesRequest,
 };
 
 use rcdx::rcd_enum::{
@@ -38,6 +38,34 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn get_pending_updates_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<GetPendingUpdatesReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetPendingUpdatesRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client
+            .get_pending_updates_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
+
+        Ok(response)
     }
 
     pub async fn get_row_id_at_participant(

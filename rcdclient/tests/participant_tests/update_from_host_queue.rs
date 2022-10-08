@@ -9,12 +9,15 @@ use std::{thread, time};
 # Test Description
 
 */
-#[ignore = "code not finished"]
 #[test]
 fn test() {
     let test_name = "update_from_host_queue";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
+
+    let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
+    let update_statement2 = update_statement.clone();
+    let update_statement3 = update_statement.clone();
 
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
@@ -110,7 +113,7 @@ fn test() {
 
     // main - attempts to execute update but does not get requested value back (this is intentional)
     thread::spawn(move || {
-        let res = main_read_updated_row_should_fail(&db_name_copy, addr);
+        let res = main_read_updated_row_should_fail(&db_name_copy, addr, update_statement2);
         tx_h_can_read.send(res).unwrap();
     })
     .join()
@@ -317,6 +320,48 @@ async fn participant_changes_update_behavior(
 
 #[cfg(test)]
 #[tokio::main]
+async fn participant_get_and_approve_pending_update(
+    db_name: &str,
+    table_name: &str,
+    participant_client_addr: ServiceAddr,
+    update_statement: &str,
+) -> bool {
+    use log::info;
+    use rcdclient::RcdClient;
+
+    let mut has_statement = false;
+    let mut statement_row_id = 0;
+
+    info!(
+        "participant_get_and_approve_pending_update attempting to connect {}",
+        participant_client_addr.to_full_string_with_http()
+    );
+
+    let client = RcdClient::new(
+        participant_client_addr.to_full_string_with_http(),
+        String::from("tester"),
+        String::from("123456"),
+    );
+
+    let pending_updates = client.get_pending_updates_at_participant(db_name, table_name).await.unwrap();
+
+    for statement in &pending_updates.pending_statements {
+        if statement.statement == update_statement {
+            has_statement = true;
+            statement_row_id = statement.row_id;
+        }
+    }
+
+    if has_statement {
+        // need to accept the statement
+        // the participant should send a message back to the host with the changed hash
+    }
+
+   unimplemented!();
+}
+
+#[cfg(test)]
+#[tokio::main]
 #[allow(dead_code, unused_variables)]
 async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
     use log::info;
@@ -348,7 +393,7 @@ async fn get_row_id_at_participant(db_name: &str, participant_client_addr: Servi
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: ServiceAddr, update_statement: &str) -> bool {
     use rcdx::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
@@ -357,9 +402,9 @@ async fn main_read_updated_row_should_fail(db_name: &str, main_client_addr: Serv
         String::from("123456"),
     );
 
-    let statement = String::from("UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999");
+  
     let update_result = client
-        .execute_cooperative_write_at_host(db_name, &statement, "participant", "ID = 999")
+        .execute_cooperative_write_at_host(db_name, &update_statement, "participant", "ID = 999")
         .await;
 
     println!("{:?}", update_result);
