@@ -321,10 +321,12 @@ impl DataService for DataServiceImpl {
         let mut result = DeletePartialDataResult {
             is_successful: false,
             row_id: 0,
-            data_hash: 0,
+            data_hash: None,
         };
 
         if is_authenticated {
+            let known_host = self.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+
             // need to check if this is allowed
             let behavior = self
                 .dbi()
@@ -345,14 +347,20 @@ impl DataService for DataServiceImpl {
                         &table_name,
                         cmd,
                         &where_clause,
+                        &known_host.host_id
                     );
+
+                    let hash = match result.data_hash {
+                            Some(_) => result.data_hash.unwrap(),
+                            None => 0
+                    };
 
                     if result.is_successful {
                         let row = RowInfo {
                             database_name: db_name,
                             table_name,
                             rowid: result.row_id,
-                            data_hash: result.data_hash,
+                            data_hash: hash,
                         };
                         rows.push(row);
                     }
@@ -365,14 +373,20 @@ impl DataService for DataServiceImpl {
                         &table_name,
                         cmd,
                         &where_clause,
+                        &known_host.host_id
                     );
+
+                    let hash = match result.data_hash {
+                        Some(_) => result.data_hash.unwrap(),
+                        None => 0
+                };
 
                     if result.is_successful {
                         let row = RowInfo {
                             database_name: db_name,
                             table_name,
                             rowid: result.row_id,
-                            data_hash: result.data_hash,
+                            data_hash: hash,
                         };
                         rows.push(row);
                     }
@@ -385,6 +399,7 @@ impl DataService for DataServiceImpl {
                         &table_name,
                         cmd,
                         &where_clause,
+                        &known_host.host_id,
                     );
 
                     if result.is_successful {

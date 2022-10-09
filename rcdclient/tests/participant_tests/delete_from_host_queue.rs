@@ -8,33 +8,8 @@ use std::{thread, time};
 /*
 # Test Description
 
-## Purpose:
-This test checks to see if the setting at the participant for DELETES_FROM_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
-is being respected.
-
-## Feature Background
-We want to make sure the participants have full authority over their data. This means that they have the option to change
-how modifications being sent from the host are handled. In this test, if a host sends an DELETE statmement to be processed
-at the participant, we want to ignore it.
-
-## Test Steps
-- Start an rcd instance for a main (host) and a participant
-- Host:
-    - Generate a db and tables and a contract to send to particpant
-- Participant:
-    - Accept contract
-- Host:
-    - Send one row to participant to be inserted and test to make sure can read from participant
-- Participant:
-    - Change DeletesFromHostBehavior to Ignore
-- Host:
-    - Attempt to delete previously inserted row
-
-### Expected Results:
-The delete should fail.
-
 */
-
+#[ignore = "code not finished"]
 #[test]
 fn test() {
     let test_name = "delete_from_host_with_queue";

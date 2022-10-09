@@ -192,6 +192,7 @@ pub fn delete_data_in_partial_db(
     table_name: &str,
     cmd: &str,
     where_clause: &str,
+    host_id: &str,
     config: &DbiConfigSqlite,
 ) -> DeletePartialDataResult {
     let behavior = get_deletes_from_host_behavior(db_name, table_name, config);
@@ -201,7 +202,8 @@ pub fn delete_data_in_partial_db(
         crate::rcd_enum::DeletesFromHostBehavior::AllowRemoval => {
             return execute_delete(db_name, table_name, cmd, where_clause, config)
         }
-        crate::rcd_enum::DeletesFromHostBehavior::QueueForReview => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::QueueForReview => 
+        return delete_data_into_partial_db_queue(db_name, table_name, cmd, where_clause, host_id, config),
         crate::rcd_enum::DeletesFromHostBehavior::DeleteWithLog => {
             return execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
         }
@@ -210,7 +212,75 @@ pub fn delete_data_in_partial_db(
     }
 }
 
-#[allow(dead_code, unused_variables, unused_mut, unused_assignments)]
+pub fn delete_data_into_partial_db_queue (
+    db_name: &str,
+    table_name: &str,
+    delete_statement: &str,
+    where_clause: &str,
+    host_id: &str,
+    config: &DbiConfigSqlite,
+) -> DeletePartialDataResult 
+ {
+    let queue_log_table = get_data_queue_table_name(table_name);
+    let conn = &get_partial_db_connection(db_name, &config.root_folder);
+
+    if !has_table(queue_log_table.clone(), conn) {
+        let mut cmd = sql_text::COOP::text_create_data_queue_table();
+        cmd = cmd.replace(":table_name", &queue_log_table);
+        execute_write(conn, &cmd);
+    }
+
+    let mut cmd = String::from("SELECT MAX(ID) FROM :table_name");
+    cmd = cmd.replace(":table_name", &queue_log_table);
+
+    let max_id = get_scalar_as_u32(cmd, conn);
+    let next_id = max_id + 1;
+
+    cmd = String::from(
+        "
+        INSERT INTO :table_name 
+        (
+            ID,
+            STATEMENT,
+            WHERE_CLAUSE,
+            REQUESTED_TS_UTC,
+            HOST_ID,
+            ACTION
+        )
+        VALUES
+        (
+            :id,
+            :statement,
+            :where_clause,
+            :ts,
+            :hid,
+            'DELETE'
+        )
+    ;",
+    );
+
+    cmd = cmd.replace(":table_name", &queue_log_table);
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let rows_inserted = statement
+        .execute(named_params! {
+            ":id": next_id,
+            ":statement": delete_statement,
+            ":where_clause": where_clause,
+            ":ts": Utc::now().to_string(),
+            ":hid": host_id,
+        })
+        .unwrap();
+
+    let delete_result = DeletePartialDataResult {
+        is_successful: rows_inserted > 0,
+        row_id: next_id,
+        data_hash: None,
+    };
+
+    return delete_result;
+}
+
 pub fn update_data_into_partial_db_queue(
     db_name: &str,
     table_name: &str,
@@ -797,7 +867,7 @@ fn execute_delete(
     let result = DeletePartialDataResult {
         is_successful: true,
         row_id: *deleted_row_id,
-        data_hash: 0,
+        data_hash: None,
     };
 
     println!("{:?}", result);

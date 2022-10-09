@@ -238,6 +238,8 @@ pub async fn execute_write_at_participant(
                     }
                 }
                 DmlType::Delete => {
+                    let known_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+
                     let delete_behavior = client
                         .dbi()
                         .get_deletes_to_host_behavior(&db_name, &table_name);
@@ -247,6 +249,7 @@ pub async fn execute_write_at_participant(
                         &table_name,
                         &statement,
                         &where_clause,
+                        &known_host.host_id
                     );
 
                     match delete_behavior {

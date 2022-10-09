@@ -90,7 +90,7 @@ pub struct UpdatePartialDataResult {
 pub struct DeletePartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
-    pub data_hash: u64,
+    pub data_hash: Option<u64>,
 }
 
 #[derive(Debug, Clone)]
@@ -612,6 +612,7 @@ impl Dbi {
         table_name: &str,
         cmd: &str,
         where_clause: &str,
+        host_id: &str,
     ) -> DeletePartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -621,6 +622,7 @@ impl Dbi {
                     table_name,
                     cmd,
                     where_clause,
+                    host_id,
                     &settings,
                 );
             }
