@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use super::rcd_db::{get_deletes_from_host_behavior, get_updates_from_host_behavior};
 use super::{
     execute_read_at_participant, execute_read_on_connection_for_row, get_db_conn_with_result,
@@ -21,6 +19,7 @@ use chrono::Utc;
 use rcdproto::rcdp::{ColumnSchema, Contract, PendingUpdateStatement, TableSchema};
 use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
+use std::path::Path;
 
 pub fn accept_pending_update_at_participant(
     db_name: &str,
@@ -40,19 +39,45 @@ pub fn accept_pending_update_at_participant(
     cmd = cmd.replace(":rid", &row_id.to_string());
     let where_clause = get_scalar_as_string(cmd, &conn);
 
-    let update_result = execute_update_overwrite(
-        db_name,
-        table_name,
-        &sql_update_statement,
-        &where_clause,
-        config,
-    );
+    let behavior = get_updates_from_host_behavior(db_name, table_name, config);
 
-    if update_result.is_successful {
-        let mut cmd = String::from("DELETE FROM :table_name WHERE ID = :rid");
-        cmd = cmd.replace(":table_name", &queue_table_name);
-        cmd = cmd.replace(":rid", &row_id.to_string());
-        execute_write(&conn, &cmd);
+    let mut update_result = UpdatePartialDataResult {
+        is_successful: false,
+        row_id: 0,
+        data_hash: None,
+        update_status: UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Unknown),
+    };
+
+    if behavior == UpdatesFromHostBehavior::QueueForReview {
+        update_result = execute_update_overwrite(
+            db_name,
+            table_name,
+            &sql_update_statement,
+            &where_clause,
+            config,
+        );
+
+        if update_result.is_successful {
+            let mut cmd = String::from("DELETE FROM :table_name WHERE ID = :rid");
+            cmd = cmd.replace(":table_name", &queue_table_name);
+            cmd = cmd.replace(":rid", &row_id.to_string());
+            execute_write(&conn, &cmd);
+        }
+    } else if behavior == UpdatesFromHostBehavior::QueueForReviewAndLog {
+        update_result = execute_update_with_log(
+            db_name,
+            table_name,
+            &sql_update_statement,
+            &where_clause,
+            config,
+        );
+
+        if update_result.is_successful {
+            let mut cmd = String::from("DELETE FROM :table_name WHERE ID = :rid");
+            cmd = cmd.replace(":table_name", &queue_table_name);
+            cmd = cmd.replace(":rid", &row_id.to_string());
+            execute_write(&conn, &cmd);
+        }
     }
 
     return update_result;
@@ -275,6 +300,7 @@ pub fn update_data_into_partial_db(
             execute_update_with_log(db_name, table_name, cmd, where_clause, config)
         }
         UpdatesFromHostBehavior::Ignore => todo!(),
+        UpdatesFromHostBehavior::QueueForReviewAndLog => todo!(),
     }
 }
 
@@ -463,13 +489,13 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     execute_write(conn, &cmd);
 }
 
-fn execute_update_with_log(
+fn add_record_to_log_table(
     db_name: &str,
     table_name: &str,
-    cmd: &str,
     where_clause: &str,
+    action: &str,
     config: &DbiConfigSqlite,
-) -> UpdatePartialDataResult {
+) -> bool {
     let data_log_table = get_data_log_table_name(table_name);
     let conn = &get_partial_db_connection(db_name, &config.root_folder);
 
@@ -545,7 +571,7 @@ fn execute_update_with_log(
         let row_id_val = row.get_ref_unwrap(total_cols).as_i64().unwrap().to_string();
 
         insert_cmd = insert_cmd.replace(":rid", &row_id_val);
-        insert_cmd = insert_cmd.replace(":action", "UPDATE");
+        insert_cmd = insert_cmd.replace(":action", action);
         insert_cmd = insert_cmd.replace(":ts_utc", &Utc::now().to_string());
 
         println!("{:?}", insert_cmd);
@@ -553,6 +579,17 @@ fn execute_update_with_log(
         execute_write(conn, &insert_cmd);
     }
 
+    return true;
+}
+
+fn execute_update_with_log(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> UpdatePartialDataResult {
+    add_record_to_log_table(db_name, table_name, where_clause, "UPDATE", config);
     execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
 }
 

@@ -1,15 +1,15 @@
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
-    AcceptPendingContractRequest, AddParticipantRequest, AuthRequest,
-    ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorRequest,
-    ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
-    ChangeUpdatesToHostBehaviorRequest, Contract, CreateUserDatabaseRequest,
-    EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
-    ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest, GetDataHashRequest,
-    GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetPendingUpdatesRequest,
-    GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
-    SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
-    ViewPendingContractsRequest, AcceptPendingUpdateRequest, AcceptPendingUpdateReply,
+    AcceptPendingContractRequest, AcceptPendingUpdateReply, AcceptPendingUpdateRequest,
+    AddParticipantRequest, AuthRequest, ChangeDeletesFromHostBehaviorRequest,
+    ChangeDeletesToHostBehaviorRequest, ChangeHostStatusRequest,
+    ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
+    CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
+    ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
+    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetPendingUpdatesReply,
+    GetPendingUpdatesRequest, GetReadRowIdsRequest, HasTableRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
 use rcdx::rcd_enum::{
@@ -41,8 +41,12 @@ impl RcdClient {
         };
     }
 
-    pub async fn accept_pending_update_at_participant(self: &Self, db_name: &str, table_name: &str, row_id: u32)
-    -> Result<AcceptPendingUpdateReply, Box<dyn Error>> {
+    pub async fn accept_pending_update_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> Result<AcceptPendingUpdateReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
         info!("sending request");
 
@@ -55,7 +59,11 @@ impl RcdClient {
             row_id,
         };
 
-        let response = client.accept_pending_update_at_participant(request).await.unwrap().into_inner();
+        let response = client
+            .accept_pending_update_at_participant(request)
+            .await
+            .unwrap()
+            .into_inner();
 
         Ok(response)
     }

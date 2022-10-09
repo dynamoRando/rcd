@@ -14,6 +14,8 @@ mod update_at_participant;
 mod update_at_participant_negative;
 #[path = "participant_tests/update_from_host_queue.rs"]
 mod update_from_host_queue;
+#[path = "participant_tests/update_from_host_queue_with_log.rs"]
+mod update_from_host_queue_with_log;
 #[path = "participant_tests/update_from_host_with_log.rs"]
 mod update_from_host_with_log;
 /*

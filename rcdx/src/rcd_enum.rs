@@ -140,6 +140,7 @@ pub enum UpdatesFromHostBehavior {
     QueueForReview = 2,
     OverwriteWithLog = 3,
     Ignore = 4,
+    QueueForReviewAndLog = 5,
 }
 
 impl UpdatesFromHostBehavior {
@@ -150,6 +151,7 @@ impl UpdatesFromHostBehavior {
             2 => UpdatesFromHostBehavior::QueueForReview,
             3 => UpdatesFromHostBehavior::OverwriteWithLog,
             4 => UpdatesFromHostBehavior::Ignore,
+            5 => UpdatesFromHostBehavior::QueueForReviewAndLog,
             _ => panic!("Unknown value: {}", value),
         }
     }
@@ -161,6 +163,7 @@ impl UpdatesFromHostBehavior {
             UpdatesFromHostBehavior::QueueForReview => 2,
             UpdatesFromHostBehavior::OverwriteWithLog => 3,
             UpdatesFromHostBehavior::Ignore => 4,
+            UpdatesFromHostBehavior::QueueForReviewAndLog => 5,
         }
     }
 }

@@ -266,6 +266,22 @@ impl DataService for DataServiceImpl {
                     }
                 }
                 UpdatesFromHostBehavior::Unknown => unimplemented!(),
+                UpdatesFromHostBehavior::QueueForReviewAndLog => {
+                    result = self.dbi().update_data_into_partial_db_queue(
+                        &db_name,
+                        &table_name,
+                        cmd,
+                        &where_clause,
+                        &known_host,
+                    );
+
+                    if result.is_successful {
+                        update_status =
+                            UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
+                        action_message =
+                            String::from("The update statement has been logged for review");
+                    }
+                }
             }
         }
 

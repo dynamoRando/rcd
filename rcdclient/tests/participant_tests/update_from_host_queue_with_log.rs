@@ -12,7 +12,7 @@ use std::{thread, time};
 
 #[test]
 fn test() {
-    let test_name = "update_from_host_queue";
+    let test_name = "updates_from_host_queue_with_log";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
@@ -105,7 +105,7 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = UpdatesFromHostBehavior::QueueForReview;
+    let new_behavior = UpdatesFromHostBehavior::QueueForReviewAndLog;
 
     // participant - changes behavior to log updates but not execute them
     thread::spawn(move || {
