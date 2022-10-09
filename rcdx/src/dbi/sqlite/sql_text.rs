@@ -158,7 +158,8 @@ impl COOP {
             STATEMENT TEXT NOT NULL,
             WHERE_CLAUSE TEXT,
             REQUESTED_TS_UTC DATETIME NOT NULL,
-            HOST_ID CHAR(36) NOT NULL
+            HOST_ID CHAR(36) NOT NULL,
+            ACTION VARCHAR(10) NOT NULL
         )
         ;",
         );

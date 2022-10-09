@@ -209,7 +209,8 @@ pub fn update_data_into_partial_db_queue(
             STATEMENT,
             WHERE_CLAUSE,
             REQUESTED_TS_UTC,
-            HOST_ID
+            HOST_ID,
+            ACTION
         )
         VALUES
         (
@@ -217,7 +218,8 @@ pub fn update_data_into_partial_db_queue(
             :statement,
             :where_clause,
             :ts,
-            :hid
+            :hid,
+            'UPDATE'
         )
     ;",
     );

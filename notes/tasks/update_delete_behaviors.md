@@ -37,7 +37,7 @@ When a host sends either an UPDATE or DELETE statement to a participant, the par
 
 ### Updates From Host
 - [ ] Allow Overwrite
-- [ ] Queue For Review
+- [X] Queue For Review
 - [X] Overwrite With Log
 - [X] Ignore
 
