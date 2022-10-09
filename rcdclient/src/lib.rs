@@ -9,7 +9,7 @@ use rcdproto::rcdp::{
     GetLogicalStoragePolicyRequest, GetPendingUpdatesReply, GetPendingUpdatesRequest,
     GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
     SetLogicalStoragePolicyRequest, StatementResultset, TryAuthAtParticipantRequest,
-    ViewPendingContractsRequest, AcceptPendingContractReply, AcceptPendingUpdateRequest, AcceptPendingUpdateReply,
+    ViewPendingContractsRequest, AcceptPendingUpdateRequest, AcceptPendingUpdateReply,
 };
 
 use rcdx::rcd_enum::{

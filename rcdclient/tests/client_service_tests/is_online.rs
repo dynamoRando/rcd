@@ -54,9 +54,9 @@ fn test() {
         let _service = service.start_client_service_alt();
     });
 
-    let time = time::Duration::from_secs(5);
+    let time = time::Duration::from_secs(1);
 
-    info!("sleeping for 5 seconds...");
+    info!("sleeping for 1 seconds...");
 
     thread::sleep(time);
 

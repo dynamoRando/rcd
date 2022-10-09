@@ -9,7 +9,7 @@ use std::{thread, time};
 # Test Description
 
 */
-#[ignore = "code not finished"]
+
 #[test]
 fn test() {
     let test_name = "update_from_host_queue";
@@ -24,7 +24,8 @@ fn test() {
     let (tx_participant, rx_participant) = mpsc::channel();
     let (tx_main_write, rx_main_read) = mpsc::channel();
     let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
-    let (tx_h_can_read, rx_h_can_read) = mpsc::channel();
+    let (tx_h_can_read_fail, rx_h_can_read_fail) = mpsc::channel();
+    let (tx_h_can_read_success, rx_h_can_read_success) = mpsc::channel();
 
     let (tx_p_has_update, rx_p_has_update) = mpsc::channel();
 
@@ -33,9 +34,9 @@ fn test() {
     let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
     let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
 
-    let time = time::Duration::from_secs(5);
+    let time = time::Duration::from_secs(1);
 
-    info!("sleeping for 5 seconds...");
+    info!("sleeping for 1 seconds...");
 
     thread::sleep(time);
 
@@ -47,10 +48,12 @@ fn test() {
     let pdn2 = pdn.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
+    let db_name_copy_ = db_name_copy.clone();
     let addr_1 = participant_addrs.0.clone();
     let addr_1_1 = addr_1.clone();
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
+    let addr_ = main_srv_addr.clone();
 
     // main - normal database setup
     thread::spawn(move || {
@@ -119,12 +122,12 @@ fn test() {
     // main - attempts to execute update but does not get requested value back (this is intentional)
     thread::spawn(move || {
         let res = main_read_updated_row_should_fail(&db_name_copy, addr, update_statement2);
-        tx_h_can_read.send(res).unwrap();
+        tx_h_can_read_fail.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let can_read_rows = rx_h_can_read.try_recv().unwrap();
+    let can_read_rows = rx_h_can_read_fail.try_recv().unwrap();
     assert!(!can_read_rows);
 
     // participant - gets pending updates and later accepts the update
@@ -144,7 +147,15 @@ fn test() {
     assert!(has_and_accept_update);
 
     // main - checks the update value again and should match
-    unimplemented!();
+    thread::spawn(move || {
+        let res = main_read_updated_row_should_succed(&db_name_copy_, addr_, update_statement3);
+        tx_h_can_read_success.send(res).unwrap();
+    })
+    .join()
+    .unwrap();
+
+    let can_read_rows = rx_h_can_read_success.try_recv().unwrap();
+    assert!(can_read_rows);
 }
 
 #[cfg(test)]
@@ -347,9 +358,6 @@ async fn participant_get_and_approve_pending_update(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-
-    let mut is_succesful = false;
-
     let mut has_statement = false;
     let mut statement_row_id = 0;
 
@@ -387,47 +395,60 @@ async fn participant_get_and_approve_pending_update(
             .await
             .unwrap();
 
-        if accept_update_result.is_successful {
-            // the participant should send a message back to the host with the changed hash
-        }
+        return accept_update_result.is_successful;
     }
-    unimplemented!();
-}
 
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let row_ids = client
-        .get_row_id_at_participant(db_name, "EMPLOYEE", "NAME = 'TESTER'")
-        .await
-        .unwrap();
-    let row_id = row_ids.first().unwrap().clone();
-
-    return row_id;
+    return false;
 }
 
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
 async fn main_read_updated_row_should_fail(
+    db_name: &str,
+    main_client_addr: ServiceAddr,
+    update_statement: &str,
+) -> bool {
+    use rcdx::rcd_enum::DatabaseType;
+
+    let client = RcdClient::new(
+        main_client_addr.to_full_string_with_http(),
+        String::from("tester"),
+        String::from("123456"),
+    );
+
+    let update_result = client
+        .execute_cooperative_write_at_host(db_name, &update_statement, "participant", "ID = 999")
+        .await;
+
+    println!("{:?}", update_result);
+
+    assert!(update_result.unwrap());
+
+    let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
+    let read_result = client
+        .execute_read_at_host(db_name, &cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
+        .await;
+
+    let results = read_result.unwrap();
+
+    let row = results.rows.first().unwrap();
+
+    let value = &row.values[1].value.clone();
+
+    println!("{:?}", value);
+
+    let expected_value = "TESTER".as_bytes().to_vec();
+
+    println!("{:?}", expected_value);
+
+    return *value == expected_value;
+}
+
+#[cfg(test)]
+#[tokio::main]
+#[allow(unused_variables)]
+async fn main_read_updated_row_should_succed(
     db_name: &str,
     main_client_addr: ServiceAddr,
     update_statement: &str,

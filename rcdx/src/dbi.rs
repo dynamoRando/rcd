@@ -153,6 +153,26 @@ pub fn get_data_queue_table_name(table_name: &str) -> String {
 }
 
 impl Dbi {
+    pub fn accept_pending_update_at_participant(
+        self: &Self,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> UpdatePartialDataResult {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db_part::accept_pending_update_at_participant(
+                    db_name, table_name, row_id, &settings,
+                );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn get_pending_updates(
         self: &Self,
         db_name: &str,

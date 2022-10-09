@@ -60,11 +60,9 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AcceptPendingUpdateRequest>,
     ) -> Result<Response<AcceptPendingUpdateReply>, Status> {
-        // 1 - we should execute the update statement
-        // 2 - we should clear the row from the queue table 
-        // 3 - and then send the updated row_id and hash back to the host
-        // update_row_data_hash_for_host on the data service
-        unimplemented!()
+        println!("Request from {:?}", request.remote_addr());
+        let result = db::accept_pending_update_at_participant(request.into_inner(), self).await;
+        Ok(Response::new(result))
     }
 
     async fn get_pending_updates_at_participant(

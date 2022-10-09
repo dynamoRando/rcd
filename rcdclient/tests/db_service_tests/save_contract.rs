@@ -37,9 +37,9 @@ fn test() {
     let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
     let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
 
-    let time = time::Duration::from_secs(5);
+    let time = time::Duration::from_secs(1);
 
-    info!("sleeping for 5 seconds...");
+    info!("sleeping for 1 seconds...");
 
     thread::sleep(time);
 

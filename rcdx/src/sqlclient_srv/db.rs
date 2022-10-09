@@ -1,5 +1,6 @@
 use rcdproto::rcdp::{
-    AuthResult, ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+    AcceptPendingUpdateReply, AcceptPendingUpdateRequest, AuthResult,
+    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
     ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
     ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
@@ -10,9 +11,77 @@ use rcdproto::rcdp::{
     GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingUpdateStatement,
 };
 
-use crate::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
+use crate::{
+    rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
+    remote_db_srv,
+};
 
 use super::SqlClientImpl;
+
+pub async fn accept_pending_update_at_participant(
+    request: AcceptPendingUpdateRequest,
+    client: &SqlClientImpl,
+) -> AcceptPendingUpdateReply {
+    // 1 - we should execute the update statement
+    // 2 - we should clear the row from the queue table
+    // 3 - and then send the updated row_id and hash back to the host
+    // update_row_data_hash_for_host on the data service
+
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+
+    let mut is_local_update_successful = false;
+    let mut is_remote_update_successful = false;
+
+    if is_authenticated {
+        let db_name = &message.database_name;
+        let table_name = &message.table_name;
+        let row_id = message.row_id;
+
+        let update_result = client
+            .dbi()
+            .accept_pending_update_at_participant(db_name, table_name, row_id);
+
+        if update_result.is_successful {
+            is_local_update_successful = true;
+
+            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+            let own_host_info = client.dbi().rcd_get_host_info().clone();
+            let own_db_addr_port = client.own_db_addr_port.clone();
+            let hash = update_result.data_hash;
+
+            let notify_is_successful = remote_db_srv::notify_host_of_updated_hash(
+                &remote_host,
+                &own_host_info,
+                own_db_addr_port,
+                db_name,
+                table_name,
+                row_id,
+                hash.unwrap(),
+            )
+            .await;
+
+            if notify_is_successful {
+                is_remote_update_successful = true;
+            }
+        }
+    }
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let result = AcceptPendingUpdateReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_local_update_successful && is_remote_update_successful,
+    };
+
+    return result;
+}
 
 pub async fn get_pending_updates_at_participant(
     request: GetPendingUpdatesRequest,
