@@ -377,7 +377,22 @@ impl DataService for DataServiceImpl {
                         rows.push(row);
                     }
                 }
-                DeletesFromHostBehavior::QueueForReview => todo!(),
+                DeletesFromHostBehavior::QueueForReview => {
+                    let cmd = &message.cmd;
+
+                    result = self.dbi().delete_data_in_partial_db(
+                        &db_name,
+                        &table_name,
+                        cmd,
+                        &where_clause,
+                    );
+
+                    if result.is_successful {
+                        unimplemented!()
+                    }
+
+                    todo!()
+                },
                 DeletesFromHostBehavior::Unknown => todo!(),
                 DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
             }

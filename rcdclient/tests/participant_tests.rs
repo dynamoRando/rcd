@@ -6,6 +6,8 @@ mod change_delete_from_host_behavior;
 mod change_update_from_host_behavior;
 #[path = "participant_tests/delete_at_participant.rs"]
 mod delete_at_participant;
+#[path = "participant_tests/delete_from_host_queue.rs"]
+mod delete_from_host_queue;
 #[path = "participant_tests/delete_from_host_with_log.rs"]
 mod delete_from_host_with_log;
 #[path = "participant_tests/reject_host.rs"]
