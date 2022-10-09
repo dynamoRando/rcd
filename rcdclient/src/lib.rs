@@ -1,13 +1,13 @@
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
-    AcceptPendingContractRequest, AcceptPendingUpdateReply, AcceptPendingUpdateRequest,
+    AcceptPendingContractRequest, AcceptPendingActionReply, AcceptPendingActionRequest,
     AddParticipantRequest, AuthRequest, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorRequest, ChangeHostStatusRequest,
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
     ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetPendingUpdatesReply,
-    GetPendingUpdatesRequest, GetReadRowIdsRequest, HasTableRequest,
+    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetPendingActionsReply,
+    GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
     TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
@@ -41,18 +41,18 @@ impl RcdClient {
         };
     }
 
-    pub async fn accept_pending_update_at_participant(
+    pub async fn accept_pending_action_at_participant(
         self: &Self,
         db_name: &str,
         table_name: &str,
         row_id: u32,
-    ) -> Result<AcceptPendingUpdateReply, Box<dyn Error>> {
+    ) -> Result<AcceptPendingActionReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
         info!("sending request");
 
         let mut client = self.get_client().await;
 
-        let request = AcceptPendingUpdateRequest {
+        let request = AcceptPendingActionRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
@@ -60,7 +60,7 @@ impl RcdClient {
         };
 
         let response = client
-            .accept_pending_update_at_participant(request)
+            .accept_pending_action_at_participant(request)
             .await
             .unwrap()
             .into_inner();
@@ -68,17 +68,19 @@ impl RcdClient {
         Ok(response)
     }
 
-    pub async fn get_pending_updates_at_participant(
+    pub async fn get_pending_actions_at_participant(
         self: &Self,
         db_name: &str,
         table_name: &str,
-    ) -> Result<GetPendingUpdatesReply, Box<dyn Error>> {
+        action: &str,
+    ) -> Result<GetPendingActionsReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetPendingUpdatesRequest {
+        let request = tonic::Request::new(GetPendingActionsRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
+            action: action.to_string()
         });
 
         info!("sending request");
@@ -86,7 +88,7 @@ impl RcdClient {
         let mut client = self.get_client().await;
 
         let response = client
-            .get_pending_updates_at_participant(request)
+            .get_pending_actions_at_participant(request)
             .await
             .unwrap()
             .into_inner();

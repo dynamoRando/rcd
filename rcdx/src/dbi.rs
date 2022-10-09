@@ -10,9 +10,7 @@ use crate::{
     },
     table::Table,
 };
-use rcdproto::rcdp::{
-    ColumnSchema, Contract, DatabaseSchema, Participant, PendingUpdateStatement, Row,
-};
+use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
 use rusqlite::{Connection, Error};
 
 mod sqlite;
@@ -153,7 +151,7 @@ pub fn get_data_queue_table_name(table_name: &str) -> String {
 }
 
 impl Dbi {
-    pub fn accept_pending_update_at_participant(
+    pub fn accept_pending_action_at_participant(
         self: &Self,
         db_name: &str,
         table_name: &str,
@@ -162,7 +160,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::accept_pending_update_at_participant(
+                return sqlite::db_part::accept_pending_action_at_participant(
                     db_name, table_name, row_id, &settings,
                 );
             }
@@ -173,15 +171,18 @@ impl Dbi {
         }
     }
 
-    pub fn get_pending_updates(
+    pub fn get_pending_actions(
         self: &Self,
         db_name: &str,
         table_name: &str,
-    ) -> Vec<PendingUpdateStatement> {
+        action: &str,
+    ) -> Vec<PendingStatement> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::get_pending_updates(db_name, table_name, &settings);
+                return sqlite::db_part::get_pending_actions(
+                    db_name, table_name, action, &settings,
+                );
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

@@ -373,7 +373,7 @@ async fn participant_get_and_approve_pending_update(
     );
 
     let pending_updates = client
-        .get_pending_updates_at_participant(db_name, table_name)
+        .get_pending_actions_at_participant(db_name, table_name, "UPDATE")
         .await
         .unwrap();
 
@@ -391,7 +391,7 @@ async fn participant_get_and_approve_pending_update(
 
         // need to accept the statement
         let accept_update_result = client
-            .accept_pending_update_at_participant(db_name, table_name, statement_row_id)
+            .accept_pending_action_at_participant(db_name, table_name, statement_row_id)
             .await
             .unwrap();
 

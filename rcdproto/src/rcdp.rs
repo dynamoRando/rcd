@@ -1,5 +1,5 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AcceptPendingUpdateRequest {
+pub struct AcceptPendingActionRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
     #[prost(string, tag="2")]
@@ -10,30 +10,32 @@ pub struct AcceptPendingUpdateRequest {
     pub row_id: u32,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct AcceptPendingUpdateReply {
+pub struct AcceptPendingActionReply {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(bool, tag="2")]
     pub is_successful: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetPendingUpdatesRequest {
+pub struct GetPendingActionsRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
     #[prost(string, tag="2")]
     pub database_name: ::prost::alloc::string::String,
     #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub action: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct GetPendingUpdatesReply {
+pub struct GetPendingActionsReply {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(message, repeated, tag="2")]
-    pub pending_statements: ::prost::alloc::vec::Vec<PendingUpdateStatement>,
+    pub pending_statements: ::prost::alloc::vec::Vec<PendingStatement>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct PendingUpdateStatement {
+pub struct PendingStatement {
     #[prost(uint32, tag="1")]
     pub row_id: u32,
     #[prost(string, tag="2")]
@@ -42,6 +44,8 @@ pub struct PendingUpdateStatement {
     pub requested_ts_utc: ::prost::alloc::string::String,
     #[prost(string, tag="4")]
     pub host_id: ::prost::alloc::string::String,
+    #[prost(string, tag="5")]
+    pub action: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetDataLogTableStatusRequest {
@@ -1665,10 +1669,10 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn get_pending_updates_at_participant(
+        pub async fn get_pending_actions_at_participant(
             &mut self,
-            request: impl tonic::IntoRequest<super::GetPendingUpdatesRequest>,
-        ) -> Result<tonic::Response<super::GetPendingUpdatesReply>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::GetPendingActionsRequest>,
+        ) -> Result<tonic::Response<super::GetPendingActionsReply>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -1680,14 +1684,14 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetPendingUpdatesAtParticipant",
+                "/rcdp.SQLClient/GetPendingActionsAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
-        pub async fn accept_pending_update_at_participant(
+        pub async fn accept_pending_action_at_participant(
             &mut self,
-            request: impl tonic::IntoRequest<super::AcceptPendingUpdateRequest>,
-        ) -> Result<tonic::Response<super::AcceptPendingUpdateReply>, tonic::Status> {
+            request: impl tonic::IntoRequest<super::AcceptPendingActionRequest>,
+        ) -> Result<tonic::Response<super::AcceptPendingActionReply>, tonic::Status> {
             self.inner
                 .ready()
                 .await
@@ -1699,7 +1703,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/AcceptPendingUpdateAtParticipant",
+                "/rcdp.SQLClient/AcceptPendingActionAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2153,14 +2157,14 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::SetDataLogTableStatusRequest>,
         ) -> Result<tonic::Response<super::SetDataLogTableStatusReply>, tonic::Status>;
-        async fn get_pending_updates_at_participant(
+        async fn get_pending_actions_at_participant(
             &self,
-            request: tonic::Request<super::GetPendingUpdatesRequest>,
-        ) -> Result<tonic::Response<super::GetPendingUpdatesReply>, tonic::Status>;
-        async fn accept_pending_update_at_participant(
+            request: tonic::Request<super::GetPendingActionsRequest>,
+        ) -> Result<tonic::Response<super::GetPendingActionsReply>, tonic::Status>;
+        async fn accept_pending_action_at_participant(
             &self,
-            request: tonic::Request<super::AcceptPendingUpdateRequest>,
-        ) -> Result<tonic::Response<super::AcceptPendingUpdateReply>, tonic::Status>;
+            request: tonic::Request<super::AcceptPendingActionRequest>,
+        ) -> Result<tonic::Response<super::AcceptPendingActionReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -3407,25 +3411,25 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
-                "/rcdp.SQLClient/GetPendingUpdatesAtParticipant" => {
+                "/rcdp.SQLClient/GetPendingActionsAtParticipant" => {
                     #[allow(non_camel_case_types)]
-                    struct GetPendingUpdatesAtParticipantSvc<T: SqlClient>(pub Arc<T>);
+                    struct GetPendingActionsAtParticipantSvc<T: SqlClient>(pub Arc<T>);
                     impl<
                         T: SqlClient,
-                    > tonic::server::UnaryService<super::GetPendingUpdatesRequest>
-                    for GetPendingUpdatesAtParticipantSvc<T> {
-                        type Response = super::GetPendingUpdatesReply;
+                    > tonic::server::UnaryService<super::GetPendingActionsRequest>
+                    for GetPendingActionsAtParticipantSvc<T> {
+                        type Response = super::GetPendingActionsReply;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::GetPendingUpdatesRequest>,
+                            request: tonic::Request<super::GetPendingActionsRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).get_pending_updates_at_participant(request).await
+                                (*inner).get_pending_actions_at_participant(request).await
                             };
                             Box::pin(fut)
                         }
@@ -3435,7 +3439,7 @@ pub mod sql_client_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = GetPendingUpdatesAtParticipantSvc(inner);
+                        let method = GetPendingActionsAtParticipantSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
@@ -3447,25 +3451,25 @@ pub mod sql_client_server {
                     };
                     Box::pin(fut)
                 }
-                "/rcdp.SQLClient/AcceptPendingUpdateAtParticipant" => {
+                "/rcdp.SQLClient/AcceptPendingActionAtParticipant" => {
                     #[allow(non_camel_case_types)]
-                    struct AcceptPendingUpdateAtParticipantSvc<T: SqlClient>(pub Arc<T>);
+                    struct AcceptPendingActionAtParticipantSvc<T: SqlClient>(pub Arc<T>);
                     impl<
                         T: SqlClient,
-                    > tonic::server::UnaryService<super::AcceptPendingUpdateRequest>
-                    for AcceptPendingUpdateAtParticipantSvc<T> {
-                        type Response = super::AcceptPendingUpdateReply;
+                    > tonic::server::UnaryService<super::AcceptPendingActionRequest>
+                    for AcceptPendingActionAtParticipantSvc<T> {
+                        type Response = super::AcceptPendingActionReply;
                         type Future = BoxFuture<
                             tonic::Response<Self::Response>,
                             tonic::Status,
                         >;
                         fn call(
                             &mut self,
-                            request: tonic::Request<super::AcceptPendingUpdateRequest>,
+                            request: tonic::Request<super::AcceptPendingActionRequest>,
                         ) -> Self::Future {
                             let inner = self.0.clone();
                             let fut = async move {
-                                (*inner).accept_pending_update_at_participant(request).await
+                                (*inner).accept_pending_action_at_participant(request).await
                             };
                             Box::pin(fut)
                         }
@@ -3475,7 +3479,7 @@ pub mod sql_client_server {
                     let inner = self.inner.clone();
                     let fut = async move {
                         let inner = inner.0;
-                        let method = AcceptPendingUpdateAtParticipantSvc(inner);
+                        let method = AcceptPendingActionAtParticipantSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

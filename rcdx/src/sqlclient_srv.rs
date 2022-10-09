@@ -56,19 +56,19 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
-    async fn accept_pending_update_at_participant(
+    async fn accept_pending_action_at_participant(
         &self,
-        request: Request<AcceptPendingUpdateRequest>,
-    ) -> Result<Response<AcceptPendingUpdateReply>, Status> {
+        request: Request<AcceptPendingActionRequest>,
+    ) -> Result<Response<AcceptPendingActionReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::accept_pending_update_at_participant(request.into_inner(), self).await;
+        let result = db::accept_pending_action_at_participant(request.into_inner(), self).await;
         Ok(Response::new(result))
     }
 
-    async fn get_pending_updates_at_participant(
+    async fn get_pending_actions_at_participant(
         &self,
-        request: Request<GetPendingUpdatesRequest>,
-    ) -> Result<Response<GetPendingUpdatesReply>, Status> {
+        request: Request<GetPendingActionsRequest>,
+    ) -> Result<Response<GetPendingActionsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
         let pending_updates =
             db::get_pending_updates_at_participant(request.into_inner(), self).await;

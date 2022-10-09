@@ -26,7 +26,7 @@ When a host sends either an UPDATE or DELETE statement to a participant, the par
 ## Deletes From Host
 - [X] Allow Removal
 - [ ] Queue For Review
-- [ ] Delete With Log
+- [X] Delete With Log
 - [X] Ignore
 
 ## UPDATE

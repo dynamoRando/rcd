@@ -16,12 +16,12 @@ use crate::rcd_enum::{
 use crate::table::Table;
 use crate::{crypt, defaults, query_parser};
 use chrono::Utc;
-use rcdproto::rcdp::{ColumnSchema, Contract, PendingUpdateStatement, TableSchema};
+use rcdproto::rcdp::{ColumnSchema, Contract, PendingStatement, TableSchema};
 use rusqlite::types::Type;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
 
-pub fn accept_pending_update_at_participant(
+pub fn accept_pending_action_at_participant(
     db_name: &str,
     table_name: &str,
     row_id: u32,
@@ -98,14 +98,15 @@ pub fn get_data_hash_at_participant(
     return get_scalar_as_u64(cmd, &conn).unwrap();
 }
 
-pub fn get_pending_updates(
+pub fn get_pending_actions(
     db_name: &str,
     table_name: &str,
+    action: &str,
     config: &DbiConfigSqlite,
-) -> Vec<PendingUpdateStatement> {
+) -> Vec<PendingStatement> {
     let update_queue = get_data_queue_table_name(table_name);
 
-    let mut pending_statements: Vec<PendingUpdateStatement> = Vec::new();
+    let mut pending_statements: Vec<PendingStatement> = Vec::new();
 
     let mut cmd = String::from(
         "
@@ -116,9 +117,12 @@ pub fn get_pending_updates(
             HOST_ID
         FROM
             :table
+        WHERE
+            ACTION = ':action'
         ;",
     );
     cmd = cmd.replace(":table", &update_queue);
+    cmd = cmd.replace(":action", &action);
 
     let c = config.clone();
 
@@ -154,11 +158,12 @@ pub fn get_pending_updates(
             }
         }
 
-        let ps = PendingUpdateStatement {
+        let ps = PendingStatement {
             row_id: rid,
             statement,
             requested_ts_utc: ts,
             host_id,
+            action: action.to_string(),
         };
 
         pending_statements.push(ps);

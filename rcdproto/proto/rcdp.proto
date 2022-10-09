@@ -32,38 +32,40 @@ service SQLClient {
 	rpc ReadRowIdAtParticipant (GetReadRowIdsRequest) returns (GetReadRowIdsReply);
 	rpc GetDataLogTableStatusAtParticipant (GetDataLogTableStatusRequest) returns (GetDataLogTableStatusReply);
 	rpc SetDataLogTableStatusAtParticipant (SetDataLogTableStatusRequest) returns (SetDataLogTableStatusReply);
-	rpc GetPendingUpdatesAtParticipant (GetPendingUpdatesRequest) returns (GetPendingUpdatesReply);
-	rpc AcceptPendingUpdateAtParticipant (AcceptPendingUpdateRequest) returns (AcceptPendingUpdateReply);
+	rpc GetPendingActionsAtParticipant (GetPendingActionsRequest) returns (GetPendingActionsReply);
+	rpc AcceptPendingActionAtParticipant (AcceptPendingActionRequest) returns (AcceptPendingActionReply);
 }
 
-message AcceptPendingUpdateRequest {
+message AcceptPendingActionRequest {
 	AuthRequest authentication = 1;
 	string databaseName = 2;
 	string tableName = 3;
 	uint32 rowId = 4;
 }
 
-message AcceptPendingUpdateReply {
+message AcceptPendingActionReply {
 	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 }
 
-message GetPendingUpdatesRequest {
+message GetPendingActionsRequest {
 	AuthRequest authentication = 1;
 	string databaseName = 2;
 	string tableName = 3;
+	string action = 4;
 }
 
-message GetPendingUpdatesReply {
+message GetPendingActionsReply {
 	AuthResult authenticationResult = 1;
-	repeated PendingUpdateStatement pendingStatements = 2;
+	repeated PendingStatement pendingStatements = 2;
 }
 
-message PendingUpdateStatement {
+message PendingStatement {
 	uint32 rowId = 1;
 	string statement = 2;
 	string requestedTsUtc = 3;
 	string host_id = 4;
+	string action = 5;
 }
 
 message SetDataLogTableStatusRequest {

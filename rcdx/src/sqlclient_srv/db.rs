@@ -1,5 +1,5 @@
 use rcdproto::rcdp::{
-    AcceptPendingUpdateReply, AcceptPendingUpdateRequest, AuthResult,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AuthResult,
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
     ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
@@ -7,8 +7,8 @@ use rcdproto::rcdp::{
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetPendingUpdatesReply, GetPendingUpdatesRequest, GetReadRowIdsReply,
-    GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingUpdateStatement,
+    GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
+    GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
 };
 
 use crate::{
@@ -18,10 +18,10 @@ use crate::{
 
 use super::SqlClientImpl;
 
-pub async fn accept_pending_update_at_participant(
-    request: AcceptPendingUpdateRequest,
+pub async fn accept_pending_action_at_participant(
+    request: AcceptPendingActionRequest,
     client: &SqlClientImpl,
-) -> AcceptPendingUpdateReply {
+) -> AcceptPendingActionReply {
     // 1 - we should execute the update statement
     // 2 - we should clear the row from the queue table
     // 3 - and then send the updated row_id and hash back to the host
@@ -41,7 +41,7 @@ pub async fn accept_pending_update_at_participant(
 
         let update_result = client
             .dbi()
-            .accept_pending_update_at_participant(db_name, table_name, row_id);
+            .accept_pending_action_at_participant(db_name, table_name, row_id);
 
         if update_result.is_successful {
             is_local_update_successful = true;
@@ -75,7 +75,7 @@ pub async fn accept_pending_update_at_participant(
         authentication_message: String::from(""),
     };
 
-    let result = AcceptPendingUpdateReply {
+    let result = AcceptPendingActionReply {
         authentication_result: Some(auth_response),
         is_successful: is_local_update_successful && is_remote_update_successful,
     };
@@ -84,20 +84,21 @@ pub async fn accept_pending_update_at_participant(
 }
 
 pub async fn get_pending_updates_at_participant(
-    request: GetPendingUpdatesRequest,
+    request: GetPendingActionsRequest,
     client: &SqlClientImpl,
-) -> GetPendingUpdatesReply {
+) -> GetPendingActionsReply {
     let message = request.clone();
     let a = message.authentication.unwrap();
 
     let db_name = &message.database_name;
     let table_name = &message.table_name;
+    let action = &message.action;
 
     let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let mut pending_statements: Vec<PendingUpdateStatement> = Vec::new();
+    let mut pending_statements: Vec<PendingStatement> = Vec::new();
 
     if is_authenticated {
-        pending_statements = client.dbi().get_pending_updates(db_name, table_name);
+        pending_statements = client.dbi().get_pending_actions(db_name, table_name, &action);
     }
 
     let auth_response = AuthResult {
@@ -107,7 +108,7 @@ pub async fn get_pending_updates_at_participant(
         authentication_message: String::from(""),
     };
 
-    let result = GetPendingUpdatesReply {
+    let result = GetPendingActionsReply {
         authentication_result: Some(auth_response),
         pending_statements: pending_statements,
     };
