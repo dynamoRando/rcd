@@ -379,6 +379,7 @@ impl DataService for DataServiceImpl {
                 }
                 DeletesFromHostBehavior::QueueForReview => todo!(),
                 DeletesFromHostBehavior::Unknown => todo!(),
+                DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
             }
         }
 

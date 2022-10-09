@@ -206,6 +206,7 @@ pub fn delete_data_in_partial_db(
             return execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
         }
         crate::rcd_enum::DeletesFromHostBehavior::Ignore => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
     }
 }
 

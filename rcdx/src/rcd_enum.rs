@@ -181,6 +181,7 @@ pub enum DeletesFromHostBehavior {
     QueueForReview = 2,
     DeleteWithLog = 3,
     Ignore = 4,
+    QueueForReviewAndLog = 5,
 }
 
 impl DeletesFromHostBehavior {
@@ -191,6 +192,7 @@ impl DeletesFromHostBehavior {
             2 => DeletesFromHostBehavior::QueueForReview,
             3 => DeletesFromHostBehavior::DeleteWithLog,
             4 => DeletesFromHostBehavior::Ignore,
+            5 => DeletesFromHostBehavior::QueueForReviewAndLog,
             _ => panic!("Unknown value: {}", value),
         }
     }
@@ -202,6 +204,7 @@ impl DeletesFromHostBehavior {
             DeletesFromHostBehavior::QueueForReview => 2,
             DeletesFromHostBehavior::DeleteWithLog => 3,
             DeletesFromHostBehavior::Ignore => 4,
+            DeletesFromHostBehavior::QueueForReviewAndLog => 5,
         }
     }
 }
