@@ -197,7 +197,9 @@ pub fn delete_data_in_partial_db(
             return execute_delete(db_name, table_name, cmd, where_clause, config)
         }
         crate::rcd_enum::DeletesFromHostBehavior::QueueForReview => todo!(),
-        crate::rcd_enum::DeletesFromHostBehavior::DeleteWithLog => todo!(),
+        crate::rcd_enum::DeletesFromHostBehavior::DeleteWithLog => {
+            return execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
+        }
         crate::rcd_enum::DeletesFromHostBehavior::Ignore => todo!(),
     }
 }
@@ -580,6 +582,17 @@ fn add_record_to_log_table(
     }
 
     return true;
+}
+
+fn execute_delete_with_log(
+    db_name: &str,
+    table_name: &str,
+    cmd: &str,
+    where_clause: &str,
+    config: &DbiConfigSqlite,
+) -> DeletePartialDataResult {
+    add_record_to_log_table(db_name, table_name, where_clause, "DELETE", config);
+    return execute_delete(db_name, table_name, cmd, where_clause, config);
 }
 
 fn execute_update_with_log(

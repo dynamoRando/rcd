@@ -1,7 +1,7 @@
 use crate::test_harness::ServiceAddr;
 use log::info;
 use rcdclient::RcdClient;
-use rcdx::rcd_enum::UpdatesFromHostBehavior;
+use rcdx::rcd_enum::DeletesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,17 +9,13 @@ use std::{thread, time};
 # Test Description
 
 ## Purpose:
-This test checks to see if when an UPDATE statement is sent from the host if the participant's settings to
-`UpdatesFromHostBehavior::OverwriteWithLog` that rcd copies the row it's about to overwrite to a `_COOP_DATA_LOG`
-table before actually executing the overwrite.
+This test checks to see if the setting at the participant for DELETES_FROM_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
+is being respected.
 
 ## Feature Background
-We want to make sure that participants have full authority over their data. This means that if they want to see
-a history of changes that are being made to their data, they can do so. In this test, a value is initially set by a host
-and later is UPDATEd.
-
-We expect that the UPDATE from the host should succeed, but that we should also have a record of the changed row
-in the `EMPLOYEE_COOP_DATA_LOG` table in the partial database that the participant can review.
+We want to make sure the participants have full authority over their data. This means that they have the option to change
+how modifications being sent from the host are handled. In this test, if a host sends an DELETE statmement to be processed
+at the participant, we want to ignore it.
 
 ## Test Steps
 - Start an rcd instance for a main (host) and a participant
@@ -30,40 +26,27 @@ in the `EMPLOYEE_COOP_DATA_LOG` table in the partial database that the participa
 - Host:
     - Send one row to participant to be inserted and test to make sure can read from participant
 - Participant:
-    - Change UpdatesFromHostBehavior to Overwrite With Log
-    - Update the newly added row from the previous step
-    - Get the row id for the newly updated row
-    - Get the data hash for the newly updated row
+    - Change DeletesFromHostBehavior to Ignore
 - Host:
-    - Attempt to read previously inserted row, and should returning matching data.
-    - Get the data hash saved at the host
-    - Check to make sure the hashes match (ensure that the update is correct)
-- Participant:
-    - Send a query to `SELECT * FROM EMPLOYEE_COOP_DATA_LOG` locally at the participant. There should only
-    be one row that is returned.
+    - Attempt to delete previously inserted row
 
 ### Expected Results:
-The row returned at the participant should match the previously inserted value instead of the UPDATEd value.
+The delete should fail.
 
 */
 
 #[test]
 fn test() {
-    let test_name = "update_from_host_log";
+    let test_name = "delete_from_host_with_log";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
     let (tx_main_write, rx_main_read) = mpsc::channel();
-    let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
-    let (tx_h_can_read, rx_h_can_read) = mpsc::channel();
-
-    let (tx_h_data_hash, rx_h_data_hash) = mpsc::channel();
-    let (tx_p_data_hash, rx_p_data_hash) = mpsc::channel();
-
-    let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
-    let (tx_p_read_data_log, rx_p_read_data_log) = mpsc::channel();
+    let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
+    let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
+    let (tx_p_data_log, rx_p_data_log) = mpsc::channel();
 
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
@@ -83,21 +66,13 @@ fn test() {
     let pdn = participant_db_name.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
-
-    let db_p_name = db_name_copy.clone();
-    let db_p_name2 = db_p_name.clone();
-    let db_pname3 = db_p_name2.clone();
-    let db_h_name = db_name_copy.clone();
+    let db_name_copy_ = db_name_copy.clone();
 
     let addr_1 = participant_addrs.0.clone();
+    let addr_1_ = addr_1.clone();
 
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
-
-    let h_addr = addr.clone();
-    let p_addr = participant_addrs.clone().0;
-    let p_addr2 = p_addr.clone();
-    let p_addr3 = p_addr.clone();
 
     thread::spawn(move || {
         let res = main_service_client(
@@ -149,68 +124,38 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = UpdatesFromHostBehavior::OverwriteWithLog;
+    let new_behavior = DeletesFromHostBehavior::DeleteWithLog;
 
     thread::spawn(move || {
-        let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
-        tx_p_change_update.send(res).unwrap();
+        let res = participant_changes_delete_behavior(&pdn, addr_1, new_behavior);
+        tx_p_deny_write.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let update_at_participant_is_successful = rx_p_change_update.try_recv().unwrap();
+    let status_change_is_successful = rx_p_deny_write.try_recv().unwrap();
 
-    assert!(update_at_participant_is_successful);
+    assert!(status_change_is_successful);
 
     thread::spawn(move || {
-        let res = main_read_updated_row_should_succeed(&db_name_copy, addr);
-        tx_h_can_read.send(res).unwrap();
+        let res = main_delete_should_succeed(&db_name_copy, addr);
+        tx_h_auth_fail.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let can_read_rows = rx_h_can_read.try_recv().unwrap();
-    assert!(can_read_rows);
+    let should_succeed = rx_h_auth_fail.try_recv().unwrap();
+
+    assert!(should_succeed);
 
     thread::spawn(move || {
-        let res = get_row_id_at_participant(&db_p_name, p_addr);
-        tx_p_row_id.send(res).unwrap();
+        let res = get_data_logs_at_participant(&db_name_copy_, addr_1_);
+        tx_p_data_log.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let p_row_id = rx_p_row_id.try_recv().unwrap();
-    let rid = p_row_id;
-    let rid2 = p_row_id;
-
-    thread::spawn(move || {
-        let res = get_data_hash_for_changed_row_at_participant(&db_p_name2, p_addr2, rid);
-        tx_p_data_hash.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let p_data_hash = rx_p_data_hash.try_recv().unwrap();
-
-    thread::spawn(move || {
-        let res = get_data_hash_for_changed_row_at_host(&db_h_name, h_addr, rid2);
-        tx_h_data_hash.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let h_data_hash = rx_h_data_hash.try_recv().unwrap();
-
-    assert_eq!(p_data_hash, h_data_hash);
-
-    thread::spawn(move || {
-        let res = get_data_logs_at_participant(&db_pname3, p_addr3);
-        tx_p_read_data_log.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let p_read_data_log_is_correct = rx_p_read_data_log.try_recv().unwrap();
+    let p_read_data_log_is_correct = rx_p_data_log.try_recv().unwrap();
 
     assert!(p_read_data_log_is_correct);
 }
@@ -386,10 +331,10 @@ async fn participant_service_client(
 #[cfg(test)]
 #[tokio::main]
 #[allow(dead_code, unused_variables)]
-async fn participant_changes_update_behavior(
+async fn participant_changes_delete_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
-    behavior: UpdatesFromHostBehavior,
+    behavior: DeletesFromHostBehavior,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
@@ -408,157 +353,33 @@ async fn participant_changes_update_behavior(
         String::from("123456"),
     );
 
-    let change_update_behavior = client
-        .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
+    let result = client
+        .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
         .await;
 
-    return change_update_behavior.unwrap();
-}
-
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let row_ids = client
-        .get_row_id_at_participant(db_name, "EMPLOYEE", "NAME = 'TESTER'")
-        .await
-        .unwrap();
-    let row_id = row_ids.first().unwrap().clone();
-
-    return row_id;
-}
-
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_data_hash_for_changed_row_at_participant(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    row_id: u32,
-) -> u64 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let data_hash_result = client
-        .get_data_hash_at_participant(db_name, "EMPLOYEE", row_id)
-        .await
-        .unwrap();
-
-    return data_hash_result;
-}
-
-#[cfg(test)]
-#[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn get_data_hash_for_changed_row_at_host(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    row_id: u32,
-) -> u64 {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
-    info!(
-        "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let data_hash_result = client
-        .get_data_hash_at_host(db_name, "EMPLOYEE", row_id)
-        .await
-        .unwrap();
-
-    return data_hash_result;
+    return result.unwrap();
 }
 
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_read_updated_row_should_succeed(
-    db_name: &str,
-    main_client_addr: ServiceAddr,
-) -> bool {
-    use rcdx::rcd_enum::DatabaseType;
-
+async fn main_delete_should_succeed(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
     );
 
-    let statement = String::from("UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999");
+    let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
     let update_result = client
-        .execute_cooperative_write_at_host(db_name, &statement, "participant", "ID = 999")
+        .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
         .await;
-
-    assert!(update_result.unwrap());
-
-    let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
-    let read_result = client
-        .execute_read_at_host(db_name, &cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
-        .await;
-
-    let results = read_result.unwrap();
-
-    let row = results.rows.first().unwrap();
-
-    let value = &row.values[1].value.clone();
-
-    println!("{:?}", value);
-
-    let expected_value = "TESTER".as_bytes().to_vec();
-
-    println!("{:?}", expected_value);
-
-    return *value == expected_value;
+    return update_result.unwrap();
 }
 
 #[cfg(test)]
 #[tokio::main]
-async fn get_data_logs_at_participant(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-) -> bool {
+async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> bool {
     use log::info;
     use rcdclient::RcdClient;
     use rcdx::rcd_enum::DatabaseType;
