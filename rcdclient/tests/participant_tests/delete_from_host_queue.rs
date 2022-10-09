@@ -9,7 +9,7 @@ use std::{thread, time};
 # Test Description
 
 */
-#[ignore = "code not finished"]
+
 #[test]
 fn test() {
     let test_name = "delete_from_host_with_queue";
@@ -121,6 +121,12 @@ fn test() {
 
     let should_succeed = rx_h_auth_fail.try_recv().unwrap();
 
+    // this is returning false, because we have queued up the delete for review
+    // and so we don't return the row_id from the participant back to the host
+    // and because we can't find the row_id to delete
+    // we are unable to delete the data hash from the meta data
+
+    // what should we do here?
     assert!(should_succeed);
 
     thread::spawn(move || {
@@ -346,10 +352,10 @@ async fn main_delete_should_succeed(db_name: &str, main_client_addr: ServiceAddr
     );
 
     let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
-    let update_result = client
+    let delete_result = client
         .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
         .await;
-    return update_result.unwrap();
+    return delete_result.unwrap();
 }
 
 #[cfg(test)]

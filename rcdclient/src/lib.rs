@@ -1,6 +1,6 @@
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
-    AcceptPendingContractRequest, AcceptPendingActionReply, AcceptPendingActionRequest,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AcceptPendingContractRequest,
     AddParticipantRequest, AuthRequest, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorRequest, ChangeHostStatusRequest,
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
@@ -80,7 +80,7 @@ impl RcdClient {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-            action: action.to_string()
+            action: action.to_string(),
         });
 
         info!("sending request");
@@ -417,7 +417,7 @@ impl RcdClient {
             .unwrap()
             .into_inner();
 
-        // println!("{:?}", response);
+        println!("{:?}", response);
 
         return Ok(response.is_successful);
     }

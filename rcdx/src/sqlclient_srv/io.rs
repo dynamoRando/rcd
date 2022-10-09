@@ -249,7 +249,7 @@ pub async fn execute_write_at_participant(
                         &table_name,
                         &statement,
                         &where_clause,
-                        &known_host.host_id
+                        &known_host.host_id,
                     );
 
                     match delete_behavior {
@@ -468,7 +468,13 @@ pub async fn execute_cooperative_write_at_host(
                     .await;
 
                     if remote_delete_result.is_successful {
-                        let row_id = remote_delete_result.rows.first().unwrap().rowid;
+                        let row_id: u32;
+
+                        if remote_delete_result.rows.len() == 0 {
+                            row_id = 0;
+                        } else {
+                            row_id = remote_delete_result.rows.first().unwrap().rowid;
+                        }
 
                         let internal_participant_id =
                             db_participant_reference.internal_id.to_string().clone();

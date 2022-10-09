@@ -403,10 +403,9 @@ impl DataService for DataServiceImpl {
                     );
 
                     if result.is_successful {
-                        unimplemented!()
+                        action_message =
+                            String::from("The delete statement has been logged for review");
                     }
-
-                    todo!()
                 },
                 DeletesFromHostBehavior::Unknown => todo!(),
                 DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
