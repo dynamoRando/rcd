@@ -5,3 +5,6 @@
 *.DS_STORE
 *._target
 **.db.dbpart
+*.idea
+*.xml
+*.iml
