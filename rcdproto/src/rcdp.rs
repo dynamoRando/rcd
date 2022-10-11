@@ -734,6 +734,8 @@ pub struct UpdateRowDataHashForHostRequest {
     pub row_id: u32,
     #[prost(uint64, tag="9")]
     pub updated_hash_value: u64,
+    #[prost(bool, tag="10")]
+    pub is_deleted_at_participant: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowDataHashForHostResponse {

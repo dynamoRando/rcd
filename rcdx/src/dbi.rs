@@ -6,7 +6,7 @@ use crate::{
     rcd_enum::{
         DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
         RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
-        UpdatesFromHostBehavior, UpdatesToHostBehavior,
+        UpdatesFromHostBehavior, UpdatesToHostBehavior, PartialDataResultAction,
     },
     table::Table,
 };
@@ -72,25 +72,12 @@ pub struct CdsHosts {
 }
 
 #[derive(Debug, Clone)]
-pub struct InsertPartialDataResult {
-    pub is_successful: bool,
-    pub row_id: u32,
-    pub data_hash: u64,
-}
-
-#[derive(Debug, Clone)]
-pub struct UpdatePartialDataResult {
+pub struct PartialDataResult {
     pub is_successful: bool,
     pub row_id: u32,
     pub data_hash: Option<u64>,
-    pub update_status: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct DeletePartialDataResult {
-    pub is_successful: bool,
-    pub row_id: u32,
-    pub data_hash: Option<u64>,
+    pub partial_data_status: Option<u32>,
+    pub action: Option<PartialDataResultAction>
 }
 
 #[derive(Debug, Clone)]
@@ -156,7 +143,7 @@ impl Dbi {
         db_name: &str,
         table_name: &str,
         row_id: u32,
-    ) -> UpdatePartialDataResult {
+    ) -> PartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -613,11 +600,11 @@ impl Dbi {
         cmd: &str,
         where_clause: &str,
         host_id: &str,
-    ) -> DeletePartialDataResult {
+    ) -> PartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::delete_data_in_partial_db(
+                return sqlite::db_part::delete::delete_data_in_partial_db(
                     part_db_name,
                     table_name,
                     cmd,
@@ -640,11 +627,11 @@ impl Dbi {
         cmd: &str,
         where_clause: &str,
         host: &CdsHosts,
-    ) -> UpdatePartialDataResult {
+    ) -> PartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::update_data_into_partial_db_queue(
+                return sqlite::db_part::update::update_data_into_partial_db_queue(
                     part_db_name,
                     table_name,
                     cmd,
@@ -667,11 +654,11 @@ impl Dbi {
         cmd: &str,
         host_id: &str,
         where_clause: &str,
-    ) -> UpdatePartialDataResult {
+    ) -> PartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::update_data_into_partial_db(
+                return sqlite::db_part::update::update_data_into_partial_db(
                     part_db_name,
                     table_name,
                     cmd,
@@ -692,11 +679,11 @@ impl Dbi {
         part_db_name: &str,
         table_name: &str,
         cmd: &str,
-    ) -> InsertPartialDataResult {
+    ) -> PartialDataResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::insert_data_into_partial_db(
+                return sqlite::db_part::insert::insert_data_into_partial_db(
                     part_db_name,
                     table_name,
                     cmd,
@@ -1086,7 +1073,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::execute_read_at_participant(db_name, cmd, settings);
+                return sqlite::execute_read_at_participant(db_name, cmd, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

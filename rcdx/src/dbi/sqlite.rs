@@ -284,7 +284,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
 pub fn execute_read_at_participant(
     db_name: &str,
     cmd: &str,
-    config: DbiConfigSqlite,
+    config: &DbiConfigSqlite,
 ) -> rusqlite::Result<Table> {
     let conn = get_partial_db_connection(&db_name, &config.root_folder);
     let mut statement = conn.prepare(cmd).unwrap();

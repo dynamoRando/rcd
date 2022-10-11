@@ -9,19 +9,25 @@ use std::{thread, time};
 # Test Description
 
 */
-
 #[test]
 fn test() {
     let test_name = "delete_from_host_with_queue";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
+    let delete_statement = "DELETE FROM EMPLOYEE WHERE Id = 999";
+    let delete_statement2 = delete_statement.clone();
+
+    let where_clause = "Id = 999";
+
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
     let (tx_main_write, rx_main_read) = mpsc::channel();
     let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
     let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
-    let (tx_p_data_log, rx_p_data_log) = mpsc::channel();
+
+    let (tx_p_accept_delete, rx_p_accept_delete) = mpsc::channel();
+    let (tx_m_no_rows, rx_m_no_rows) = mpsc::channel();
 
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
@@ -37,17 +43,19 @@ fn test() {
     let main_contract_desc = custom_contract_description.clone();
     let participant_contract_desc = custom_contract_description.clone();
     let main_db_name = test_db_name.clone();
+    let main_db_name_ = main_db_name.clone();
     let participant_db_name = test_db_name.clone();
     let pdn = participant_db_name.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
-    let db_name_copy_ = db_name_copy.clone();
+    let db_name_copy2 = db_name_copy.clone();
 
     let addr_1 = participant_addrs.0.clone();
-    let addr_1_ = addr_1.clone();
+    let addr_1_1clone = addr_1.clone();
 
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
+    let addr2 = addr.clone();
 
     thread::spawn(move || {
         let res = main_service_client(
@@ -70,11 +78,7 @@ fn test() {
     assert!(sent_participant_contract);
 
     thread::spawn(move || {
-        let res = participant_service_client(
-            &participant_db_name,
-            participant_addrs.0,
-            participant_contract_desc,
-        );
+        let res = participant_service_client(participant_addrs.0, participant_contract_desc);
         tx_participant.send(res).unwrap();
     })
     .join()
@@ -113,32 +117,45 @@ fn test() {
     assert!(status_change_is_successful);
 
     thread::spawn(move || {
-        let res = main_delete_should_succeed(&db_name_copy, addr);
+        let res = main_delete_should_fail(&db_name_copy, delete_statement, where_clause, addr);
         tx_h_auth_fail.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let should_succeed = rx_h_auth_fail.try_recv().unwrap();
+    let should_succeed_not_succeed = rx_h_auth_fail.try_recv().unwrap();
 
     // this is returning false, because we have queued up the delete for review
     // and so we don't return the row_id from the participant back to the host
     // and because we can't find the row_id to delete
     // we are unable to delete the data hash from the meta data
+    assert!(!should_succeed_not_succeed);
 
-    // what should we do here?
-    assert!(should_succeed);
-
+    // participant - gets pending deletes and later accepts the deletion
     thread::spawn(move || {
-        let res = get_data_logs_at_participant(&db_name_copy_, addr_1_);
-        tx_p_data_log.send(res).unwrap();
+        let res = participant_get_and_approve_pending_deletion(
+            &main_db_name_,
+            addr_1_1clone,
+            delete_statement2,
+        );
+        tx_p_accept_delete.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let p_read_data_log_is_correct = rx_p_data_log.try_recv().unwrap();
+    let has_and_accept_delete = rx_p_accept_delete.try_recv().unwrap();
+    assert!(has_and_accept_delete);
 
-    assert!(p_read_data_log_is_correct);
+    thread::spawn(move || {
+        let res = main_should_not_have_rows(&db_name_copy2, addr2);
+        tx_m_no_rows.send(res).unwrap();
+    })
+    .join()
+    .unwrap();
+
+    let should_have_no_rows = rx_m_no_rows.try_recv().unwrap();
+
+    assert!(should_have_no_rows)
 }
 
 #[cfg(test)]
@@ -213,7 +230,6 @@ async fn main_service_client(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(unused_variables)]
 async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     use rcdx::rcd_enum::DatabaseType;
 
@@ -265,17 +281,13 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
 async fn participant_service_client(
-    db_name: &str,
     participant_client_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
 
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
 
     info!(
@@ -289,7 +301,7 @@ async fn participant_service_client(
         String::from("123456"),
     );
 
-    let is_generated_host = client.generate_host_info("participant").await.unwrap();
+    let _ = client.generate_host_info("participant").await.unwrap();
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -311,7 +323,6 @@ async fn participant_service_client(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
 async fn participant_changes_delete_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
@@ -319,9 +330,6 @@ async fn participant_changes_delete_behavior(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     info!(
         "participant_changes_update_behavior attempting to connect {}",
@@ -343,30 +351,39 @@ async fn participant_changes_delete_behavior(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(unused_variables)]
-async fn main_delete_should_succeed(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+async fn main_delete_should_fail(
+    db_name: &str,
+    delete_statement: &str,
+    where_clause: &str,
+    main_client_addr: ServiceAddr,
+) -> bool {
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
     );
 
-    let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
     let delete_result = client
-        .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
+        .execute_cooperative_write_at_host(db_name, delete_statement, "participant", where_clause)
         .await;
     return delete_result.unwrap();
 }
 
 #[cfg(test)]
 #[tokio::main]
-async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> bool {
+async fn participant_get_and_approve_pending_deletion(
+    db_name: &str,
+    participant_client_addr: ServiceAddr,
+    delete_statement: &str,
+) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
+
+    let mut has_statement: bool = false;
+    let mut statement_row_id: u32 = 0;
 
     info!(
-        "get_data_logs_at_participant attempting to connect {}",
+        "get_pending_deletions_at_participant attempting to connect {}",
         participant_client_addr.to_full_string_with_http()
     );
 
@@ -376,21 +393,56 @@ async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: Se
         String::from("123456"),
     );
 
-    let cmd = "SELECT * FROM EMPLOYEE_COOP_DATA_LOG";
-    let read_result = client
-        .execute_read_at_participant(db_name, cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
+    let pending_updates = client
+        .get_pending_actions_at_participant(db_name, "EMPLOYEE", "DELETE")
         .await
         .unwrap();
 
-    println!("{:?}", read_result);
+    for statement in &pending_updates.pending_statements {
+        if statement.statement == delete_statement {
+            has_statement = true;
+            statement_row_id = statement.row_id;
+        }
+    }
 
-    let row = read_result.rows.first().unwrap();
-    let value = &row.values[1].value.clone();
+    assert!(has_statement);
 
-    println!("{:?}", value);
+    if has_statement {
+        println!("has statement");
 
-    let expected_value = "ASDF".as_bytes().to_vec();
-    println!("{:?}", expected_value);
+        let accept_delete_result = client
+            .accept_pending_action_at_participant(db_name, "EMPLOYEE", statement_row_id)
+            .await
+            .unwrap();
 
-    return *value == expected_value;
+        println!("{:?}", accept_delete_result);
+
+        return accept_delete_result.is_successful;
+    }
+
+    return false;
+}
+
+#[cfg(test)]
+#[tokio::main]
+async fn main_should_not_have_rows(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+    use rcdx::rcd_enum::DatabaseType;
+
+    let client = RcdClient::new(
+        main_client_addr.to_full_string_with_http(),
+        String::from("tester"),
+        String::from("123456"),
+    );
+
+    let result = client
+        .execute_read_at_host(
+            db_name,
+            "SELECT * FROM EMPLOYEE",
+            DatabaseType::to_u32(DatabaseType::Sqlite),
+        )
+        .await;
+
+    let rows = result.unwrap().rows.len();
+
+    return rows == 0;
 }

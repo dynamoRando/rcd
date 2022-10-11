@@ -7,7 +7,7 @@ use super::SqlClientImpl;
 use crate::{
     host_info::HostInfo,
     query_parser,
-    rcd_enum::{DmlType, RcdDatabaseType, UpdateStatusForPartialData},
+    rcd_enum::{DmlType, RcdDatabaseType, PartialDataStatus},
     remote_db_srv,
 };
 use conv::UnwrapOk;
@@ -199,7 +199,7 @@ pub async fn execute_write_at_participant(
                         .dbi()
                         .get_updates_to_host_behavior(&db_name, &table_name);
 
-                    let update_result = client.dbi().update_data_into_partial_db(
+                    let data_result = client.dbi().update_data_into_partial_db(
                         &db_name,
                         &table_name,
                         &statement,
@@ -221,12 +221,13 @@ pub async fn execute_write_at_participant(
                                 own_db_addr_port,
                                 &db_name,
                                 &table_name,
-                                update_result.row_id,
-                                update_result.data_hash.unwrap(),
+                                data_result.row_id,
+                                data_result.data_hash,
+                                false,
                             )
                             .await;
 
-                            if update_result.is_successful && notify_result {
+                            if data_result.is_successful && notify_result {
                                 is_overall_successful = true;
                                 rows_affected = 1;
                             }
@@ -419,13 +420,13 @@ pub async fn execute_cooperative_write_at_host(
                         let data_hash: u64;
                         let row_id: u32;
 
-                        let update_result = UpdateStatusForPartialData::from_u32(
+                        let update_result = PartialDataStatus::from_u32(
                             remote_update_result.update_status,
                         );
 
                         match update_result {
-                            UpdateStatusForPartialData::Unknown => todo!(),
-                            UpdateStatusForPartialData::SucessOverwriteOrLog => {
+                            PartialDataStatus::Unknown => todo!(),
+                            PartialDataStatus::SucessOverwriteOrLog => {
                                 data_hash = remote_update_result.rows.first().unwrap().data_hash;
                                 row_id = remote_update_result.rows.first().unwrap().rowid;
                                 let internal_participant_id =
@@ -449,10 +450,10 @@ pub async fn execute_cooperative_write_at_host(
                                     is_remote_action_successful = true;
                                 }
                             }
-                            UpdateStatusForPartialData::Pending => {
+                            PartialDataStatus::Pending => {
                                 is_remote_action_successful = true;
                             }
-                            UpdateStatusForPartialData::Ignored => todo!(),
+                            PartialDataStatus::Ignored => todo!(),
                         }
                     }
                 }

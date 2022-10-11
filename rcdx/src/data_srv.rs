@@ -1,8 +1,7 @@
-use crate::dbi::Dbi;
-use crate::dbi::{DeletePartialDataResult, InsertPartialDataResult, UpdatePartialDataResult};
+use crate::dbi::{Dbi, PartialDataResult};
 use crate::defaults;
 use crate::rcd_enum::{
-    DeletesFromHostBehavior, UpdateStatusForPartialData, UpdatesFromHostBehavior,
+    DeletesFromHostBehavior, PartialDataStatus, UpdatesFromHostBehavior, PartialDataResultAction,
 };
 use chrono::Utc;
 use rcdproto::rcdp::*;
@@ -132,10 +131,12 @@ impl DataService for DataServiceImpl {
         let db_name = message.database_name;
         let table_name = message.table_name;
 
-        let mut result = InsertPartialDataResult {
+        let mut result = PartialDataResult {
             is_successful: false,
             row_id: 0,
-            data_hash: 0,
+            data_hash: None,
+            partial_data_status: None,
+            action: Some(PartialDataResultAction::Insert)
         };
 
         if is_authenticated {
@@ -156,7 +157,7 @@ impl DataService for DataServiceImpl {
         let result = InsertDataResult {
             authentication_result: Some(auth_response),
             is_successful: result.is_successful,
-            data_hash: result.data_hash,
+            data_hash: result.data_hash.unwrap(),
             message: String::from(""),
             row_id: result.row_id,
         };
@@ -180,11 +181,12 @@ impl DataService for DataServiceImpl {
         let mut update_status: u32 = 0;
         let mut rows: Vec<RowInfo> = Vec::new();
 
-        let mut result = UpdatePartialDataResult {
+        let mut result = PartialDataResult {
             is_successful: false,
             row_id: 0,
             data_hash: None,
-            update_status: 0,
+            partial_data_status: None,
+            action: Some(PartialDataResultAction::Update)
         };
 
         if is_authenticated {
@@ -203,7 +205,7 @@ impl DataService for DataServiceImpl {
                         db_name, table_name
                     );
                     update_status =
-                        UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Ignored);
+                        PartialDataStatus::to_u32(PartialDataStatus::Ignored);
                 }
                 UpdatesFromHostBehavior::AllowOverwrite => {
                     result = self.dbi().update_data_into_partial_db(
@@ -222,8 +224,8 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = UpdateStatusForPartialData::to_u32(
-                            UpdateStatusForPartialData::SucessOverwriteOrLog,
+                        update_status = PartialDataStatus::to_u32(
+                            PartialDataStatus::SucessOverwriteOrLog,
                         );
                     }
                 }
@@ -244,8 +246,8 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = UpdateStatusForPartialData::to_u32(
-                            UpdateStatusForPartialData::SucessOverwriteOrLog,
+                        update_status = PartialDataStatus::to_u32(
+                            PartialDataStatus::SucessOverwriteOrLog,
                         );
                     }
                 }
@@ -260,7 +262,7 @@ impl DataService for DataServiceImpl {
 
                     if result.is_successful {
                         update_status =
-                            UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
+                            PartialDataStatus::to_u32(PartialDataStatus::Pending);
                         action_message =
                             String::from("The update statement has been logged for review");
                     }
@@ -277,7 +279,7 @@ impl DataService for DataServiceImpl {
 
                     if result.is_successful {
                         update_status =
-                            UpdateStatusForPartialData::to_u32(UpdateStatusForPartialData::Pending);
+                            PartialDataStatus::to_u32(PartialDataStatus::Pending);
                         action_message =
                             String::from("The update statement has been logged for review");
                     }
@@ -318,10 +320,12 @@ impl DataService for DataServiceImpl {
 
         let mut rows: Vec<RowInfo> = Vec::new();
 
-        let mut result = DeletePartialDataResult {
+        let mut result = PartialDataResult {
             is_successful: false,
             row_id: 0,
             data_hash: None,
+            partial_data_status: None,
+            action: Some(PartialDataResultAction::Delete)
         };
 
         if is_authenticated {

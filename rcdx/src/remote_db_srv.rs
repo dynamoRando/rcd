@@ -43,7 +43,8 @@ pub async fn notify_host_of_updated_hash(
     db_name: &str,
     table_name: &str,
     row_id: u32,
-    hash: u64,
+    hash: Option<u64>,
+    is_deleted: bool,
 ) -> bool {
     let auth = get_auth_request(own_host_info);
     let message_info = get_message_info(own_host_info, own_db_addr_port.clone());
@@ -57,22 +58,46 @@ pub async fn notify_host_of_updated_hash(
         token: own_host_info.token.clone(),
     };
 
-    let request = UpdateRowDataHashForHostRequest {
-        authentication: Some(auth),
-        message_info: Some(message_info),
-        host_info: Some(chost),
-        database_name: db_name.to_string(),
-        database_id: String::from(""),
-        table_name: table_name.to_string(),
-        table_id: 0,
-        row_id,
-        updated_hash_value: hash,
+    let hash_val = match hash {
+        Some(_) => hash.unwrap(),
+        None => 0,
     };
 
-    let client = get_client_from_cds_host(host);
-    let response = client.await.update_row_data_hash_for_host(request).await;
-    let result = response.unwrap().into_inner();
-    return result.is_successful;
+    if !is_deleted {
+        let request = UpdateRowDataHashForHostRequest {
+            authentication: Some(auth),
+            message_info: Some(message_info),
+            host_info: Some(chost),
+            database_name: db_name.to_string(),
+            database_id: String::from(""),
+            table_name: table_name.to_string(),
+            table_id: 0,
+            row_id,
+            updated_hash_value: hash_val,
+            is_deleted_at_participant: is_deleted,
+        };
+
+        let client = get_client_from_cds_host(host);
+        let response = client.await.update_row_data_hash_for_host(request).await;
+        let result = response.unwrap().into_inner();
+        return result.is_successful;
+    } else {
+        let request = NotifyHostOfRemovedRowRequest {
+            authentication: Some(auth),
+            message_info: Some(message_info),
+            host_info: Some(chost),
+            database_name: db_name.to_string(),
+            database_id: String::from(""),
+            table_name: table_name.to_string(),
+            table_id: 0,
+            row_id,
+        };
+
+        let client = get_client_from_cds_host(host);
+        let response = client.await.notify_host_of_removed_row(request).await;
+        let result = response.unwrap().into_inner();
+        return result.is_successful;
+    }
 }
 
 pub async fn notify_host_of_removed_row(

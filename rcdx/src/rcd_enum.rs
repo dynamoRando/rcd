@@ -36,33 +36,62 @@ impl RcdDatabaseType {
     }
 }
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum PartialDataResultAction {
+    Unknown = 0,
+    Insert = 1,
+    Update = 2,
+    Delete = 3,
+}
+
+impl PartialDataResultAction {
+    pub fn from_u32(value: u32) -> PartialDataResultAction {
+        match value {
+            0 => PartialDataResultAction::Unknown,
+            1 => PartialDataResultAction::Insert,
+            2 => PartialDataResultAction::Update,
+            3 => PartialDataResultAction::Delete,
+            _ => panic!("Unknown value: {}", value),
+        }
+    }
+
+    pub fn to_u32(action: PartialDataResultAction) -> u32 {
+        match action {
+            PartialDataResultAction::Unknown => 0,
+            PartialDataResultAction::Insert => 1,
+            PartialDataResultAction::Update => 2,
+            PartialDataResultAction::Delete => 3,
+        }
+    }
+}
+
 /// Specifies the UpdateStatus in a UpdateDataResult message
 /// in rcdp.proto
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum UpdateStatusForPartialData {
+pub enum PartialDataStatus {
     Unknown = 0,
     SucessOverwriteOrLog = 1,
     Pending = 2,
     Ignored = 3,
 }
 
-impl UpdateStatusForPartialData {
-    pub fn from_u32(value: u32) -> UpdateStatusForPartialData {
+impl PartialDataStatus {
+    pub fn from_u32(value: u32) -> PartialDataStatus {
         match value {
-            0 => UpdateStatusForPartialData::Unknown,
-            1 => UpdateStatusForPartialData::SucessOverwriteOrLog,
-            2 => UpdateStatusForPartialData::Pending,
-            3 => UpdateStatusForPartialData::Ignored,
+            0 => PartialDataStatus::Unknown,
+            1 => PartialDataStatus::SucessOverwriteOrLog,
+            2 => PartialDataStatus::Pending,
+            3 => PartialDataStatus::Ignored,
             _ => panic!("Unknown value: {}", value),
         }
     }
 
-    pub fn to_u32(db: UpdateStatusForPartialData) -> u32 {
+    pub fn to_u32(db: PartialDataStatus) -> u32 {
         match db {
-            UpdateStatusForPartialData::Unknown => 0,
-            UpdateStatusForPartialData::SucessOverwriteOrLog => 1,
-            UpdateStatusForPartialData::Pending => 2,
-            UpdateStatusForPartialData::Ignored => 3,
+            PartialDataStatus::Unknown => 0,
+            PartialDataStatus::SucessOverwriteOrLog => 1,
+            PartialDataStatus::Pending => 2,
+            PartialDataStatus::Ignored => 3,
         }
     }
 }
