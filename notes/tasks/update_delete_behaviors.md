@@ -11,17 +11,17 @@ When a host sends either an UPDATE or DELETE statement to a participant, the par
 # Implementation Tasks
 - [X] On contract generation, default to allow update and delete
 - [X] Modify the `cdata.proto` for new function calls for update/delete
-- [.] in SQL Client Service, implement to modify for partial db table UPDATE/DELETE status
+- [X] in SQL Client Service, implement to modify for partial db table UPDATE/DELETE status
 - in rcd SQL Client, add corresponding functions to call methods
-- [.] in Data Service, when handling UPDATE/DELETE, need to query the behavior status first and respond accordingly
-- [.] Write tests for each arm of the ENUM for both
+- [X] in Data Service, when handling UPDATE/DELETE, need to query the behavior status first and respond accordingly
+- [X] Write tests for each arm of the ENUM for both
 
 # Details
 ## DELETE
 
 ### Deletes To Host
 - [X] Send Notification
-- [ ] Do Nothing
+- [X] Do Nothing
 
 ## Deletes From Host
 - [X] Allow Removal

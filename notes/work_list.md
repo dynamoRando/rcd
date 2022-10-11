@@ -1,8 +1,8 @@
 # General Work Items
 - [X] Implement UPDATE from host to participant
 - [X] Implement DELETE from host to participant (this is a hard delete)
-- [.] Implement greater authority for participants over UPDATE/DELETES
-    - [.] implement "behaviors" for participants on UPDATE/DELETE
+- [X] Implement greater authority for participants over UPDATE/DELETES
+    - [X] implement "behaviors" for participants on UPDATE/DELETE
 - Write logs to a rcd_log.db 
 - [X] Modify reqests from host to participant so that at the participant we check if the host has been banned
 - implement a cli for rcd
