@@ -7,7 +7,7 @@ use super::SqlClientImpl;
 use crate::{
     host_info::HostInfo,
     query_parser,
-    rcd_enum::{DmlType, RcdDatabaseType, PartialDataStatus},
+    rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType},
     remote_db_srv,
 };
 use conv::UnwrapOk;
@@ -276,7 +276,13 @@ pub async fn execute_write_at_participant(
                                 rows_affected = 1;
                             }
                         }
-                        crate::rcd_enum::DeletesToHostBehavior::DoNothing => todo!(),
+                        crate::rcd_enum::DeletesToHostBehavior::DoNothing => {
+                            println!("configured to not notify host on local delete");
+                            if delete_result.is_successful {
+                                is_overall_successful = true;
+                                rows_affected = 1;
+                            }
+                        }
                     }
                 }
                 DmlType::Select => todo!(),
@@ -420,9 +426,8 @@ pub async fn execute_cooperative_write_at_host(
                         let data_hash: u64;
                         let row_id: u32;
 
-                        let update_result = PartialDataStatus::from_u32(
-                            remote_update_result.update_status,
-                        );
+                        let update_result =
+                            PartialDataStatus::from_u32(remote_update_result.update_status);
 
                         match update_result {
                             PartialDataStatus::Unknown => todo!(),
