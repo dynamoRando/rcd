@@ -17,7 +17,7 @@ mod io;
 mod logical_storage_policy;
 mod participant;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 /// Implements the `SQLClient` definition from the protobuff file
 pub struct SqlClientImpl {
     pub root_folder: String,

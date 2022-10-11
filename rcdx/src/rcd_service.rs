@@ -4,10 +4,10 @@ use crate::dbi::{Dbi, DbiConfigSqlite};
 use crate::rcd_enum::DatabaseType;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
-use log::info;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::{env, thread};
 use tonic::transport::Server;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct RcdService {

@@ -2,6 +2,7 @@ use rcdproto::rcdp::{
     AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
 };
+use tracing::instrument;
 
 use super::SqlClientImpl;
 use crate::{
@@ -13,14 +14,13 @@ use crate::{
 use conv::UnwrapOk;
 use conv::ValueFrom;
 
+#[instrument]
 pub async fn execute_read_at_host(
     request: ExecuteReadRequest,
     client: &SqlClientImpl,
 ) -> ExecuteReadReply {
     // check if the user is authenticated
     let message = request.clone();
-
-    // println!("execute_read_at_host: {:?}", message);
 
     let a = message.authentication.unwrap();
 
@@ -113,6 +113,7 @@ pub async fn execute_read_at_host(
     return execute_read_reply;
 }
 
+#[instrument]
 pub async fn execute_read_at_participant(
     request: ExecuteReadRequest,
     client: &SqlClientImpl,
@@ -166,6 +167,7 @@ pub async fn execute_read_at_participant(
     return execute_read_reply;
 }
 
+#[instrument]
 pub async fn execute_write_at_participant(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
@@ -312,6 +314,7 @@ pub async fn execute_write_at_participant(
     return execute_write_reply;
 }
 
+#[instrument]
 pub async fn execute_write_at_host(
     request: ExecuteWriteRequest,
     client: &SqlClientImpl,
@@ -349,6 +352,7 @@ pub async fn execute_write_at_host(
     return execute_write_reply;
 }
 
+#[instrument]
 pub async fn execute_cooperative_write_at_host(
     request: ExecuteCooperativeWriteRequest,
     client: &SqlClientImpl,

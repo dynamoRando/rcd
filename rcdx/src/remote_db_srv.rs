@@ -1,9 +1,8 @@
 use chrono::Utc;
 use endianness::*;
 use guid_create::GUID;
-use log::info;
 use tonic::transport::Channel;
-
+use tracing::info;
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::dbi::CdsHosts;
 use crate::rcd_enum::ContractStatus;

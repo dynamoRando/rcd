@@ -10,6 +10,7 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
     GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
 };
+use tracing::instrument;
 
 use crate::{
     rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
@@ -18,6 +19,7 @@ use crate::{
 
 use super::SqlClientImpl;
 
+#[instrument]
 pub async fn accept_pending_action_at_participant(
     request: AcceptPendingActionRequest,
     client: &SqlClientImpl,
@@ -106,6 +108,7 @@ pub async fn accept_pending_action_at_participant(
     return result;
 }
 
+#[instrument]
 pub async fn get_pending_updates_at_participant(
     request: GetPendingActionsRequest,
     client: &SqlClientImpl,
@@ -139,6 +142,7 @@ pub async fn get_pending_updates_at_participant(
     return result;
 }
 
+#[instrument]
 pub async fn change_host_status(
     request: ChangeHostStatusRequest,
     client: &SqlClientImpl,
@@ -179,6 +183,7 @@ pub async fn change_host_status(
     return result;
 }
 
+#[instrument]
 pub async fn generate_host_info(
     request: GenerateHostInfoRequest,
     client: &SqlClientImpl,
@@ -212,6 +217,7 @@ pub async fn generate_host_info(
     return generate_host_info_result;
 }
 
+#[instrument]
 pub async fn create_user_database(
     request: CreateUserDatabaseRequest,
     client: &SqlClientImpl,
@@ -248,6 +254,7 @@ pub async fn create_user_database(
     return create_db_result;
 }
 
+#[instrument]
 pub async fn has_table(request: HasTableRequest, client: &SqlClientImpl) -> HasTableReply {
     let mut has_table = false;
 
@@ -330,6 +337,7 @@ pub async fn generate_contract(
     return generate_contract_reply;
 }
 
+#[instrument]
 pub async fn enable_coooperative_features(
     request: EnableCoooperativeFeaturesRequest,
     client: &SqlClientImpl,
@@ -434,7 +442,7 @@ pub async fn change_deletes_from_host_behavior(
     return reply;
 }
 
-#[allow(dead_code, unused_variables)]
+#[instrument]
 pub async fn change_updates_to_host_behavior(
     request: ChangeUpdatesToHostBehaviorRequest,
     client: &SqlClientImpl,
@@ -508,6 +516,7 @@ pub async fn change_deletes_to_host_behavior(
     return reply;
 }
 
+#[instrument]
 pub async fn read_row_id_at_participant(
     request: GetReadRowIdsRequest,
     client: &SqlClientImpl,
@@ -548,6 +557,7 @@ pub async fn read_row_id_at_participant(
     return reply;
 }
 
+#[instrument]
 pub async fn get_data_hash_at_host(
     request: GetDataHashRequest,
     client: &SqlClientImpl,

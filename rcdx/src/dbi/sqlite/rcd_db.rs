@@ -10,9 +10,9 @@ use crate::{
     },
 };
 use guid_create::GUID;
-use log::info;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
+use tracing::info;
 
 pub mod contract;
 pub mod role;
@@ -420,12 +420,12 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 }
 
 pub fn configure_rcd_db(config: &DbiConfigSqlite) {
-    let _init = env_logger::try_init();
+    
 
     let root = &config.root_folder;
     let db_name = &config.rcd_db_name;
 
-    log::info!("cwd is {}", &root);
+    info!("cwd is {}", &root);
     info!("db_name is {}", &db_name);
 
     let db_path = Path::new(&root).join(&db_name);
