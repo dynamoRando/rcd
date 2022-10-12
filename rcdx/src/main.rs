@@ -2,10 +2,32 @@ use rcdx::defaults;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
+use tracing::{info};
+use tracing_subscriber::prelude::*;
+
+use crate::rcd_logging_layer::RcdLoggingLayer;
+
+mod rcd_logging_layer;
 
 #[tokio::main]
 async fn main() {
-    println!("rcdx version {}.", defaults::VERSION);
+    let version_message = format!("rcdx version {}.", defaults::VERSION);
+
+    tracing_subscriber::registry().with(RcdLoggingLayer).init();
+    info!(version_message);
+    println!("{}", version_message);
+
+    /* 
+    // logging example
+    let outer_span = info_span!("outer", level = 0);
+    let _outer_entered = outer_span.enter();
+
+    let inner_span = debug_span!("inner", level = 1);
+    let _inner_entered = inner_span.enter();
+
+    info!(a_bool = true, answer = 42, message = "first example");
+    // end logging example
+    */
 
     let args: Vec<String> = env::args().collect();
     process_cmd_args(args);
