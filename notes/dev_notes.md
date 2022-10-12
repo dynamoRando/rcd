@@ -174,3 +174,9 @@ And so on.
 - Create a `dbi_config` layer for holding configuration settings
     - Have a `Option<Config-X>` for different database types
         - One for `sqlite` root folder, `postgres` connection string and login, and same for `mysql`
+
+
+# Logging Options
+
+- [Tracing](https://burgers.io/custom-logging-in-rust-using-tracing)
+- [Log4rs](https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/)
