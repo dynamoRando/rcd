@@ -12,7 +12,7 @@ use crate::{
 use guid_create::GUID;
 use rusqlite::{named_params, Connection, Result};
 use std::path::Path;
-use tracing::info;
+use log::info;
 
 pub mod contract;
 pub mod role;

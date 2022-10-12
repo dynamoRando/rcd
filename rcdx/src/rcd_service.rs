@@ -7,7 +7,7 @@ use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::{env, thread};
 use tonic::transport::Server;
-use tracing::info;
+use log::info;
 
 #[derive(Debug, Clone)]
 pub struct RcdService {

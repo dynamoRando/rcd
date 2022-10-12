@@ -8,3 +8,4 @@
 *.idea
 *.xml
 *.iml
+/log

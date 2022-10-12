@@ -1,0 +1,24 @@
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      pattern: "{h({d(%Y-%m-%d %H:%M:%S)(utc)} - {l}: {m}{n})}"
+  file_logger:
+    kind: rolling_file
+    path: "log/rcd.log"
+    encoder:
+      pattern: "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}"
+    policy:
+      trigger:
+        kind: size
+        limit: 50kb
+      roller:
+        kind: fixed_window
+        base: 1
+        count: 10
+        pattern: "log/rcd{}.log"
+root:
+  level: trace
+  appenders:
+    - stdout
+    - file_logger

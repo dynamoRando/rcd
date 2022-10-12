@@ -1,6 +1,6 @@
 use self::db_part::get_partial_db_connection;
 use rcdproto::rcdp::{ColumnSchema, RowValue};
-use tracing::info;
+use log::info;
 use super::DbiConfigSqlite;
 use crate::{
     defaults,
