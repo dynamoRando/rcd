@@ -1,21 +1,43 @@
-use crate::test_harness::ServiceAddr;
+use crate::test_harness::{ServiceAddr, self};
 use log::info;
 use rcdclient::RcdClient;
-use rcdx::rcd_enum::DeletesToHostBehavior;
+use rcdx::rcd_enum::DeletesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
 /*
 # Test Description
 
+## Purpose:
+This test checks to see if the setting at the participant for DELETES_FROM_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
+is being respected.
 
+## Feature Background
+We want to make sure the participants have full authority over their data. This means that they have the option to change
+how modifications being sent from the host are handled. In this test, if a host sends an DELETE statmement to be processed
+at the participant, we want to ignore it.
+
+## Test Steps
+- Start an rcd instance for a main (host) and a participant
+- Host:
+    - Generate a db and tables and a contract to send to particpant
+- Participant:
+    - Accept contract
+- Host:
+    - Send one row to participant to be inserted and test to make sure can read from participant
+- Participant:
+    - Change DeletesFromHostBehavior to Ignore
+- Host:
+    - Attempt to delete previously inserted row
+
+### Expected Results:
+The delete should fail.
 
 */
 
-// #[ignore = "code not finished"]
 #[test]
 fn test() {
-    let test_name = "delete_from_part_no_notify";
+    let test_name = "delta_delete_from_host";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
@@ -25,10 +47,10 @@ fn test() {
     let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
     let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
 
-    let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
+    let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
-    let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+    let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+    let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
 
     let time = time::Duration::from_secs(1);
 
@@ -99,7 +121,7 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = DeletesToHostBehavior::DoNothing;
+    let new_behavior = DeletesFromHostBehavior::Ignore;
 
     thread::spawn(move || {
         let res = participant_changes_delete_behavior(&pdn, addr_1, new_behavior);
@@ -108,20 +130,20 @@ fn test() {
     .join()
     .unwrap();
 
-    let delete_at_participant_is_successful = rx_p_deny_write.try_recv().unwrap();
+    let status_change_is_successful = rx_p_deny_write.try_recv().unwrap();
 
-    assert!(delete_at_participant_is_successful);
+    assert!(status_change_is_successful);
 
     thread::spawn(move || {
-        let res = main_read_deleted_row_should_succeed(&db_name_copy, addr);
+        let res = main_delete_should_fail(&db_name_copy, addr);
         tx_h_auth_fail.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let should_have_mismatched_rows = rx_h_auth_fail.try_recv().unwrap();
+    let should_fail = rx_h_auth_fail.try_recv().unwrap();
 
-    assert!(!should_have_mismatched_rows);
+    assert!(!should_fail);
 }
 
 #[cfg(test)]
@@ -298,7 +320,7 @@ async fn participant_service_client(
 async fn participant_changes_delete_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
-    behavior: DeletesToHostBehavior,
+    behavior: DeletesFromHostBehavior,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
@@ -307,7 +329,7 @@ async fn participant_changes_delete_behavior(
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     info!(
-        "participant_changes_delete_behavior attempting to connect {}",
+        "participant_changes_update_behavior attempting to connect {}",
         participant_client_addr.to_full_string_with_http()
     );
 
@@ -317,49 +339,26 @@ async fn participant_changes_delete_behavior(
         String::from("123456"),
     );
 
-    let change_delete_behavior = client
-        .change_deletes_to_host_behavior(db_name, "EMPLOYEE", behavior)
+    let result = client
+        .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
         .await;
 
-    assert!(change_delete_behavior.unwrap());
-
-    let statement = String::from("DELETE FROM EMPLOYEE WHERE ID = 999");
-    let delete_result = client
-        .execute_write_at_participant(
-            db_name,
-            &statement,
-            DatabaseType::to_u32(DatabaseType::Sqlite),
-            "ID = 999",
-        )
-        .await;
-
-    return delete_result.unwrap();
+    return result.unwrap();
 }
 
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_read_deleted_row_should_succeed(
-    db_name: &str,
-    main_client_addr: ServiceAddr,
-) -> bool {
-    use rcdx::rcd_enum::DatabaseType;
-
+async fn main_delete_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
     );
 
-    let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
-    let read_result = client
-        .execute_read_at_host(db_name, &cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
+    let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
+    let update_result = client
+        .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
         .await;
-    // we should expect to get zero rows back
-
-    println!("{:?}", read_result);
-
-    let results = read_result.unwrap();
-
-    return results.rows.len() == 0;
+    return update_result.unwrap();
 }

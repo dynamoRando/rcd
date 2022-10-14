@@ -1,4 +1,4 @@
-use crate::test_harness::ServiceAddr;
+use crate::test_harness::{ServiceAddr, self};
 use log::info;
 use rcdclient::RcdClient;
 use rcdx::rcd_enum::UpdatesFromHostBehavior;
@@ -29,10 +29,10 @@ fn test() {
 
     let (tx_p_has_update, rx_p_has_update) = mpsc::channel();
 
-    let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
+    let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
-    let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+    let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+    let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
 
     let time = time::Duration::from_secs(1);
 

@@ -1,7 +1,7 @@
-use crate::test_harness::ServiceAddr;
+use crate::test_harness::{ServiceAddr, self};
 use log::info;
 use rcdclient::RcdClient;
-use rcdx::rcd_enum::UpdatesToHostBehavior;
+use rcdx::rcd_enum::UpdatesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,17 +9,17 @@ use std::{thread, time};
 # Test Description
 
 ## Purpose:
-This test checks to see if the setting at the participant for UPDATES_TO_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
-is being respected.
-
-In this test, we cover the settings UpdatesToHostBehavior::DoNothing.
+This test checks to see if when an UPDATE statement is sent from the host if the participant's settings to
+`UpdatesFromHostBehavior::OverwriteWithLog` that rcd copies the row it's about to overwrite to a `_COOP_DATA_LOG`
+table before actually executing the overwrite.
 
 ## Feature Background
-We want to make sure the participants have full authority over their data. This means that they have the option to change
-how actions on their side are reported back to the host. In this test, if a participant UPDATEs a row on the partial database, we will NOT notify the host that we have
-changed the row.
+We want to make sure that participants have full authority over their data. This means that if they want to see
+a history of changes that are being made to their data, they can do so. In this test, a value is initially set by a host
+and later is UPDATEd.
 
-We expect that when the host tries to read the rows again, that it should succeed BUT that the hashes between the rows should no longer match.
+We expect that the UPDATE from the host should succeed, but that we should also have a record of the changed row
+in the `EMPLOYEE_COOP_DATA_LOG` table in the partial database that the participant can review.
 
 ## Test Steps
 - Start an rcd instance for a main (host) and a participant
@@ -30,22 +30,26 @@ We expect that when the host tries to read the rows again, that it should succee
 - Host:
     - Send one row to participant to be inserted and test to make sure can read from participant
 - Participant:
-    - Change UpdatesToHostBehavior to Send Data Hash
+    - Change UpdatesFromHostBehavior to Overwrite With Log
     - Update the newly added row from the previous step
     - Get the row id for the newly updated row
     - Get the data hash for the newly updated row
 - Host:
     - Attempt to read previously inserted row, and should returning matching data.
     - Get the data hash saved at the host
+    - Check to make sure the hashes match (ensure that the update is correct)
+- Participant:
+    - Send a query to `SELECT * FROM EMPLOYEE_COOP_DATA_LOG` locally at the participant. There should only
+    be one row that is returned.
 
 ### Expected Results:
-The read attempt should return the same name as the updated row. The data hashes for both SHOULD NOT match.
+The row returned at the participant should match the previously inserted value instead of the UPDATEd value.
 
 */
 
 #[test]
 fn test() {
-    let test_name = "delta_update_from_part_negative";
+    let test_name = "update_from_host_log";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
@@ -59,11 +63,12 @@ fn test() {
     let (tx_p_data_hash, rx_p_data_hash) = mpsc::channel();
 
     let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
+    let (tx_p_read_data_log, rx_p_read_data_log) = mpsc::channel();
 
-    let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
+    let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
-    let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+    let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+    let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
 
     let time = time::Duration::from_secs(1);
 
@@ -81,6 +86,7 @@ fn test() {
 
     let db_p_name = db_name_copy.clone();
     let db_p_name2 = db_p_name.clone();
+    let db_pname3 = db_p_name2.clone();
     let db_h_name = db_name_copy.clone();
 
     let addr_1 = participant_addrs.0.clone();
@@ -91,6 +97,7 @@ fn test() {
     let h_addr = addr.clone();
     let p_addr = participant_addrs.clone().0;
     let p_addr2 = p_addr.clone();
+    let p_addr3 = p_addr.clone();
 
     thread::spawn(move || {
         let res = main_service_client(
@@ -142,7 +149,7 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = UpdatesToHostBehavior::DoNothing;
+    let new_behavior = UpdatesFromHostBehavior::OverwriteWithLog;
 
     thread::spawn(move || {
         let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
@@ -194,7 +201,18 @@ fn test() {
 
     let h_data_hash = rx_h_data_hash.try_recv().unwrap();
 
-    assert_ne!(p_data_hash, h_data_hash);
+    assert_eq!(p_data_hash, h_data_hash);
+
+    thread::spawn(move || {
+        let res = get_data_logs_at_participant(&db_pname3, p_addr3);
+        tx_p_read_data_log.send(res).unwrap();
+    })
+    .join()
+    .unwrap();
+
+    let p_read_data_log_is_correct = rx_p_read_data_log.try_recv().unwrap();
+
+    assert!(p_read_data_log_is_correct);
 }
 
 #[cfg(test)]
@@ -371,7 +389,7 @@ async fn participant_service_client(
 async fn participant_changes_update_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
-    behavior: UpdatesToHostBehavior,
+    behavior: UpdatesFromHostBehavior,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
@@ -391,22 +409,10 @@ async fn participant_changes_update_behavior(
     );
 
     let change_update_behavior = client
-        .change_updates_to_host_behavior(db_name, "EMPLOYEE", behavior)
+        .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
         .await;
 
-    assert!(change_update_behavior.unwrap());
-
-    let statement = String::from("UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999");
-    let update_result = client
-        .execute_write_at_participant(
-            db_name,
-            &statement,
-            DatabaseType::to_u32(DatabaseType::Sqlite),
-            "ID = 999",
-        )
-        .await;
-
-    return update_result.unwrap();
+    return change_update_behavior.unwrap();
 }
 
 #[cfg(test)]
@@ -520,14 +526,19 @@ async fn main_read_updated_row_should_succeed(
         String::from("123456"),
     );
 
+    let statement = String::from("UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999");
+    let update_result = client
+        .execute_cooperative_write_at_host(db_name, &statement, "participant", "ID = 999")
+        .await;
+
+    assert!(update_result.unwrap());
+
     let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
     let read_result = client
         .execute_read_at_host(db_name, &cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
         .await;
 
     let results = read_result.unwrap();
-
-    println!("{:?}", results);
 
     let row = results.rows.first().unwrap();
 
@@ -537,6 +548,46 @@ async fn main_read_updated_row_should_succeed(
 
     let expected_value = "TESTER".as_bytes().to_vec();
 
+    println!("{:?}", expected_value);
+
+    return *value == expected_value;
+}
+
+#[cfg(test)]
+#[tokio::main]
+async fn get_data_logs_at_participant(
+    db_name: &str,
+    participant_client_addr: ServiceAddr,
+) -> bool {
+    use log::info;
+    use rcdclient::RcdClient;
+    use rcdx::rcd_enum::DatabaseType;
+
+    info!(
+        "get_data_logs_at_participant attempting to connect {}",
+        participant_client_addr.to_full_string_with_http()
+    );
+
+    let client = RcdClient::new(
+        participant_client_addr.to_full_string_with_http(),
+        String::from("tester"),
+        String::from("123456"),
+    );
+
+    let cmd = "SELECT * FROM EMPLOYEE_COOP_DATA_LOG";
+    let read_result = client
+        .execute_read_at_participant(db_name, cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
+        .await
+        .unwrap();
+
+    println!("{:?}", read_result);
+
+    let row = read_result.rows.first().unwrap();
+    let value = &row.values[1].value.clone();
+
+    println!("{:?}", value);
+
+    let expected_value = "ASDF".as_bytes().to_vec();
     println!("{:?}", expected_value);
 
     return *value == expected_value;

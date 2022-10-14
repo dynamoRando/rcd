@@ -1,7 +1,7 @@
-use crate::test_harness::ServiceAddr;
+use crate::test_harness::{ServiceAddr, self};
 use log::info;
 use rcdclient::RcdClient;
-use rcdx::rcd_enum::DeletesFromHostBehavior;
+use rcdx::rcd_enum::UpdatesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,12 +9,12 @@ use std::{thread, time};
 # Test Description
 
 ## Purpose:
-This test checks to see if the setting at the participant for DELETES_FROM_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
+This test checks to see if the setting at the participant for UPDATES_FROM_HOST_BEHAVIOR in the rcd table CDS_CONTRACTS_TABLES
 is being respected.
 
 ## Feature Background
 We want to make sure the participants have full authority over their data. This means that they have the option to change
-how modifications being sent from the host are handled. In this test, if a host sends an DELETE statmement to be processed
+how modifications being sent from the host are handled. In this test, if a host sends an UPDATE statmement to be processed
 at the participant, we want to ignore it.
 
 ## Test Steps
@@ -26,18 +26,18 @@ at the participant, we want to ignore it.
 - Host:
     - Send one row to participant to be inserted and test to make sure can read from participant
 - Participant:
-    - Change DeletesFromHostBehavior to Ignore
+    - Change UpdatesFromHostBehavior to Ignore
 - Host:
-    - Attempt to delete previously inserted row
+    - Attempt to update previously inserted row
 
 ### Expected Results:
-The delete should fail.
+The update should fail.
 
 */
 
 #[test]
 fn test() {
-    let test_name = "delete_from_host_with_log";
+    let test_name = "delta_update_from_host";
     let test_db_name = format!("{}{}", test_name, ".db");
     let custom_contract_description = String::from("insert read remote row");
 
@@ -46,12 +46,11 @@ fn test() {
     let (tx_main_write, rx_main_read) = mpsc::channel();
     let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
     let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
-    let (tx_p_data_log, rx_p_data_log) = mpsc::channel();
 
-    let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
+    let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
-    let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+    let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+    let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
 
     let time = time::Duration::from_secs(1);
 
@@ -66,10 +65,8 @@ fn test() {
     let pdn = participant_db_name.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
-    let db_name_copy_ = db_name_copy.clone();
 
     let addr_1 = participant_addrs.0.clone();
-    let addr_1_ = addr_1.clone();
 
     let main_srv_addr = main_addrs.0.clone();
     let addr = main_srv_addr.clone();
@@ -124,10 +121,10 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_behavior = DeletesFromHostBehavior::DeleteWithLog;
+    let new_update_behavior = UpdatesFromHostBehavior::Ignore;
 
     thread::spawn(move || {
-        let res = participant_changes_delete_behavior(&pdn, addr_1, new_behavior);
+        let res = participant_changes_update_behavior(&pdn, addr_1, new_update_behavior);
         tx_p_deny_write.send(res).unwrap();
     })
     .join()
@@ -138,26 +135,15 @@ fn test() {
     assert!(status_change_is_successful);
 
     thread::spawn(move || {
-        let res = main_delete_should_succeed(&db_name_copy, addr);
+        let res = main_update_should_fail(&db_name_copy, addr);
         tx_h_auth_fail.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let should_succeed = rx_h_auth_fail.try_recv().unwrap();
+    let should_fail = rx_h_auth_fail.try_recv().unwrap();
 
-    assert!(should_succeed);
-
-    thread::spawn(move || {
-        let res = get_data_logs_at_participant(&db_name_copy_, addr_1_);
-        tx_p_data_log.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
-
-    let p_read_data_log_is_correct = rx_p_data_log.try_recv().unwrap();
-
-    assert!(p_read_data_log_is_correct);
+    assert!(!should_fail);
 }
 
 #[cfg(test)]
@@ -331,10 +317,10 @@ async fn participant_service_client(
 #[cfg(test)]
 #[tokio::main]
 #[allow(dead_code, unused_variables)]
-async fn participant_changes_delete_behavior(
+async fn participant_changes_update_behavior(
     db_name: &str,
     participant_client_addr: ServiceAddr,
-    behavior: DeletesFromHostBehavior,
+    behavior: UpdatesFromHostBehavior,
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
@@ -354,7 +340,7 @@ async fn participant_changes_delete_behavior(
     );
 
     let result = client
-        .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
+        .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
         .await;
 
     return result.unwrap();
@@ -363,53 +349,16 @@ async fn participant_changes_delete_behavior(
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_delete_should_succeed(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+async fn main_update_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
     );
 
-    let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
+    let cmd = String::from("UPDATE EMPLOYEE SET NAME = 'Fail' WHERE Id = 999");
     let update_result = client
         .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
         .await;
     return update_result.unwrap();
-}
-
-#[cfg(test)]
-#[tokio::main]
-async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> bool {
-    use log::info;
-    use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
-
-    info!(
-        "get_data_logs_at_participant attempting to connect {}",
-        participant_client_addr.to_full_string_with_http()
-    );
-
-    let client = RcdClient::new(
-        participant_client_addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-    );
-
-    let cmd = "SELECT * FROM EMPLOYEE_COOP_DATA_LOG";
-    let read_result = client
-        .execute_read_at_participant(db_name, cmd, DatabaseType::to_u32(DatabaseType::Sqlite))
-        .await
-        .unwrap();
-
-    println!("{:?}", read_result);
-
-    let row = read_result.rows.first().unwrap();
-    let value = &row.values[1].value.clone();
-
-    println!("{:?}", value);
-
-    let expected_value = "ASDF".as_bytes().to_vec();
-    println!("{:?}", expected_value);
-
-    return *value == expected_value;
 }
