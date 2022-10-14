@@ -1,19 +1,19 @@
 use log::info;
+use log4rs;
 use rcdx::defaults;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
-use log4rs;
 
 #[tokio::main]
 async fn main() {
     let version_message = format!("rcdx version {}.", defaults::VERSION);
+    println!("{}", version_message);
+    set_default_logging();
 
     // https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/
     log4rs::init_file("logging_config.yaml", Default::default()).unwrap();
-
     info!("{}", version_message);
-    println!("{}", version_message);
 
     let args: Vec<String> = env::args().collect();
     process_cmd_args(args);
@@ -88,5 +88,46 @@ admin_pw = \"123456\"
         write!(output, "{}", default_settings_content).unwrap();
     } else {
         println!("Settings.toml was found, skipping default settings");
+    }
+}
+
+fn set_default_logging() {
+    let cwd = rcdx::get_current_directory();
+    let default_logging_content =    
+   r#"appenders:
+   stdout:
+     kind: console
+     encoder:
+       pattern: "{h({d(%Y-%m-%d %H:%M:%S)(utc)} - {l}: {m}{n})}"
+   file_logger:
+     kind: rolling_file
+     path: "log/rcd.log"
+     encoder:
+       pattern: "{d(%Y-%m-%d %H:%M:%S)(utc)} - {h({l})}: {m}{n}"
+     policy:
+       trigger:
+         kind: size
+         limit: 50kb
+       roller:
+         kind: fixed_window
+         base: 1
+         count: 10
+         pattern: "log/rcd{}.log"
+root:
+   level: trace
+   appenders:
+     - stdout
+     - file_logger"#;
+
+    let default_src_path = Path::new(&cwd).join("logging_config.yaml");
+    if !Path::exists(&default_src_path) {
+        println!(
+            "creating default logging_config.yaml at: {}",
+            &default_src_path.to_str().unwrap()
+        );
+        let mut output = File::create(default_src_path).unwrap();
+        write!(output, "{}", default_logging_content).unwrap();
+    } else {
+        println!("logging_config.yaml was found, skipping default settings");
     }
 }
