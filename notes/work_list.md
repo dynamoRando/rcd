@@ -3,7 +3,8 @@
 - [X] Implement DELETE from host to participant (this is a hard delete)
 - [X] Implement greater authority for participants over UPDATE/DELETES
     - [X] implement "behaviors" for participants on UPDATE/DELETE
-- Write logs to a rcd_log.db 
+- [X] Write logs to a rcd_log.db 
+    - modified to just write to normal log file for now using log4rs
 - [X] Modify reqests from host to participant so that at the participant we check if the host has been banned
 - implement a cli for rcd
     - ability to login
