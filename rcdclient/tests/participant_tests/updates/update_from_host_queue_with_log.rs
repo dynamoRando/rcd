@@ -36,10 +36,16 @@ fn test() {
     let main_addr_client_port = main_addrs.2;
     let main_addr_db_port = main_addrs.3;
 
+    let main_client_shutdown_trigger = main_addrs.4;
+    let main_db_shutdown_triger = main_addrs.5;
+
     let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
 
     let part_addr_client_port = participant_addrs.2;
     let part_addr_db_port = participant_addrs.3;
+
+    let part_client_shutdown_trigger = participant_addrs.4;
+    let part_db_shutdown_trigger = participant_addrs.5;
 
     let time = time::Duration::from_secs(1);
 
@@ -168,6 +174,12 @@ fn test() {
     test_harness::release_port(main_addr_db_port);
     test_harness::release_port(part_addr_client_port);
     test_harness::release_port(part_addr_db_port);
+
+    main_client_shutdown_trigger.trigger();
+    main_db_shutdown_triger.trigger();
+    part_client_shutdown_trigger.trigger();
+    part_db_shutdown_trigger.trigger();
+    
 
 }
 

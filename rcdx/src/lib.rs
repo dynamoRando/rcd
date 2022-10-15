@@ -99,6 +99,8 @@ pub fn get_service_from_config_file() -> RcdService {
         rcd_settings: settings,
         root_dir: String::from(""),
         db_interface: None,
+        sql_client_channel: None,
+        db_client_channel: None
     };
 
     if service.root_dir == "" {
@@ -116,6 +118,8 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
         rcd_settings: config,
         root_dir: String::from(""),
         db_interface: None,
+        sql_client_channel: None,
+        db_client_channel: None,
     };
 }
 

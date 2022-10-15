@@ -5,15 +5,20 @@ use crate::rcd_enum::DatabaseType;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
+use triggered::Listener;
 use std::{env, thread};
 use tonic::transport::Server;
 use log::info;
+use std::sync::mpsc::{Sender, Receiver};
 
-#[derive(Debug, Clone)]
+
+#[derive(Debug)]
 pub struct RcdService {
     pub rcd_settings: RcdSettings,
     pub root_dir: String,
     pub db_interface: Option<Dbi>,
+    pub sql_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
+    pub db_client_channel:  Option<(Sender<bool>, Receiver<bool>)>,
 }
 
 impl RcdService {
@@ -163,6 +168,51 @@ impl RcdService {
 
         Ok(())
     }
+
+    #[tokio::main]
+    pub async fn start_services_at_addrs_with_shutdown(
+        self: &Self,
+        db_name: String,
+        client_address_port: String,
+        db_address_port: String,
+        root_folder: String,
+        client_shutdown_listener: Listener,
+        db_shutdown_listener: Listener,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let db1 = db_name.clone();
+        let db2 = db_name.clone();
+
+        let root1 = root_folder.clone();
+        let root2 = root_folder.clone();
+
+        let db_addr1 = db_address_port.clone();
+        let db_addr2 = db_address_port.clone();
+
+        let dbi1 = self.db_interface.clone();
+        let dbi2 = self.db_interface.clone();
+
+        thread::spawn(move || {
+            let name = db1.clone();
+            let _ = Self::start_client_service_at_addr_with_shutdown(
+                &name.to_string(),
+                &db_addr1,
+                client_address_port,
+                root1,
+                dbi1,
+                client_shutdown_listener
+            )
+            .unwrap();
+        });
+
+        thread::spawn(move || {
+            let name = db2.clone();
+            let _ = Self::start_db_service_at_addr_with_shutdown(&name.to_string(), db_addr2, root2, dbi2, db_shutdown_listener)
+                .unwrap();
+        });
+
+        Ok(())
+    }
+
 
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
@@ -333,6 +383,73 @@ impl RcdService {
             .add_service(DataServiceServer::new(data_service))
             .add_service(data_service_server) // Add this
             .serve(addr)
+            .await?;
+
+        Ok(())
+    }
+
+    #[tokio::main]
+    pub async fn start_client_service_at_addr_with_shutdown(
+        database_name: &str,
+        own_db_addr_port: &str,
+        address_port: String,
+        root_folder: String,
+        db_interface: Option<Dbi>,
+        shutdown: Listener
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let addr = address_port.parse().unwrap();
+
+        let sql_client = SqlClientImpl {
+            root_folder: root_folder,
+            database_name: database_name.to_string(),
+            addr_port: address_port.to_string(),
+            own_db_addr_port: own_db_addr_port.to_string(),
+            db_interface: db_interface,
+        };
+
+        let sql_client_service = tonic_reflection::server::Builder::configure()
+            .build()
+            .unwrap();
+
+        println!("Client Service Starting At: {}", addr);
+
+        Server::builder()
+            .add_service(SqlClientServer::new(sql_client))
+            .add_service(sql_client_service) // Add this
+            .serve_with_shutdown(addr, shutdown)
+            .await?;
+
+        Ok(())
+    }
+
+
+    #[tokio::main]
+    pub async fn start_db_service_at_addr_with_shutdown(
+        database_name: &str,
+        address_port: String,
+        root_folder: String,
+        db_interface: Option<Dbi>,
+        shutdown: Listener
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let addr = address_port.parse().unwrap();
+
+        let data_service = DataServiceImpl {
+            root_folder: root_folder,
+            database_name: database_name.to_string(),
+            addr_port: address_port.to_string(),
+            db_interface: db_interface,
+        };
+
+        let data_service_server = tonic_reflection::server::Builder::configure()
+            .build()
+            .unwrap();
+
+        println!("Database Service Starting At: {}", addr);
+
+        Server::builder()
+            .add_service(DataServiceServer::new(data_service))
+            .add_service(data_service_server) // Add this
+            .serve_with_shutdown(addr, shutdown)
             .await?;
 
         Ok(())

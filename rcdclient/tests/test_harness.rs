@@ -1,4 +1,5 @@
 use lazy_static::lazy_static;
+use triggered::Trigger;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
@@ -45,7 +46,11 @@ pub fn release_port(port: u32) {
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr, u32, u32) {
+pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr, u32, u32, Trigger, Trigger) {
+
+    let (client_trigger, client_listener) = triggered::trigger();
+    let (db_trigger, db_listener) = triggered::trigger();
+
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
@@ -80,9 +85,11 @@ pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, Serv
     let dir = root_dir.clone();
 
     let _ =
-        service.start_services_at_addrs(db_name, client_address_port, db_address_port, dir.clone());
+        service.start_services_at_addrs_with_shutdown(db_name, client_address_port, db_address_port, dir.clone(),
+    client_listener, db_listener);
 
-    return (client_addr, db_addr, client_port_num, db_port_num);
+
+    return (client_addr, db_addr, client_port_num, db_port_num, client_trigger, db_trigger);
 }
 
 #[allow(dead_code)]
