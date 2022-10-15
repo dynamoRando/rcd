@@ -4,6 +4,8 @@ use rcdx::get_service_from_config_file;
 use std::sync::mpsc;
 use std::{thread, time};
 
+use crate::test_harness;
+
 #[test]
 fn test() {
     let test_name = "create_user_database_positive";
@@ -49,6 +51,8 @@ fn test() {
     println!("create_user_database: got: {}", response);
 
     assert!(response);
+
+    test_harness::release_port(port_num);
 }
 
 #[cfg(test)]

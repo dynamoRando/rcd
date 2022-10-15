@@ -54,6 +54,8 @@ fn test() {
     println!("create_enable_cooperative_features: got: {}", response);
 
     assert!(response);
+
+    test_harness::release_port(port_num);
 }
 
 #[cfg(test)]

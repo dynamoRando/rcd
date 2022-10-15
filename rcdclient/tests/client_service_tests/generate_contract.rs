@@ -50,6 +50,8 @@ pub fn test() {
     println!("generate_contract: got: {}", response);
 
     assert!(response);
+
+    test_harness::release_port(port_num);
 }
 
 #[test]

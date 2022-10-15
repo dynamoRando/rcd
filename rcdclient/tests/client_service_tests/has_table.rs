@@ -49,6 +49,8 @@ pub fn test() {
     println!("has table: got: {}", response);
 
     assert!(response);
+
+    test_harness::release_port(port_num);
 }
 
 #[cfg(test)]

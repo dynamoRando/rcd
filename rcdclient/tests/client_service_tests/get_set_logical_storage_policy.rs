@@ -55,6 +55,8 @@ pub fn test() {
     );
 
     assert_eq!(i_policy, response);
+
+    test_harness::release_port(port_num);
 }
 
 #[cfg(test)]
