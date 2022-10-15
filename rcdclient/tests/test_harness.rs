@@ -32,12 +32,20 @@ impl ServiceAddr {
 }
 
 lazy_static! {
-    pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings { max_port: 6000 });
+    pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings {
+        max_port: 6000,
+        ports: Vec::new()
+    });
+}
+
+#[allow(dead_code)]
+pub fn release_port(port: u32) {
+    TEST_SETTINGS.lock().unwrap().release_port(port);
 }
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr) {
+pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, ServiceAddr, u32, u32) {
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
@@ -74,7 +82,7 @@ pub fn start_service(test_db_name: &str, root_dir: String) -> (ServiceAddr, Serv
     let _ =
         service.start_services_at_addrs(db_name, client_address_port, db_address_port, dir.clone());
 
-    return (client_addr, db_addr);
+    return (client_addr, db_addr, client_port_num, db_port_num);
 }
 
 #[allow(dead_code)]
@@ -123,17 +131,33 @@ pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, Strin
 
 pub struct TestSettings {
     max_port: u32,
+    ports: Vec<u32>,
 }
 
 impl TestSettings {
     pub fn get_next_avail_port(&mut self) -> u32 {
-        self.max_port = self.max_port + 1;
-        return self.max_port;
+        if self.ports.len() == 0 {
+            self.max_port = self.max_port + 1;
+            self.ports.push(self.max_port);
+            return self.max_port;
+        } else {
+            let val = *self.ports.iter().max().unwrap() + 1;
+            self.ports.push(val);
+            return val;
+        }
     }
 
-    #[allow(dead_code)]
     pub fn get_current_port(&self) -> u32 {
-        return self.max_port;
+        if self.ports.len() == 0 {
+            return self.max_port;
+        } else {
+            *self.ports.iter().max().unwrap()
+        }
+    }
+
+    pub fn release_port(&mut self, port: u32) {
+        let index = self.ports.iter().position(|x| *x == port).unwrap();
+        self.ports.remove(index);
     }
 }
 

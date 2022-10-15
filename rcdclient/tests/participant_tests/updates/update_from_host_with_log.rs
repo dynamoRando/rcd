@@ -68,7 +68,14 @@ fn test() {
     let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
     let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+
+    let main_addr_client_port = main_addrs.2;
+    let main_addr_db_port = main_addrs.3;
+
     let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
+
+    let part_addr_client_port = participant_addrs.2;
+    let part_addr_db_port = participant_addrs.3;
 
     let time = time::Duration::from_secs(1);
 
@@ -213,6 +220,11 @@ fn test() {
     let p_read_data_log_is_correct = rx_p_read_data_log.try_recv().unwrap();
 
     assert!(p_read_data_log_is_correct);
+
+    test_harness::release_port(main_addr_client_port);
+    test_harness::release_port(main_addr_db_port);
+    test_harness::release_port(part_addr_client_port);
+    test_harness::release_port(part_addr_db_port);
 }
 
 #[cfg(test)]

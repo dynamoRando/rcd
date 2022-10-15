@@ -26,7 +26,6 @@ The participant should be able to accept the pending contract.
 */
 
 #[test]
-#[allow(dead_code, unused_variables)]
 fn test() {
     let test_name = "save_accept_contract";
     let test_db_name = format!("{}{}", test_name, ".db");
@@ -38,7 +37,14 @@ fn test() {
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
     let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
+
+    let main_addr_client_port = main_addrs.2;
+    let main_addr_db_port = main_addrs.3;
+
     let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+
+    let part_addr_client_port = participant_addrs.2;
+    let part_addr_db_port = participant_addrs.3;
 
     let time = time::Duration::from_secs(1);
 
@@ -89,6 +95,11 @@ fn test() {
     );
 
     assert!(participant_accepted_contract);
+
+    super::test_harness::release_port(main_addr_client_port);
+    super::test_harness::release_port(main_addr_db_port);
+    super::test_harness::release_port(part_addr_client_port);
+    super::test_harness::release_port(part_addr_db_port);
 }
 
 #[cfg(test)]
