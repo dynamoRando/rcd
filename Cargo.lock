@@ -1407,6 +1407,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcdadmin"
+version = "0.1.0"
+
+[[package]]
 name = "rcdclient"
 version = "0.1.0"
 dependencies = [
