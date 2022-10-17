@@ -34,6 +34,17 @@ service SQLClient {
 	rpc SetDataLogTableStatusAtParticipant (SetDataLogTableStatusRequest) returns (SetDataLogTableStatusReply);
 	rpc GetPendingActionsAtParticipant (GetPendingActionsRequest) returns (GetPendingActionsReply);
 	rpc AcceptPendingActionAtParticipant (AcceptPendingActionRequest) returns (AcceptPendingActionReply);
+	// admin calls
+	rpc GetDatabases (GetDatabasesRequest) returns (GetDatabasesReply);
+}
+
+message GetDatabasesRequest {
+	AuthRequest authentication = 1;
+}
+
+message GetDatabasesReply {
+	AuthResult authenticationResult = 1;
+	repeated DatabaseSchema databases = 2;
 }
 
 message AcceptPendingActionRequest {

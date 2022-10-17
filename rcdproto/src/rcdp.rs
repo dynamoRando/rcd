@@ -1,4 +1,16 @@
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDatabasesRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDatabasesReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(message, repeated, tag="2")]
+    pub databases: ::prost::alloc::vec::Vec<DatabaseSchema>,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AcceptPendingActionRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -1709,6 +1721,26 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        /// admin calls
+        pub async fn get_databases(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDatabasesRequest>,
+        ) -> Result<tonic::Response<super::GetDatabasesReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetDatabases",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -2167,6 +2199,11 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::AcceptPendingActionRequest>,
         ) -> Result<tonic::Response<super::AcceptPendingActionReply>, tonic::Status>;
+        /// admin calls
+        async fn get_databases(
+            &self,
+            request: tonic::Request<super::GetDatabasesRequest>,
+        ) -> Result<tonic::Response<super::GetDatabasesReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -3482,6 +3519,46 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = AcceptPendingActionAtParticipantSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetDatabases" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetDatabasesSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetDatabasesRequest>
+                    for GetDatabasesSvc<T> {
+                        type Response = super::GetDatabasesReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetDatabasesRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_databases(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetDatabasesSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(
