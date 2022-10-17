@@ -7,6 +7,9 @@ mod delete;
 #[path = "participant_tests/reject_host.rs"]
 mod reject_host;
 
+#[path = "participant_tests/admin.rs"]
+mod admin;
+
 
 /*
 # Test Module Overview
