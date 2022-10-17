@@ -10,9 +10,9 @@ use crate::{
     },
 };
 use guid_create::GUID;
-use rusqlite::{named_params, Connection, Result};
-use std::path::Path;
 use log::info;
+use rusqlite::{named_params, Connection, Result};
+use std::{fs, path::Path};
 
 pub mod contract;
 pub mod role;
@@ -373,9 +373,19 @@ pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
         .unwrap();
 }
 
-#[allow(dead_code, unused_variables)]
-pub fn get_database_names(config: &DbiConfigSqlite) -> Vec<String>{
-    unimplemented!()
+pub fn get_database_names(config: &DbiConfigSqlite) -> Vec<String> {
+    let mut databases: Vec<String> = Vec::new();
+
+    for file in fs::read_dir(&config.root_folder).unwrap() {
+        let fname = file.unwrap().file_name();
+        let name = fname.as_os_str().to_str().unwrap();
+
+        if name.contains(".db") || name.contains(".dbpart") {
+            databases.push(name.to_string());
+        }
+    }
+
+    return databases;
 }
 
 pub fn has_login_via_config(login: &str, config: DbiConfigSqlite) -> Result<bool> {
@@ -425,8 +435,6 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 }
 
 pub fn configure_rcd_db(config: &DbiConfigSqlite) {
-    
-
     let root = &config.root_folder;
     let db_name = &config.rcd_db_name;
 

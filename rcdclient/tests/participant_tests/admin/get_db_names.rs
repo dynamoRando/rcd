@@ -14,7 +14,7 @@ use std::{thread, time};
 fn test() {
     let test_name = "get_db_names";
     let test_db_name = format!("{}{}", test_name, ".db");
-    let custom_contract_description = String::from("insert read remote row");
+    let custom_contract_description = String::from("db names");
 
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
@@ -172,6 +172,13 @@ async fn main_service_client(
         String::from("123456"),
     );
     client.create_user_database(db_name).await.unwrap();
+
+    let db_name2 = format!("{}{}", db_name, "2");
+    let db_name3 = format!("{}{}", db_name, "3");
+
+    client.create_user_database(db_name).await.unwrap();
+    client.create_user_database(&db_name2).await.unwrap();
+    client.create_user_database(&db_name3).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
     client
         .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type, "")
@@ -295,6 +302,12 @@ async fn participant_service_client(
     );
 
     let is_generated_host = client.generate_host_info("participant").await.unwrap();
+
+
+    client.create_user_database("part_example").await.unwrap();
+    client.create_user_database("part_example2").await.unwrap();
+    client.create_user_database("part_example3").await.unwrap();
+
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
 
