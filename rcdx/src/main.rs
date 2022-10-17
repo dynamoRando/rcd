@@ -4,6 +4,7 @@ use rcdx::defaults;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
+use triggered;
 
 #[tokio::main]
 async fn main() {
@@ -14,6 +15,9 @@ async fn main() {
     // https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/
     log4rs::init_file("logging_config.yaml", Default::default()).unwrap();
     info!("{}", version_message);
+
+    let (client_trigger, client_listener) = triggered::trigger();
+    let (db_trigger, db_listener) = triggered::trigger();
 
     let args: Vec<String> = env::args().collect();
     process_cmd_args(args);
@@ -32,8 +36,14 @@ async fn main() {
     let root_dir = service.root_dir.clone();
 
     let _ = task::spawn_blocking(move || {
-        let _ =
-            service.start_services_at_addrs(db_name, client_port, db_port, root_dir.to_string());
+        let _ = service.start_services_at_addrs_with_shutdown(
+            db_name,
+            client_port,
+            db_port,
+            root_dir.to_string(),
+            client_listener,
+            db_listener,
+        );
     })
     .await;
 
@@ -46,6 +56,9 @@ async fn main() {
             .expect("Failed to read line");
 
         if input.contains("q") {
+            info!("shutting down...");
+            client_trigger.trigger();
+            db_trigger.trigger();
             break;
         }
     }
@@ -93,8 +106,7 @@ admin_pw = \"123456\"
 
 fn set_default_logging() {
     let cwd = rcdx::get_current_directory();
-    let default_logging_content =    
-   r#"appenders:
+    let default_logging_content = r#"appenders:
    stdout:
      kind: console
      encoder:
