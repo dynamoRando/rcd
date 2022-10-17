@@ -718,6 +718,8 @@ message DatabaseSchema {
 	string databaseName = 1;
 	string databaseId = 2;
 	repeated TableSchema tables = 3;
+	uint32 databaseType = 4;
+	uint32 rcdDatabaseType = 5;
 }
 
 // a message for describing the schema information of a table in a database 

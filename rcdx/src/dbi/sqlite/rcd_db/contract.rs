@@ -349,6 +349,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             database_name: contract.database_name.clone(),
             database_id: contract.database_id.clone(),
             tables: table_schema,
+            database_type: 0,
+            rcd_database_type: 0
         };
 
         db_schema.push(ds);

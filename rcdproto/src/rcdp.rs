@@ -1004,6 +1004,10 @@ pub struct DatabaseSchema {
     pub database_id: ::prost::alloc::string::String,
     #[prost(message, repeated, tag="3")]
     pub tables: ::prost::alloc::vec::Vec<TableSchema>,
+    #[prost(uint32, tag="4")]
+    pub database_type: u32,
+    #[prost(uint32, tag="5")]
+    pub rcd_database_type: u32,
 }
 /// a message for describing the schema information of a table in a database 
 #[derive(Clone, PartialEq, ::prost::Message)]

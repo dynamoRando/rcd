@@ -285,6 +285,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         database_id: db_id.clone(),
         database_name: db_name.to_string(),
         tables: Vec::new(),
+        database_type: 0,
+        rcd_database_type: 0
     };
 
     cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
