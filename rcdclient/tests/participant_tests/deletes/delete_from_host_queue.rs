@@ -1,4 +1,4 @@
-use crate::test_harness::{ServiceAddr, self};
+use crate::test_harness::{self, ServiceAddr};
 use log::info;
 use rcdclient::RcdClient;
 use rcdx::rcd_enum::DeletesFromHostBehavior;
@@ -179,7 +179,6 @@ fn test() {
     main_db_shutdown_triger.trigger();
     part_client_shutdown_trigger.trigger();
     part_db_shutdown_trigger.trigger();
-    
 }
 
 #[cfg(test)]

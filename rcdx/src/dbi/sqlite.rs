@@ -1,12 +1,12 @@
 use self::db_part::get_partial_db_connection;
-use rcdproto::rcdp::{ColumnSchema, RowValue};
-use log::info;
 use super::DbiConfigSqlite;
 use crate::{
     defaults,
     rcd_enum::ColumnType,
     table::{Column, Data, Table, Value},
 };
+use log::info;
+use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
 pub mod db;

@@ -6,18 +6,18 @@ pub struct RcdConn {
     ip4addr: String,
     port: u32,
     un: String,
-    pw: String
+    pw: String,
 }
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub struct RcdDbMetadata{
+pub struct RcdDbMetadata {
     name: String,
     /// Unknown = 0,
     /// Sqlite = 1,
     /// Mysql = 2,
     /// Postgres = 3,
-    // Sqlserver = 4, 
+    // Sqlserver = 4,
     db_type: DatabaseType,
     /// Unknown = 0,
     /// Rcd = 1,

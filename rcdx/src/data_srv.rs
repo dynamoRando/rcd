@@ -1,7 +1,7 @@
 use crate::dbi::{Dbi, PartialDataResult};
 use crate::defaults;
 use crate::rcd_enum::{
-    DeletesFromHostBehavior, PartialDataStatus, UpdatesFromHostBehavior, PartialDataResultAction,
+    DeletesFromHostBehavior, PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior,
 };
 use chrono::Utc;
 use rcdproto::rcdp::*;
@@ -136,7 +136,7 @@ impl DataService for DataServiceImpl {
             row_id: 0,
             data_hash: None,
             partial_data_status: None,
-            action: Some(PartialDataResultAction::Insert)
+            action: Some(PartialDataResultAction::Insert),
         };
 
         if is_authenticated {
@@ -186,7 +186,7 @@ impl DataService for DataServiceImpl {
             row_id: 0,
             data_hash: None,
             partial_data_status: None,
-            action: Some(PartialDataResultAction::Update)
+            action: Some(PartialDataResultAction::Update),
         };
 
         if is_authenticated {
@@ -204,8 +204,7 @@ impl DataService for DataServiceImpl {
                         "The participant does not allow updates for db {} table: {}",
                         db_name, table_name
                     );
-                    update_status =
-                        PartialDataStatus::to_u32(PartialDataStatus::Ignored);
+                    update_status = PartialDataStatus::to_u32(PartialDataStatus::Ignored);
                 }
                 UpdatesFromHostBehavior::AllowOverwrite => {
                     result = self.dbi().update_data_into_partial_db(
@@ -224,9 +223,8 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = PartialDataStatus::to_u32(
-                            PartialDataStatus::SucessOverwriteOrLog,
-                        );
+                        update_status =
+                            PartialDataStatus::to_u32(PartialDataStatus::SucessOverwriteOrLog);
                     }
                 }
                 UpdatesFromHostBehavior::OverwriteWithLog => {
@@ -246,9 +244,8 @@ impl DataService for DataServiceImpl {
                             data_hash: result.data_hash.unwrap(),
                         };
                         rows.push(row);
-                        update_status = PartialDataStatus::to_u32(
-                            PartialDataStatus::SucessOverwriteOrLog,
-                        );
+                        update_status =
+                            PartialDataStatus::to_u32(PartialDataStatus::SucessOverwriteOrLog);
                     }
                 }
                 UpdatesFromHostBehavior::QueueForReview => {
@@ -261,8 +258,7 @@ impl DataService for DataServiceImpl {
                     );
 
                     if result.is_successful {
-                        update_status =
-                            PartialDataStatus::to_u32(PartialDataStatus::Pending);
+                        update_status = PartialDataStatus::to_u32(PartialDataStatus::Pending);
                         action_message =
                             String::from("The update statement has been logged for review");
                     }
@@ -278,8 +274,7 @@ impl DataService for DataServiceImpl {
                     );
 
                     if result.is_successful {
-                        update_status =
-                            PartialDataStatus::to_u32(PartialDataStatus::Pending);
+                        update_status = PartialDataStatus::to_u32(PartialDataStatus::Pending);
                         action_message =
                             String::from("The update statement has been logged for review");
                     }
@@ -325,7 +320,7 @@ impl DataService for DataServiceImpl {
             row_id: 0,
             data_hash: None,
             partial_data_status: None,
-            action: Some(PartialDataResultAction::Delete)
+            action: Some(PartialDataResultAction::Delete),
         };
 
         if is_authenticated {
@@ -351,12 +346,12 @@ impl DataService for DataServiceImpl {
                         &table_name,
                         cmd,
                         &where_clause,
-                        &known_host.host_id
+                        &known_host.host_id,
                     );
 
                     let hash = match result.data_hash {
-                            Some(_) => result.data_hash.unwrap(),
-                            None => 0
+                        Some(_) => result.data_hash.unwrap(),
+                        None => 0,
                     };
 
                     if result.is_successful {
@@ -377,13 +372,13 @@ impl DataService for DataServiceImpl {
                         &table_name,
                         cmd,
                         &where_clause,
-                        &known_host.host_id
+                        &known_host.host_id,
                     );
 
                     let hash = match result.data_hash {
                         Some(_) => result.data_hash.unwrap(),
-                        None => 0
-                };
+                        None => 0,
+                    };
 
                     if result.is_successful {
                         let row = RowInfo {
@@ -410,7 +405,7 @@ impl DataService for DataServiceImpl {
                         action_message =
                             String::from("The delete statement has been logged for review");
                     }
-                },
+                }
                 DeletesFromHostBehavior::Unknown => todo!(),
                 DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
             }

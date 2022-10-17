@@ -11,12 +11,12 @@ use chrono::Utc;
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
+mod admin;
 mod contract;
 mod db;
 mod io;
 mod logical_storage_policy;
 mod participant;
-mod admin;
 
 #[derive(Default, Debug)]
 /// Implements the `SQLClient` definition from the protobuff file
@@ -65,7 +65,6 @@ impl SqlClient for SqlClientImpl {
         let result = admin::get_databases(request.into_inner(), self).await;
         Ok(Response::new(result))
     }
-
 
     async fn accept_pending_action_at_participant(
         &self,

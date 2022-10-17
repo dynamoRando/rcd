@@ -1,11 +1,10 @@
 use super::SqlClientImpl;
-use rcdproto::rcdp::{GetDatabasesReply, GetDatabasesRequest, AuthResult, DatabaseSchema};
+use rcdproto::rcdp::{AuthResult, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest};
 
 pub async fn get_databases(
     request: GetDatabasesRequest,
     client: &SqlClientImpl,
 ) -> GetDatabasesReply {
-
     println!("{:?}", request);
 
     let mut db_result: Vec<DatabaseSchema> = Vec::new();
@@ -29,7 +28,7 @@ pub async fn get_databases(
         }
     }
 
-    let result =  GetDatabasesReply{
+    let result = GetDatabasesReply {
         authentication_result: Some(auth_response),
         databases: db_result,
     };
@@ -43,5 +42,4 @@ pub async fn get_databases(
     for every database name that we have, we should be able to call dbi.get_database_schema and get the resulting schema
     and return that back to the caller if authenticated
     */
-
 }

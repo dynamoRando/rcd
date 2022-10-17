@@ -6,10 +6,10 @@ use rcdproto::rcdp::{
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
     ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetDataHashRequest, GetLogicalStoragePolicyRequest, GetPendingActionsReply,
-    GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest, GetDatabasesReply, GetDatabasesRequest,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
 use rcdx::rcd_enum::{
@@ -399,11 +399,7 @@ impl RcdClient {
         info!("sending request");
 
         let mut client = self.get_client().await;
-        let response = client
-            .get_databases(request)
-            .await
-            .unwrap()
-            .into_inner();
+        let response = client.get_databases(request).await.unwrap().into_inner();
 
         println!("{:?}", response);
 

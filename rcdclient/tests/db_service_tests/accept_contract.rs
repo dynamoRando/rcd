@@ -111,7 +111,6 @@ fn test() {
     main_db_shutdown_triger.trigger();
     part_client_shutdown_trigger.trigger();
     part_db_shutdown_trigger.trigger();
-  
 }
 
 #[cfg(test)]

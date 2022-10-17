@@ -1,8 +1,3 @@
-use chrono::Utc;
-use endianness::*;
-use guid_create::GUID;
-use tonic::transport::Channel;
-use log::info;
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::dbi::CdsHosts;
 use crate::rcd_enum::ContractStatus;
@@ -10,6 +5,10 @@ use crate::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
 };
+use chrono::Utc;
+use endianness::*;
+use guid_create::GUID;
+use log::info;
 use rcdproto::rcdp::data_service_client::DataServiceClient;
 use rcdproto::rcdp::GetRowFromPartialDatabaseResult;
 use rcdproto::rcdp::{
@@ -19,6 +18,7 @@ use rcdproto::rcdp::{
     RowParticipantAddress, SaveContractRequest, TryAuthRequest, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest,
 };
+use tonic::transport::Channel;
 
 pub async fn try_auth_at_participant(
     participant: CoopDatabaseParticipant,

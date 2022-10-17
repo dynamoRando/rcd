@@ -1,4 +1,4 @@
-use crate::test_harness::{ServiceAddr, self};
+use crate::test_harness::{self, ServiceAddr};
 use log::info;
 use rcdclient::RcdClient;
 use rcdx::rcd_enum::DeletesToHostBehavior;
@@ -65,7 +65,7 @@ fn test() {
 
     let part_client_shutdown_trigger = participant_addrs.4;
     let part_db_shutdown_trigger = participant_addrs.5;
-  
+
     let time = time::Duration::from_secs(1);
 
     info!("sleeping for 1 seconds...");
@@ -168,7 +168,6 @@ fn test() {
     main_db_shutdown_triger.trigger();
     part_client_shutdown_trigger.trigger();
     part_db_shutdown_trigger.trigger();
-    
 }
 
 #[cfg(test)]

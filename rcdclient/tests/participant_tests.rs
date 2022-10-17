@@ -1,15 +1,14 @@
-pub mod test_harness;
-#[path = "participant_tests/update.rs"]
-mod update; 
 #[path = "participant_tests/delete.rs"]
 mod delete;
+pub mod test_harness;
+#[path = "participant_tests/update.rs"]
+mod update;
 
 #[path = "participant_tests/reject_host.rs"]
 mod reject_host;
 
 #[path = "participant_tests/admin.rs"]
 mod admin;
-
 
 /*
 # Test Module Overview

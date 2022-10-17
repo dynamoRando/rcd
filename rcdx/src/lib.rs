@@ -14,7 +14,6 @@ mod remote_db_srv;
 mod sqlclient_srv;
 mod table;
 
-
 use crate::rcd_enum::DatabaseType;
 use crate::rcd_service::RcdService;
 use crate::rcd_settings::RcdSettings;
@@ -100,7 +99,7 @@ pub fn get_service_from_config_file() -> RcdService {
         root_dir: String::from(""),
         db_interface: None,
         sql_client_channel: None,
-        db_client_channel: None
+        db_client_channel: None,
     };
 
     if service.root_dir == "" {

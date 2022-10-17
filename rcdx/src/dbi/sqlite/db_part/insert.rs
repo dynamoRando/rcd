@@ -62,7 +62,7 @@ pub fn insert_data_into_partial_db(
         row_id,
         data_hash: Some(hash_value),
         partial_data_status: None,
-        action: Some(crate::rcd_enum::PartialDataResultAction::Insert)
+        action: Some(crate::rcd_enum::PartialDataResultAction::Insert),
     };
 
     return result;

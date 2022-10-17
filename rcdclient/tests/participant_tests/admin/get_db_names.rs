@@ -167,8 +167,14 @@ async fn main_service_client(
     client.create_user_database(db_name).await.unwrap();
 
     client.create_user_database(db_name).await.unwrap();
-    client.create_user_database("get_db_names2.db").await.unwrap();
-    client.create_user_database("get_db_names3.db").await.unwrap();
+    client
+        .create_user_database("get_db_names2.db")
+        .await
+        .unwrap();
+    client
+        .create_user_database("get_db_names3.db")
+        .await
+        .unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
     client
         .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type, "")
@@ -293,9 +299,18 @@ async fn participant_service_client(
 
     let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
-    client.create_user_database("part_example.db").await.unwrap();
-    client.create_user_database("part_example2.db").await.unwrap();
-    client.create_user_database("part_example3.db").await.unwrap();
+    client
+        .create_user_database("part_example.db")
+        .await
+        .unwrap();
+    client
+        .create_user_database("part_example2.db")
+        .await
+        .unwrap();
+    client
+        .create_user_database("part_example3.db")
+        .await
+        .unwrap();
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -336,7 +351,7 @@ async fn participant_get_databases(participant_client_addr: ServiceAddr) -> bool
     let result = client.get_databases().await;
 
     let dbs_reply = result.unwrap();
-    
+
     let mut actual_db_names: Vec<String> = Vec::new();
 
     println!("actual names");
@@ -412,5 +427,4 @@ async fn main_get_databases(db_name: &str, main_client_addr: ServiceAddr) -> boo
     }
 
     return has_all_databases;
-
 }

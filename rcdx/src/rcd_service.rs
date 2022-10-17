@@ -4,13 +4,12 @@ use crate::dbi::{Dbi, DbiConfigSqlite};
 use crate::rcd_enum::DatabaseType;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
+use log::info;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
-use triggered::Listener;
+use std::sync::mpsc::{Receiver, Sender};
 use std::{env, thread};
 use tonic::transport::Server;
-use log::info;
-use std::sync::mpsc::{Sender, Receiver};
-
+use triggered::Listener;
 
 #[derive(Debug)]
 pub struct RcdService {
@@ -18,7 +17,7 @@ pub struct RcdService {
     pub root_dir: String,
     pub db_interface: Option<Dbi>,
     pub sql_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
-    pub db_client_channel:  Option<(Sender<bool>, Receiver<bool>)>,
+    pub db_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
 }
 
 impl RcdService {
@@ -199,20 +198,25 @@ impl RcdService {
                 client_address_port,
                 root1,
                 dbi1,
-                client_shutdown_listener
+                client_shutdown_listener,
             )
             .unwrap();
         });
 
         thread::spawn(move || {
             let name = db2.clone();
-            let _ = Self::start_db_service_at_addr_with_shutdown(&name.to_string(), db_addr2, root2, dbi2, db_shutdown_listener)
-                .unwrap();
+            let _ = Self::start_db_service_at_addr_with_shutdown(
+                &name.to_string(),
+                db_addr2,
+                root2,
+                dbi2,
+                db_shutdown_listener,
+            )
+            .unwrap();
         });
 
         Ok(())
     }
-
 
     #[tokio::main]
     pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
@@ -395,7 +399,7 @@ impl RcdService {
         address_port: String,
         root_folder: String,
         db_interface: Option<Dbi>,
-        shutdown: Listener
+        shutdown: Listener,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let addr = address_port.parse().unwrap();
 
@@ -422,14 +426,13 @@ impl RcdService {
         Ok(())
     }
 
-
     #[tokio::main]
     pub async fn start_db_service_at_addr_with_shutdown(
         database_name: &str,
         address_port: String,
         root_folder: String,
         db_interface: Option<Dbi>,
-        shutdown: Listener
+        shutdown: Listener,
     ) -> Result<(), Box<dyn std::error::Error>> {
         let addr = address_port.parse().unwrap();
 

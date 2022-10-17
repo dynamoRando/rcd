@@ -80,7 +80,7 @@ pub fn delete_data_into_partial_db_queue(
         row_id: next_id,
         data_hash: None,
         partial_data_status: None,
-        action: Some(PartialDataResultAction::Delete)
+        action: Some(PartialDataResultAction::Delete),
     };
 
     return delete_result;
@@ -184,7 +184,7 @@ fn execute_delete(
         row_id: *deleted_row_id,
         data_hash: None,
         partial_data_status: None,
-        action: Some(PartialDataResultAction::Delete)
+        action: Some(PartialDataResultAction::Delete),
     };
 
     println!("{:?}", result);
@@ -210,7 +210,7 @@ pub fn handle_delete_pending_action(
         row_id: 0,
         data_hash: None,
         partial_data_status: None,
-        action: Some(PartialDataResultAction::Delete)
+        action: Some(PartialDataResultAction::Delete),
     };
 
     if behavior == DeletesFromHostBehavior::QueueForReview {

@@ -1,7 +1,7 @@
 use rcd::{RcdConn, RcdDbMetadata};
 use rcdproto::rcdp::DatabaseSchema;
+use yew::html;
 use yew::prelude::*;
-use yew::{html};
 
 mod rcd;
 

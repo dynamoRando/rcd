@@ -45,8 +45,11 @@ pub async fn accept_pending_action_at_participant(
             .dbi()
             .accept_pending_action_at_participant(db_name, table_name, row_id);
 
-            println!("{:?}", data_result);
-            println!("is_local_update_successful: {}", is_local_update_successful.to_string());
+        println!("{:?}", data_result);
+        println!(
+            "is_local_update_successful: {}",
+            is_local_update_successful.to_string()
+        );
 
         if data_result.is_successful {
             is_local_update_successful = true;
@@ -57,13 +60,11 @@ pub async fn accept_pending_action_at_participant(
             let hash = data_result.data_hash;
 
             let is_deleted = match data_result.action {
-                Some(action) => {
-                    match action {
-                        crate::rcd_enum::PartialDataResultAction::Unknown => false,
-                        crate::rcd_enum::PartialDataResultAction::Insert => false,
-                        crate::rcd_enum::PartialDataResultAction::Update => false,
-                        crate::rcd_enum::PartialDataResultAction::Delete => true,
-                    }
+                Some(action) => match action {
+                    crate::rcd_enum::PartialDataResultAction::Unknown => false,
+                    crate::rcd_enum::PartialDataResultAction::Insert => false,
+                    crate::rcd_enum::PartialDataResultAction::Update => false,
+                    crate::rcd_enum::PartialDataResultAction::Delete => true,
                 },
                 None => false,
             };
@@ -76,7 +77,7 @@ pub async fn accept_pending_action_at_participant(
                 table_name,
                 row_id,
                 hash,
-                is_deleted
+                is_deleted,
             )
             .await;
 
@@ -86,8 +87,7 @@ pub async fn accept_pending_action_at_participant(
                 is_remote_update_successful = true;
             }
         }
-    }
-    else {
+    } else {
         println!("not authenticated");
     }
 
@@ -121,7 +121,9 @@ pub async fn get_pending_updates_at_participant(
     let mut pending_statements: Vec<PendingStatement> = Vec::new();
 
     if is_authenticated {
-        pending_statements = client.dbi().get_pending_actions(db_name, table_name, &action);
+        pending_statements = client
+            .dbi()
+            .get_pending_actions(db_name, table_name, &action);
     }
 
     let auth_response = AuthResult {

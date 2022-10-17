@@ -1,7 +1,19 @@
+use super::{add_record_to_log_table, get_partial_db_connection};
+use crate::{
+    crypt,
+    dbi::{
+        get_data_queue_table_name,
+        sqlite::{
+            execute_write, get_scalar_as_u32, get_table_col_names, has_table,
+            rcd_db::get_updates_from_host_behavior, sql_text,
+        },
+        DbiConfigSqlite, PartialDataResult,
+    },
+    defaults,
+    rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior},
+};
 use chrono::Utc;
 use rusqlite::{named_params, types::Type};
-use crate::{dbi::{PartialDataResult, DbiConfigSqlite, get_data_queue_table_name, sqlite::{has_table, sql_text, execute_write, get_scalar_as_u32, rcd_db::get_updates_from_host_behavior, get_table_col_names}}, rcd_enum::{PartialDataStatus, UpdatesFromHostBehavior, PartialDataResultAction}, crypt, defaults};
-use super::{add_record_to_log_table, get_partial_db_connection};
 
 pub fn update_data_into_partial_db_queue(
     db_name: &str,
@@ -67,13 +79,11 @@ pub fn update_data_into_partial_db_queue(
         row_id: next_id,
         data_hash: None,
         partial_data_status: Some(PartialDataStatus::to_u32(PartialDataStatus::Pending)),
-        action: Some(PartialDataResultAction::Update)
+        action: Some(PartialDataResultAction::Update),
     };
 
     return update_result;
 }
-
-
 
 pub fn update_data_into_partial_db(
     db_name: &str,
@@ -224,12 +234,11 @@ fn execute_update_overwrite(
         row_id: row_data.0,
         data_hash: Some(row_data.1),
         partial_data_status: Some(1),
-        action: Some(PartialDataResultAction::Update)
+        action: Some(PartialDataResultAction::Update),
     };
 
     return result;
 }
-
 
 fn execute_update_with_log(
     db_name: &str,
@@ -241,8 +250,6 @@ fn execute_update_with_log(
     add_record_to_log_table(db_name, table_name, where_clause, "UPDATE", config);
     execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
 }
-
-
 
 pub fn handle_update_pending_action(
     db_name: &str,
@@ -262,7 +269,7 @@ pub fn handle_update_pending_action(
         row_id: 0,
         data_hash: None,
         partial_data_status: None,
-        action: Some(PartialDataResultAction::Update)
+        action: Some(PartialDataResultAction::Update),
     };
 
     if behavior == UpdatesFromHostBehavior::QueueForReview {

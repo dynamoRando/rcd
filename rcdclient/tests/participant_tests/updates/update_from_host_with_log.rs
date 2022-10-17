@@ -1,4 +1,4 @@
-use crate::test_harness::{ServiceAddr, self};
+use crate::test_harness::{self, ServiceAddr};
 use log::info;
 use rcdclient::RcdClient;
 use rcdx::rcd_enum::UpdatesFromHostBehavior;
@@ -236,7 +236,6 @@ fn test() {
     main_db_shutdown_triger.trigger();
     part_client_shutdown_trigger.trigger();
     part_db_shutdown_trigger.trigger();
-    
 }
 
 #[cfg(test)]
@@ -579,10 +578,7 @@ async fn main_read_updated_row_should_succeed(
 
 #[cfg(test)]
 #[tokio::main]
-async fn get_data_logs_at_participant(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-) -> bool {
+async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> bool {
     use log::info;
     use rcdclient::RcdClient;
     use rcdx::rcd_enum::DatabaseType;
