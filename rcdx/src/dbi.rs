@@ -5,8 +5,8 @@ use crate::{
     host_info::HostInfo,
     rcd_enum::{
         DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
-        RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
-        UpdatesFromHostBehavior, UpdatesToHostBehavior, PartialDataResultAction,
+        PartialDataResultAction, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
+        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
     table::Table,
 };
@@ -77,7 +77,7 @@ pub struct PartialDataResult {
     pub row_id: u32,
     pub data_hash: Option<u64>,
     pub partial_data_status: Option<u32>,
-    pub action: Option<PartialDataResultAction>
+    pub action: Option<PartialDataResultAction>,
 }
 
 #[derive(Debug, Clone)]
@@ -881,6 +881,19 @@ impl Dbi {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 sqlite::rcd_db::create_login(login, pw, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_database_names(self: &Self) -> Vec<String> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::rcd_db::get_database_names(&settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

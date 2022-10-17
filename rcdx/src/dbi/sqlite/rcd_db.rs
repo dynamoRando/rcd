@@ -373,6 +373,11 @@ pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
         .unwrap();
 }
 
+#[allow(dead_code, unused_variables)]
+pub fn get_database_names(config: &DbiConfigSqlite) -> Vec<String>{
+    unimplemented!()
+}
+
 pub fn has_login_via_config(login: &str, config: DbiConfigSqlite) -> Result<bool> {
     let conn = get_rcd_conn(&config);
     return has_login(login, &conn);
