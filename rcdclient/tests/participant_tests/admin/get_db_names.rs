@@ -1,7 +1,6 @@
-use crate::test_harness::{ServiceAddr, self};
+use crate::test_harness::{self, ServiceAddr};
 use log::info;
 use rcdclient::RcdClient;
-use rcdx::rcd_enum::UpdatesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -9,7 +8,6 @@ use std::{thread, time};
 # Test Description
 */
 
-#[ignore = "code not finished"]
 #[test]
 fn test() {
     let test_name = "get_db_names";
@@ -19,8 +17,8 @@ fn test() {
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
     let (tx_main_write, rx_main_read) = mpsc::channel();
-    let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
-    let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
+    let (tx_p_has_dbs, rx_p_has_dbs) = mpsc::channel();
+    let (tx_h_has_dbs, rx_h_has_dbs) = mpsc::channel();
 
     let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
@@ -50,7 +48,6 @@ fn test() {
     let participant_contract_desc = custom_contract_description.clone();
     let main_db_name = test_db_name.clone();
     let participant_db_name = test_db_name.clone();
-    let pdn = participant_db_name.clone();
     let main_db_name_write = main_db_name.clone();
     let db_name_copy = main_db_name_write.clone();
 
@@ -92,7 +89,7 @@ fn test() {
 
     let participant_accepted_contract = rx_participant.try_recv().unwrap();
     println!(
-        "participant_accpeted_contract: got: {}",
+        "participant_accepted_contract: got: {}",
         participant_accepted_contract
     );
 
@@ -109,29 +106,27 @@ fn test() {
 
     assert!(write_and_read_is_successful);
 
-    let new_update_behavior = UpdatesFromHostBehavior::Ignore;
-
     thread::spawn(move || {
-        let res = participant_changes_update_behavior(&pdn, addr_1, new_update_behavior);
-        tx_p_deny_write.send(res).unwrap();
+        let res = participant_get_databases(addr_1);
+        tx_p_has_dbs.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let status_change_is_successful = rx_p_deny_write.try_recv().unwrap();
+    let p_has_all_dbs = rx_p_has_dbs.try_recv().unwrap();
 
-    assert!(status_change_is_successful);
+    assert!(p_has_all_dbs);
 
     thread::spawn(move || {
-        let res = main_update_should_fail(&db_name_copy, addr);
-        tx_h_auth_fail.send(res).unwrap();
+        let res = main_get_databases(&db_name_copy, addr);
+        tx_h_has_dbs.send(res).unwrap();
     })
     .join()
     .unwrap();
 
-    let should_fail = rx_h_auth_fail.try_recv().unwrap();
+    let h_has_all_dbs = rx_h_has_dbs.try_recv().unwrap();
 
-    assert!(!should_fail);
+    assert!(h_has_all_dbs);
 
     test_harness::release_port(main_addr_client_port);
     test_harness::release_port(main_addr_db_port);
@@ -142,8 +137,6 @@ fn test() {
     main_db_shutdown_triger.trigger();
     part_client_shutdown_trigger.trigger();
     part_db_shutdown_trigger.trigger();
-
-    unimplemented!()
 }
 
 #[cfg(test)]
@@ -173,12 +166,9 @@ async fn main_service_client(
     );
     client.create_user_database(db_name).await.unwrap();
 
-    let db_name2 = format!("{}{}", db_name, "2");
-    let db_name3 = format!("{}{}", db_name, "3");
-
     client.create_user_database(db_name).await.unwrap();
-    client.create_user_database(&db_name2).await.unwrap();
-    client.create_user_database(&db_name3).await.unwrap();
+    client.create_user_database("get_db_names2.db").await.unwrap();
+    client.create_user_database("get_db_names3.db").await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
     client
         .execute_write_at_host(db_name, "DROP TABLE IF EXISTS EMPLOYEE;", database_type, "")
@@ -303,11 +293,9 @@ async fn participant_service_client(
 
     let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
-
-    client.create_user_database("part_example").await.unwrap();
-    client.create_user_database("part_example2").await.unwrap();
-    client.create_user_database("part_example3").await.unwrap();
-
+    client.create_user_database("part_example.db").await.unwrap();
+    client.create_user_database("part_example2.db").await.unwrap();
+    client.create_user_database("part_example3.db").await.unwrap();
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -329,20 +317,13 @@ async fn participant_service_client(
 
 #[cfg(test)]
 #[tokio::main]
-#[allow(dead_code, unused_variables)]
-async fn participant_changes_update_behavior(
-    db_name: &str,
-    participant_client_addr: ServiceAddr,
-    behavior: UpdatesFromHostBehavior,
-) -> bool {
-    use log::info;
+async fn participant_get_databases(participant_client_addr: ServiceAddr) -> bool {
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
 
-    let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+    let has_all_databases = true;
 
-    info!(
-        "participant_changes_update_behavior attempting to connect {}",
+    println!(
+        "participant_get_databases attempting to connect {}",
         participant_client_addr.to_full_string_with_http()
     );
 
@@ -352,26 +333,84 @@ async fn participant_changes_update_behavior(
         String::from("123456"),
     );
 
-    let result = client
-        .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
-        .await;
+    let result = client.get_databases().await;
 
-    return result.unwrap();
+    let dbs_reply = result.unwrap();
+    
+    let mut actual_db_names: Vec<String> = Vec::new();
+
+    println!("actual names");
+
+    for db in &dbs_reply.databases {
+        println!("{}", db.database_name.clone());
+        actual_db_names.push(db.database_name.clone());
+    }
+
+    let mut expected_db_names: Vec<String> = Vec::new();
+    expected_db_names.push("part_example.db".to_string());
+    expected_db_names.push("part_example2.db".to_string());
+    expected_db_names.push("part_example3.db".to_string());
+    expected_db_names.push("get_db_names.dbpart".to_string());
+    expected_db_names.push("rcd.db".to_string());
+
+    println!("expected names");
+    for name in &expected_db_names {
+        println!("{}", name);
+    }
+
+    for name in &expected_db_names {
+        if !actual_db_names.contains(name) {
+            return false;
+        }
+    }
+
+    return has_all_databases;
 }
 
 #[cfg(test)]
 #[tokio::main]
 #[allow(unused_variables)]
-async fn main_update_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+async fn main_get_databases(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+    let has_all_databases = true;
+
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
     );
 
-    let cmd = String::from("UPDATE EMPLOYEE SET NAME = 'Fail' WHERE Id = 999");
-    let update_result = client
-        .execute_cooperative_write_at_host(db_name, &cmd, "participant", "Id = 999")
-        .await;
-    return update_result.unwrap();
+    println!("main_get_databases");
+
+    let result = client.get_databases().await;
+
+    let dbs_reply = result.unwrap();
+
+    let mut actual_db_names: Vec<String> = Vec::new();
+
+    println!("actual names");
+
+    for db in &dbs_reply.databases {
+        println!("{}", db.database_name.clone());
+        actual_db_names.push(db.database_name.clone());
+    }
+
+    let mut expected_db_names: Vec<String> = Vec::new();
+    expected_db_names.push("get_db_names2.db".to_string());
+    expected_db_names.push("get_db_names3.db".to_string());
+    expected_db_names.push("get_db_names.db".to_string());
+    expected_db_names.push("rcd.db".to_string());
+
+    println!("expected names");
+    for name in &expected_db_names {
+        println!("{}", name);
+    }
+
+    for name in &expected_db_names {
+        if !actual_db_names.contains(name) {
+            return false;
+        }
+    }
+
+    return has_all_databases;
+
 }

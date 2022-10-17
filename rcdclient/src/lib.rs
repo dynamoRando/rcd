@@ -9,7 +9,7 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetLogicalStoragePolicyRequest, GetPendingActionsReply,
     GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    TryAuthAtParticipantRequest, ViewPendingContractsRequest, GetDatabasesReply, GetDatabasesRequest,
 };
 
 use rcdx::rcd_enum::{
@@ -387,6 +387,27 @@ impl RcdClient {
         info!("response back");
 
         Ok(response.is_successful)
+    }
+
+    pub async fn get_databases(self: &Self) -> Result<GetDatabasesReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = GetDatabasesRequest {
+            authentication: Some(auth),
+        };
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+        let response = client
+            .get_databases(request)
+            .await
+            .unwrap()
+            .into_inner();
+
+        println!("{:?}", response);
+
+        return Ok(response);
     }
 
     pub async fn execute_cooperative_write_at_host(

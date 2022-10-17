@@ -9,7 +9,7 @@ use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 use crate::{
     dbi::sqlite::has_any_rows,
     query_parser,
-    rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy},
+    rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType},
     table::Table,
 };
 use guid_create::GUID;
@@ -276,55 +276,150 @@ fn create_remotes_table(conn: &Connection) {
 }
 
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
+
+    println!("get_db_schema");
+    println!("{:?}", db_name);
+
     let conn = &get_db_conn(&config, db_name);
 
-    let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
-    let db_id = get_scalar_as_string(cmd, conn);
+    println!("{:?}", conn);
 
-    let mut db_schema = DatabaseSchema {
-        database_id: db_id.clone(),
-        database_name: db_name.to_string(),
-        tables: Vec::new(),
-        database_type: 0,
-        rcd_database_type: 0
-    };
-
-    cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
-
-    let row_to_tuple = |table_id: String, table_name: String| -> Result<(String, String)> {
-        Ok((table_id, table_name))
-    };
-
-    let mut tables_in_db: Vec<(String, String)> = Vec::new();
-
-    let mut statement = conn.prepare(&cmd).unwrap();
-
-    let tables = statement
-        .query_and_then([], |row| {
-            row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
-        })
-        .unwrap();
-
-    for table in tables {
-        tables_in_db.push(table.unwrap());
-    }
-
-    // println!("tables_in_db: {:?}", tables_in_db);
-
-    for t in &tables_in_db {
-        let policy =
-            logical_storage_policy::get_logical_storage_policy(db_name, &t.1, &config).unwrap();
-
-        let mut ts = TableSchema {
-            table_name: t.1.clone(),
-            table_id: t.0.clone(),
+    // if this is a host db
+    if has_table("COOP_DATA_HOST".to_string(), conn.clone()) {
+        println!("get_db_schema for host_db");
+        let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
+        let db_id = get_scalar_as_string(cmd, conn);
+    
+        let mut db_schema = DatabaseSchema {
             database_id: db_id.clone(),
             database_name: db_name.to_string(),
+            tables: Vec::new(),
+            database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
+            rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Host)
+        };
+    
+        cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
+    
+        let row_to_tuple = |table_id: String, table_name: String| -> Result<(String, String)> {
+            Ok((table_id, table_name))
+        };
+    
+        let mut tables_in_db: Vec<(String, String)> = Vec::new();
+    
+        let mut statement = conn.prepare(&cmd).unwrap();
+    
+        let tables = statement
+            .query_and_then([], |row| {
+                row_to_tuple(row.get(0).unwrap(), row.get(1).unwrap())
+            })
+            .unwrap();
+    
+        for table in tables {
+            tables_in_db.push(table.unwrap());
+        }
+    
+        // println!("tables_in_db: {:?}", tables_in_db);
+    
+        for t in &tables_in_db {
+            let policy =
+                logical_storage_policy::get_logical_storage_policy(db_name, &t.1, &config).unwrap();
+    
+            let mut ts = TableSchema {
+                table_name: t.1.clone(),
+                table_id: t.0.clone(),
+                database_id: db_id.clone(),
+                database_name: db_name.to_string(),
+                columns: Vec::new(),
+                logical_storage_policy: LogicalStoragePolicy::to_u32(policy),
+            };
+    
+            let schema = get_schema_of_table(t.1.to_string(), conn);
+    
+            // # Columns:
+            // 1. columnId
+            // 2. name
+            // 3. type
+            // 4. NotNull
+            // 5. defaultValue
+            // 6. IsPK
+    
+            // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
+    
+            for row in schema.unwrap().rows {
+                let mut cs = ColumnSchema {
+                    column_id: String::from(""),
+                    column_name: String::from(""),
+                    column_type: 0,
+                    column_length: 0,
+                    is_nullable: false,
+                    ordinal: 0,
+                    table_id: t.0.to_string(),
+                    is_primary_key: false,
+                };
+    
+                for val in row.vals {
+                    if val.col.name == "columnId" {
+                        let item = val.data.clone().unwrap();
+                        cs.ordinal = item.data_string.parse().unwrap();
+                    }
+    
+                    if val.col.name == "name" {
+                        let item = val.data.clone().unwrap();
+                        cs.column_name = item.data_string.parse().unwrap();
+                    }
+    
+                    if val.col.name == "type" {
+                        let item = val.data.clone().unwrap();
+                        let ct = ColumnType::data_type_to_enum_u32(item.data_string.clone());
+                        let len = ColumnType::data_type_len(item.data_string.clone());
+    
+                        cs.column_type = ct;
+                        cs.column_length = len;
+                    }
+    
+                    if val.col.name == "NotNull" {
+                        let item = val.data.clone().unwrap();
+                        cs.is_nullable = item.data_string.parse().unwrap();
+                    }
+    
+                    if val.col.name == "IsPK" {
+                        let item = val.data.clone().unwrap();
+                        cs.is_primary_key = item.data_string.parse().unwrap();
+                    }
+                }
+    
+                ts.columns.push(cs);
+            }
+    
+            db_schema.tables.push(ts);
+        }
+    
+        // println!("db_schema: {:?}", db_schema);
+    
+        return db_schema;
+    }
+
+    let mut db_schema = DatabaseSchema {
+        database_id: String::from(""),
+        database_name: db_name.to_string(),
+        tables: Vec::new(),
+        database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
+        rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Partial)
+    };
+
+    let table_names = get_all_user_table_names_in_db(conn);
+
+    for table_name in &table_names {
+        let mut ts = TableSchema {
+            table_name: table_name.clone(),
+            table_id: String::from(""),
+            database_id: String::from(""),
+            database_name: db_name.to_string(),
             columns: Vec::new(),
-            logical_storage_policy: LogicalStoragePolicy::to_u32(policy),
+            logical_storage_policy: LogicalStoragePolicy::to_u32(LogicalStoragePolicy::None),
         };
 
-        let schema = get_schema_of_table(t.1.to_string(), conn);
+        let schema = get_schema_of_table(table_name.clone().to_string(), conn);
 
         // # Columns:
         // 1. columnId
@@ -344,11 +439,14 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
                 column_length: 0,
                 is_nullable: false,
                 ordinal: 0,
-                table_id: t.0.to_string(),
+                table_id: String::from(""),
                 is_primary_key: false,
             };
 
             for val in row.vals {
+
+                println!("{:?}", val);
+
                 if val.col.name == "columnId" {
                     let item = val.data.clone().unwrap();
                     cs.ordinal = item.data_string.parse().unwrap();
@@ -385,9 +483,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         db_schema.tables.push(ts);
     }
 
-    // println!("db_schema: {:?}", db_schema);
-
     return db_schema;
+    
 }
 
 pub fn enable_coooperative_features(db_name: &str, config: DbiConfigSqlite) {

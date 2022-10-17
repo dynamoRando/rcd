@@ -1,12 +1,40 @@
 use super::SqlClientImpl;
-use rcdproto::rcdp::{GetDatabasesReply, GetDatabasesRequest};
+use rcdproto::rcdp::{GetDatabasesReply, GetDatabasesRequest, AuthResult, DatabaseSchema};
 
-#[allow(dead_code, unused_variables)]
 pub async fn get_databases(
     request: GetDatabasesRequest,
     client: &SqlClientImpl,
 ) -> GetDatabasesReply {
-    unimplemented!()
+
+    println!("{:?}", request);
+
+    let mut db_result: Vec<DatabaseSchema> = Vec::new();
+
+    let message = request.clone();
+    let a = message.authentication.unwrap();
+    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    if is_authenticated {
+        let db_names = client.dbi().get_database_names();
+        for name in &db_names {
+            let db_schema = client.dbi().get_database_schema(&name);
+            db_result.push(db_schema);
+        }
+    }
+
+    let result =  GetDatabasesReply{
+        authentication_result: Some(auth_response),
+        databases: db_result,
+    };
+
+    return result;
 
     /*
     we need to add a function to dbi to get a list of database names

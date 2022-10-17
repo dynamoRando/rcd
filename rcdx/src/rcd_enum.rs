@@ -483,6 +483,7 @@ impl ColumnType {
     }
 
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
+        println!("{:?}", desc);
         let ct = ColumnType::try_parse(&desc).unwrap();
         return ColumnType::to_u32(ct);
     }
@@ -495,7 +496,8 @@ impl ColumnType {
         } else {
             let idx_first = idx_first_paren.unwrap();
             let idx_last = desc.find(")").unwrap();
-            let str_length = desc.substring(idx_first, idx_last);
+            let str_length = desc.substring(idx_first + 1, idx_last);
+            println!("{}", str_length);
             let length: u32 = str_length.parse().unwrap();
             return length;
         }
@@ -533,6 +535,10 @@ impl ColumnType {
         }
 
         if string_data_type.contains("varbinary") {
+            return Some(ColumnType::Varbinary);
+        }
+
+        if string_data_type.contains("blob") {
             return Some(ColumnType::Varbinary);
         }
 
