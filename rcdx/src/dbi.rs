@@ -849,6 +849,7 @@ impl Dbi {
         }
     }
 
+    /// Associates the specified login to the specified role
     pub fn add_login_to_role(self: &Self, login: &str, role_name: &str) {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -862,6 +863,7 @@ impl Dbi {
         }
     }
 
+    /// Checks if the specified login is in the specified role
     pub fn login_is_in_role(self: &Self, login: &str, role_name: &str) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -876,6 +878,7 @@ impl Dbi {
         }
     }
 
+    /// Creates a login with the specific values
     pub fn create_login(self: &Self, login: &str, pw: &str) {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -889,6 +892,7 @@ impl Dbi {
         }
     }
 
+    /// Returns the names of all the database at this instance
     pub fn get_database_names(self: &Self) -> Vec<String> {
         match self.db_type {
             DatabaseType::Sqlite => {
