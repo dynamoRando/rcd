@@ -434,6 +434,15 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     return Ok(has_login);
 }
 
+pub fn execute_write_on_connection(
+    db_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> usize {
+    let conn = get_db_conn(&config, db_name);
+    return conn.execute(&cmd, []).unwrap();
+}
+
 pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     let root = &config.root_folder;
     let db_name = &config.rcd_db_name;
@@ -450,14 +459,6 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
         create_role_table(&db_conn);
         create_user_role_table(&db_conn);
         create_host_info_table(&db_conn);
-        pub fn execute_write_on_connection(
-            db_name: &str,
-            cmd: &str,
-            config: &DbiConfigSqlite,
-        ) -> usize {
-            let conn = get_db_conn(&config, db_name);
-            return conn.execute(&cmd, []).unwrap();
-        }
         create_contracts_table(&db_conn);
         create_cds_hosts_table(&db_conn);
         create_contracts_table_table(&db_conn);
