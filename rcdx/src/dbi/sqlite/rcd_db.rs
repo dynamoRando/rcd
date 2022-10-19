@@ -434,11 +434,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
     return Ok(has_login);
 }
 
-pub fn execute_write_on_connection(
-    db_name: &str,
-    cmd: &str,
-    config: &DbiConfigSqlite,
-) -> usize {
+pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
     let conn = get_db_conn(&config, db_name);
     return conn.execute(&cmd, []).unwrap();
 }

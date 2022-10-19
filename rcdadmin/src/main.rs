@@ -1,13 +1,12 @@
 use rcd::{RcdConn, RcdDbMetadata};
 use rcdproto::rcdp::DatabaseSchema;
+use serde_derive::{Deserialize, Serialize};
 use yew::html;
 use yew::html::Scope;
 use yew::prelude::*;
 use yew::{Html, NodeRef};
-use serde_derive::{Deserialize, Serialize};
 
 mod rcd;
-
 
 // holds the state of the application and data
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,23 +14,22 @@ struct ApplicationState {
     connection: RcdConn,
     databases: Vec<RcdDbMetadata>,
     active_database: RcdDbMetadata,
-    active_database_schema: DatabaseSchema
+    active_database_schema: DatabaseSchema,
 }
 
 // used to pass messages back to the application about what action is requested
-enum AppMsg {
-}
+enum AppMsg {}
 
 #[allow(dead_code)]
 #[derive(Debug)]
 struct RcdConnUi {
     connection: RcdConn,
-    node_references: Vec<NodeRef>
+    node_references: Vec<NodeRef>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 struct RcdAdminApp {
-    application_state: ApplicationState
+    application_state: ApplicationState,
 }
 
 impl RcdAdminApp {
