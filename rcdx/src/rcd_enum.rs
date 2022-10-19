@@ -1,4 +1,5 @@
 use std::{error::Error, fmt};
+use serde::{Serialize, Deserialize};
 use substring::Substring;
 
 /// Represents the kinds of databases in rcd
@@ -7,7 +8,7 @@ use substring::Substring;
 /// - 1 - Rcd database itself
 /// - 2 - Host database
 /// - 3 - Partial database
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum RcdDatabaseType {
     Unknown = 0,
     Rcd = 1,
@@ -622,7 +623,7 @@ impl fmt::Display for RcdGenerateContractError {
 /// * 2 - Mysql
 /// * 3 - Postgres
 /// * 4 - Sqlserver
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub enum DatabaseType {
     Unknown = 0,
     Sqlite = 1,

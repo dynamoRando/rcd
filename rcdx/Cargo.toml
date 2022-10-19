@@ -28,6 +28,8 @@ antlr-rust = "0.3.0-beta"
 log4rs = "1"
 log = "0.4"
 triggered = "0.1"
+serde = "1"
+serde_derive = "1"
 
 [build-dependencies]
 tonic-build = "0.8.0"

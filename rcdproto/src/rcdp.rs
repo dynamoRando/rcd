@@ -1,8 +1,10 @@
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDatabasesRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDatabasesReply {
     #[prost(message, optional, tag="1")]
@@ -10,6 +12,7 @@ pub struct GetDatabasesReply {
     #[prost(message, repeated, tag="2")]
     pub databases: ::prost::alloc::vec::Vec<DatabaseSchema>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AcceptPendingActionRequest {
     #[prost(message, optional, tag="1")]
@@ -21,6 +24,7 @@ pub struct AcceptPendingActionRequest {
     #[prost(uint32, tag="4")]
     pub row_id: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AcceptPendingActionReply {
     #[prost(message, optional, tag="1")]
@@ -28,6 +32,7 @@ pub struct AcceptPendingActionReply {
     #[prost(bool, tag="2")]
     pub is_successful: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetPendingActionsRequest {
     #[prost(message, optional, tag="1")]
@@ -39,6 +44,7 @@ pub struct GetPendingActionsRequest {
     #[prost(string, tag="4")]
     pub action: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetPendingActionsReply {
     #[prost(message, optional, tag="1")]
@@ -46,6 +52,7 @@ pub struct GetPendingActionsReply {
     #[prost(message, repeated, tag="2")]
     pub pending_statements: ::prost::alloc::vec::Vec<PendingStatement>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct PendingStatement {
     #[prost(uint32, tag="1")]
@@ -59,6 +66,7 @@ pub struct PendingStatement {
     #[prost(string, tag="5")]
     pub action: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetDataLogTableStatusRequest {
     #[prost(message, optional, tag="1")]
@@ -70,6 +78,7 @@ pub struct SetDataLogTableStatusRequest {
     #[prost(bool, tag="4")]
     pub use_data_log: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetDataLogTableStatusReply {
     #[prost(message, optional, tag="1")]
@@ -77,6 +86,7 @@ pub struct SetDataLogTableStatusReply {
     #[prost(bool, tag="2")]
     pub is_successful: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDataLogTableStatusRequest {
     #[prost(message, optional, tag="1")]
@@ -86,6 +96,7 @@ pub struct GetDataLogTableStatusRequest {
     #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDataLogTableStatusReply {
     #[prost(message, optional, tag="1")]
@@ -93,6 +104,7 @@ pub struct GetDataLogTableStatusReply {
     #[prost(bool, tag="2")]
     pub use_data_log: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetReadRowIdsRequest {
     #[prost(message, optional, tag="1")]
@@ -104,6 +116,7 @@ pub struct GetReadRowIdsRequest {
     #[prost(string, tag="4")]
     pub where_clause: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetReadRowIdsReply {
     #[prost(message, optional, tag="1")]
@@ -111,6 +124,7 @@ pub struct GetReadRowIdsReply {
     #[prost(uint32, repeated, tag="2")]
     pub row_ids: ::prost::alloc::vec::Vec<u32>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDataHashRequest {
     #[prost(message, optional, tag="1")]
@@ -122,6 +136,7 @@ pub struct GetDataHashRequest {
     #[prost(uint32, tag="4")]
     pub row_id: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetDataHashReply {
     #[prost(message, optional, tag="1")]
@@ -129,6 +144,7 @@ pub struct GetDataHashReply {
     #[prost(uint64, tag="2")]
     pub data_hash: u64,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeDeletesToHostBehaviorRequest {
     #[prost(message, optional, tag="1")]
@@ -140,6 +156,7 @@ pub struct ChangeDeletesToHostBehaviorRequest {
     #[prost(uint32, tag="4")]
     pub behavior: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeDeletesToHostBehaviorReply {
     #[prost(message, optional, tag="1")]
@@ -149,6 +166,7 @@ pub struct ChangeDeletesToHostBehaviorReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeUpdatesToHostBehaviorRequest {
     #[prost(message, optional, tag="1")]
@@ -160,6 +178,7 @@ pub struct ChangeUpdatesToHostBehaviorRequest {
     #[prost(uint32, tag="4")]
     pub behavior: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeUpdatesToHostBehaviorReply {
     #[prost(message, optional, tag="1")]
@@ -169,6 +188,7 @@ pub struct ChangeUpdatesToHostBehaviorReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeDeletesFromHostBehaviorRequest {
     #[prost(message, optional, tag="1")]
@@ -180,6 +200,7 @@ pub struct ChangeDeletesFromHostBehaviorRequest {
     #[prost(uint32, tag="4")]
     pub behavior: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeDeletesFromHostBehaviorReply {
     #[prost(message, optional, tag="1")]
@@ -189,6 +210,7 @@ pub struct ChangeDeletesFromHostBehaviorReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeUpdatesFromHostBehaviorRequest {
     #[prost(message, optional, tag="1")]
@@ -200,6 +222,7 @@ pub struct ChangeUpdatesFromHostBehaviorRequest {
     #[prost(uint32, tag="4")]
     pub behavior: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangesUpdatesFromHostBehaviorReply {
     #[prost(message, optional, tag="1")]
@@ -209,6 +232,7 @@ pub struct ChangesUpdatesFromHostBehaviorReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TryAuthAtParticipantRequest {
     #[prost(message, optional, tag="1")]
@@ -220,6 +244,7 @@ pub struct TryAuthAtParticipantRequest {
     #[prost(string, tag="4")]
     pub db_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TryAuthAtPartipantReply {
     #[prost(message, optional, tag="1")]
@@ -229,6 +254,7 @@ pub struct TryAuthAtPartipantReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeHostStatusRequest {
     #[prost(message, optional, tag="1")]
@@ -240,6 +266,7 @@ pub struct ChangeHostStatusRequest {
     #[prost(uint32, tag="4")]
     pub status: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ChangeHostStatusReply {
     #[prost(message, optional, tag="1")]
@@ -249,6 +276,7 @@ pub struct ChangeHostStatusReply {
     #[prost(uint32, tag="3")]
     pub status: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateHostInfoRequest {
     #[prost(message, optional, tag="1")]
@@ -256,6 +284,7 @@ pub struct GenerateHostInfoRequest {
     #[prost(string, tag="2")]
     pub host_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateHostInfoReply {
     #[prost(message, optional, tag="1")]
@@ -263,6 +292,7 @@ pub struct GenerateHostInfoReply {
     #[prost(bool, tag="2")]
     pub is_successful: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SendParticipantContractRequest {
     #[prost(message, optional, tag="1")]
@@ -272,6 +302,7 @@ pub struct SendParticipantContractRequest {
     #[prost(string, tag="3")]
     pub participant_alias: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SendParticipantContractReply {
     #[prost(message, optional, tag="1")]
@@ -282,6 +313,7 @@ pub struct SendParticipantContractReply {
     pub message: ::prost::alloc::string::String,
 }
 /// a message representing the results of a SQL query
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct StatementResultset {
     #[prost(bool, tag="1")]
@@ -295,6 +327,7 @@ pub struct StatementResultset {
     #[prost(string, tag="5")]
     pub execution_error_message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateUserDatabaseRequest {
     #[prost(message, optional, tag="1")]
@@ -302,6 +335,7 @@ pub struct CreateUserDatabaseRequest {
     #[prost(string, tag="2")]
     pub database_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateUserDatabaseReply {
     #[prost(message, optional, tag="1")]
@@ -311,6 +345,7 @@ pub struct CreateUserDatabaseReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteReadRequest {
     #[prost(message, optional, tag="1")]
@@ -322,6 +357,7 @@ pub struct ExecuteReadRequest {
     #[prost(uint32, tag="4")]
     pub database_type: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteReadReply {
     #[prost(message, optional, tag="1")]
@@ -331,6 +367,7 @@ pub struct ExecuteReadReply {
     #[prost(message, repeated, tag="3")]
     pub results: ::prost::alloc::vec::Vec<StatementResultset>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteWriteRequest {
     #[prost(message, optional, tag="1")]
@@ -344,6 +381,7 @@ pub struct ExecuteWriteRequest {
     #[prost(string, tag="5")]
     pub where_clause: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteWriteReply {
     #[prost(message, optional, tag="1")]
@@ -353,6 +391,7 @@ pub struct ExecuteWriteReply {
     #[prost(uint32, tag="3")]
     pub total_rows_affected: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HasTableRequest {
     #[prost(message, optional, tag="1")]
@@ -362,6 +401,7 @@ pub struct HasTableRequest {
     #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HasTableReply {
     #[prost(message, optional, tag="1")]
@@ -369,6 +409,7 @@ pub struct HasTableReply {
     #[prost(bool, tag="2")]
     pub has_table: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateContractRequest {
     #[prost(message, optional, tag="1")]
@@ -382,6 +423,7 @@ pub struct GenerateContractRequest {
     #[prost(uint32, tag="5")]
     pub remote_delete_behavior: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GenerateContractReply {
     #[prost(message, optional, tag="1")]
@@ -391,6 +433,7 @@ pub struct GenerateContractReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetLogicalStoragePolicyRequest {
     #[prost(message, optional, tag="1")]
@@ -402,6 +445,7 @@ pub struct SetLogicalStoragePolicyRequest {
     #[prost(uint32, tag="4")]
     pub policy_mode: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SetLogicalStoragePolicyReply {
     #[prost(message, optional, tag="1")]
@@ -411,6 +455,7 @@ pub struct SetLogicalStoragePolicyReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetLogicalStoragePolicyRequest {
     #[prost(message, optional, tag="1")]
@@ -420,6 +465,7 @@ pub struct GetLogicalStoragePolicyRequest {
     #[prost(string, tag="3")]
     pub table_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetLogicalStoragePolicyReply {
     #[prost(message, optional, tag="1")]
@@ -427,6 +473,7 @@ pub struct GetLogicalStoragePolicyReply {
     #[prost(uint32, tag="2")]
     pub policy_mode: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteCooperativeWriteRequest {
     #[prost(message, optional, tag="1")]
@@ -444,6 +491,7 @@ pub struct ExecuteCooperativeWriteRequest {
     #[prost(string, tag="7")]
     pub where_clause: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ExecuteCooperativeWriteReply {
     #[prost(message, optional, tag="1")]
@@ -453,6 +501,7 @@ pub struct ExecuteCooperativeWriteReply {
     #[prost(uint32, tag="3")]
     pub total_rows_affected: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AddParticipantRequest {
     #[prost(message, optional, tag="1")]
@@ -466,6 +515,7 @@ pub struct AddParticipantRequest {
     #[prost(uint32, tag="5")]
     pub port: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AddParticipantReply {
     #[prost(message, optional, tag="1")]
@@ -475,11 +525,13 @@ pub struct AddParticipantReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ViewPendingContractsRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ViewPendingContractsReply {
     #[prost(message, optional, tag="1")]
@@ -487,6 +539,7 @@ pub struct ViewPendingContractsReply {
     #[prost(message, repeated, tag="2")]
     pub contracts: ::prost::alloc::vec::Vec<Contract>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AcceptPendingContractRequest {
     #[prost(message, optional, tag="1")]
@@ -494,6 +547,7 @@ pub struct AcceptPendingContractRequest {
     #[prost(string, tag="2")]
     pub host_alias: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AcceptPendingContractReply {
     #[prost(message, optional, tag="1")]
@@ -503,6 +557,7 @@ pub struct AcceptPendingContractReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RejectPendingContractRequest {
     #[prost(message, optional, tag="1")]
@@ -510,6 +565,7 @@ pub struct RejectPendingContractRequest {
     #[prost(string, tag="2")]
     pub host_alias: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RejectPendingContractReply {
     #[prost(message, optional, tag="1")]
@@ -519,6 +575,7 @@ pub struct RejectPendingContractReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnableCoooperativeFeaturesRequest {
     #[prost(message, optional, tag="1")]
@@ -526,6 +583,7 @@ pub struct EnableCoooperativeFeaturesRequest {
     #[prost(string, tag="2")]
     pub database_name: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct EnableCoooperativeFeaturesReply {
     #[prost(message, optional, tag="1")]
@@ -535,17 +593,20 @@ pub struct EnableCoooperativeFeaturesReply {
     #[prost(string, tag="3")]
     pub message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TryAuthRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TryAuthResult {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
 }
 /// a message for creating a table in a database
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateTableRequest {
     /// The user requesting the table creation
@@ -565,6 +626,7 @@ pub struct CreateTableRequest {
     pub columns: ::prost::alloc::vec::Vec<ColumnSchema>,
 }
 /// a message for describing the result of a CreateTableRequest
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateTableResult {
     #[prost(message, optional, tag="1")]
@@ -582,6 +644,7 @@ pub struct CreateTableResult {
     #[prost(string, tag="7")]
     pub table_id: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowInfo {
     #[prost(string, tag="1")]
@@ -593,6 +656,7 @@ pub struct RowInfo {
     #[prost(uint64, tag="4")]
     pub data_hash: u64,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InsertDataRequest {
     #[prost(message, optional, tag="1")]
@@ -604,6 +668,7 @@ pub struct InsertDataRequest {
     #[prost(string, tag="4")]
     pub cmd: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct InsertDataResult {
     #[prost(message, optional, tag="1")]
@@ -617,6 +682,7 @@ pub struct InsertDataResult {
     #[prost(uint32, tag="5")]
     pub row_id: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateDataRequest {
     #[prost(message, optional, tag="1")]
@@ -630,6 +696,7 @@ pub struct UpdateDataRequest {
     #[prost(string, tag="5")]
     pub where_clause: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateDataResult {
     #[prost(message, optional, tag="1")]
@@ -647,6 +714,7 @@ pub struct UpdateDataResult {
     #[prost(uint32, tag="5")]
     pub update_status: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteDataRequest {
     #[prost(message, optional, tag="1")]
@@ -660,6 +728,7 @@ pub struct DeleteDataRequest {
     #[prost(string, tag="5")]
     pub where_clause: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DeleteDataResult {
     #[prost(message, optional, tag="1")]
@@ -671,6 +740,7 @@ pub struct DeleteDataResult {
     #[prost(message, repeated, tag="4")]
     pub rows: ::prost::alloc::vec::Vec<RowInfo>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRowFromPartialDatabaseRequest {
     #[prost(message, optional, tag="1")]
@@ -680,6 +750,7 @@ pub struct GetRowFromPartialDatabaseRequest {
     #[prost(message, optional, tag="3")]
     pub message_info: ::core::option::Option<MessageInfo>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetRowFromPartialDatabaseResult {
     #[prost(message, optional, tag="1")]
@@ -692,6 +763,7 @@ pub struct GetRowFromPartialDatabaseResult {
     pub row: ::core::option::Option<Row>,
 }
 /// a message from a host to a participant to save a contract
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractRequest {
     #[prost(message, optional, tag="1")]
@@ -699,6 +771,7 @@ pub struct SaveContractRequest {
     #[prost(message, optional, tag="2")]
     pub message_info: ::core::option::Option<MessageInfo>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SaveContractResult {
     #[prost(bool, tag="1")]
@@ -706,6 +779,7 @@ pub struct SaveContractResult {
     #[prost(string, tag="2")]
     pub error_message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ParticipantAcceptsContractRequest {
     #[prost(message, optional, tag="1")]
@@ -719,6 +793,7 @@ pub struct ParticipantAcceptsContractRequest {
     #[prost(message, optional, tag="5")]
     pub message_info: ::core::option::Option<MessageInfo>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ParticipantAcceptsContractResult {
     #[prost(bool, tag="1")]
@@ -726,6 +801,7 @@ pub struct ParticipantAcceptsContractResult {
     #[prost(string, tag="2")]
     pub error_message: ::prost::alloc::string::String,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowDataHashForHostRequest {
     #[prost(message, optional, tag="1")]
@@ -749,6 +825,7 @@ pub struct UpdateRowDataHashForHostRequest {
     #[prost(bool, tag="10")]
     pub is_deleted_at_participant: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct UpdateRowDataHashForHostResponse {
     #[prost(message, optional, tag="1")]
@@ -756,6 +833,7 @@ pub struct UpdateRowDataHashForHostResponse {
     #[prost(bool, tag="2")]
     pub is_successful: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NotifyHostOfRemovedRowRequest {
     #[prost(message, optional, tag="1")]
@@ -775,6 +853,7 @@ pub struct NotifyHostOfRemovedRowRequest {
     #[prost(uint32, tag="8")]
     pub row_id: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct NotifyHostOfRemovedRowResponse {
     #[prost(message, optional, tag="1")]
@@ -783,6 +862,7 @@ pub struct NotifyHostOfRemovedRowResponse {
     pub is_successful: bool,
 }
 /// A message for basic online testing
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TestRequest {
     #[prost(string, tag="1")]
@@ -799,6 +879,7 @@ pub struct TestRequest {
     pub request_echo_message: ::prost::alloc::string::String,
 }
 /// A message for basic online testing
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TestReply {
     #[prost(string, tag="1")]
@@ -809,6 +890,7 @@ pub struct TestReply {
     pub rcdx_version: ::prost::alloc::string::String,
 }
 /// a message for general information
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct MessageInfo {
     #[prost(bool, tag="1")]
@@ -821,6 +903,7 @@ pub struct MessageInfo {
     pub message_guid: ::prost::alloc::string::String,
 }
 /// A message for authentication purposes (note: this is proof of concept, and obviously not secure)
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthRequest {
     #[prost(string, tag="1")]
@@ -833,6 +916,7 @@ pub struct AuthRequest {
     pub token: ::prost::alloc::vec::Vec<u8>,
 }
 /// A message describing the results of an authentication attempt
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct AuthResult {
     #[prost(string, tag="1")]
@@ -845,6 +929,7 @@ pub struct AuthResult {
     pub authentication_message: ::prost::alloc::string::String,
 }
 /// A message for creating a user database
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateDatabaseRequest {
     #[prost(message, optional, tag="1")]
@@ -855,6 +940,7 @@ pub struct CreateDatabaseRequest {
     pub database_name: ::prost::alloc::string::String,
 }
 /// A message describing the results of a CreateDatabaseRequest
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct CreateDatabaseResult {
     #[prost(message, optional, tag="1")]
@@ -869,6 +955,7 @@ pub struct CreateDatabaseResult {
     pub database_id: ::prost::alloc::string::String,
 }
 /// an object for representing a row in a table. used for returning data
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Row {
     #[prost(string, tag="1")]
@@ -887,6 +974,7 @@ pub struct Row {
     pub hash: ::prost::alloc::vec::Vec<u8>,
 }
 /// an object for storing values for a row in a table. used for returning data
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowValue {
     #[prost(message, optional, tag="1")]
@@ -904,6 +992,7 @@ pub struct RowValue {
 /// describes the data status of the host in relation to the participant
 /// if for example the data hash between the host and the participant do not match
 /// or if the row was deleted at the participant, but the reference at the host is not
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowRemoteMetadata {
     #[prost(bool, tag="1")]
@@ -917,6 +1006,7 @@ pub struct RowRemoteMetadata {
 }
 /// a message for describing schema information of a column in a database table
 /// see Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100 for more information
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct ColumnSchema {
     /// the name of the column. Max length of 50 characters
@@ -944,6 +1034,7 @@ pub struct ColumnSchema {
     #[prost(bool, tag="8")]
     pub is_primary_key: bool,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Contract {
     /// the unique contract id
@@ -965,6 +1056,7 @@ pub struct Contract {
     pub status: u32,
 }
 /// a message representing information about a participant in the system
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Participant {
     #[prost(string, tag="1")]
@@ -980,6 +1072,7 @@ pub struct Participant {
     #[prost(bytes="vec", tag="6")]
     pub token: ::prost::alloc::vec::Vec<u8>,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct Host {
     #[prost(string, tag="1")]
@@ -996,6 +1089,7 @@ pub struct Host {
     pub token: ::prost::alloc::vec::Vec<u8>,
 }
 /// a message for describing the schema of a database
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct DatabaseSchema {
     #[prost(string, tag="1")]
@@ -1010,6 +1104,7 @@ pub struct DatabaseSchema {
     pub rcd_database_type: u32,
 }
 /// a message for describing the schema information of a table in a database 
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TableSchema {
     #[prost(string, tag="1")]
@@ -1026,6 +1121,7 @@ pub struct TableSchema {
     #[prost(uint32, tag="6")]
     pub logical_storage_policy: u32,
 }
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TransactionInfo {
     #[prost(string, tag="1")]
@@ -1034,6 +1130,7 @@ pub struct TransactionInfo {
     pub transaction_mode: u32,
 }
 /// a message for identifying the location of a row in a partial database
+#[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RowParticipantAddress {
     #[prost(string, tag="1")]
