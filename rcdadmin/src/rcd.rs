@@ -1,7 +1,7 @@
 use rcdx::rcd_enum::{DatabaseType, RcdDatabaseType};
+use serde_derive::{Deserialize, Serialize};
 
-#[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RcdConn {
     ip4addr: String,
     port: u32,
@@ -9,19 +9,9 @@ pub struct RcdConn {
     pw: String,
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RcdDbMetadata {
     name: String,
-    /// Unknown = 0,
-    /// Sqlite = 1,
-    /// Mysql = 2,
-    /// Postgres = 3,
-    // Sqlserver = 4,
     db_type: DatabaseType,
-    /// Unknown = 0,
-    /// Rcd = 1,
-    /// Host = 2,
-    /// Partial = 3,
     rcd_db_type: RcdDatabaseType,
 }
