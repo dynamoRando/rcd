@@ -9,7 +9,7 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
     SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
 use rcdx::rcd_enum::{
@@ -24,6 +24,7 @@ use tonic::transport::Channel;
 /// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the
 /// `SQLClient` service and is used to talk to an rcd instance as a client
 /// (and not as another `rcd` instance, aka a DataService client service. For that, use the `rcd_data_client` module).
+#[derive(Debug)]
 pub struct RcdClient {
     /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://[::1]:50051`
     addr_port: String,
@@ -39,6 +40,25 @@ impl RcdClient {
             user_name: user_name,
             pw: pw,
         };
+    }
+
+    pub async fn is_online(self: &Self) -> bool {
+        let mut client = self.get_client().await;
+
+        let test_string = "is_online";
+
+        let request = TestRequest {
+            request_time_utc: "".to_string(),
+            request_origin_url: "".to_string(),
+            request_origin_ip4: "".to_string(),
+            request_origin_ip6: "".to_string(),
+            request_port_number: 0,
+            request_echo_message: test_string.clone().to_string(),
+        };
+
+        let result = client.is_online(request).await.unwrap();
+
+        return result.into_inner().reply_echo_message == test_string;
     }
 
     pub async fn accept_pending_action_at_participant(
