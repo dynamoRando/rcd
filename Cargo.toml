@@ -3,5 +3,7 @@ members = [
     "rcdx",
     "rcdproto",
     "rcdclient",
-    "rcdt"
+    "rcdt",
+    "rcdadmin-bh",
+    "rcdadmin-fh"
 ]
