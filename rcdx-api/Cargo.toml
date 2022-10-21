@@ -1,5 +1,5 @@
 [package]
-name = "rcdadmin-bh"
+name = "rcdx-api"
 authors = ["dynamoRando <randyL04@hey.com>"]
 version = "0.1.0"
 edition = "2021"
@@ -7,6 +7,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "4.2.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+rocket = "0.5.0-rc.2"
+rcdclient = { path = "../rcdclient" }
+log4rs = "1"
+log = "0.4"
+config = "0.13.1"
+serde = "1"
+serde_derive = "1"

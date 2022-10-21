@@ -4,6 +4,7 @@ members = [
     "rcdproto",
     "rcdclient",
     "rcdt",
-    "rcdadmin-bh",
-    "rcdadmin-fh"
+    "rcdx-api",
+    "rcdadmin",
+    "rcd-query"
 ]

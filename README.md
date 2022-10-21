@@ -24,8 +24,8 @@ The idea for `rcd` (and other related projects) is inspired by agricultural and/
 - `rcdproto` - library that implements the `rcdp.proto` file in Rust.
 - `rcdclient` - library that is an abstraction over the `SQLClient` definition in the `rcdp.proto` file. This is intended to be used by other applications.
 - `rcdt` - short for `rcd terminal` - intended to be a terminal line application for interacting with `rcdx` (in the future.)
-- `rcdadmin-bh` - short for `rcd admin back half` - intended to be an API constructed in actix-web to interact with an RCD instance and expose HTTP endpoints
-- `rcdadmin-fh` - short for `rcd admin front half` - intended to be a web assembly front end for interacting with an RCD instance thru an `rcdadmin-bh` instance. To be implemented in yew.
+- `rcdx-api` - an http api that sits on top of `rcdx`, leveraging `rcdclient`, leveraging rocket.
+- `rcdadmin` - short for `rcd admin` - intended to be a web assembly front end for interacting with an RCD instance thru an `rcdx-api` instance. To be implemented in yew.
 
 # Other Referenced Projects
 - Antlr, at [antlr.org](https://www.antlr.org/license.html) under BSD-3 license. Used for parsing SQLite statements

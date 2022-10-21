@@ -17,3 +17,12 @@
 ## Docker 
 - Have seperate images for backing databases? SQLite, Postgres? And one all encompassing installation?
 
+# Design 
+- Consider natively supporting BOTH gRPC and HTTP interactions
+    - break out query parsing into a seperate lib
+    - break out business logic (client and data) into seperate layer that both the gRPC and HTTP layers can talk to
+    - add settings to Settings.toml to allow choice of how to interact with `rcdx`
+
+
+
+    
