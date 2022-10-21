@@ -1,14 +1,11 @@
 [package]
-name = "rcd-core"
+name = "rcd-common"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rcdproto = { path = "../rcdproto" }
-rcd-sqlite = { path = "../rcd-sqlite" }
-rcd-common = { path = "../rcd-common" }
 serde = "1"
 serde_derive = "1"
 config = "0.13.1"
@@ -31,3 +28,4 @@ antlr-rust = "0.3.0-beta"
 log4rs = "1"
 log = "0.4"
 triggered = "0.1"
+rcdproto = { path = "../rcdproto" }

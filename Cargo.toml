@@ -1,11 +1,30 @@
 [workspace]
 members = [
+    # --- existing code ---
+    # deprecated - existing code that is deprecated before split. 
+    # most of this code will go into 'rcd-core'
     "rcdx",
-    "rcdproto",
+    # deprecated, code will move to 'rcd-grpc-client'
     "rcdclient",
+    # keep - this is for generating needed gRPC implementation
+    "rcdproto",
+    # keep - not implemented. a terminal client for interacting with an rcd instance
     "rcdt",
-    "rcdx-api",
+    # keep - not implemented. this will be a web assembly admin tool for rcd in yew. 
+    # will need to interact via 'rcdx-http' instance.
     "rcdadmin",
-    "rcd-query",
-    "rcd-core"
+    # keep - not implemented.
+    # the core business logic for rcd
+    "rcd-core",
+    # ---- new code ---- 
+    # - executable to host rcd via grpc calls
+    "rcdx-grpc",
+    # - lib to interact with a rcd grpc hosted instance
+    "rcd-grpc-client",
+    # - executable to host rcd via http calls
+    "rcdx-http",
+    # - new lib for all functionality for a sqlite db
+    "rcd-sqlite",
+    # - new lib for all code common between 'rcd-core' and others
+    "rcd-common",
 ]

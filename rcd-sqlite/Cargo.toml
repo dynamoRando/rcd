@@ -1,5 +1,5 @@
 [package]
-name = "rcd-core"
+name = "rcd-sqlite"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 rcdproto = { path = "../rcdproto" }
-rcd-sqlite = { path = "../rcd-sqlite" }
 rcd-common = { path = "../rcd-common" }
 serde = "1"
 serde_derive = "1"
