@@ -1950,6 +1950,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-query"
+version = "0.1.0"
+
+[[package]]
 name = "rcdadmin"
 version = "0.1.0"
 dependencies = [
