@@ -11,8 +11,10 @@ use crate::{
         DbiConfigSqlite, PartialDataResult,
     },
     query_parser,
-    rcd_enum::DatabaseType,
+    
 };
+
+use rcd_core::rcd_enum::{DatabaseType, PartialDataResultAction};
 
 pub fn insert_data_into_partial_db(
     db_name: &str,
@@ -62,7 +64,7 @@ pub fn insert_data_into_partial_db(
         row_id,
         data_hash: Some(hash_value),
         partial_data_status: None,
-        action: Some(crate::rcd_enum::PartialDataResultAction::Insert),
+        action: Some(PartialDataResultAction::Insert),
     };
 
     return result;

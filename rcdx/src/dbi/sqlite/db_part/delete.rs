@@ -10,10 +10,9 @@ use crate::{
         },
         DbiConfigSqlite, PartialDataResult,
     },
-    defaults,
-    rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction},
+    defaults,  
 };
-
+use rcd_core::rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction};
 use super::{add_record_to_log_table, get_partial_db_connection};
 
 pub fn delete_data_into_partial_db_queue(
@@ -97,11 +96,11 @@ pub fn delete_data_in_partial_db(
     let behavior = get_deletes_from_host_behavior(db_name, table_name, config);
 
     match behavior {
-        crate::rcd_enum::DeletesFromHostBehavior::Unknown => todo!(),
-        crate::rcd_enum::DeletesFromHostBehavior::AllowRemoval => {
+        DeletesFromHostBehavior::Unknown => todo!(),
+        DeletesFromHostBehavior::AllowRemoval => {
             return execute_delete(db_name, table_name, cmd, where_clause, config)
         }
-        crate::rcd_enum::DeletesFromHostBehavior::QueueForReview => {
+        DeletesFromHostBehavior::QueueForReview => {
             return delete_data_into_partial_db_queue(
                 db_name,
                 table_name,
@@ -111,11 +110,11 @@ pub fn delete_data_in_partial_db(
                 config,
             )
         }
-        crate::rcd_enum::DeletesFromHostBehavior::DeleteWithLog => {
+        DeletesFromHostBehavior::DeleteWithLog => {
             return execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
         }
-        crate::rcd_enum::DeletesFromHostBehavior::Ignore => todo!(),
-        crate::rcd_enum::DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
+        DeletesFromHostBehavior::Ignore => todo!(),
+        DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
     }
 }
 

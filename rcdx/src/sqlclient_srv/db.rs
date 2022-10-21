@@ -10,9 +10,8 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
     GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
 };
-
+use rcd_core::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, PartialDataResultAction};
 use crate::{
-    rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior},
     remote_db_srv,
 };
 
@@ -61,10 +60,10 @@ pub async fn accept_pending_action_at_participant(
 
             let is_deleted = match data_result.action {
                 Some(action) => match action {
-                    crate::rcd_enum::PartialDataResultAction::Unknown => false,
-                    crate::rcd_enum::PartialDataResultAction::Insert => false,
-                    crate::rcd_enum::PartialDataResultAction::Update => false,
-                    crate::rcd_enum::PartialDataResultAction::Delete => true,
+                    PartialDataResultAction::Unknown => false,
+                    PartialDataResultAction::Insert => false,
+                    PartialDataResultAction::Update => false,
+                    PartialDataResultAction::Delete => true,
                 },
                 None => false,
             };

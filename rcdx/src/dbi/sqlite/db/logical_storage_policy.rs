@@ -6,9 +6,8 @@ use crate::{
         },
         DbiConfigSqlite,
     },
-    rcd_enum::{LogicalStoragePolicy, RcdDbError},
 };
-
+use rcd_core::rcd_enum::{LogicalStoragePolicy, RcdDbError};
 use super::{get_all_user_table_names_in_db, populate_data_host_tables};
 
 /// Returns a vector of tuples representing the name of the user table and the logical storage policy

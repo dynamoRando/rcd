@@ -1950,6 +1950,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-core"
+version = "0.1.0"
+dependencies = [
+ "antlr-rust",
+ "chrono",
+ "config",
+ "conv",
+ "endianness",
+ "futures",
+ "guid-create",
+ "lazy_static",
+ "log",
+ "log4rs",
+ "prost",
+ "prost-types",
+ "rusqlite",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "sodiumoxide",
+ "substring",
+ "tokio",
+ "tonic",
+ "tonic-reflection",
+ "triggered",
+]
+
+[[package]]
 name = "rcd-query"
 version = "0.1.0"
 
@@ -1976,6 +2004,7 @@ dependencies = [
  "log",
  "prost",
  "prost-types",
+ "rcd-core",
  "rcdproto",
  "rcdx",
  "rusqlite",
@@ -2025,6 +2054,7 @@ dependencies = [
  "log4rs",
  "prost",
  "prost-types",
+ "rcd-core",
  "rcdproto",
  "rusqlite",
  "serde",

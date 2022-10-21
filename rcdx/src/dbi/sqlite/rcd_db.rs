@@ -4,14 +4,14 @@ use crate::{
     dbi::{sqlite::get_db_conn, CdsHosts, DbiConfigSqlite},
     host_info::HostInfo,
     rcd_db::User,
-    rcd_enum::{
-        DeletesFromHostBehavior, DeletesToHostBehavior, RcdDatabaseType, UpdatesFromHostBehavior,
-        UpdatesToHostBehavior,
-    },
 };
 use guid_create::GUID;
 use log::info;
 use rusqlite::{named_params, Connection, Result};
+use rcd_core::rcd_enum::{
+    DeletesFromHostBehavior, DeletesToHostBehavior, RcdDatabaseType, UpdatesFromHostBehavior,
+    UpdatesToHostBehavior,
+};
 use std::{fs, path::Path};
 
 pub mod contract;

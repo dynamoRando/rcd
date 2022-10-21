@@ -3,7 +3,7 @@ use log::info;
 use rcdx::dbi::{Dbi, DbiConfigSqlite};
 use rcdx::get_service_from_config;
 use rcdx::rcd_db;
-use rcdx::rcd_enum::DatabaseType;
+use rcd_core::rcd_enum::DatabaseType;
 use rcdx::rcd_settings::RcdSettings;
 use std::env;
 use std::fs;
@@ -28,7 +28,7 @@ fn read_settings_from_config() {
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
         admin_pw: String::from("123456"),
-        database_type: rcdx::rcd_enum::DatabaseType::Unknown,
+        database_type: rcd_core::rcd_enum::DatabaseType::Unknown,
         backing_database_name: String::from(""),
         client_service_addr_port: String::from("[::1]:50051"),
         database_service_addr_port: String::from(""),

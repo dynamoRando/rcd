@@ -17,7 +17,8 @@ pub mod sqlite {
     }
 
     pub mod determine_statement_type {
-        use rcdx::{query_parser::sqlite::determine_statement_type, rcd_enum::DmlType};
+        use rcd_core::rcd_enum::DmlType;
+        use rcdx::{query_parser::sqlite::determine_statement_type};
         #[test]
         pub fn unknown() {
             let example = "ABCD";

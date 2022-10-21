@@ -9,11 +9,10 @@ use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 use crate::{
     dbi::sqlite::has_any_rows,
     query_parser,
-    rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType},
     table::Table,
 };
 use guid_create::GUID;
-
+use rcd_core::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
 use rusqlite::{named_params, Connection, Error, Result};
 
 pub mod contract;

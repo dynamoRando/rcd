@@ -1,4 +1,4 @@
-use crate::rcd_enum::ContractStatus;
+use rcd_core::rcd_enum::ContractStatus;
 use guid_create::GUID;
 
 /*

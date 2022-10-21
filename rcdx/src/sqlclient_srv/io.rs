@@ -1,13 +1,15 @@
+use rcd_core::rcd_enum::DeletesToHostBehavior;
+use rcd_core::rcd_enum::UpdatesToHostBehavior;
 use rcdproto::rcdp::{
     AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
 };
-
+use rcd_core::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
 use super::SqlClientImpl;
 use crate::{
     host_info::HostInfo,
     query_parser,
-    rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType},
+   
     remote_db_srv,
 };
 use conv::UnwrapOk;
@@ -206,8 +208,8 @@ pub async fn execute_write_at_participant(
                     );
 
                     match update_behavior {
-                        crate::rcd_enum::UpdatesToHostBehavior::Unknown => todo!(),
-                        crate::rcd_enum::UpdatesToHostBehavior::SendDataHashChange => {
+                        UpdatesToHostBehavior::Unknown => todo!(),
+                        UpdatesToHostBehavior::SendDataHashChange => {
                             let remote_host =
                                 client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
@@ -230,7 +232,7 @@ pub async fn execute_write_at_participant(
                                 rows_affected = 1;
                             }
                         }
-                        crate::rcd_enum::UpdatesToHostBehavior::DoNothing => {
+                        UpdatesToHostBehavior::DoNothing => {
                             is_overall_successful = true;
                             rows_affected = 1;
                         }
@@ -252,8 +254,8 @@ pub async fn execute_write_at_participant(
                     );
 
                     match delete_behavior {
-                        crate::rcd_enum::DeletesToHostBehavior::Unknown => todo!(),
-                        crate::rcd_enum::DeletesToHostBehavior::SendNotification => {
+                        DeletesToHostBehavior::Unknown => todo!(),
+                        DeletesToHostBehavior::SendNotification => {
                             let remote_host =
                                 client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
                             let own_host_info = client.dbi().rcd_get_host_info().clone();
@@ -274,7 +276,7 @@ pub async fn execute_write_at_participant(
                                 rows_affected = 1;
                             }
                         }
-                        crate::rcd_enum::DeletesToHostBehavior::DoNothing => {
+                        DeletesToHostBehavior::DoNothing => {
                             println!("configured to not notify host on local delete");
                             if delete_result.is_successful {
                                 is_overall_successful = true;

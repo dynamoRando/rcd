@@ -10,9 +10,10 @@ use crate::{
         sqlite::{execute_read_on_connection, execute_write, get_db_conn, has_any_rows},
         DbiConfigSqlite,
     },
-    defaults,
-    rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior},
+    defaults,  
 };
+
+use rcd_core::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 
 use super::logical_storage_policy::get_logical_storage_policy_for_all_user_tables;
 

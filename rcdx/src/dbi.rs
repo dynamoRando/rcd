@@ -3,19 +3,19 @@ use crate::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     defaults,
     host_info::HostInfo,
-    rcd_enum::{
-        DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
-        PartialDataResultAction, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
-        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
-    },
     table::Table,
 };
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
 use rusqlite::{Connection, Error};
+use rcd_core:: rcd_enum::{
+    DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
+    PartialDataResultAction, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
+    RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
+};
 
 mod sqlite;
 
-use crate::rcd_enum::ContractStatus;
+use rcd_core::rcd_enum::ContractStatus;
 
 #[derive(Clone, Debug)]
 pub struct CdsContracts {

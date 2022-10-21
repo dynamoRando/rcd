@@ -123,8 +123,8 @@ async fn main_service_client(
     contract_desc: String,
 ) -> bool {
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::LogicalStoragePolicy;
-    use rcdx::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+    use rcd_core::rcd_enum::LogicalStoragePolicy;
+    use rcd_core::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -192,7 +192,7 @@ async fn participant_service_client(
     contract_desc: String,
 ) -> bool {
     use rcdclient::RcdClient;
-    use rcdx::rcd_enum::DatabaseType;
+    use rcd_core::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;

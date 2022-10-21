@@ -12,7 +12,7 @@ use rcdproto::rcdp::{
     TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
-use rcdx::rcd_enum::{
+use rcd_core::rcd_enum::{
     DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
     RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
 };

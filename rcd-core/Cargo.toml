@@ -1,14 +1,13 @@
 [package]
-name = "rcdx"
+name = "rcd-core"
 version = "0.1.0"
-authors = ["dynamoRando <randyL04@hey.com>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rcdproto = { path = "../rcdproto" }
-rcd-core = { path = "../rcd-core" }
+serde = "1"
+serde_derive = "1"
 config = "0.13.1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 tonic = "0.8.1"
@@ -29,8 +28,3 @@ antlr-rust = "0.3.0-beta"
 log4rs = "1"
 log = "0.4"
 triggered = "0.1"
-serde = "1"
-serde_derive = "1"
-
-[build-dependencies]
-tonic-build = "0.8.0"

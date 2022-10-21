@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use std::{error::Error, fmt};
+use serde::{Serialize, Deserialize};
 use substring::Substring;
 
 /// Represents the kinds of databases in rcd

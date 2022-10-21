@@ -1,4 +1,4 @@
-use crate::rcd_enum::{DatabaseType, DmlType};
+use rcd_core::rcd_enum::{DatabaseType, DmlType};
 
 pub mod sqlite;
 
