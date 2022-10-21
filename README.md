@@ -20,12 +20,24 @@ In this situation, `rcd` enables data to physically be split in a database syste
 The idea for `rcd` (and other related projects) is inspired by agricultural and/or food cooperatives.
 
 # Project Layout
+
+This project is currently going a reorganization.
+
+## Existing Libraries
 - `rcdx` - the actual rcd binary that runs.
 - `rcdproto` - library that implements the `rcdp.proto` file in Rust.
 - `rcdclient` - library that is an abstraction over the `SQLClient` definition in the `rcdp.proto` file. This is intended to be used by other applications.
-- `rcdt` - short for `rcd terminal` - intended to be a terminal line application for interacting with `rcdx` (in the future.)
-- `rcdx-api` - an http api that sits on top of `rcdx`, leveraging `rcdclient`, leveraging rocket.
-- `rcdadmin` - short for `rcd admin` - intended to be a web assembly front end for interacting with an RCD instance thru an `rcdx-api` instance. To be implemented in yew.
+
+## New Layout
+- `rcdx-grpc` - a gRPC enabled binary that serves a `rcd` instance. Used both for the client and data endpoints. This is effectively the former `rcdx` binary.
+- `rcd-core` - a library that contains the business logic for `rcd`. abstracts the client and data services and interactions with target database systems (Sqlite, MySQL, Postgres, etc.)
+- `rcd-common` - a library that contains most objects shared by `rdc` libaries.
+- `rcd-sqlite` - a library that contains code specific to an `rcd` implementation done in SQLite. As other databases are targeted other libraries will be added (MySQL, Postgres, etc).
+- `rcd-grpc-client` - a replacement for `rcdclient`. This will be a native Rust lib that is an abstraction over the `rcdp.proto` and `rcdproto` lib.
+- `rcdproto` - a Rust library that implements the `rcdp.proto` definition.
+- `rcdt` - a binary for terminal interaction with an `rcdx-*` instance
+- `rcdx-http` - an HTTP enabled binary that serves an `rcd` instance
+- `rcdadmin` - a web assembly front end for managing an `rcd` instace. to be done in yew. will interact with an `rcdx-http` instance via HTTP calls.
 
 # Other Referenced Projects
 - Antlr, at [antlr.org](https://www.antlr.org/license.html) under BSD-3 license. Used for parsing SQLite statements

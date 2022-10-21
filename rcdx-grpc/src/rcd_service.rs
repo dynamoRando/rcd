@@ -1,4 +1,3 @@
-use crate::configure_backing_store_at_dir;
 use crate::data_srv::DataServiceImpl;
 use crate::dbi::{Dbi, DbiConfigSqlite};
 use rcd_common::rcd_enum::DatabaseType;
@@ -10,6 +9,72 @@ use std::sync::mpsc::{Receiver, Sender};
 use std::{env, thread};
 use tonic::transport::Server;
 use triggered::Listener;
+
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store_at_dir(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+    root_dir: &str,
+) {
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: root_dir.to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            crate::rcd_db::configure(&dbi);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
+        }
+        DatabaseType::Mysql => do_nothing(),
+        DatabaseType::Postgres => do_nothing(),
+        DatabaseType::Sqlserver => do_nothing(),
+        _ => panic!("Unknown db type"),
+    }
+}
+
+
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+) {
+    let cwd = env::current_dir().unwrap();
+
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            crate::rcd_db::configure(&dbi);
+            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
+        }
+        DatabaseType::Mysql => do_nothing(),
+        DatabaseType::Postgres => do_nothing(),
+        DatabaseType::Sqlserver => do_nothing(),
+        _ => panic!("Unknown db type"),
+    }
+}
 
 #[derive(Debug)]
 pub struct RcdService {
