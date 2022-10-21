@@ -1,19 +1,10 @@
 use chrono::{TimeZone, Utc};
 use guid_create::GUID;
+use rcd_common::{rcd_enum::{RemoteDeleteBehavior, RcdGenerateContractError, LogicalStoragePolicy}, db::DbiConfigSqlite, coop_database_contract::CoopDatabaseContract, defaults, coop_database_participant::CoopDatabaseParticipant};
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};
 
-use crate::{
-    coop_database_contract::CoopDatabaseContract,
-    coop_database_participant::CoopDatabaseParticipant,
-    dbi::{
-        sqlite::{execute_read_on_connection, execute_write, get_db_conn, has_any_rows},
-        DbiConfigSqlite,
-    },
-    defaults,  
-};
-
-use rcd_core::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
+use crate::sqlite::{get_db_conn, has_any_rows, execute_write, execute_read_on_connection};
 
 use super::logical_storage_policy::get_logical_storage_policy_for_all_user_tables;
 

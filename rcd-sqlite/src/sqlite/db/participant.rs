@@ -1,16 +1,8 @@
 use guid_create::GUID;
+use rcd_common::{coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData}, rcd_enum::ContractStatus, db::DbiConfigSqlite, defaults};
 use rusqlite::{named_params, Connection, Result};
 
-use crate::{
-    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    dbi::{
-        sqlite::{get_db_conn, has_any_rows},
-        DbiConfigSqlite,
-    },
-    defaults,
-};
-
-use rcd_core::rcd_enum::{ContractStatus};
+use crate::sqlite::{get_db_conn, has_any_rows};
 
 /// Creates the COOP_PARTICIPANT table if it does not exist. This holds
 /// the participant information that are cooperating with this database.

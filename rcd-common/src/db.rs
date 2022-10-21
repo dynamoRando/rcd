@@ -96,3 +96,16 @@ pub fn get_data_queue_table_name(table_name: &str) -> String {
     );
     return format!("{}{}", table_name, defaults::DATA_QUEUE_TABLE_SUFFIX);
 }
+
+
+pub fn get_metadata_table_name(table_name: &str) -> String {
+    return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+}
+
+pub fn get_data_log_table_name(table_name: &str) -> String {
+    println!(
+        "get_data_log_table_name: {}",
+        format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX)
+    );
+    return format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX);
+}

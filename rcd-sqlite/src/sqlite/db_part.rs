@@ -1,8 +1,8 @@
 use super::{
     execute_read_at_participant, execute_read_on_connection_for_row, get_db_conn_with_result,
-    get_scalar_as_string, get_scalar_as_u32, get_scalar_as_u64, get_table_col_names,
+    get_scalar_as_string, get_scalar_as_u32, get_scalar_as_u64, get_table_col_names, get_table_col_names_with_data_type_as_string, has_table, sql_text, execute_write,
 };
-use rcd_common::db::{DbiConfigSqlite, PartialDataResult, get_data_queue_table_name};
+use rcd_common::db::{DbiConfigSqlite, PartialDataResult, get_data_queue_table_name, get_metadata_table_name, get_data_log_table_name};
 use rcd_common::rcd_enum::ColumnType;
 use rcd_common::table::Table;
 use chrono::Utc;

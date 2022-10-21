@@ -1,20 +1,8 @@
+use rcd_common::{db::{PartialDataResult, DbiConfigSqlite}, rcd_enum::{DatabaseType, PartialDataResultAction}, crypt};
 use rusqlite::named_params;
 
-use crate::{
-    crypt,
-    dbi::{
-        get_metadata_table_name,
-        sqlite::{
-            db_part::get_partial_db_connection, execute_write, get_scalar_as_u32, has_table,
-            sql_text,
-        },
-        DbiConfigSqlite, PartialDataResult,
-    },
-    query_parser,
-    
-};
-
-use rcd_core::rcd_enum::{DatabaseType, PartialDataResultAction};
+use crate::{query_parser, sqlite::{get_scalar_as_u32, execute_write, db_part::get_partial_db_connection, has_table, sql_text}};
+use rcd_common::db::*;
 
 pub fn insert_data_into_partial_db(
     db_name: &str,

@@ -1,83 +1,18 @@
-use crate::{
+use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    defaults,
+    db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
+    rcd_enum::{
+        DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
+        RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
+        UpdatesFromHostBehavior, UpdatesToHostBehavior,
+    },
     table::Table,
 };
+use rcd_sqlite::sqlite::{self, rcd_db::if_host_info_exists};
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
 use rusqlite::{Connection, Error};
-use crate:: rcd_enum::{
-    DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
-    PartialDataResultAction, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
-    RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
-};
-
-
-use crate::rcd_enum::ContractStatus;
-
-#[derive(Clone, Debug)]
-pub struct CdsContracts {
-    pub host_id: String,
-    pub contract_id: String,
-    pub contract_version_id: String,
-    pub database_name: String,
-    pub database_id: String,
-    pub description: String,
-    pub generated_date: String,
-    pub contract_status: ContractStatus,
-}
-
-#[derive(Clone, Debug)]
-pub struct CdsContractsTables {
-    pub database_id: String,
-    pub database_name: String,
-    pub table_id: String,
-    pub table_name: String,
-    pub logical_storage_policy: u32,
-}
-
-#[derive(Clone, Debug)]
-pub struct CdsContractsTablesColumns {
-    pub table_id: String,
-    pub column_id: String,
-    pub column_name: String,
-    pub column_type: u32,
-    pub column_length: u32,
-    pub column_ordinal: u32,
-    pub is_nullable: bool,
-}
-
-#[derive(Clone, Debug)]
-pub struct CdsCoop {
-    pub table_id: String,
-    pub column_id: String,
-    pub column_name: String,
-    pub column_type: u32,
-    pub column_length: u32,
-    pub column_ordinal: u32,
-    pub is_nullable: bool,
-}
-
-#[derive(Clone, Debug)]
-pub struct CdsHosts {
-    pub host_id: String,
-    pub host_name: String,
-    pub token: Vec<u8>,
-    pub ip4: String,
-    pub ip6: String,
-    pub port: u32,
-    pub last_comm_utc: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct PartialDataResult {
-    pub is_successful: bool,
-    pub row_id: u32,
-    pub data_hash: Option<u64>,
-    pub partial_data_status: Option<u32>,
-    pub action: Option<PartialDataResultAction>,
-}
 
 #[derive(Debug, Clone)]
 /// Database Interface: an abstraction over the underlying database layer. Supports:
@@ -92,50 +27,6 @@ pub struct Dbi {
     pub sqlite_config: Option<DbiConfigSqlite>,
 }
 
-#[derive(Debug, Clone)]
-pub struct DbiConfigSqlite {
-    pub root_folder: String,
-    pub rcd_db_name: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct DbiConfigMySql {
-    pub user_name: String,
-    pub pw: String,
-    pub connection_string: String,
-    pub host: String,
-    pub connect_options: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct DbiConfigPostgres {
-    pub user_name: String,
-    pub pw: String,
-    pub connection_string: String,
-    pub host: String,
-    pub connect_options: String,
-}
-
-pub fn get_metadata_table_name(table_name: &str) -> String {
-    return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
-}
-
-pub fn get_data_log_table_name(table_name: &str) -> String {
-    println!(
-        "get_data_log_table_name: {}",
-        format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX)
-    );
-    return format!("{}{}", table_name, defaults::DATA_LOG_TABLE_SUFFIX);
-}
-
-pub fn get_data_queue_table_name(table_name: &str) -> String {
-    println!(
-        "get_data_queue_table_name: {}",
-        format!("{}{}", table_name, defaults::DATA_QUEUE_TABLE_SUFFIX)
-    );
-    return format!("{}{}", table_name, defaults::DATA_QUEUE_TABLE_SUFFIX);
-}
-
 impl Dbi {
     pub fn accept_pending_action_at_participant(
         self: &Self,
@@ -146,7 +37,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::db_part::accept_pending_action_at_participant(
+                return rcd_sqlite::sqlite::db_part::accept_pending_action_at_participant(
                     db_name, table_name, row_id, &settings,
                 );
             }
@@ -1252,11 +1143,11 @@ impl Dbi {
     /// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
     /// Will always return the current `HostInfo`
     pub fn generate_and_get_host_info(self: &Self, host_name: &str) -> HostInfo {
-        if !HostInfo::exists(self) {
-            HostInfo::generate(host_name, self);
+        if !self.if_rcd_host_info_exists() {
+            self.rcd_generate_host_info(host_name);
         }
 
-        return HostInfo::get(self);
+        return self.rcd_get_host_info();
     }
 
     pub fn configure_admin(self: &Self, login: &str, pw: &str) {
