@@ -14,7 +14,7 @@ use crate::{
     
 };
 
-use rcd_core::rcd_enum::{DatabaseType, PartialDataResultAction};
+use rcd_common::rcd_enum::{DatabaseType, PartialDataResultAction};
 
 pub fn insert_data_into_partial_db(
     db_name: &str,

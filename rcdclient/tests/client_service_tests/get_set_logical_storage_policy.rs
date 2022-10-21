@@ -1,5 +1,5 @@
 use log::info;
-use rcd_core::rcd_enum::LogicalStoragePolicy;
+use rcd_common::rcd_enum::LogicalStoragePolicy;
 extern crate futures;
 extern crate tokio;
 use crate::test_harness;
@@ -65,7 +65,7 @@ async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
     #[allow(unused_imports)]
     use log::Log;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     let addr_port = format!("{}{}", String::from("http://"), addr_port);

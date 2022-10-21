@@ -4,7 +4,7 @@ use super::{
     sqlitelistener::SQLiteListener,
     sqliteparser::{self, SQLiteParserContext, SQLiteParserContextType},
 };
-use rcd_core::rcd_enum::DmlType;
+use rcd_common::rcd_enum::DmlType;
 
 #[derive(Clone, Debug)]
 pub struct RcdSqliteListener {

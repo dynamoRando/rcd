@@ -7,7 +7,7 @@ use crate::{
 };
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
 use rusqlite::{Connection, Error};
-use rcd_core:: rcd_enum::{
+use rcd_common:: rcd_enum::{
     DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
     PartialDataResultAction, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
     RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
@@ -15,7 +15,7 @@ use rcd_core:: rcd_enum::{
 
 mod sqlite;
 
-use rcd_core::rcd_enum::ContractStatus;
+use rcd_common::rcd_enum::ContractStatus;
 
 #[derive(Clone, Debug)]
 pub struct CdsContracts {

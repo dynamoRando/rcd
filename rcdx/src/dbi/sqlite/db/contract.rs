@@ -13,7 +13,7 @@ use crate::{
     defaults,  
 };
 
-use rcd_core::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
+use rcd_common::rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior};
 
 use super::logical_storage_policy::get_logical_storage_policy_for_all_user_tables;
 

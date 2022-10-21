@@ -10,7 +10,7 @@ use crate::{
     defaults,
 };
 
-use rcd_core::rcd_enum::{ContractStatus};
+use rcd_common::rcd_enum::{ContractStatus};
 
 /// Creates the COOP_PARTICIPANT table if it does not exist. This holds
 /// the participant information that are cooperating with this database.

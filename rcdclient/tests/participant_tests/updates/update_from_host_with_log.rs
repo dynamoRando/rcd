@@ -1,7 +1,7 @@
 use crate::test_harness::{self, ServiceAddr};
 use log::info;
 use rcdclient::RcdClient;
-use rcd_core::rcd_enum::UpdatesFromHostBehavior;
+use rcd_common::rcd_enum::UpdatesFromHostBehavior;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -248,7 +248,7 @@ async fn main_service_client(
     contract_desc: String,
 ) -> bool {
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::LogicalStoragePolicy;
+    use rcd_common::rcd_enum::LogicalStoragePolicy;
     use rcd_core::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -312,7 +312,7 @@ async fn main_service_client(
 #[tokio::main]
 #[allow(unused_variables)]
 async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
@@ -370,7 +370,7 @@ async fn participant_service_client(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;
@@ -416,7 +416,7 @@ async fn participant_changes_update_behavior(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -444,7 +444,7 @@ async fn participant_changes_update_behavior(
 async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -478,7 +478,7 @@ async fn get_data_hash_for_changed_row_at_participant(
 ) -> u64 {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -511,7 +511,7 @@ async fn get_data_hash_for_changed_row_at_host(
 ) -> u64 {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -541,7 +541,7 @@ async fn main_read_updated_row_should_succeed(
     db_name: &str,
     main_client_addr: ServiceAddr,
 ) -> bool {
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
@@ -581,7 +581,7 @@ async fn main_read_updated_row_should_succeed(
 async fn get_data_logs_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     info!(
         "get_data_logs_at_participant attempting to connect {}",

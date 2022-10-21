@@ -122,7 +122,7 @@ async fn main_service_client(
     contract_desc: String,
 ) -> bool {
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::LogicalStoragePolicy;
+    use rcd_common::rcd_enum::LogicalStoragePolicy;
     use rcd_core::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -186,7 +186,7 @@ async fn main_service_client(
 #[tokio::main]
 #[allow(unused_variables)]
 async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let client = RcdClient::new(
         main_client_addr.to_full_string_with_http(),
@@ -244,7 +244,7 @@ async fn participant_service_client(
 ) -> bool {
     use log::info;
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;

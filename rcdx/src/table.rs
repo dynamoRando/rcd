@@ -1,4 +1,4 @@
-use rcd_core::rcd_enum::ColumnType;
+use rcd_common::rcd_enum::ColumnType;
 use guid_create::GUID;
 use substring::Substring;
 

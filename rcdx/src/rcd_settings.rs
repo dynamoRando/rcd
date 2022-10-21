@@ -1,4 +1,4 @@
-use rcd_core::rcd_enum::DatabaseType;
+use rcd_common::rcd_enum::DatabaseType;
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]

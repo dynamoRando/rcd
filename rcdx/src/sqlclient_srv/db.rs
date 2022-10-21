@@ -10,7 +10,7 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
     GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
 };
-use rcd_core::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, PartialDataResultAction};
+use rcd_common::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, PartialDataResultAction};
 use crate::{
     remote_db_srv,
 };

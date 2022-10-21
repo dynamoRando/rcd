@@ -9,7 +9,7 @@ use crate::{
 };
 use chrono::Utc;
 use rusqlite::{named_params, Connection, Result};
-use rcd_core::rcd_enum::ContractStatus;
+use rcd_common::rcd_enum::ContractStatus;
 
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);

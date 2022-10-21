@@ -1,10 +1,10 @@
-use rcd_core::rcd_enum::DeletesToHostBehavior;
-use rcd_core::rcd_enum::UpdatesToHostBehavior;
+use rcd_common::rcd_enum::DeletesToHostBehavior;
+use rcd_common::rcd_enum::UpdatesToHostBehavior;
 use rcdproto::rcdp::{
     AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
 };
-use rcd_core::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
+use rcd_common::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
 use super::SqlClientImpl;
 use crate::{
     host_info::HostInfo,

@@ -1,6 +1,6 @@
 use crate::dbi::{Dbi, PartialDataResult};
 use crate::defaults;
-use rcd_core::rcd_enum::{
+use rcd_common::rcd_enum::{
     DeletesFromHostBehavior, PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior,
 };
 use chrono::Utc;

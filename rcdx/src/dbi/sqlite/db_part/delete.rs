@@ -12,7 +12,7 @@ use crate::{
     },
     defaults,  
 };
-use rcd_core::rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction};
+use rcd_common::rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction};
 use super::{add_record_to_log_table, get_partial_db_connection};
 
 pub fn delete_data_into_partial_db_queue(

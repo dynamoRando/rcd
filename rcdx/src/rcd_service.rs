@@ -1,7 +1,7 @@
 use crate::configure_backing_store_at_dir;
 use crate::data_srv::DataServiceImpl;
 use crate::dbi::{Dbi, DbiConfigSqlite};
-use rcd_core::rcd_enum::DatabaseType;
+use rcd_common::rcd_enum::DatabaseType;
 use crate::sqlclient_srv::SqlClientImpl;
 use crate::{configure_backing_store, rcd_settings::RcdSettings};
 use log::info;

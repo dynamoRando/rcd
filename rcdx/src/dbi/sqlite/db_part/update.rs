@@ -13,7 +13,7 @@ use crate::{
 };
 use chrono::Utc;
 use rusqlite::{named_params, types::Type};
-use rcd_core::rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior};
+use rcd_common::rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior};
 
 pub fn update_data_into_partial_db_queue(
     db_name: &str,

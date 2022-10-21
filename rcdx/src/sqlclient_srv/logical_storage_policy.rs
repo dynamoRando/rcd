@@ -3,7 +3,7 @@ use rcdproto::rcdp::{
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
 
-use rcd_core::rcd_enum::LogicalStoragePolicy;
+use rcd_common::rcd_enum::LogicalStoragePolicy;
 
 use super::SqlClientImpl;
 

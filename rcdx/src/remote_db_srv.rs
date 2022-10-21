@@ -1,6 +1,6 @@
 use crate::coop_database_participant::CoopDatabaseParticipantData;
 use crate::dbi::CdsHosts;
-use rcd_core::rcd_enum::ContractStatus;
+use rcd_common::rcd_enum::ContractStatus;
 use crate::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,

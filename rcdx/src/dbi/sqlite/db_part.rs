@@ -9,7 +9,7 @@ use crate::dbi::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
     PartialDataResult,
 };
-use rcd_core::rcd_enum::ColumnType;
+use rcd_common::rcd_enum::ColumnType;
 use crate::table::Table;
 use chrono::Utc;
 use rcdproto::rcdp::{ColumnSchema, Contract, PendingStatement, TableSchema};

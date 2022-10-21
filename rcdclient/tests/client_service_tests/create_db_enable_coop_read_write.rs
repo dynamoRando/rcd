@@ -65,7 +65,7 @@ pub fn test() {
 #[allow(unused_assignments)]
 async fn client(db_name: &str, addr_port: &str) -> bool {
     use rcdclient::RcdClient;
-    use rcd_core::rcd_enum::DatabaseType;
+    use rcd_common::rcd_enum::DatabaseType;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

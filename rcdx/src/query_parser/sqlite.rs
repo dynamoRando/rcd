@@ -2,7 +2,7 @@ use antlr_rust::{
     common_token_stream::CommonTokenStream, token_factory::CommonTokenFactory, InputStream,
 };
 
-use rcd_core::rcd_enum::DmlType;
+use rcd_common::rcd_enum::DmlType;
 
 use self::{
     rcd_insert_sqlite_listener::{InsertData, RcdInsertSqliteListener},

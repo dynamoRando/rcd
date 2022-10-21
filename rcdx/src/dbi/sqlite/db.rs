@@ -12,7 +12,7 @@ use crate::{
     table::Table,
 };
 use guid_create::GUID;
-use rcd_core::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
+use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
 use rusqlite::{named_params, Connection, Error, Result};
 
 pub mod contract;

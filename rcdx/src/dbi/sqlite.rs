@@ -8,7 +8,7 @@ use log::info;
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
-use rcd_core::rcd_enum::ColumnType;
+use rcd_common::rcd_enum::ColumnType;
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;

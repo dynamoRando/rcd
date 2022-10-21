@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 rcdproto = { path = "../rcdproto" }
 rcd-core = { path = "../rcd-core" }
+rcd-common = { path = "../rcd-common" }
 config = "0.13.1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 tonic = "0.8.1"
