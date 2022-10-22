@@ -1,8 +1,9 @@
 use crate::data_srv::DataServiceImpl;
-use crate::dbi::{Dbi, DbiConfigSqlite};
+use rcd_core::dbi::{Dbi};
 use rcd_common::rcd_enum::DatabaseType;
+use rcd_common::db::DbiConfigSqlite;
 use crate::sqlclient_srv::SqlClientImpl;
-use crate::{configure_backing_store, rcd_settings::RcdSettings};
+use crate::{rcd_settings::RcdSettings};
 use log::info;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::sync::mpsc::{Receiver, Sender};
@@ -32,12 +33,12 @@ fn configure_backing_store_at_dir(
                 sqlite_config: Some(config),
             };
 
-            crate::rcd_db::configure(&dbi);
-            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
+            dbi.configure_rcd_db();
+            dbi.configure_admin(admin_un, admin_pw);
         }
-        DatabaseType::Mysql => do_nothing(),
-        DatabaseType::Postgres => do_nothing(),
-        DatabaseType::Sqlserver => do_nothing(),
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
         _ => panic!("Unknown db type"),
     }
 }
@@ -66,12 +67,12 @@ fn configure_backing_store(
                 sqlite_config: Some(config),
             };
 
-            crate::rcd_db::configure(&dbi);
-            crate::rcd_db::configure_admin(admin_un, admin_pw, &dbi);
+            dbi.configure_rcd_db();
+            dbi.configure_admin(admin_un, admin_pw);
         }
-        DatabaseType::Mysql => do_nothing(),
-        DatabaseType::Postgres => do_nothing(),
-        DatabaseType::Sqlserver => do_nothing(),
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
         _ => panic!("Unknown db type"),
     }
 }

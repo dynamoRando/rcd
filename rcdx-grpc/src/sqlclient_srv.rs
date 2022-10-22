@@ -1,12 +1,12 @@
-use crate::dbi::Dbi;
-use crate::defaults;
+use rcd_core::dbi::Dbi;
+use rcd_common::defaults;
 use crate::remote_db_srv;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
     CreateUserDatabaseReply, RejectPendingContractReply, RejectPendingContractRequest,
 };
-
+use rcd_common::host_info::HostInfo;
 use chrono::Utc;
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
@@ -31,7 +31,7 @@ pub struct SqlClientImpl {
 impl SqlClientImpl {
     fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
         let dbi = self.db_interface.as_ref().unwrap().clone();
-        return crate::rcd_db::verify_login(&login, &pw, &dbi);
+        return dbi.verify_login(&login, &pw);
     }
 
     fn dbi(self: &Self) -> Dbi {
