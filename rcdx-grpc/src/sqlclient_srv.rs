@@ -6,7 +6,6 @@ use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
     CreateUserDatabaseReply, RejectPendingContractReply, RejectPendingContractRequest,
 };
-use rcd_common::host_info::HostInfo;
 use chrono::Utc;
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};

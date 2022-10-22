@@ -695,11 +695,11 @@ fn authenticate_host(authentication: AuthRequest, dbi: &Dbi) -> bool {
     let host_id = authentication.user_name;
     let host_token = authentication.token;
 
-    if crate::rcd_db::verify_host_by_id(&host_id, host_token.to_vec(), dbi) {
+    if dbi.verify_host_by_id(&host_id, host_token.to_vec()) {
         is_authenticated = true;
     }
 
-    if crate::rcd_db::verify_host_by_name(&host_id, host_token.to_vec(), dbi) {
+    if dbi.verify_host_by_name(&host_id, host_token.to_vec()) {
         is_authenticated = true;
     }
 

@@ -5,15 +5,13 @@ use rcdproto::rcdp::{
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
 };
 use rcd_common::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
+use crate::remote_db_srv;
+
 use super::SqlClientImpl;
-use crate::{
-    host_info::HostInfo,
-    query_parser,
-   
-    remote_db_srv,
-};
 use conv::UnwrapOk;
 use conv::ValueFrom;
+
+use rcd_query::query_parser as query;
 
 pub async fn execute_read_at_host(
     request: ExecuteReadRequest,
@@ -51,7 +49,7 @@ pub async fn execute_read_at_host(
                     .get_participants_for_table(&db_name, ct.as_str());
                 for participant in &participants_for_table {
                     // we would need to get rows for that table from the participant
-                    let host_info = HostInfo::get(&client.dbi());
+                    let host_info = client.dbi().rcd_get_host_info();
                     let remote_data_result = remote_db_srv::get_row_from_participant(
                         participant.clone(),
                         host_info,
@@ -188,8 +186,8 @@ pub async fn execute_write_at_participant(
         let known_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
 
         if rcd_db_type == RcdDatabaseType::Partial {
-            let statement_type = query_parser::determine_dml_type(&statement, db_type);
-            let table_name = query_parser::get_table_name(&statement, db_type);
+            let statement_type = query::determine_dml_type(&statement, db_type);
+            let table_name = query::get_table_name(&statement, db_type);
 
             match statement_type {
                 DmlType::Unknown => todo!(),
@@ -365,13 +363,13 @@ pub async fn execute_cooperative_write_at_host(
 
     if is_authenticated {
         if client.dbi().has_participant(&db_name, &message.alias) {
-            let dml_type = query_parser::determine_dml_type(&statement, client.dbi().db_type());
+            let dml_type = query::determine_dml_type(&statement, client.dbi().db_type());
             let db_participant = client
                 .dbi()
                 .get_participant_by_alias(&db_name, &message.alias)
                 .unwrap();
             let host_info = client.dbi().rcd_get_host_info();
-            let cmd_table_name = query_parser::get_table_name(&statement, client.dbi().db_type());
+            let cmd_table_name = query::get_table_name(&statement, client.dbi().db_type());
             let where_clause = message.where_clause.clone();
 
             let db_participant_reference = db_participant.clone();

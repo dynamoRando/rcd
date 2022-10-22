@@ -17,6 +17,7 @@ use rcdproto::rcdp::{
 };
 use rcd_common::coop_database_participant::CoopDatabaseParticipant;
 use tonic::transport::Channel;
+use rcd_common::coop_database_contract::CoopDatabaseContract;
 
 pub async fn try_auth_at_participant(
     participant: CoopDatabaseParticipant,

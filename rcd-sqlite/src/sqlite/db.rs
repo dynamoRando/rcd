@@ -13,7 +13,6 @@ use guid_create::GUID;
 use rcd_common::table::*;
 use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
 use rusqlite::{named_params, Connection, Error, Result};
-use crate::query_parser;
 
 pub mod contract;
 pub mod logical_storage_policy;
@@ -33,7 +32,7 @@ pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConf
 pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> bool {
     let mut has_cooperative_tables = false;
 
-    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
+    let tables = rcd_query::query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in tables {
         let result = logical_storage_policy::get_logical_storage_policy(db_name, &table, &config);
@@ -66,7 +65,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite
 pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Vec<String> {
     let mut cooperative_tables: Vec<String> = Vec::new();
 
-    let tables = query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
+    let tables = rcd_query::query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
 
     for table in &tables {
         let result = logical_storage_policy::get_logical_storage_policy(

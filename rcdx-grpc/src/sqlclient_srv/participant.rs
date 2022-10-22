@@ -3,7 +3,7 @@ use rcdproto::rcdp::{
     SendParticipantContractRequest,
 };
 
-use crate::{host_info::HostInfo, remote_db_srv};
+use crate::remote_db_srv;
 
 use super::SqlClientImpl;
 
@@ -68,7 +68,7 @@ pub async fn send_participant_contract(
                 .unwrap();
             let active_contract = client.dbi().get_active_contract(&db_name);
             let db_schema = client.dbi().get_database_schema(&db_name);
-            let host_info = HostInfo::get(&client.dbi());
+            let host_info = client.dbi().rcd_get_host_info();
             is_successful = remote_db_srv::send_participant_contract(
                 participant,
                 host_info,

@@ -1,7 +1,7 @@
 use rcd_common::{db::{PartialDataResult, DbiConfigSqlite}, rcd_enum::{DatabaseType, PartialDataResultAction}, crypt};
 use rusqlite::named_params;
 
-use crate::{query_parser, sqlite::{get_scalar_as_u32, execute_write, db_part::get_partial_db_connection, has_table, sql_text}};
+use crate::{sqlite::{get_scalar_as_u32, execute_write, db_part::get_partial_db_connection, has_table, sql_text}};
 use rcd_common::db::*;
 
 pub fn insert_data_into_partial_db(
@@ -21,7 +21,7 @@ pub fn insert_data_into_partial_db(
 
     // we need to parse the values of this row
     // and create a data hash for it
-    let insert_values = query_parser::get_values_from_insert_statement(cmd, DatabaseType::Sqlite);
+    let insert_values = rcd_query::query_parser::get_values_from_insert_statement(cmd, DatabaseType::Sqlite);
     let hash_value = crypt::calculate_hash_for_struct(&insert_values);
 
     // we need to determine if there is a metadata table for this table or not

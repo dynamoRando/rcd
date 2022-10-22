@@ -27,4 +27,6 @@ members = [
     "rcd-sqlite",
     # - new lib for all code common between 'rcd-core' and others
     "rcd-common",
+    # - new lib for all code related to query parsing
+    "rcd-query"
 ]
