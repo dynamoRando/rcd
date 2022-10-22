@@ -23,5 +23,7 @@ members = [
     # - new lib for all code common between 'rcd-core' and others
     "rcd-common",
     # - new lib for all code related to query parsing
-    "rcd-query"
+    "rcd-query",
+    # - new test executable, throwaway for stuff
+    "rcd-foo",
 ]

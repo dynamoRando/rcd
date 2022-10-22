@@ -13,7 +13,7 @@ fn index() -> &'static str {
 #[rocket::main]
 async fn main() -> Result<(), rocket::Error> {
     let _rocket = rocket::build()
-        .mount("/", routes![index, client::status])
+        .mount("/", routes![index, client::status, client::version])
         .launch()
         .await?;
 

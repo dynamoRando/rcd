@@ -1,5 +1,5 @@
 [package]
-name = "rcdx-http"
+name = "rcd-foo"
 version = "0.1.0"
 edition = "2021"
 
@@ -33,4 +33,3 @@ log = "0.4"
 triggered = "0.1"
 serde = "1"
 serde_derive = "1"
-
