@@ -1,11 +1,6 @@
 [workspace]
 members = [
     # --- existing code ---
-    # deprecated - existing code that is deprecated before split. 
-    # most of this code will go into 'rcd-core'
-    "rcdx",
-    # deprecated, code will move to 'rcd-grpc-client'
-    "rcdclient",
     # keep - this is for generating needed gRPC implementation
     "rcdproto",
     # keep - not implemented. a terminal client for interacting with an rcd instance

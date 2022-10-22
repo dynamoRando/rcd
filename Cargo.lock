@@ -1648,8 +1648,9 @@ dependencies = [
  "prost-types",
  "rcd-common",
  "rcd-core",
+ "rcd-query",
  "rcdproto",
- "rcdx",
+ "rcdx-grpc",
  "sodiumoxide",
  "substring",
  "tokio",
@@ -1727,35 +1728,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rcdclient"
-version = "0.1.0"
-dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "env_logger",
- "futures",
- "guid-create",
- "lazy_static",
- "log",
- "prost",
- "prost-types",
- "rcd-common",
- "rcd-core",
- "rcdproto",
- "rcdx",
- "sodiumoxide",
- "substring",
- "tokio",
- "tonic",
- "tonic-build",
- "tonic-reflection",
- "triggered",
-]
-
-[[package]]
 name = "rcdproto"
 version = "0.1.0"
 dependencies = [
@@ -1771,41 +1743,9 @@ dependencies = [
 name = "rcdt"
 version = "0.1.0"
 dependencies = [
- "rcdclient",
+ "rcd-grpc-client",
  "rcdproto",
- "rcdx",
-]
-
-[[package]]
-name = "rcdx"
-version = "0.1.0"
-dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create",
- "lazy_static",
- "log",
- "log4rs",
- "prost",
- "prost-types",
- "rcd-common",
- "rcd-core",
- "rcdproto",
- "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "sodiumoxide",
- "substring",
- "tokio",
- "tonic",
- "tonic-build",
- "tonic-reflection",
- "triggered",
+ "rcdx-grpc",
 ]
 
 [[package]]

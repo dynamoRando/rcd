@@ -8,9 +8,10 @@ edition = "2021"
 
 [dependencies]
 rcdproto = { path = "../rcdproto" }
-rcdx = { path = "../rcdx" }
+rcdx-grpc = { path = "../rcdx-grpc" }
 rcd-core = { path = "../rcd-core" }
 rcd-common = { path = "../rcd-common" }
+rcd-query = { path = "../rcd-query" }
 
 config = "0.13.1"
 tonic = "0.8.1"
