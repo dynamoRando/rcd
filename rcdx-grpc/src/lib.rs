@@ -3,10 +3,9 @@ use std::{env, path::Path};
 use config::Config;
 use rcd_common::rcd_enum::DatabaseType;
 use rcd_service::RcdService;
-use rcd_settings::RcdSettings;
+use rcd_common::rcd_settings::RcdSettings;
 
 mod sqlclient_srv;
-pub mod rcd_settings;
 mod rcd_service;
 mod data_srv;
 mod remote_db_srv;

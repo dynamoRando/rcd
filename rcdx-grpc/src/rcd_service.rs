@@ -3,7 +3,7 @@ use rcd_core::dbi::{Dbi};
 use rcd_common::rcd_enum::DatabaseType;
 use rcd_common::db::DbiConfigSqlite;
 use crate::sqlclient_srv::SqlClientImpl;
-use crate::{rcd_settings::RcdSettings};
+use rcd_common::rcd_settings::RcdSettings;
 use log::info;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::sync::mpsc::{Receiver, Sender};

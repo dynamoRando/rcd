@@ -4,7 +4,7 @@ use rcd_core::dbi::{Dbi};
 use rcd_common::db::DbiConfigSqlite;
 use rcdx_grpc::get_service_from_config;
 use rcd_common::rcd_enum::DatabaseType;
-use rcdx_grpc::rcd_settings::RcdSettings;
+use rcd_common::rcd_settings::RcdSettings;
 use std::env;
 use std::fs;
 use std::path::Path;
