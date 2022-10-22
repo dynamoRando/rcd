@@ -1,3 +1,7 @@
+use std::env;
+
+use rcd_common::{rcd_settings::RcdSettings, rcd_enum::DatabaseType, db::DbiConfigSqlite};
+use rcd_core::dbi::Dbi;
 
 
 #[derive(Debug)]
@@ -85,5 +89,71 @@ impl RcdService {
             DatabaseType::Sqlserver => unimplemented!(),
             _ => panic!("Unknown db type"),
         }
+    }
+}
+
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+) {
+    let cwd = env::current_dir().unwrap();
+
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: cwd.as_os_str().to_str().unwrap().to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            dbi.configure_rcd_db();
+            dbi.configure_admin(admin_un, admin_pw);
+        }
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
+        _ => panic!("Unknown db type"),
+    }
+}
+
+
+/// Configures the backing cds based on the type in the apps current working directory
+fn configure_backing_store_at_dir(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    admin_un: &str,
+    admin_pw: &str,
+    root_dir: &str,
+) {
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: root_dir.to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            dbi.configure_rcd_db();
+            dbi.configure_admin(admin_un, admin_pw);
+        }
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
+        _ => panic!("Unknown db type"),
     }
 }
