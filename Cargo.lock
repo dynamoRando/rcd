@@ -1633,6 +1633,31 @@ dependencies = [
 [[package]]
 name = "rcd-grpc-client"
 version = "0.1.0"
+dependencies = [
+ "antlr-rust",
+ "chrono",
+ "config",
+ "conv",
+ "endianness",
+ "env_logger",
+ "futures",
+ "guid-create",
+ "lazy_static",
+ "log",
+ "prost",
+ "prost-types",
+ "rcd-common",
+ "rcd-core",
+ "rcdproto",
+ "rcdx",
+ "sodiumoxide",
+ "substring",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-reflection",
+ "triggered",
+]
 
 [[package]]
 name = "rcd-query"
