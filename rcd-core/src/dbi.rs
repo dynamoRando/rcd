@@ -10,7 +10,7 @@ use rcd_common::{
     },
     table::Table,
 };
-use rcd_sqlite::sqlite::{self, rcd_db::if_host_info_exists};
+use rcd_sqlite::sqlite::{self};
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
 use rusqlite::{Connection, Error};
 
