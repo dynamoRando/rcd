@@ -1,11 +1,13 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
-use rcdx_grpc::{get_current_directory, get_service_from_config_file};
+use rocket::Shutdown;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
 use triggered;
+mod http_srv;
+
 
 #[tokio::main]
 async fn main() {
@@ -24,7 +26,7 @@ async fn main() {
     process_cmd_args(args);
     set_default_config();
 
-    let mut service = get_service_from_config_file();
+    let mut service = rcdx::get_service_from_config_file();
     println!("rcd settings found:");
     println!("{:?}", service.rcd_settings);
     println!("root dir: {}", service.root_dir);
@@ -48,6 +50,11 @@ async fn main() {
     })
     .await;
 
+    // start http, need to make this configurable
+    let _ = task::spawn_blocking(move || {
+        let _ = http_srv::start_http();
+    });
+
     let mut input = String::from("");
     println!("rcd is running. please press 'q' and enter to quit.");
 
@@ -60,6 +67,7 @@ async fn main() {
             info!("shutting down...");
             client_trigger.trigger();
             db_trigger.trigger();
+            http_srv::shutdown_http().await;
             break;
         }
     }
@@ -77,7 +85,7 @@ fn process_cmd_args(args: Vec<String>) {
 }
 
 fn set_default_config() {
-    let cwd = get_current_directory();
+    let cwd = rcdx::get_current_directory();
     let default_settings_content = String::from(
         "
 debug = false
@@ -106,7 +114,7 @@ admin_pw = \"123456\"
 }
 
 fn set_default_logging() {
-    let cwd = crate::get_current_directory();
+    let cwd = rcdx::get_current_directory();
     let default_logging_content = r#"appenders:
    stdout:
      kind: console

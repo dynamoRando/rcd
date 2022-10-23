@@ -26,4 +26,6 @@ members = [
     "rcd-query",
     # - new test executable, throwaway for stuff
     "rcd-foo",
+    # rebuilt - combined http and grpc
+    "rcdx"
 ]
