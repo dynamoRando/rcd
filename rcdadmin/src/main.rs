@@ -1,5 +1,4 @@
 use rcd_conn_ui::{RcdConn, RcdConnUi};
-use serde::{Serialize, Deserialize};
 use web_sys::console;
 use yew::{prelude::*, html::Scope};
 mod rcd_conn_ui;
@@ -42,7 +41,8 @@ impl RcdAdminApp{
          }
     }
 
-    fn view_connection(&self, link: &Scope<Self>) -> Html {
+    #[allow(dead_code)]
+    fn view_connection(&self, _link: &Scope<Self>) -> Html {
         html!{
             <div>
             <li>
@@ -59,7 +59,7 @@ impl Component for RcdAdminApp {
     type Message = AppMessage;
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let conn = RcdConn {
             un: "".to_string(),
             pw: "".to_string(),
@@ -83,7 +83,6 @@ impl Component for RcdAdminApp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
         html! {
             <div>
             <h1>{ "Rcd Admin" }</h1>

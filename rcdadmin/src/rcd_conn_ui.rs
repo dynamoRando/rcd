@@ -1,7 +1,5 @@
 use serde::{Serialize, Deserialize};
-use web_sys::console;
-use yew::{NodeRef, Html, html::{Scope}, Component};
-use yew::{html};
+use yew::{NodeRef, Html, Component};
 
 use crate::AppMessage;
 
@@ -29,11 +27,11 @@ impl Component for RcdConnUi {
     type Message = AppMessage;
     type Properties = ();
 
-    fn create(ctx: &yew::Context<Self>) -> Self {
+    fn create(_ctx: &yew::Context<Self>) -> Self {
         todo!()
     }
 
-    fn view(&self, ctx: &yew::Context<Self>) -> Html {
+    fn view(&self, _ctx: &yew::Context<Self>) -> Html {
         todo!()
     }
 }
