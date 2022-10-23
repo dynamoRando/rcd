@@ -1,7 +1,6 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
-use rocket::Shutdown;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;

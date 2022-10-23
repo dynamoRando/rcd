@@ -1,5 +1,5 @@
 use rocket::{routes, get};
-use std::{env, thread};
+use std::{thread};
 use rocket::Shutdown;
 use log::info;
 
