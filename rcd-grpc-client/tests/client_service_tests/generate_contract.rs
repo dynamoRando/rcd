@@ -1,5 +1,6 @@
 use super::test_harness;
 use log::info;
+use rcdx::rcd_service::get_service_from_config_file;
 use std::sync::mpsc;
 use std::{thread, time};
 
@@ -15,7 +16,7 @@ pub fn test() {
 
     let root_dir = super::test_harness::get_test_temp_dir(&test_name);
     println!("{}", root_dir);
-    let mut service = rcdx_grpc::get_service_from_config_file();
+    let mut service = get_service_from_config_file();
     let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
     let target_client_address_port = client_address_port.clone();
     println!("{:?}", &service);
@@ -66,7 +67,7 @@ pub fn negative_test() {
 
     let root_dir = super::test_harness::get_test_temp_dir(test_name);
     println!("{}", root_dir);
-    let mut service = rcdx_grpc::get_service_from_config_file();
+    let mut service = get_service_from_config_file();
     let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
     let target_client_address_port = client_address_port.clone();
     println!("{:?}", &service);

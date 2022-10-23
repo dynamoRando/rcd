@@ -1,12 +1,16 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
+use rcd_service::get_current_directory;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
 use triggered;
-mod http_srv;
+use rcd_http::http_srv;
 
+use crate::rcd_service::get_service_from_config_file;
+
+pub mod rcd_service;
 
 #[tokio::main]
 async fn main() {
@@ -25,7 +29,7 @@ async fn main() {
     process_cmd_args(args);
     set_default_config();
 
-    let mut service = rcdx::get_service_from_config_file();
+    let mut service = get_service_from_config_file();
     println!("rcd settings found:");
     println!("{:?}", service.rcd_settings);
     println!("root dir: {}", service.root_dir);
@@ -84,7 +88,7 @@ fn process_cmd_args(args: Vec<String>) {
 }
 
 fn set_default_config() {
-    let cwd = rcdx::get_current_directory();
+    let cwd = get_current_directory();
     let default_settings_content = String::from(
         "
 debug = false
@@ -113,7 +117,7 @@ admin_pw = \"123456\"
 }
 
 fn set_default_logging() {
-    let cwd = rcdx::get_current_directory();
+    let cwd = get_current_directory();
     let default_logging_content = r#"appenders:
    stdout:
      kind: console

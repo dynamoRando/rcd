@@ -1,31 +1,28 @@
 [workspace]
 members = [
-    # --- existing code ---
-    # keep - this is for generating needed gRPC implementation
+    # lib - this is for generating needed gRPC implementation
     "rcdproto",
-    # keep - not implemented. a terminal client for interacting with an rcd instance
+    # binary - not implemented. a terminal client for interacting with an rcd instance
     "rcdt",
-    # keep - not implemented. this will be a web assembly admin tool for rcd in yew. 
-    # will need to interact via 'rcdx-http' instance.
+    # binary - not implemented. this will be a web assembly admin tool for rcd in yew. 
+    # makes http calls instead of grpc.
     "rcdadmin",
-    # keep - not implemented.
-    # the core business logic for rcd
+    # lib - a thin business layer abstraction for rcd
     "rcd-core",
-    # ---- new code ---- 
-    # - executable to host rcd via grpc calls
-    "rcdx-grpc",
-    # - lib to interact with a rcd grpc hosted instance
+    # lib - to interact with a rcd via grpc calls
     "rcd-grpc-client",
-    # - executable to host rcd via http calls
-    "rcdx-http",
-    # - new lib for all functionality for a sqlite db
+    # lib - all functionality for a sqlite db
     "rcd-sqlite",
-    # - new lib for all code common between 'rcd-core' and others
+    # lib - for all code common between 'rcd-core' and others
     "rcd-common",
-    # - new lib for all code related to query parsing
+    # lib - for all code related to query parsing
     "rcd-query",
-    # - new test executable, throwaway for stuff
+    # binary - new test executable, throwaway for stuff
     "rcd-foo",
-    # rebuilt - combined http and grpc
-    "rcdx"
+    # binary - combined http and grpc
+    "rcdx",
+    # lib - only for grpc implementation
+    "rcd-grpc",
+    # lib - only for http implementation
+    "rcd-http",
 ]

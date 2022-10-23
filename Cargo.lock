@@ -2183,6 +2183,38 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-grpc"
+version = "0.1.0"
+dependencies = [
+ "antlr-rust",
+ "chrono",
+ "config",
+ "conv",
+ "endianness",
+ "futures",
+ "guid-create",
+ "lazy_static",
+ "log",
+ "log4rs",
+ "prost",
+ "prost-types",
+ "rcd-common",
+ "rcd-core",
+ "rcd-query",
+ "rcdproto",
+ "rusqlite",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "sodiumoxide",
+ "substring",
+ "tokio",
+ "tonic",
+ "tonic-reflection",
+ "triggered",
+]
+
+[[package]]
 name = "rcd-grpc-client"
 version = "0.1.0"
 dependencies = [
@@ -2200,9 +2232,10 @@ dependencies = [
  "prost-types",
  "rcd-common",
  "rcd-core",
+ "rcd-grpc",
  "rcd-query",
  "rcdproto",
- "rcdx-grpc",
+ "rcdx",
  "sodiumoxide",
  "substring",
  "tokio",
@@ -2210,6 +2243,21 @@ dependencies = [
  "tonic-build",
  "tonic-reflection",
  "triggered",
+]
+
+[[package]]
+name = "rcd-http"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "log4rs",
+ "rcd-common",
+ "rcd-core",
+ "rcd-query",
+ "rcdproto",
+ "reqwest",
+ "rocket",
+ "tokio",
 ]
 
 [[package]]
@@ -2295,9 +2343,9 @@ dependencies = [
 name = "rcdt"
 version = "0.1.0"
 dependencies = [
+ "rcd-grpc",
  "rcd-grpc-client",
  "rcdproto",
- "rcdx-grpc",
 ]
 
 [[package]]
@@ -2318,74 +2366,11 @@ dependencies = [
  "prost-types",
  "rcd-common",
  "rcd-core",
+ "rcd-grpc",
+ "rcd-http",
  "rcd-query",
  "rcdproto",
  "reqwest",
- "rocket",
- "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "sodiumoxide",
- "substring",
- "tokio",
- "tonic",
- "tonic-reflection",
- "triggered",
-]
-
-[[package]]
-name = "rcdx-grpc"
-version = "0.1.0"
-dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create",
- "lazy_static",
- "log",
- "log4rs",
- "prost",
- "prost-types",
- "rcd-common",
- "rcd-core",
- "rcd-query",
- "rcdproto",
- "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "sodiumoxide",
- "substring",
- "tokio",
- "tonic",
- "tonic-reflection",
- "triggered",
-]
-
-[[package]]
-name = "rcdx-http"
-version = "0.1.0"
-dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create",
- "lazy_static",
- "log",
- "log4rs",
- "prost",
- "prost-types",
- "rcd-common",
- "rcd-core",
- "rcd-query",
- "rcdproto",
  "rocket",
  "rusqlite",
  "serde",

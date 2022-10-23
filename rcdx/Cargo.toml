@@ -10,6 +10,9 @@ rcdproto = { path = "../rcdproto" }
 rcd-core = { path = "../rcd-core" }
 rcd-common = { path = "../rcd-common" }
 rcd-query = { path = "../rcd-query" }
+rcd-http = { path = "../rcd-http" }
+rcd-grpc = { path = "../rcd-grpc" }
+
 config = "0.13.1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 tonic = "0.8.1"

@@ -3,6 +3,7 @@ use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
 use triggered::Trigger;
+use rcdx::rcd_service::get_service_from_config_file;
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
@@ -56,7 +57,7 @@ pub fn start_service(
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
-    let mut service = rcdx_grpc::get_service_from_config_file();
+    let mut service = get_service_from_config_file();
 
     let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
 

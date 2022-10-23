@@ -2,12 +2,14 @@ use env_logger::{Builder, Target};
 use log::info;
 use rcd_core::dbi::{Dbi};
 use rcd_common::db::DbiConfigSqlite;
-use rcdx_grpc::get_service_from_config;
 use rcd_common::rcd_enum::DatabaseType;
 use rcd_common::rcd_settings::RcdSettings;
+use rcdx::rcd_service::get_service_from_config_file;
 use std::env;
 use std::fs;
 use std::path::Path;
+use rcdx::rcd_service::get_service_from_config;
+
 
 #[path = "test_harness.rs"]
 mod test_harness;
@@ -203,7 +205,7 @@ fn hash_negative() {
 /// Attempts to read a value from the Settings.toml file
 fn read_settings_from_file() {
     init();
-    let service = rcdx_grpc::get_service_from_config_file();
+    let service = get_service_from_config_file();
     let db_type = service.rcd_settings.database_type;
     assert_eq!(db_type, DatabaseType::Sqlite);
 }
