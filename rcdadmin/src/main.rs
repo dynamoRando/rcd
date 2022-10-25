@@ -133,18 +133,18 @@ impl Component for RcdAdminApp {
                 let request_json2 = request_json.clone();
                 let request_json3 = request_json.clone();
 
-                // don't allow multiple connections, will fail
-                // wasm_bindgen_futures::spawn_local(async move {                    
-                //     let res = Request::get("http://127.0.0.1:8000/client/status")
-                //         .send()
-                //         .await
-                //         .unwrap()
-                //         .text()
-                //         .await
-                //         .unwrap();
+                // we expect to get the "Status From Rocket" message
+                wasm_bindgen_futures::spawn_local(async move {                    
+                    let res = Request::get("http://127.0.0.1:8000/client/status")
+                        .send()
+                        .await
+                        .unwrap()
+                        .text()
+                        .await
+                        .unwrap();
 
-                //     console::log_1(&res.into());
-                // });
+                    console::log_1(&res.into());
+                });
 
                 // test to see if we can POST
                 wasm_bindgen_futures::spawn_local(async move {
