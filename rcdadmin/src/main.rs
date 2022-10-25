@@ -3,7 +3,7 @@ use serde::Deserialize;
 use web_sys::{console, HtmlInputElement};
 use yew::{html::Scope, prelude::*};
 mod rcd_conn_ui;
-use reqwasm::http::{Request, Headers, Method};
+use reqwasm::http::{Request, Method};
 use rcd_messages::client::TestRequest;
 
 pub enum AppMessage {
