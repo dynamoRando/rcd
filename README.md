@@ -36,7 +36,7 @@ This project is currently going a reorganization.
 - `rcd-query` - a library that defines functions to parsing SQL statements. This library currently only manages parsing SQLite, though it may be expanded to other SQL implementations (MySQL, Postgres, etc.)
 - `rcd-grpc-client` - a replacement for `rcdclient`. This will be a native Rust lib that is an abstraction over the `rcdp.proto` and `rcdproto` lib.
 - `rcdproto` - a Rust library that implements the `rcdp.proto` definition.
-- `rcd-messages` - a duplicate library of `rcdproto.` this hopefully can be __deprecated__ - it only exists to allow common messages between the backend and `rcdadmin`, which targets the web assembly runtime and is incompatible with the current `proto` implementation (using `prost`.)
+- `rcd-messages` - a duplicate library of `rcdproto`. this hopefully can be __deprecated__ - it only exists to allow common messages between the backend and `rcdadmin`, which targets the web assembly runtime and is incompatible with the current `proto` implementation (using `prost`.)
 - `rcdt` - a binary for terminal interaction with an `rcdx` instance
 - `rcd-http` - an HTTP API for `rcd-core`
 - `rcd-grpc` - a gRPC API for `rcd-core`
