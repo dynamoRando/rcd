@@ -2339,7 +2339,6 @@ dependencies = [
  "prost-types",
  "rcd-common",
  "rcd-core",
- "rcd-grpc",
  "rcd-query",
  "rcdproto",
  "rcdx",

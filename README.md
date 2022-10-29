@@ -89,4 +89,7 @@ flowchart BT
     rcd-messages --> rcdadmin[/rcdadmin\]
     rcd-messages <-.manually duplicated.-> rcdproto
     rcdadmin[/rcdadmin\] <-.makes HTTP calls.-> rcdx[/rcdx\]
+    rcd-grpc-client <-.makes gRPC calls.-> rcdx[/rcdx\]
+    rcdproto --> rcd-grpc-client
+    rcd-common --> rcd-grpc-client
 ```
