@@ -53,7 +53,7 @@ Copyright 2022 Randy Le.
 
 # Library Relationships
 
-The following mermaid diagram is constantly being revised. Generally, the relationships between binaries and libaries are described below.
+The following mermaid diagram is constantly being revised. Generally, the relationships between binaries and libraries are described below.
 
 - Binaries are described as trapezoids.
 - Libaries are rectangles.
