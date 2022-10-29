@@ -1,6 +1,7 @@
-use rcdproto::rcdp::{TestRequest, TestReply};
-use rocket::{serde::{json::Json}, get, post, http::Status};
+use super::get_dbi;
 use rcd_common::defaults;
+use rcdproto::rcdp::{TestReply, TestRequest};
+use rocket::{get, http::Status, post, serde::json::Json};
 
 pub mod database;
 
@@ -10,12 +11,15 @@ pub async fn status() -> &'static str {
 }
 
 #[post("/client/version", format = "application/json", data = "<request>")]
-pub fn version(request: Json<TestRequest>) -> (Status, Json<TestReply>) { 
+pub fn version(request: Json<TestRequest>) -> (Status, Json<TestReply>) {
     let response = TestReply {
         reply_time_utc: "".to_string(),
         reply_echo_message: request.request_echo_message.clone(),
-        rcdx_version: defaults::VERSION.to_string()
+        rcdx_version: defaults::VERSION.to_string(),
     };
 
+    let dbi = get_dbi();
+    println!("{:?}", dbi);
+
     (Status::Ok, Json(response))
- }
+}

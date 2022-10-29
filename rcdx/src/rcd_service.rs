@@ -134,6 +134,10 @@ impl RcdService {
         }
     }
 
+    pub fn get_dbi(&self) -> Dbi {
+        return self.db_interface.as_ref().unwrap().clone();
+    }
+
     pub fn start(self: &mut Self) {
         configure_backing_store(
             self.rcd_settings.database_type,

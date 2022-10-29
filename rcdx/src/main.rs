@@ -1,12 +1,12 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
+use rcd_http::http_srv;
 use rcd_service::get_current_directory;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
 use triggered;
-use rcd_http::http_srv;
 
 use crate::rcd_service::get_service_from_config_file;
 
@@ -28,12 +28,14 @@ async fn main() {
     let args: Vec<String> = env::args().collect();
     process_cmd_args(args);
     set_default_config();
-
     let mut service = get_service_from_config_file();
+
     println!("rcd settings found:");
     println!("{:?}", service.rcd_settings);
     println!("root dir: {}", service.root_dir);
     service.start();
+
+    let dbi_settings = service.get_dbi();
 
     let settings = service.rcd_settings.clone();
     let db_name = settings.backing_database_name.clone();
@@ -55,7 +57,7 @@ async fn main() {
 
     // start http, need to make this configurable
     let _ = task::spawn_blocking(move || {
-        let _ = http_srv::start_http();
+        let _ = http_srv::start_http(dbi_settings);
     });
 
     let mut input = String::from("");
