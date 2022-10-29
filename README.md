@@ -23,21 +23,24 @@ The idea for `rcd` (and other related projects) is inspired by agricultural and/
 
 This project is currently going a reorganization.
 
-## Existing Libraries
+## Former Libraries
 - `rcdx` - the actual rcd binary that runs.
 - `rcdproto` - library that implements the `rcdp.proto` file in Rust.
 - `rcdclient` - library that is an abstraction over the `SQLClient` definition in the `rcdp.proto` file. This is intended to be used by other applications.
 
 ## New Layout
-- `rcdx-grpc` - a gRPC enabled binary that serves a `rcd` instance. Used both for the client and data endpoints. This is effectively the former `rcdx` binary.
+- `rcdx` - an executable that hosts both a `rcd-grpc` and a `rcd-http` layer.
 - `rcd-core` - a library that contains the business logic for `rcd`. abstracts the client and data services and interactions with target database systems (Sqlite, MySQL, Postgres, etc.)
-- `rcd-common` - a library that contains most objects shared by `rdc` libaries.
-- `rcd-sqlite` - a library that contains code specific to an `rcd` implementation done in SQLite. As other databases are targeted other libraries will be added (MySQL, Postgres, etc).
+- `rcd-common` - a library that contains most objects shared by `rdc*` libaries.
+- `rcd-sqlite` - a library that contains code specific to an `rcd*` implementation done in SQLite. As other databases are targeted other libraries will be added (MySQL, Postgres, etc).
+- `rcd-query` - a library that defines functions to parsing SQL statements. This library currently only manages parsing SQLite, though it may be expanded to other SQL implementations (MySQL, Postgres, etc.)
 - `rcd-grpc-client` - a replacement for `rcdclient`. This will be a native Rust lib that is an abstraction over the `rcdp.proto` and `rcdproto` lib.
 - `rcdproto` - a Rust library that implements the `rcdp.proto` definition.
-- `rcdt` - a binary for terminal interaction with an `rcdx-*` instance
-- `rcdx-http` - an HTTP enabled binary that serves an `rcd` instance
-- `rcdadmin` - a web assembly front end for managing an `rcd` instace. to be done in yew. will interact with an `rcdx-http` instance via HTTP calls.
+- `rcd-messages` - a duplicate library of `rcdproto.` this hopefully can be __deprecated__ - it only exists to allow common messages between the backend and `rcdadmin`, which targets the web assembly runtime and is incompatible with the current `proto` implementation (using `prost`.)
+- `rcdt` - a binary for terminal interaction with an `rcdx` instance
+- `rcd-http` - an HTTP API for `rcd-core`
+- `rcd-grpc` - a gRPC API for `rcd-core`
+- `rcdadmin` - a web assembly front end for managing an `rcd` instace. to be done in yew. will interact with an `rcdx` instance via HTTP calls.
 
 # Other Referenced Projects
 - Antlr, at [antlr.org](https://www.antlr.org/license.html) under BSD-3 license. Used for parsing SQLite statements
@@ -47,3 +50,43 @@ This project is currently going a reorganization.
 This software is licensed under the Apache 2.0 license. 
 
 Copyright 2022 Randy Le.
+
+# Library Relationships
+
+The following mermaid diagram is constantly being revised. Generally, the relationships between binaries and libaries are described below.
+
+- Binaries are described as trapezoids.
+- Libaries are rectangles.
+
+Originally, what is now the `rcd-grpc` library _was_ the entire `rcd` application, as `rcd` was intended to only work with gRPC. That is slowly being changed, such that:
+
+- `rcdx` is the binary executable exposing both a `rcd-grpc` and a `rcd-http` API
+- `rcdx` hosts a `rcd-core` layer
+- `rcd-grpc` and `rcd-http` will respond to requests through the `rcd-core` layer
+
+```mermaid
+flowchart BT
+    rcd-common --> rcd-core
+    rcd-common --> rcd-sqlite
+    rcd-common --> rcd-query
+    rcd-common --> rcd-grpc
+    rcdproto --> rcd-grpc
+    rcd-query --> rcd-grpc
+    rcd-core --> rcd-grpc
+    rcdproto --> rcd-sqlite
+    rcd-query --> rcd-sqlite
+    rcdproto --> rcd-core
+    rcd-sqlite --> rcd-core
+    rcdproto --> rcd-http
+    rcd-core --> rcd-http
+    rcd-common --> rcd-http
+    rcd-core --> rcdx[/rcdx\]
+    rcd-common --> rcdx[/rcdx\]
+    rcdproto --> rcdx[/rcdx\]
+    rcd-query --> rcdx[/rcdx\]
+    rcd-http --> rcdx[/rcdx\]
+    rcd-grpc --> rcdx[/rcdx\]
+    rcd-messages --> rcdadmin[/rcdadmin\]
+    rcd-messages <-.manually duplicated.-> rcdproto
+    rcdadmin[/rcdadmin\] <-.makes HTTP calls.-> rcdx[/rcdx\]
+```

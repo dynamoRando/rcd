@@ -2361,7 +2361,6 @@ dependencies = [
  "log4rs",
  "rcd-common",
  "rcd-core",
- "rcd-query",
  "rcdproto",
  "reqwest",
  "rocket",
