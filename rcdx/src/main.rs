@@ -1,6 +1,11 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
+use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
+use rcd_core::dbi::Dbi;
+use rcd_core::rcd::Rcd;
+use rcd_core::remote_grpc::RemoteGrpc;
+use rcd_core::remote_http::RemoteHttp;
 use rcd_http::http_srv;
 use rcd_service::get_current_directory;
 use std::io::Write;
@@ -36,6 +41,7 @@ async fn main() {
     service.start();
 
     let dbi_settings = service.get_dbi();
+    let dbi_clone = dbi_settings.clone();
 
     let settings = service.rcd_settings.clone();
     let db_name = settings.backing_database_name.clone();
@@ -44,7 +50,7 @@ async fn main() {
     let root_dir = service.root_dir.clone();
 
     let _ = task::spawn_blocking(move || {
-        let _ = service.start_services_at_addrs_with_shutdown(
+        let _ = service.start_grpc_at_addrs_with_shutdown(
             db_name,
             client_port,
             db_port,
@@ -57,7 +63,22 @@ async fn main() {
 
     // start http, need to make this configurable
     let _ = task::spawn_blocking(move || {
-        let _ = http_srv::start_http(dbi_settings);
+
+        let http = RemoteHttp {
+        };
+    
+        let remote_client = RcdRemoteDbClient {
+            comm_type: RcdCommunication::Http,
+            grpc: None,
+            http: Some(http),
+        };
+    
+        let core = Rcd {
+            db_interface: Some(dbi_clone),
+            remote_client: Some(remote_client),
+        };
+
+        let _ = http_srv::start_http(core);
     });
 
     let mut input = String::from("");
@@ -156,4 +177,42 @@ root:
     } else {
         println!("logging_config.yaml was found, skipping default settings");
     }
+}
+
+#[allow(dead_code)]
+fn configure_rcd_w_http_new(dbi: Dbi) -> Rcd {
+    let http = RemoteHttp {};
+
+    let remote_db = RcdRemoteDbClient {
+        comm_type: RcdCommunication::Http,
+        grpc: None,
+        http: Some(http),
+    };
+
+    let rcd = Rcd {
+        db_interface: Some(dbi.clone()),
+        remote_client: Some(remote_db),
+    };
+
+    return rcd;
+}
+
+#[allow(dead_code)]
+fn configure_rcd_w_grpc_new(dbi: Dbi, db_addr_port: String) -> Rcd {
+    let grpc = RemoteGrpc {
+        db_addr_port: db_addr_port,
+    };
+
+    let remote_db = RcdRemoteDbClient {
+        comm_type: RcdCommunication::Grpc,
+        grpc: Some(grpc),
+        http: None,
+    };
+
+    let rcd = Rcd {
+        db_interface: Some(dbi.clone()),
+        remote_client: Some(remote_db),
+    };
+
+    return rcd;
 }

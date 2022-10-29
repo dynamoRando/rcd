@@ -1,17 +1,21 @@
 use config::Config;
-use rcd_grpc::data_srv::{DataServiceImpl, self};
-use rcd_core::dbi::{Dbi};
-use rcd_common::rcd_enum::DatabaseType;
-use rcd_common::db::DbiConfigSqlite;
-use rcd_grpc::sqlclient_srv::{SqlClientImpl, self};
-use rcd_common::rcd_settings::RcdSettings;
 use log::info;
+use rcd_common::db::DbiConfigSqlite;
+use rcd_common::rcd_enum::DatabaseType;
+use rcd_common::rcd_settings::RcdSettings;
+use rcd_core::dbi::Dbi;
+use rcd_core::rcd::Rcd;
+use rcd_grpc::data_srv::{self, DataServiceImpl};
+use rcd_grpc::sqlclient_srv::{self, SqlClientImpl};
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use std::{env, thread};
 use tonic::transport::Server;
 use triggered::Listener;
+
+mod grpc;
+mod http;
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store_at_dir(
@@ -44,7 +48,6 @@ fn configure_backing_store_at_dir(
         _ => panic!("Unknown db type"),
     }
 }
-
 
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store(
@@ -86,6 +89,7 @@ pub struct RcdService {
     pub db_interface: Option<Dbi>,
     pub sql_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
     pub db_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
+    pub core: Option<Rcd>,
 }
 
 impl RcdService {
@@ -200,6 +204,27 @@ impl RcdService {
     }
 
     #[tokio::main]
+    pub async fn start_grpc_at_addrs_with_shutdown(
+        mut self,
+        db_name: String,
+        client_address_port: String,
+        db_address_port: String,
+        root_folder: String,
+        client_shutdown_listener: Listener,
+        db_shutdown_listener: Listener,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        return grpc::start_grpc_at_addrs_with_shutdown(
+            &mut self,
+            db_name,
+            client_address_port,
+            db_address_port,
+            root_folder,
+            client_shutdown_listener,
+            db_shutdown_listener,
+        );
+    }
+
+    #[tokio::main]
     pub async fn start_services_at_addrs(
         self: &Self,
         db_name: String,
@@ -240,89 +265,8 @@ impl RcdService {
         Ok(())
     }
 
-    #[tokio::main]
-    pub async fn start_services_at_addrs_with_shutdown(
-        self: &Self,
-        db_name: String,
-        client_address_port: String,
-        db_address_port: String,
-        root_folder: String,
-        client_shutdown_listener: Listener,
-        db_shutdown_listener: Listener,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let db1 = db_name.clone();
-        let db2 = db_name.clone();
-
-        let root1 = root_folder.clone();
-        let root2 = root_folder.clone();
-
-        let db_addr1 = db_address_port.clone();
-        let db_addr2 = db_address_port.clone();
-
-        let dbi1 = self.db_interface.clone();
-        let dbi2 = self.db_interface.clone();
-
-        thread::spawn(move || {
-            let name = db1.clone();
-            let _ = Self::start_client_service_at_addr_with_shutdown(
-                &name.to_string(),
-                &db_addr1,
-                client_address_port,
-                root1,
-                dbi1,
-                client_shutdown_listener,
-            )
-            .unwrap();
-        });
-
-        thread::spawn(move || {
-            let name = db2.clone();
-            let _ = Self::start_db_service_at_addr_with_shutdown(
-                &name.to_string(),
-                db_addr2,
-                root2,
-                dbi2,
-                db_shutdown_listener,
-            )
-            .unwrap();
-        });
-
-        Ok(())
-    }
-
-    #[tokio::main]
-    pub async fn start_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
-        let address_port = &self.rcd_settings.client_service_addr_port;
-        let own_db_addr_port = &self.rcd_settings.database_service_addr_port;
-        let addr = address_port.parse().unwrap();
-        let database_name = &self.rcd_settings.backing_database_name;
-
-        let wd = env::current_dir().unwrap();
-        let root_folder = wd.to_str().unwrap();
-
-        let dbi = self.db_interface.clone().unwrap();
-
-        let sql_client = SqlClientImpl {
-            root_folder: root_folder.to_string(),
-            database_name: database_name.to_string(),
-            addr_port: address_port.to_string(),
-            own_db_addr_port: own_db_addr_port.to_string(),
-            db_interface: Some(dbi),
-        };
-
-        let sql_client_service = tonic_reflection::server::Builder::configure()
-            .build()
-            .unwrap();
-
-        println!("sql client server listening on {}", addr);
-
-        Server::builder()
-            .add_service(SqlClientServer::new(sql_client))
-            .add_service(sql_client_service) // Add this
-            .serve(addr)
-            .await?;
-
-        Ok(())
+    pub fn start_grpc_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
+        return grpc::start_grpc_client_service_alt(self);
     }
 
     #[tokio::main]
@@ -341,6 +285,7 @@ impl RcdService {
             addr_port: address_port.to_string(),
             own_db_addr_port: own_db_addr_port.to_string(),
             db_interface: db_interface,
+            core: None,
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
@@ -378,6 +323,7 @@ impl RcdService {
             addr_port: address_port.to_string(),
             own_db_addr_port: own_db_addr_port.to_string(),
             db_interface: Some(dbi),
+            core: None,
         };
 
         let sql_client_service = tonic_reflection::server::Builder::configure()
@@ -463,76 +409,7 @@ impl RcdService {
 
         Ok(())
     }
-
-    #[tokio::main]
-    pub async fn start_client_service_at_addr_with_shutdown(
-        database_name: &str,
-        own_db_addr_port: &str,
-        address_port: String,
-        root_folder: String,
-        db_interface: Option<Dbi>,
-        shutdown: Listener,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = address_port.parse().unwrap();
-
-        let sql_client = SqlClientImpl {
-            root_folder: root_folder,
-            database_name: database_name.to_string(),
-            addr_port: address_port.to_string(),
-            own_db_addr_port: own_db_addr_port.to_string(),
-            db_interface: db_interface,
-        };
-
-        let sql_client_service = tonic_reflection::server::Builder::configure()
-            .build()
-            .unwrap();
-
-        println!("Client Service Starting At: {}", addr);
-
-        Server::builder()
-            .add_service(SqlClientServer::new(sql_client))
-            .add_service(sql_client_service) // Add this
-            .serve_with_shutdown(addr, shutdown)
-            .await?;
-
-        Ok(())
-    }
-
-    #[tokio::main]
-    pub async fn start_db_service_at_addr_with_shutdown(
-        database_name: &str,
-        address_port: String,
-        root_folder: String,
-        db_interface: Option<Dbi>,
-        shutdown: Listener,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let addr = address_port.parse().unwrap();
-
-        let data_service = DataServiceImpl {
-            root_folder: root_folder,
-            database_name: database_name.to_string(),
-            addr_port: address_port.to_string(),
-            db_interface: db_interface,
-        };
-
-        let data_service_server = tonic_reflection::server::Builder::configure()
-            .build()
-            .unwrap();
-
-        println!("Database Service Starting At: {}", addr);
-
-        Server::builder()
-            .add_service(DataServiceServer::new(data_service))
-            .add_service(data_service_server) // Add this
-            .serve_with_shutdown(addr, shutdown)
-            .await?;
-
-        Ok(())
-    }
 }
-
-
-
 
 /// Returns an RcdService from the config file
 pub fn get_service_from_config_file() -> RcdService {
@@ -543,6 +420,7 @@ pub fn get_service_from_config_file() -> RcdService {
         db_interface: None,
         sql_client_channel: None,
         db_client_channel: None,
+        core: None,
     };
 
     if service.root_dir == "" {
@@ -564,6 +442,7 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
         db_interface: None,
         sql_client_channel: None,
         db_client_channel: None,
+        core: None,
     };
 }
 

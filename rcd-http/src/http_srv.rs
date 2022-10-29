@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use log::info;
-use rcd_core::dbi::Dbi;
+use rcd_core::rcd::Rcd;
 use rocket::fairing::Kind;
 use rocket::http::Header;
 use rocket::Shutdown;
@@ -16,26 +16,26 @@ use std::thread;
 
 mod client;
 
-pub struct HttpDbi {
-    dbi: Option<Dbi>,
+pub struct Core {
+    core: Option<Rcd>,
 }
 
-impl HttpDbi {
-    pub fn set(&mut self, dbi: Dbi) {
-        self.dbi = Some(dbi.clone());
+impl Core {
+    pub fn set(&mut self, core: Rcd) {
+        self.core = Some(core.clone());
     }
 
-    pub fn get(&self) -> Dbi {
-        return self.dbi.as_ref().unwrap().clone();
+    pub fn get(&self) -> Rcd {
+        return self.core.as_ref().unwrap().clone();
     }
 }
 
 lazy_static! {
-    pub static ref HTTP_DBI: Mutex<HttpDbi> = Mutex::new(HttpDbi { dbi: None });
+    pub static ref CORE: Mutex<Core> = Mutex::new(Core { core: None });
 }
 
-pub fn get_dbi() -> Dbi {
-    return HTTP_DBI.lock().unwrap().get();
+pub fn get_core() -> Rcd {
+    return CORE.lock().unwrap().get();
 }
 
 #[get("/")]
@@ -72,8 +72,8 @@ fn shutdown(shutdown: Shutdown) -> &'static str {
 }
 
 #[tokio::main]
-pub async fn start_http(dbi: Dbi) {
-    HTTP_DBI.lock().unwrap().set(dbi);
+pub async fn start_http(core: Rcd) {
+    CORE.lock().unwrap().set(core);
 
     thread::spawn(move || {
         let _ = start();

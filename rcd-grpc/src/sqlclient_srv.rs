@@ -1,16 +1,14 @@
 use rcd_core::dbi::Dbi;
-use rcd_common::defaults;
+use rcd_core::rcd::Rcd;
 use crate::remote_db_srv;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
     CreateUserDatabaseReply, RejectPendingContractReply, RejectPendingContractRequest,
 };
-use chrono::Utc;
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
-mod admin;
 mod contract;
 mod db;
 mod io;
@@ -25,6 +23,7 @@ pub struct SqlClientImpl {
     pub addr_port: String,
     pub own_db_addr_port: String,
     pub db_interface: Option<Dbi>,
+    pub core: Option<Rcd>,
 }
 
 impl SqlClientImpl {
@@ -36,6 +35,10 @@ impl SqlClientImpl {
     fn dbi(self: &Self) -> Dbi {
         return self.db_interface.as_ref().unwrap().clone();
     }
+
+    fn core(self: &Self) -> Rcd {
+        return self.core.as_ref().unwrap().clone();
+    }
 }
 
 #[tonic::async_trait]
@@ -46,13 +49,16 @@ impl SqlClient for SqlClientImpl {
     ) -> Result<Response<TestReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
 
-        let item = request.into_inner().request_echo_message;
+        // let item = request.into_inner().request_echo_message;
 
-        let response = TestReply {
-            reply_time_utc: String::from(Utc::now().to_rfc2822()),
-            reply_echo_message: String::from(item),
-            rcdx_version: defaults::VERSION.to_string(),
-        };
+        // let response = TestReply {
+        //     reply_time_utc: String::from(Utc::now().to_rfc2822()),
+        //     reply_echo_message: String::from(item),
+        //     rcdx_version: defaults::VERSION.to_string(),
+        // };
+
+        let response = self.core().is_online(request.into_inner());
+
         Ok(Response::new(response))
     }
 
@@ -61,7 +67,11 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDatabasesRequest>,
     ) -> Result<Response<GetDatabasesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = admin::get_databases(request.into_inner(), self).await;
+
+        // let result = admin::get_databases(request.into_inner(), self).await;
+
+        let result = self.core().get_databases(request.into_inner());
+
         Ok(Response::new(result))
     }
 
@@ -392,6 +402,7 @@ pub async fn start_client_service(
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
         db_interface: None,
+        core: None,
     };
 
     let sql_client_service = tonic_reflection::server::Builder::configure()

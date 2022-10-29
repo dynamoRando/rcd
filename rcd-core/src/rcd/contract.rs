@@ -1,0 +1,75 @@
+use rcdproto::rcdp::{AcceptPendingContractRequest, AcceptPendingContractReply, AuthResult};
+
+use super::Rcd;
+#[allow(dead_code, unused_variables)]
+pub async fn accept_pending_contract(
+    request: AcceptPendingContractRequest,
+    client: &Rcd,
+) -> AcceptPendingContractReply {
+    // check if the user is authenticated
+    let auth_request = request.authentication.unwrap();
+    let is_authenticated = client.dbi().verify_login(&auth_request.user_name, &auth_request.pw);
+    let mut is_accepted = false;
+    let mut return_message = String::from("");
+
+    if is_authenticated {
+        // 1 - we need to update the rcd_db record that we are accepting this contract
+        // 2 - then we actually need to create the database with the properties of the
+        // contract
+        // 3 - we need to notify the host that we have accepted the contract
+
+        let contracts = client.dbi().get_pending_contracts();
+        let pending_contract = contracts
+            .iter()
+            .enumerate()
+            .filter(|&(_, c)| {
+                c.host_info.as_ref().unwrap().host_name.to_string() == request.host_alias
+            })
+            .map(|(_, c)| c);
+
+        let param_contract = pending_contract.last().unwrap().clone();
+
+        // 1 - accept the contract
+        let is_contract_updated = client.dbi().accept_pending_contract(&request.host_alias);
+
+        // 2 - create the database with the properties of the contract
+        // make the database
+        let db_is_created = client
+            .dbi()
+            .create_partial_database_from_contract(&param_contract);
+
+        let self_host_info = client.dbi().rcd_get_host_info();
+        // 3 - notify the host that we've accepted the contract
+        let is_host_notified = client.remote().notify_host_of_acceptance_of_contract(
+            &param_contract,
+            &self_host_info,
+        )
+        .await;
+
+        if is_contract_updated && db_is_created && is_host_notified {
+            is_accepted = true;
+            return_message = String::from("accepted contract successfuly");
+        } else if !is_contract_updated {
+            return_message = String::from("failed to update contract in rcd db");
+        } else if !db_is_created {
+            return_message = String::from("failed to to create partial db from contract");
+        } else if !is_host_notified {
+            return_message = String::from("failed to notify host of acceptance of contract");
+        }
+    };
+
+    let auth_response = AuthResult {
+        is_authenticated: is_authenticated,
+        user_name: String::from(""),
+        token: String::from(""),
+        authentication_message: String::from(""),
+    };
+
+    let accepted_reply = AcceptPendingContractReply {
+        authentication_result: Some(auth_response),
+        is_successful: is_accepted,
+        message: return_message,
+    };
+
+    return accepted_reply;
+}

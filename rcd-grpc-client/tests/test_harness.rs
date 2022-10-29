@@ -87,7 +87,7 @@ pub fn start_service(
 
     let dir = root_dir.clone();
 
-    let _ = service.start_services_at_addrs_with_shutdown(
+    let _ = service.start_grpc_at_addrs_with_shutdown(
         db_name,
         client_address_port,
         db_address_port,

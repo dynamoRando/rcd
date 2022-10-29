@@ -1,4 +1,4 @@
-use super::get_dbi;
+use super::get_core;
 use rcd_common::defaults;
 use rcdproto::rcdp::{TestReply, TestRequest};
 use rocket::{get, http::Status, post, serde::json::Json};
