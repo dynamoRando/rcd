@@ -18,8 +18,5 @@ pub fn version(request: Json<TestRequest>) -> (Status, Json<TestReply>) {
         rcdx_version: defaults::VERSION.to_string(),
     };
 
-    let dbi = get_dbi();
-    println!("{:?}", dbi);
-
     (Status::Ok, Json(response))
 }

@@ -3,8 +3,8 @@ use serde::Deserialize;
 use web_sys::{console, HtmlInputElement};
 use yew::{html::Scope, prelude::*};
 mod rcd_conn_ui;
-use reqwasm::http::{Request, Method};
-use rcd_messages::client::TestRequest;
+use rcd_messages::client::{AuthRequest, GetDatabasesRequest, TestRequest};
+use reqwasm::http::{Method, Request};
 
 pub enum AppMessage {
     Connect(),
@@ -134,7 +134,7 @@ impl Component for RcdAdminApp {
                 let request_json3 = request_json.clone();
 
                 // we expect to get the "Status From Rocket" message
-                wasm_bindgen_futures::spawn_local(async move {                    
+                wasm_bindgen_futures::spawn_local(async move {
                     let res = Request::get("http://127.0.0.1:8000/client/status")
                         .send()
                         .await
@@ -153,11 +153,47 @@ impl Component for RcdAdminApp {
 
                     // let js = wasm_bindgen::JsValue::from_str(&request_json2);
                     console::log_1(&request_json.into());
-                    
+
                     let http_response = Request::new(url)
                         .method(Method::POST)
                         .header("Content-Type", "application/json")
                         .body(request_json2)
+                        .send()
+                        .await
+                        .unwrap()
+                        .text()
+                        .await
+                        .unwrap();
+
+                    console::log_1(&"response".into());
+                    console::log_1(&http_response.into());
+                });
+
+                // test to see if we can get databases
+                let auth_request = AuthRequest {
+                    user_name: "tester".to_string(),
+                    pw: "123456".to_string(),
+                    pw_hash: Vec::new(),
+                    token: Vec::new(),
+                };
+
+                let db_request = GetDatabasesRequest {
+                    authentication: Some(auth_request),
+                };
+
+                let db_request_json = serde_json::to_string(&db_request).unwrap();
+                let db_request_json2 = serde_json::to_string(&db_request).unwrap();
+                wasm_bindgen_futures::spawn_local(async move {
+                    console::log_1(&"local".into());
+                    let url = "http://localhost:8000/client/databases";
+
+                    // let js = wasm_bindgen::JsValue::from_str(&request_json2);
+                    console::log_1(&db_request_json.into());
+
+                    let http_response = Request::new(url)
+                        .method(Method::POST)
+                        .header("Content-Type", "application/json")
+                        .body(db_request_json2)
                         .send()
                         .await
                         .unwrap()
