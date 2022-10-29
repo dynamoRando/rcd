@@ -31,7 +31,7 @@ This project is currently going a reorganization.
 ## New Layout
 - `rcdx` - an executable that hosts both a `rcd-grpc` and a `rcd-http` layer.
 - `rcd-core` - a library that contains the business logic for `rcd`. abstracts the client and data services and interactions with target database systems (Sqlite, MySQL, Postgres, etc.)
-- `rcd-common` - a library that contains most objects shared by `rdc*` libaries.
+- `rcd-common` - a library that contains most objects shared by `rcd*` libaries.
 - `rcd-sqlite` - a library that contains code specific to an `rcd*` implementation done in SQLite. As other databases are targeted other libraries will be added (MySQL, Postgres, etc).
 - `rcd-query` - a library that defines functions to parsing SQL statements. This library currently only manages parsing SQLite, though it may be expanded to other SQL implementations (MySQL, Postgres, etc.)
 - `rcd-grpc-client` - a replacement for `rcdclient`. This will be a native Rust lib that is an abstraction over the `rcdp.proto` and `rcdproto` lib.
