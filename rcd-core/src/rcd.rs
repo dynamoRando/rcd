@@ -14,7 +14,7 @@ use rcd_common::defaults;
 
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult, DatabaseSchema,
-    GetDatabasesReply, GetDatabasesRequest, TestReply, TestRequest,
+    GetDatabasesReply, GetDatabasesRequest, TestReply, TestRequest, GetPendingActionsReply, GetPendingActionsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -30,6 +30,10 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn get_pending_actions_at_participant(&self, request: GetPendingActionsRequest) -> GetPendingActionsReply {
+        return db::get_pending_updates_at_participant(self, request).await;
+    }
+
     pub async fn accept_pending_action_at_participant(
         &self,
         request: AcceptPendingActionRequest,

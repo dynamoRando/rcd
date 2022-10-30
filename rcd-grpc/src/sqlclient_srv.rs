@@ -75,8 +75,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetPendingActionsRequest>,
     ) -> Result<Response<GetPendingActionsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let pending_updates =
-            db::get_pending_updates_at_participant(request.into_inner(), self).await;
+        let pending_updates = self.core().get_pending_actions_at_participant(request.into_inner()).await;
         Ok(Response::new(pending_updates))
     }
 

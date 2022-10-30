@@ -7,47 +7,12 @@ use rcdproto::rcdp::{
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
-    GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
+    GetDataHashRequest, GetReadRowIdsReply,
+    GetReadRowIdsRequest, HasTableReply, HasTableRequest, 
 };
 use rcd_common::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 
 use super::SqlClientImpl;
-
-pub async fn get_pending_updates_at_participant(
-    request: GetPendingActionsRequest,
-    client: &SqlClientImpl,
-) -> GetPendingActionsReply {
-    let message = request.clone();
-    let a = message.authentication.unwrap();
-
-    let db_name = &message.database_name;
-    let table_name = &message.table_name;
-    let action = &message.action;
-
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let mut pending_statements: Vec<PendingStatement> = Vec::new();
-
-    if is_authenticated {
-        pending_statements = client
-            .dbi()
-            .get_pending_actions(db_name, table_name, &action);
-    }
-
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
-    let result = GetPendingActionsReply {
-        authentication_result: Some(auth_response),
-        pending_statements: pending_statements,
-    };
-
-    return result;
-}
 
 pub async fn change_host_status(
     request: ChangeHostStatusRequest,

@@ -1,7 +1,34 @@
 use rcd_common::rcd_enum::PartialDataResultAction;
-use rcdproto::rcdp::{AcceptPendingActionRequest, AcceptPendingActionReply};
+use rcdproto::rcdp::{AcceptPendingActionRequest, AcceptPendingActionReply, GetPendingActionsRequest, GetPendingActionsReply, PendingStatement};
 
 use super::Rcd;
+
+
+pub async fn get_pending_updates_at_participant(
+    core: &Rcd,
+    request: GetPendingActionsRequest,
+) -> GetPendingActionsReply {
+
+    let db_name = &request.database_name;
+    let table_name = &request.table_name;
+    let action = &request.action;
+
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let mut pending_statements: Vec<PendingStatement> = Vec::new();
+
+    if auth_result.0 {
+        pending_statements = core
+            .dbi()
+            .get_pending_actions(db_name, table_name, &action);
+    }
+
+    let result = GetPendingActionsReply {
+        authentication_result: Some(auth_result.1),
+        pending_statements: pending_statements,
+    };
+
+    return result;
+}
 
 
 
