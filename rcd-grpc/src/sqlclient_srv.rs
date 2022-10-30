@@ -80,7 +80,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AcceptPendingActionRequest>,
     ) -> Result<Response<AcceptPendingActionReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::accept_pending_action_at_participant(request.into_inner(), self).await;
+        let result = self.core().accept_pending_action_at_participant(request.into_inner()).await;
         Ok(Response::new(result))
     }
 

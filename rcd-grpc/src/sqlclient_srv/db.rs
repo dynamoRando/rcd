@@ -1,5 +1,5 @@
 use rcdproto::rcdp::{
-    AcceptPendingActionReply, AcceptPendingActionRequest, AuthResult,
+    AuthResult,
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
     ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
@@ -10,100 +10,9 @@ use rcdproto::rcdp::{
     GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
     GetReadRowIdsRequest, HasTableReply, HasTableRequest, PendingStatement,
 };
-use rcd_common::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior, PartialDataResultAction};
-use crate::{
-    remote_db_srv,
-};
+use rcd_common::rcd_enum::{RcdGenerateContractError, RemoteDeleteBehavior};
 
 use super::SqlClientImpl;
-
-pub async fn accept_pending_action_at_participant(
-    request: AcceptPendingActionRequest,
-    client: &SqlClientImpl,
-) -> AcceptPendingActionReply {
-    // 1 - we should execute the update statement
-    // 2 - we should clear the row from the queue table
-    // 3 - and then send the updated row_id and hash back to the host
-    // update_row_data_hash_for_host on the data service
-
-    println!("{:?}", request);
-
-    let message = request.clone();
-    let a = message.authentication.unwrap();
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-
-    let mut is_local_update_successful = false;
-    let mut is_remote_update_successful = false;
-
-    if is_authenticated {
-        let db_name = &message.database_name;
-        let table_name = &message.table_name;
-        let row_id = message.row_id;
-
-        let data_result = client
-            .dbi()
-            .accept_pending_action_at_participant(db_name, table_name, row_id);
-
-        println!("{:?}", data_result);
-        println!(
-            "is_local_update_successful: {}",
-            is_local_update_successful.to_string()
-        );
-
-        if data_result.is_successful {
-            is_local_update_successful = true;
-
-            let remote_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
-            let own_host_info = client.dbi().rcd_get_host_info().clone();
-            let own_db_addr_port = client.own_db_addr_port.clone();
-            let hash = data_result.data_hash;
-
-            let is_deleted = match data_result.action {
-                Some(action) => match action {
-                    PartialDataResultAction::Unknown => false,
-                    PartialDataResultAction::Insert => false,
-                    PartialDataResultAction::Update => false,
-                    PartialDataResultAction::Delete => true,
-                },
-                None => false,
-            };
-
-            let notify_is_successful = remote_db_srv::notify_host_of_updated_hash(
-                &remote_host,
-                &own_host_info,
-                own_db_addr_port,
-                db_name,
-                table_name,
-                row_id,
-                hash,
-                is_deleted,
-            )
-            .await;
-
-            println!("notify_is_successful: {}", notify_is_successful.to_string());
-
-            if notify_is_successful {
-                is_remote_update_successful = true;
-            }
-        }
-    } else {
-        println!("not authenticated");
-    }
-
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
-    let result = AcceptPendingActionReply {
-        authentication_result: Some(auth_response),
-        is_successful: is_local_update_successful && is_remote_update_successful,
-    };
-
-    return result;
-}
 
 pub async fn get_pending_updates_at_participant(
     request: GetPendingActionsRequest,

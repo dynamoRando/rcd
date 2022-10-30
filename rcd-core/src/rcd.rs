@@ -2,24 +2,26 @@
 
 Also known as "core".
 
-This is the Rcd "core" business layer. What was previously defined in the rcd-grpc is intended to be 
-slowly moved over to a communication ambivalent layer, which is this module. 
+This is the Rcd "core" business layer. What was previously defined in the rcd-grpc is intended to be
+slowly moved over to a communication ambivalent layer, which is this module.
 
 This 'core' will handle most business actions by way of the defined proto types.
 
 */
 
-
 use chrono::Utc;
 use rcd_common::defaults;
+
 use rcdproto::rcdp::{
-    AuthResult, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TestReply, TestRequest,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult, DatabaseSchema,
+    GetDatabasesReply, GetDatabasesRequest, TestReply, TestRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
 use crate::dbi::Dbi;
 
 mod contract;
+mod db;
 
 #[derive(Debug, Clone)]
 pub struct Rcd {
@@ -28,6 +30,13 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn accept_pending_action_at_participant(
+        &self,
+        request: AcceptPendingActionRequest,
+    ) -> AcceptPendingActionReply {
+        return db::accept_pending_action_at_participant(&self, request).await;
+    }
+
     pub fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
@@ -42,17 +51,9 @@ impl Rcd {
     pub fn get_databases(&self, request: GetDatabasesRequest) -> GetDatabasesReply {
         let mut db_result: Vec<DatabaseSchema> = Vec::new();
 
-        let auth = request.authentication.as_ref().unwrap().clone();
-        let is_authenticated = self.dbi().verify_login(&auth.user_name, &auth.pw);
+        let auth_result = self.verify_login(request.authentication.unwrap());
 
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        if is_authenticated {
+        if auth_result.0 {
             let db_names = self.dbi().get_database_names();
             for name in &db_names {
                 let db_schema = self.dbi().get_database_schema(&name);
@@ -61,14 +62,27 @@ impl Rcd {
         }
 
         let result = GetDatabasesReply {
-            authentication_result: Some(auth_response),
+            authentication_result: Some(auth_result.1),
             databases: db_result,
         };
 
         return result;
     }
 
-    fn dbi(self: &Self) -> Dbi {
+    fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
+        let is_authenticated = self.dbi().verify_login(&request.user_name, &request.pw);
+
+        let auth_response = AuthResult {
+            is_authenticated: is_authenticated,
+            user_name: String::from(""),
+            token: String::from(""),
+            authentication_message: String::from(""),
+        };
+
+        return (is_authenticated, auth_response);
+    }
+
+    fn dbi(&self) -> Dbi {
         return self.db_interface.as_ref().unwrap().clone();
     }
 

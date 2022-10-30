@@ -1,4 +1,4 @@
-use rcd_common::host_info::HostInfo;
+use rcd_common::{host_info::HostInfo, db::CdsHosts};
 use rcdproto::rcdp::Contract;
 use serde::{Serialize, Deserialize};
 
@@ -39,6 +39,26 @@ pub struct RcdRemoteDbClient{
 }
 
 impl RcdRemoteDbClient {
+    pub async fn notify_host_of_updated_hash(
+        &self,
+        host: &CdsHosts,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+        hash: Option<u64>,
+        is_deleted: bool,
+    ) -> bool {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self.grpc().notify_host_of_updated_hash(host, own_host_info, db_name, table_name, row_id, hash, is_deleted)
+                .await;
+            },
+            RcdCommunication::Http => todo!(),
+        };
+    }
+    
     pub async fn notify_host_of_acceptance_of_contract(
         &self,
         accepted_contract: &Contract,
