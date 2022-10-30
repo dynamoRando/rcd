@@ -260,7 +260,7 @@ impl SqlClient for SqlClientImpl {
         request: tonic::Request<ChangeHostStatusRequest>,
     ) -> Result<tonic::Response<ChangeHostStatusReply>, tonic::Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::change_host_status(request.into_inner(), self).await;
+        let result = self.core().change_host_status(request.into_inner()).await;
         Ok(Response::new(result))
     }
 

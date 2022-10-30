@@ -13,8 +13,9 @@ use chrono::Utc;
 use rcd_common::defaults;
 
 use rcdproto::rcdp::{
-    AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult, DatabaseSchema,
-    GetDatabasesReply, GetDatabasesRequest, TestReply, TestRequest, GetPendingActionsReply, GetPendingActionsRequest,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult,
+    ChangeHostStatusReply, ChangeHostStatusRequest, DatabaseSchema, GetDatabasesReply,
+    GetDatabasesRequest, GetPendingActionsReply, GetPendingActionsRequest, TestReply, TestRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -30,7 +31,17 @@ pub struct Rcd {
 }
 
 impl Rcd {
-    pub async fn get_pending_actions_at_participant(&self, request: GetPendingActionsRequest) -> GetPendingActionsReply {
+    pub async fn change_host_status(
+        &self,
+        request: ChangeHostStatusRequest,
+    ) -> ChangeHostStatusReply {
+        return db::change_host_status(&self, request).await;
+    }
+
+    pub async fn get_pending_actions_at_participant(
+        &self,
+        request: GetPendingActionsRequest,
+    ) -> GetPendingActionsReply {
         return db::get_pending_updates_at_participant(self, request).await;
     }
 
