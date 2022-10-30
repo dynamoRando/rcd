@@ -14,8 +14,9 @@ use rcd_common::defaults;
 
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult,
-    ChangeHostStatusReply, ChangeHostStatusRequest, DatabaseSchema, GetDatabasesReply,
-    GetDatabasesRequest, GetPendingActionsReply, GetPendingActionsRequest, TestReply, TestRequest,
+    ChangeHostStatusReply, ChangeHostStatusRequest, DatabaseSchema, GenerateHostInfoReply,
+    GenerateHostInfoRequest, GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply,
+    GetPendingActionsRequest, TestReply, TestRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -31,6 +32,13 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn generate_host_info(
+        &self,
+        request: GenerateHostInfoRequest,
+    ) -> GenerateHostInfoReply {
+        return db::generate_host_info(self, request).await;
+    }
+
     pub async fn change_host_status(
         &self,
         request: ChangeHostStatusRequest,

@@ -6,44 +6,11 @@ use rcdproto::rcdp::{
     ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
     CreateUserDatabaseReply, CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
     EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
-    GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply, GetDataHashRequest,
-    GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
+    GetDataHashReply, GetDataHashRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
+    HasTableRequest,
 };
 
 use super::SqlClientImpl;
-
-pub async fn generate_host_info(
-    request: GenerateHostInfoRequest,
-    client: &SqlClientImpl,
-) -> GenerateHostInfoReply {
-    let mut is_generate_successful = false;
-
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
-    let host_name = message.host_name.clone();
-
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-
-    if is_authenticated {
-        client.dbi().rcd_generate_host_info(&host_name);
-        is_generate_successful = true;
-    }
-
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
-    let generate_host_info_result = GenerateHostInfoReply {
-        authentication_result: Some(auth_response),
-        is_successful: is_generate_successful,
-    };
-
-    return generate_host_info_result;
-}
 
 pub async fn create_user_database(
     request: CreateUserDatabaseRequest,

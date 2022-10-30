@@ -100,7 +100,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GenerateHostInfoRequest>,
     ) -> Result<Response<GenerateHostInfoReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let generate_host_info_result = db::generate_host_info(request.into_inner(), self).await;
+        let generate_host_info_result = self.core().generate_host_info(request.into_inner()).await;
         Ok(Response::new(generate_host_info_result))
     }
 

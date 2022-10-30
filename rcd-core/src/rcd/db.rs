@@ -1,10 +1,34 @@
 use rcd_common::rcd_enum::PartialDataResultAction;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, ChangeHostStatusReply,
-    ChangeHostStatusRequest, GetPendingActionsReply, GetPendingActionsRequest, PendingStatement,
+    ChangeHostStatusRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, PendingStatement,
 };
 
 use super::Rcd;
+
+pub async fn generate_host_info(
+    core: &Rcd,
+    request: GenerateHostInfoRequest,
+) -> GenerateHostInfoReply {
+    let mut is_generate_successful = false;
+
+    let host_name = request.host_name.clone();
+
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    if auth_result.0 {
+        core.dbi().rcd_generate_host_info(&host_name);
+        is_generate_successful = true;
+    }
+
+    let generate_host_info_result = GenerateHostInfoReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: is_generate_successful,
+    };
+
+    return generate_host_info_result;
+}
 
 pub async fn change_host_status(
     core: &Rcd,
