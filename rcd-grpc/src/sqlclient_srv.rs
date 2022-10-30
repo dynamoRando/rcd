@@ -48,17 +48,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<TestRequest>,
     ) -> Result<Response<TestReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // let item = request.into_inner().request_echo_message;
-
-        // let response = TestReply {
-        //     reply_time_utc: String::from(Utc::now().to_rfc2822()),
-        //     reply_echo_message: String::from(item),
-        //     rcdx_version: defaults::VERSION.to_string(),
-        // };
-
         let response = self.core().is_online(request.into_inner());
-
         Ok(Response::new(response))
     }
 
@@ -67,11 +57,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDatabasesRequest>,
     ) -> Result<Response<GetDatabasesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-
-        // let result = admin::get_databases(request.into_inner(), self).await;
-
         let result = self.core().get_databases(request.into_inner());
-
         Ok(Response::new(result))
     }
 
