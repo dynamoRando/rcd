@@ -5,5 +5,6 @@ pub mod config;
 pub mod data;
 pub mod dbi;
 pub mod rcd;
+pub mod rcd_data;
 pub mod remote_grpc;
 pub mod remote_http;

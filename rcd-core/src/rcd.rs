@@ -2,10 +2,10 @@
 
 Also known as "core".
 
-This is the Rcd "core" business layer. What was previously defined in the rcd-grpc is intended to be
+This is the Rcd "core" business layer. What was previously defined in the rcd-grpc::sqlclient_srv is intended to be
 slowly moved over to a communication ambivalent layer, which is this module.
 
-This 'core' will handle most business actions by way of the defined proto types.
+This 'core' will handle most client actions by way of the defined proto types.
 
 */
 
