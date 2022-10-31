@@ -121,9 +121,9 @@ async fn main_service_client(
     participant_db_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcd_grpc_client::RcdClient;
     use rcd_common::rcd_enum::LogicalStoragePolicy;
     use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+    use rcd_grpc_client::RcdClient;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -211,8 +211,8 @@ async fn participant_service_client(
     participant_client_addr: ServiceAddr,
     contract_desc: String,
 ) -> bool {
-    use rcd_grpc_client::RcdClient;
     use rcd_common::rcd_enum::DatabaseType;
+    use rcd_grpc_client::RcdClient;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     let mut has_contract = false;

@@ -1,4 +1,4 @@
-use crate::{rcd_enum::*, defaults};
+use crate::{defaults, rcd_enum::*};
 
 // objects moved to here from rcdx.dbi
 
@@ -96,7 +96,6 @@ pub fn get_data_queue_table_name(table_name: &str) -> String {
     );
     return format!("{}{}", table_name, defaults::DATA_QUEUE_TABLE_SUFFIX);
 }
-
 
 pub fn get_metadata_table_name(table_name: &str) -> String {
     return format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);

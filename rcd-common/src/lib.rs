@@ -1,10 +1,10 @@
-pub mod crypt;
-pub mod db;
-pub mod rcd_enum;
-pub mod host_info;
-pub mod user;
-pub mod defaults;
-pub mod table;
 pub mod coop_database_contract;
 pub mod coop_database_participant;
+pub mod crypt;
+pub mod db;
+pub mod defaults;
+pub mod host_info;
+pub mod rcd_enum;
 pub mod rcd_settings;
+pub mod table;
+pub mod user;

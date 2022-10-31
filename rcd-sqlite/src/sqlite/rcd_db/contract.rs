@@ -1,11 +1,14 @@
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema};
 
-use crate::sqlite::{get_scalar_as_string, execute_write, has_any_rows};
+use crate::sqlite::{execute_write, get_scalar_as_string, has_any_rows};
 
 use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
+use rcd_common::{
+    db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
+    rcd_enum::ContractStatus,
+};
 use rusqlite::{named_params, Connection, Result};
-use rcd_common::{rcd_enum::ContractStatus, db::{DbiConfigSqlite, CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts}};
 
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);

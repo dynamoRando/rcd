@@ -1,7 +1,7 @@
-use rcd_common::db::{DbiConfigSqlite, get_metadata_table_name};
+use rcd_common::db::{get_metadata_table_name, DbiConfigSqlite};
 use rusqlite::named_params;
 
-use crate::sqlite::{get_db_conn, get_scalar_as_u64, sql_text, has_table, execute_write};
+use crate::sqlite::{execute_write, get_db_conn, get_scalar_as_u64, has_table, sql_text};
 
 pub fn get_data_hash_at_host(
     db_name: &str,

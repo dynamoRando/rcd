@@ -1,4 +1,4 @@
-use rcdproto::rcdp::{AcceptPendingContractRequest, AcceptPendingContractReply, AuthResult};
+use rcdproto::rcdp::{AcceptPendingContractReply, AcceptPendingContractRequest, AuthResult};
 
 use super::Rcd;
 #[allow(dead_code, unused_variables)]
@@ -8,7 +8,9 @@ pub async fn accept_pending_contract(
 ) -> AcceptPendingContractReply {
     // check if the user is authenticated
     let auth_request = request.authentication.unwrap();
-    let is_authenticated = client.dbi().verify_login(&auth_request.user_name, &auth_request.pw);
+    let is_authenticated = client
+        .dbi()
+        .verify_login(&auth_request.user_name, &auth_request.pw);
     let mut is_accepted = false;
     let mut return_message = String::from("");
 
@@ -40,11 +42,10 @@ pub async fn accept_pending_contract(
 
         let self_host_info = client.dbi().rcd_get_host_info();
         // 3 - notify the host that we've accepted the contract
-        let is_host_notified = client.remote().notify_host_of_acceptance_of_contract(
-            &param_contract,
-            &self_host_info,
-        )
-        .await;
+        let is_host_notified = client
+            .remote()
+            .notify_host_of_acceptance_of_contract(&param_contract, &self_host_info)
+            .await;
 
         if is_contract_updated && db_is_created && is_host_notified {
             is_accepted = true;

@@ -1,6 +1,6 @@
-use rcd_common::{host_info::HostInfo, db::CdsHosts};
+use rcd_common::{db::CdsHosts, host_info::HostInfo};
 use rcdproto::rcdp::Contract;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::{remote_grpc::RemoteGrpc, remote_http::RemoteHttp};
 
@@ -31,11 +31,10 @@ impl RcdCommunication {
 }
 
 #[derive(Debug, Clone)]
-pub struct RcdRemoteDbClient{
+pub struct RcdRemoteDbClient {
     pub comm_type: RcdCommunication,
-    pub grpc:  Option<RemoteGrpc>,
+    pub grpc: Option<RemoteGrpc>,
     pub http: Option<RemoteHttp>,
-
 }
 
 impl RcdRemoteDbClient {
@@ -52,13 +51,23 @@ impl RcdRemoteDbClient {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
             RcdCommunication::Grpc => {
-                return self.grpc().notify_host_of_updated_hash(host, own_host_info, db_name, table_name, row_id, hash, is_deleted)
-                .await;
-            },
+                return self
+                    .grpc()
+                    .notify_host_of_updated_hash(
+                        host,
+                        own_host_info,
+                        db_name,
+                        table_name,
+                        row_id,
+                        hash,
+                        is_deleted,
+                    )
+                    .await;
+            }
             RcdCommunication::Http => todo!(),
         };
     }
-    
+
     pub async fn notify_host_of_acceptance_of_contract(
         &self,
         accepted_contract: &Contract,
@@ -67,8 +76,11 @@ impl RcdRemoteDbClient {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
             RcdCommunication::Grpc => {
-                return self.grpc().notify_host_of_acceptance_of_contract(accepted_contract, own_host_info).await;
-            },
+                return self
+                    .grpc()
+                    .notify_host_of_acceptance_of_contract(accepted_contract, own_host_info)
+                    .await;
+            }
             RcdCommunication::Http => todo!(),
         };
     }

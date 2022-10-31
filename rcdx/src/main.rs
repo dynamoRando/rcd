@@ -63,16 +63,14 @@ async fn main() {
 
     // start http, need to make this configurable
     let _ = task::spawn_blocking(move || {
+        let http = RemoteHttp {};
 
-        let http = RemoteHttp {
-        };
-    
         let remote_client = RcdRemoteDbClient {
             comm_type: RcdCommunication::Http,
             grpc: None,
             http: Some(http),
         };
-    
+
         let core = Rcd {
             db_interface: Some(dbi_clone),
             remote_client: Some(remote_client),

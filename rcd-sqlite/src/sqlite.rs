@@ -1,9 +1,9 @@
 use self::db_part::get_partial_db_connection;
 use log::info;
+use rcd_common::{db::DbiConfigSqlite, defaults, rcd_enum::ColumnType, table::*};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
-use rcd_common::{rcd_enum::ColumnType, defaults, table::*, db::DbiConfigSqlite};
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;

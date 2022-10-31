@@ -1,11 +1,11 @@
+use crate::remote_db_srv;
 use rcd_common::rcd_enum::DeletesToHostBehavior;
 use rcd_common::rcd_enum::UpdatesToHostBehavior;
+use rcd_common::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
 use rcdproto::rcdp::{
     AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
 };
-use rcd_common::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
-use crate::remote_db_srv;
 
 use super::SqlClientImpl;
 use conv::UnwrapOk;

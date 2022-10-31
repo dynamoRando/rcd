@@ -1,9 +1,17 @@
-use crate::sqlite::{sql_text, has_table, execute_write, get_scalar_as_u32, rcd_db::get_updates_from_host_behavior, get_table_col_names};
+use crate::sqlite::{
+    execute_write, get_scalar_as_u32, get_table_col_names, has_table,
+    rcd_db::get_updates_from_host_behavior, sql_text,
+};
 
 use super::{add_record_to_log_table, get_partial_db_connection};
 use chrono::Utc;
+use rcd_common::{
+    crypt,
+    db::{get_data_queue_table_name, DbiConfigSqlite, PartialDataResult},
+    defaults,
+    rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior},
+};
 use rusqlite::{named_params, types::Type};
-use rcd_common::{rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior}, db::{get_data_queue_table_name, DbiConfigSqlite, PartialDataResult}, defaults, crypt};
 
 pub fn update_data_into_partial_db_queue(
     db_name: &str,

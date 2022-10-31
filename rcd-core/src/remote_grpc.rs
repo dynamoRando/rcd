@@ -8,86 +8,85 @@ use chrono::Utc;
 use endianness::{read_i32, ByteOrder};
 use guid_create::GUID;
 use log::info;
-use rcd_common::{host_info::HostInfo, coop_database_participant::CoopDatabaseParticipant};
-use rcdproto::rcdp::{Contract, Participant, ParticipantAcceptsContractRequest, data_service_client::DataServiceClient, AuthRequest, MessageInfo, Host, UpdateRowDataHashForHostRequest, NotifyHostOfRemovedRowRequest};
+use rcd_common::{coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo};
+use rcdproto::rcdp::{
+    data_service_client::DataServiceClient, AuthRequest, Contract, Host, MessageInfo,
+    NotifyHostOfRemovedRowRequest, Participant, ParticipantAcceptsContractRequest,
+    UpdateRowDataHashForHostRequest,
+};
 use tonic::transport::Channel;
 
 use rcd_common::db::CdsHosts;
 
-
-
 #[derive(Debug, Clone)]
-pub struct RemoteGrpc{
+pub struct RemoteGrpc {
     pub db_addr_port: String,
 }
 
 impl RemoteGrpc {
+    pub async fn notify_host_of_updated_hash(
+        &self,
+        host: &CdsHosts,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+        hash: Option<u64>,
+        is_deleted: bool,
+    ) -> bool {
+        let auth = get_auth_request(own_host_info);
+        let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
 
-
-pub async fn notify_host_of_updated_hash(
-    &self,
-    host: &CdsHosts,
-    own_host_info: &HostInfo,
-    db_name: &str,
-    table_name: &str,
-    row_id: u32,
-    hash: Option<u64>,
-    is_deleted: bool,
-) -> bool {
-    let auth = get_auth_request(own_host_info);
-    let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
-
-    let chost = Host {
-        host_guid: own_host_info.id.clone(),
-        host_name: own_host_info.name.clone(),
-        ip4_address: String::from(""),
-        ip6_address: String::from(""),
-        database_port_number: 0,
-        token: own_host_info.token.clone(),
-    };
-
-    let hash_val = match hash {
-        Some(_) => hash.unwrap(),
-        None => 0,
-    };
-
-    if !is_deleted {
-        let request = UpdateRowDataHashForHostRequest {
-            authentication: Some(auth),
-            message_info: Some(message_info),
-            host_info: Some(chost),
-            database_name: db_name.to_string(),
-            database_id: String::from(""),
-            table_name: table_name.to_string(),
-            table_id: 0,
-            row_id,
-            updated_hash_value: hash_val,
-            is_deleted_at_participant: is_deleted,
+        let chost = Host {
+            host_guid: own_host_info.id.clone(),
+            host_name: own_host_info.name.clone(),
+            ip4_address: String::from(""),
+            ip6_address: String::from(""),
+            database_port_number: 0,
+            token: own_host_info.token.clone(),
         };
 
-        let client = get_client_from_cds_host(host);
-        let response = client.await.update_row_data_hash_for_host(request).await;
-        let result = response.unwrap().into_inner();
-        return result.is_successful;
-    } else {
-        let request = NotifyHostOfRemovedRowRequest {
-            authentication: Some(auth),
-            message_info: Some(message_info),
-            host_info: Some(chost),
-            database_name: db_name.to_string(),
-            database_id: String::from(""),
-            table_name: table_name.to_string(),
-            table_id: 0,
-            row_id,
+        let hash_val = match hash {
+            Some(_) => hash.unwrap(),
+            None => 0,
         };
 
-        let client = get_client_from_cds_host(host);
-        let response = client.await.notify_host_of_removed_row(request).await;
-        let result = response.unwrap().into_inner();
-        return result.is_successful;
+        if !is_deleted {
+            let request = UpdateRowDataHashForHostRequest {
+                authentication: Some(auth),
+                message_info: Some(message_info),
+                host_info: Some(chost),
+                database_name: db_name.to_string(),
+                database_id: String::from(""),
+                table_name: table_name.to_string(),
+                table_id: 0,
+                row_id,
+                updated_hash_value: hash_val,
+                is_deleted_at_participant: is_deleted,
+            };
+
+            let client = get_client_from_cds_host(host);
+            let response = client.await.update_row_data_hash_for_host(request).await;
+            let result = response.unwrap().into_inner();
+            return result.is_successful;
+        } else {
+            let request = NotifyHostOfRemovedRowRequest {
+                authentication: Some(auth),
+                message_info: Some(message_info),
+                host_info: Some(chost),
+                database_name: db_name.to_string(),
+                database_id: String::from(""),
+                table_name: table_name.to_string(),
+                table_id: 0,
+                row_id,
+            };
+
+            let client = get_client_from_cds_host(host);
+            let response = client.await.notify_host_of_removed_row(request).await;
+            let result = response.unwrap().into_inner();
+            return result.is_successful;
+        }
     }
-}
-
 
     pub async fn notify_host_of_acceptance_of_contract(
         &self,
@@ -95,10 +94,10 @@ pub async fn notify_host_of_updated_hash(
         own_host_info: &HostInfo,
     ) -> bool {
         // rpc AcceptContract(ParticipantAcceptsContractRequest) returns (ParticipantAcceptsContractResult);
-    
+
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
         let host_info = accepted_contract.host_info.as_ref().unwrap().clone();
-    
+
         let participant = Participant {
             participant_guid: own_host_info.id.clone(),
             alias: own_host_info.name.clone(),
@@ -107,7 +106,7 @@ pub async fn notify_host_of_updated_hash(
             database_port_number: 0,
             token: own_host_info.token.clone(),
         };
-    
+
         let request = ParticipantAcceptsContractRequest {
             participant: Some(participant),
             contract_guid: accepted_contract.contract_guid.clone(),
@@ -120,22 +119,20 @@ pub async fn notify_host_of_updated_hash(
                 .clone(),
             message_info: Some(message_info),
         };
-    
+
         let message = format!(
             "sending request to rcd at: {}",
             host_info.ip4_address.clone()
         );
         info!("{}", message);
         println!("{}", message);
-    
+
         let client = get_client_with_addr_port(host_info.ip4_address.clone());
         let response = client.await.accept_contract(request).await.unwrap();
-    
+
         return response.into_inner().contract_acceptance_is_acknowledged;
     }
-    
 }
-
 
 fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
     let mut addresses: Vec<String> = Vec::new();

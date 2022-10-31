@@ -1,5 +1,10 @@
 use guid_create::GUID;
-use rcd_common::{coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData}, rcd_enum::ContractStatus, db::DbiConfigSqlite, defaults};
+use rcd_common::{
+    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    db::DbiConfigSqlite,
+    defaults,
+    rcd_enum::ContractStatus,
+};
 use rusqlite::{named_params, Connection, Result};
 
 use crate::sqlite::{get_db_conn, has_any_rows};

@@ -1,9 +1,7 @@
-use rcdproto::rcdp::{TestRequest};
+use rcdproto::rcdp::TestRequest;
 
 fn main() {
-
-    let test = TestRequest
-    {
+    let test = TestRequest {
         request_time_utc: "".to_string(),
         request_origin_url: "".to_string(),
         request_origin_ip4: "".to_string(),

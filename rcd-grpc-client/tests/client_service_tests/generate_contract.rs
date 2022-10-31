@@ -104,9 +104,9 @@ pub fn negative_test() {
 #[cfg(test)]
 #[tokio::main]
 async fn client(db_name: &str, addr_port: &str) -> bool {
-    use rcd_grpc_client::RcdClient;
     use rcd_common::rcd_enum::LogicalStoragePolicy;
     use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+    use rcd_grpc_client::RcdClient;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -147,8 +147,8 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
 #[cfg(test)]
 #[tokio::main]
 async fn client_negative(db_name: &str, addr_port: &str) -> bool {
-    use rcd_grpc_client::RcdClient;
     use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+    use rcd_grpc_client::RcdClient;
 
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

@@ -1,17 +1,17 @@
-use serde::{Serialize, Deserialize};
-use yew::{NodeRef, Html, Component};
+use serde::{Deserialize, Serialize};
+use yew::{Component, Html, NodeRef};
 
 use crate::AppMessage;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RcdConn{
+pub struct RcdConn {
     pub un: String,
     pub pw: String,
     pub ip: String,
-    pub port: u32,   
+    pub port: u32,
 }
 
-pub struct RcdConnUi{
+pub struct RcdConnUi {
     pub conn: RcdConn,
     pub un: NodeRef,
     pub pw: NodeRef,
@@ -19,9 +19,7 @@ pub struct RcdConnUi{
     pub port: NodeRef,
 }
 
-impl RcdConnUi {
-   
-}
+impl RcdConnUi {}
 
 impl Component for RcdConnUi {
     type Message = AppMessage;

@@ -1,16 +1,16 @@
 use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
 use guid_create::GUID;
 use log::info;
-use rusqlite::{named_params, Connection, Result};
+use rcd_common::crypt;
+use rcd_common::db::*;
+use rcd_common::host_info::*;
 use rcd_common::rcd_enum::{
     DeletesFromHostBehavior, DeletesToHostBehavior, RcdDatabaseType, UpdatesFromHostBehavior,
     UpdatesToHostBehavior,
 };
-use std::{fs, path::Path};
-use rcd_common::crypt;
-use rcd_common::db::*;
-use rcd_common::host_info::*;
 use rcd_common::user::*;
+use rusqlite::{named_params, Connection, Result};
+use std::{fs, path::Path};
 
 use crate::sqlite::get_db_conn;
 

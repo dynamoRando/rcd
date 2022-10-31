@@ -1,6 +1,6 @@
+use crate::remote_db_srv;
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
-use crate::remote_db_srv;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{
@@ -57,7 +57,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDatabasesRequest>,
     ) -> Result<Response<GetDatabasesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = self.core().get_databases(request.into_inner());
+        let result = self.core().get_databases(request.into_inner()).await;
         Ok(Response::new(result))
     }
 
@@ -66,7 +66,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<AcceptPendingActionRequest>,
     ) -> Result<Response<AcceptPendingActionReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = self.core().accept_pending_action_at_participant(request.into_inner()).await;
+        let result = self
+            .core()
+            .accept_pending_action_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -75,7 +78,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetPendingActionsRequest>,
     ) -> Result<Response<GetPendingActionsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let pending_updates = self.core().get_pending_actions_at_participant(request.into_inner()).await;
+        let pending_updates = self
+            .core()
+            .get_pending_actions_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(pending_updates))
     }
 
@@ -176,7 +182,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<HasTableRequest>,
     ) -> Result<Response<HasTableReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let has_table_reply = db::has_table(request.into_inner(), self).await;
+        let has_table_reply = self.core().has_table(request.into_inner()).await;
         Ok(Response::new(has_table_reply))
     }
 
@@ -205,7 +211,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GenerateContractRequest>,
     ) -> Result<Response<GenerateContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let generate_contract_reply = db::generate_contract(request.into_inner(), self).await;
+        let generate_contract_reply = self.core().generate_contract(request.into_inner()).await;
         Ok(Response::new(generate_contract_reply))
     }
 
@@ -304,7 +310,8 @@ impl SqlClient for SqlClientImpl {
         request: Request<ChangeUpdatesFromHostBehaviorRequest>,
     ) -> Result<Response<ChangesUpdatesFromHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::change_updates_from_host_behavior(request.into_inner(), self).await;
+        let result = 
+        self.core().change_updates_from_host_behavior(request.into_inner()).await;
         Ok(Response::new(result))
     }
 
@@ -364,7 +371,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::get_data_hash_at_participant(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .get_data_hash_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 }

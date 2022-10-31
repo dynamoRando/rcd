@@ -14,10 +14,12 @@ use rcd_common::defaults;
 
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult,
-    ChangeHostStatusReply, ChangeHostStatusRequest, CreateUserDatabaseReply,
-    CreateUserDatabaseRequest, DatabaseSchema, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply, GetPendingActionsRequest,
-    TestReply, TestRequest,
+    ChangeHostStatusReply, ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+    ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
+    DatabaseSchema, GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply,
+    GenerateHostInfoRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetPendingActionsReply, GetPendingActionsRequest, HasTableReply,
+    HasTableRequest, TestReply, TestRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -33,6 +35,20 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn get_data_hash_at_participant(
+        &self,
+        request: GetDataHashRequest,
+    ) -> GetDataHashReply {
+        return db::get_data_hash_at_participant(self, request).await;
+    }
+
+    pub async fn change_updates_from_host_behavior(
+        &self,
+        request: ChangeUpdatesFromHostBehaviorRequest,
+    ) -> ChangesUpdatesFromHostBehaviorReply {
+        return db::change_updates_from_host_behavior(self, request).await;
+    }
+
     pub async fn create_user_database(
         &self,
         request: CreateUserDatabaseRequest,
@@ -68,6 +84,10 @@ impl Rcd {
         return db::accept_pending_action_at_participant(&self, request).await;
     }
 
+    pub async fn has_table(&self, request: HasTableRequest) -> HasTableReply {
+        return db::has_table(&self, request).await;
+    }
+
     pub fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
@@ -79,25 +99,15 @@ impl Rcd {
         return response;
     }
 
-    pub fn get_databases(&self, request: GetDatabasesRequest) -> GetDatabasesReply {
-        let mut db_result: Vec<DatabaseSchema> = Vec::new();
+    pub async fn generate_contract(
+        &self,
+        request: GenerateContractRequest,
+    ) -> GenerateContractReply {
+        return db::generate_contract(self, request).await;
+    }
 
-        let auth_result = self.verify_login(request.authentication.unwrap());
-
-        if auth_result.0 {
-            let db_names = self.dbi().get_database_names();
-            for name in &db_names {
-                let db_schema = self.dbi().get_database_schema(&name);
-                db_result.push(db_schema);
-            }
-        }
-
-        let result = GetDatabasesReply {
-            authentication_result: Some(auth_result.1),
-            databases: db_result,
-        };
-
-        return result;
+    pub async fn get_databases(&self, request: GetDatabasesRequest) -> GetDatabasesReply {
+        return db::get_databases(self, request).await;
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {

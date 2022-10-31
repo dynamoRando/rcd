@@ -1,8 +1,14 @@
 use chrono::Utc;
 use rusqlite::named_params;
 
-use rcd_common::{rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction}, db::{DbiConfigSqlite, PartialDataResult, get_data_queue_table_name}, defaults};
-use crate::sqlite::{sql_text, execute_write, has_table, get_scalar_as_u32, rcd_db::get_deletes_from_host_behavior};
+use crate::sqlite::{
+    execute_write, get_scalar_as_u32, has_table, rcd_db::get_deletes_from_host_behavior, sql_text,
+};
+use rcd_common::{
+    db::{get_data_queue_table_name, DbiConfigSqlite, PartialDataResult},
+    defaults,
+    rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction},
+};
 
 use super::{add_record_to_log_table, get_partial_db_connection};
 

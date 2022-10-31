@@ -6,12 +6,10 @@ use super::{
 };
 use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 
-use crate::{
-    sqlite::has_any_rows
-};
+use crate::sqlite::has_any_rows;
 use guid_create::GUID;
-use rcd_common::table::*;
 use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
+use rcd_common::table::*;
 use rusqlite::{named_params, Connection, Error, Result};
 
 pub mod contract;

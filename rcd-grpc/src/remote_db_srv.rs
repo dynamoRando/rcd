@@ -1,11 +1,13 @@
-use rcd_common::coop_database_participant::CoopDatabaseParticipantData;
-use rcd_common::db::CdsHosts;
-use rcd_common::host_info::HostInfo;
-use rcd_common::rcd_enum::ContractStatus;
 use chrono::Utc;
 use endianness::*;
 use guid_create::GUID;
 use log::info;
+use rcd_common::coop_database_contract::CoopDatabaseContract;
+use rcd_common::coop_database_participant::CoopDatabaseParticipant;
+use rcd_common::coop_database_participant::CoopDatabaseParticipantData;
+use rcd_common::db::CdsHosts;
+use rcd_common::host_info::HostInfo;
+use rcd_common::rcd_enum::ContractStatus;
 use rcdproto::rcdp::data_service_client::DataServiceClient;
 use rcdproto::rcdp::GetRowFromPartialDatabaseResult;
 use rcdproto::rcdp::{
@@ -15,9 +17,7 @@ use rcdproto::rcdp::{
     RowParticipantAddress, SaveContractRequest, TryAuthRequest, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest,
 };
-use rcd_common::coop_database_participant::CoopDatabaseParticipant;
 use tonic::transport::Channel;
-use rcd_common::coop_database_contract::CoopDatabaseContract;
 
 pub async fn try_auth_at_participant(
     participant: CoopDatabaseParticipant,

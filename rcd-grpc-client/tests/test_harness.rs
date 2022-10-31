@@ -1,9 +1,9 @@
 use lazy_static::lazy_static;
+use rcdx::rcd_service::get_service_from_config_file;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
 use triggered::Trigger;
-use rcdx::rcd_service::get_service_from_config_file;
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
