@@ -2,11 +2,17 @@ use rcd_common::rcd_enum::{
     PartialDataResultAction, RcdGenerateContractError, RemoteDeleteBehavior,
 };
 use rcdproto::rcdp::{
-    AcceptPendingActionReply, AcceptPendingActionRequest, ChangeHostStatusReply,
-    ChangeHostStatusRequest, CreateUserDatabaseReply, CreateUserDatabaseRequest,
-    GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetDataHashReply, GetDataHashRequest, GetPendingActionsReply, GetPendingActionsRequest,
-    HasTableReply, HasTableRequest, PendingStatement, ChangeUpdatesFromHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply, GetDatabasesReply, GetDatabasesRequest, DatabaseSchema,
+    AcceptPendingActionReply, AcceptPendingActionRequest, ChangeDeletesFromHostBehaviorReply,
+    ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorReply,
+    ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply, ChangeHostStatusRequest,
+    ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorReply,
+    ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
+    CreateUserDatabaseReply, CreateUserDatabaseRequest, DatabaseSchema,
+    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
+    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply,
+    GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
+    HasTableRequest, PendingStatement,
 };
 
 use super::Rcd;
@@ -273,9 +279,10 @@ pub async fn get_data_hash_at_participant(
     return reply;
 }
 
-pub async fn change_updates_from_host_behavior(core: &Rcd, request: ChangeUpdatesFromHostBehaviorRequest) ->
-ChangesUpdatesFromHostBehaviorReply {
-
+pub async fn change_updates_from_host_behavior(
+    core: &Rcd,
+    request: ChangeUpdatesFromHostBehaviorRequest,
+) -> ChangesUpdatesFromHostBehaviorReply {
     let auth_result = core.verify_login(request.authentication.unwrap());
     let db_name = request.database_name;
     let table_name = request.table_name;
@@ -284,8 +291,7 @@ ChangesUpdatesFromHostBehaviorReply {
 
     if auth_result.0 {
         is_successful =
-            core
-                .dbi()
+            core.dbi()
                 .change_updates_from_host_behavior(&db_name, &table_name, behavior);
     }
 
@@ -317,4 +323,152 @@ pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatab
     };
 
     return result;
+}
+
+pub async fn get_data_hash_at_host(core: &Rcd, request: GetDataHashRequest) -> GetDataHashReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let requested_row_id = request.row_id;
+    let mut row_hash: u64 = 0;
+
+    if auth_result.0 {
+        row_hash = core
+            .dbi()
+            .get_data_hash_at_host(&db_name, &table_name, requested_row_id);
+    }
+
+    let reply = GetDataHashReply {
+        authentication_result: Some(auth_result.1),
+        data_hash: row_hash,
+    };
+
+    return reply;
+}
+
+pub async fn change_deletes_from_host_behavior(
+    core: &Rcd,
+    request: ChangeDeletesFromHostBehaviorRequest,
+) -> ChangeDeletesFromHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let behavior = request.behavior;
+    let mut is_successful = false;
+
+    if auth_result.0 {
+        is_successful =
+            core.dbi()
+                .change_deletes_from_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let reply = ChangeDeletesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn change_deletes_to_host_behavior(
+    core: &Rcd,
+    request: ChangeDeletesToHostBehaviorRequest,
+) -> ChangeDeletesToHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let behavior = request.behavior;
+    let mut is_successful = false;
+
+    if auth_result.0 {
+        is_successful = core
+            .dbi()
+            .change_deletes_to_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let reply = ChangeDeletesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn change_updates_to_host_behavior(
+    core: &Rcd,
+    request: ChangeUpdatesToHostBehaviorRequest,
+) -> ChangeUpdatesToHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let behavior = request.behavior;
+    let mut is_successful = false;
+
+    if auth_result.0 {
+        is_successful = core
+            .dbi()
+            .change_updates_to_host_behavior(&db_name, &table_name, behavior);
+    }
+
+    let reply = ChangeUpdatesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: is_successful,
+        message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn read_row_id_at_participant(
+    core: &Rcd,
+    request: GetReadRowIdsRequest,
+) -> GetReadRowIdsReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let where_clause = request.where_clause;
+    let mut row_id = 0;
+
+    let mut row_ids: Vec<u32> = Vec::new();
+
+    if auth_result.0 {
+        row_id = core
+            .dbi()
+            .read_row_id_from_part_db(&db_name, &table_name, &where_clause);
+    }
+
+    if row_id > 0 {
+        row_ids.push(row_id);
+    }
+
+    let reply = GetReadRowIdsReply {
+        authentication_result: Some(auth_result.1),
+        row_ids: row_ids,
+    };
+
+    return reply;
+}
+
+pub async fn enable_coooperative_features(
+    core: &Rcd,
+    request: EnableCoooperativeFeaturesRequest,
+) -> EnableCoooperativeFeaturesReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+
+    if auth_result.0 {
+        core.dbi().enable_coooperative_features(&db_name);
+    }
+
+    let enable_cooperative_features_reply = EnableCoooperativeFeaturesReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: true,
+        message: String::from(""),
+    };
+
+    return enable_cooperative_features_reply;
 }

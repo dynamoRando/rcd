@@ -10,7 +10,7 @@ use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
 mod contract;
-mod db;
+
 mod io;
 mod logical_storage_policy;
 mod participant;
@@ -124,8 +124,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<EnableCoooperativeFeaturesRequest>,
     ) -> Result<Response<EnableCoooperativeFeaturesReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let enable_cooperative_features_reply =
-            db::enable_coooperative_features(request.into_inner(), self).await;
+        let enable_cooperative_features_reply = self
+            .core()
+            .enable_coooperative_features(request.into_inner())
+            .await;
         Ok(Response::new(enable_cooperative_features_reply))
     }
 
@@ -310,8 +312,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ChangeUpdatesFromHostBehaviorRequest>,
     ) -> Result<Response<ChangesUpdatesFromHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = 
-        self.core().change_updates_from_host_behavior(request.into_inner()).await;
+        let result = self
+            .core()
+            .change_updates_from_host_behavior(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -321,7 +325,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ChangeDeletesFromHostBehaviorRequest>,
     ) -> Result<Response<ChangeDeletesFromHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::change_deletes_from_host_behavior(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .change_deletes_from_host_behavior(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -331,7 +338,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ChangeUpdatesToHostBehaviorRequest>,
     ) -> Result<Response<ChangeUpdatesToHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::change_updates_to_host_behavior(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .change_updates_to_host_behavior(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -341,7 +351,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ChangeDeletesToHostBehaviorRequest>,
     ) -> Result<Response<ChangeDeletesToHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::change_deletes_to_host_behavior(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .change_deletes_to_host_behavior(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -351,7 +364,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetReadRowIdsRequest>,
     ) -> Result<Response<GetReadRowIdsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::read_row_id_at_participant(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .read_row_id_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 
@@ -361,7 +377,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let result = db::get_data_hash_at_host(request.into_inner(), self).await;
+        let result = self
+            .core()
+            .get_data_hash_at_host(request.into_inner())
+            .await;
         Ok(Response::new(result))
     }
 

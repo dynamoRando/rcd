@@ -14,11 +14,15 @@ use rcd_common::defaults;
 
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult,
-    ChangeHostStatusReply, ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+    ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
+    ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+    ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
-    DatabaseSchema, GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply,
-    GenerateHostInfoRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
-    GetDatabasesRequest, GetPendingActionsReply, GetPendingActionsRequest, HasTableReply,
+    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
+    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply,
+    GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
     HasTableRequest, TestReply, TestRequest,
 };
 
@@ -99,6 +103,17 @@ impl Rcd {
         return response;
     }
 
+    pub async fn get_data_hash_at_host(&self, request: GetDataHashRequest) -> GetDataHashReply {
+        return db::get_data_hash_at_host(self, request).await;
+    }
+
+    pub async fn change_deletes_from_host_behavior(
+        &self,
+        request: ChangeDeletesFromHostBehaviorRequest,
+    ) -> ChangeDeletesFromHostBehaviorReply {
+        return db::change_deletes_from_host_behavior(self, request).await;
+    }
+
     pub async fn generate_contract(
         &self,
         request: GenerateContractRequest,
@@ -108,6 +123,34 @@ impl Rcd {
 
     pub async fn get_databases(&self, request: GetDatabasesRequest) -> GetDatabasesReply {
         return db::get_databases(self, request).await;
+    }
+
+    pub async fn read_row_id_at_participant(
+        &self,
+        request: GetReadRowIdsRequest,
+    ) -> GetReadRowIdsReply {
+        return db::read_row_id_at_participant(self, request).await;
+    }
+
+    pub async fn enable_coooperative_features(
+        &self,
+        request: EnableCoooperativeFeaturesRequest,
+    ) -> EnableCoooperativeFeaturesReply {
+        return db::enable_coooperative_features(self, request).await;
+    }
+
+    pub async fn change_updates_to_host_behavior(
+        &self,
+        request: ChangeUpdatesToHostBehaviorRequest,
+    ) -> ChangeUpdatesToHostBehaviorReply {
+        return db::change_updates_to_host_behavior(self, request).await;
+    }
+
+    pub async fn change_deletes_to_host_behavior(
+        &self,
+        request: ChangeDeletesToHostBehaviorRequest,
+    ) -> ChangeDeletesToHostBehaviorReply {
+        return db::change_deletes_to_host_behavior(self, request).await;
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
