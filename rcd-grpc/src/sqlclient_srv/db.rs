@@ -4,49 +4,12 @@ use rcdproto::rcdp::{
     ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest,
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorReply,
     ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
-    CreateUserDatabaseReply, CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
-    EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
-    GetDataHashReply, GetDataHashRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
-    HasTableRequest,
+    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
+    GenerateContractRequest, GetDataHashReply, GetDataHashRequest, GetReadRowIdsReply,
+    GetReadRowIdsRequest, HasTableReply, HasTableRequest,
 };
 
 use super::SqlClientImpl;
-
-pub async fn create_user_database(
-    request: CreateUserDatabaseRequest,
-    client: &SqlClientImpl,
-) -> CreateUserDatabaseReply {
-    let mut is_database_created = false;
-
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
-
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-
-    if is_authenticated {
-        let result = client.dbi().create_database(&db_name);
-        if !result.is_err() {
-            is_database_created = true;
-        }
-    }
-
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
-    let create_db_result = CreateUserDatabaseReply {
-        authentication_result: Some(auth_response),
-        is_created: is_database_created,
-        message: String::from(""),
-    };
-
-    return create_db_result;
-}
 
 pub async fn has_table(request: HasTableRequest, client: &SqlClientImpl) -> HasTableReply {
     let mut has_table = false;

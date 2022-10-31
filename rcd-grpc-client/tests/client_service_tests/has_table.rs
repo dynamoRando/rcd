@@ -29,7 +29,7 @@ pub fn test() {
     info!("starting client service");
 
     thread::spawn(move || {
-        let _service = service.start_client_service_at_addr(client_address_port, root_dir);
+        let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
     });
 
     let time = time::Duration::from_secs(1);

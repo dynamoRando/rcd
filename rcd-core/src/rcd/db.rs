@@ -1,11 +1,38 @@
 use rcd_common::rcd_enum::PartialDataResultAction;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, ChangeHostStatusReply,
-    ChangeHostStatusRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetPendingActionsReply, GetPendingActionsRequest, PendingStatement,
+    ChangeHostStatusRequest, CreateUserDatabaseReply, CreateUserDatabaseRequest,
+    GenerateHostInfoReply, GenerateHostInfoRequest, GetPendingActionsReply,
+    GetPendingActionsRequest, PendingStatement,
 };
 
 use super::Rcd;
+
+pub async fn create_user_database(
+    core: &Rcd,
+    request: CreateUserDatabaseRequest,
+) -> CreateUserDatabaseReply {
+    let mut is_database_created = false;
+
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+
+    if auth_result.0 {
+        let result = core.dbi().create_database(&db_name);
+        if !result.is_err() {
+            is_database_created = true;
+        }
+    }
+
+    let create_db_result = CreateUserDatabaseReply {
+        authentication_result: Some(auth_result.1),
+        is_created: is_database_created,
+        message: String::from(""),
+    };
+
+    return create_db_result;
+}
 
 pub async fn generate_host_info(
     core: &Rcd,

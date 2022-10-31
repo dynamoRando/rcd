@@ -109,7 +109,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<CreateUserDatabaseRequest>,
     ) -> Result<Response<CreateUserDatabaseReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let create_db_result = db::create_user_database(request.into_inner(), self).await;
+        let create_db_result = self.core().create_user_database(request.into_inner()).await;
         Ok(Response::new(create_db_result))
     }
 

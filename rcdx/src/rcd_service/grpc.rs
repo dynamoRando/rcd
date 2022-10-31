@@ -1,4 +1,3 @@
-use std::{thread, env};
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
@@ -6,6 +5,7 @@ use rcd_core::remote_grpc::RemoteGrpc;
 use rcd_grpc::data_srv::DataServiceImpl;
 use rcd_grpc::sqlclient_srv::SqlClientImpl;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
+use std::{env, thread};
 use tonic::transport::Server;
 use triggered::Listener;
 
@@ -146,7 +146,9 @@ pub fn start_grpc_at_addrs_with_shutdown(
 }
 
 #[tokio::main]
-pub async fn start_grpc_client_service_alt(service: &RcdService) -> Result<(), Box<dyn std::error::Error>> {
+pub async fn start_grpc_client_service_alt(
+    service: &RcdService,
+) -> Result<(), Box<dyn std::error::Error>> {
     let address_port = &service.rcd_settings.client_service_addr_port;
     let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
     let addr = address_port.parse().unwrap();
@@ -195,4 +197,63 @@ pub async fn start_grpc_client_service_alt(service: &RcdService) -> Result<(), B
         .await?;
 
     Ok(())
+}
+
+#[tokio::main]
+pub async fn start_grpc_client_service_at_addr(
+    service: &RcdService,
+    address_port: String,
+    root_folder: String,
+) -> Result<(), Box<dyn std::error::Error>> {
+    println!("start_client_service_at_addr: {}", &address_port);
+
+    let addr = address_port.parse().unwrap();
+    let database_name = &service.rcd_settings.backing_database_name;
+    let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
+
+    let dbi = service.db_interface.clone().unwrap();
+    let core = configure_core_for_grpc(&dbi, own_db_addr_port);
+
+    let sql_client = SqlClientImpl {
+        root_folder: root_folder,
+        database_name: database_name.to_string(),
+        addr_port: address_port.to_string(),
+        own_db_addr_port: own_db_addr_port.to_string(),
+        db_interface: Some(dbi),
+        core: Some(core),
+    };
+
+    let sql_client_service = tonic_reflection::server::Builder::configure()
+        .build()
+        .unwrap();
+
+    println!(
+        "start_client_service_at_addr: sql client server listening on {}",
+        addr
+    );
+
+    Server::builder()
+        .add_service(SqlClientServer::new(sql_client))
+        .add_service(sql_client_service) // Add this
+        .serve(addr)
+        .await?;
+
+    Ok(())
+}
+
+fn configure_core_for_grpc(dbi: &Dbi, own_db_addr_port: &str) -> Rcd {
+    let grpc = RemoteGrpc {
+        db_addr_port: own_db_addr_port.to_string(),
+    };
+
+    let remote_client = RcdRemoteDbClient {
+        comm_type: RcdCommunication::Grpc,
+        grpc: Some(grpc),
+        http: None,
+    };
+
+    return Rcd {
+        db_interface: Some(dbi.clone()),
+        remote_client: Some(remote_client),
+    };
 }
