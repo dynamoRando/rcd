@@ -205,6 +205,7 @@ async fn main_service_client(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
@@ -260,6 +261,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     client
@@ -322,6 +324,7 @@ async fn participant_service_client(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let _ = client.generate_host_info("participant").await.unwrap();
@@ -363,6 +366,7 @@ async fn participant_changes_delete_behavior(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let result = client
@@ -384,6 +388,7 @@ async fn main_delete_should_fail(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let delete_result = client
@@ -414,6 +419,7 @@ async fn participant_get_and_approve_pending_deletion(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let pending_updates = client
@@ -455,6 +461,7 @@ async fn main_should_not_have_rows(db_name: &str, main_client_addr: ServiceAddr)
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let result = client

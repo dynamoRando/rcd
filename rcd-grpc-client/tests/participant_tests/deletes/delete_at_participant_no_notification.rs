@@ -171,6 +171,7 @@ async fn main_service_client(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
@@ -227,6 +228,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     client
@@ -293,6 +295,7 @@ async fn participant_service_client(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let is_generated_host = client.generate_host_info("participant").await.unwrap();
@@ -338,6 +341,7 @@ async fn participant_changes_delete_behavior(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let change_delete_behavior = client
@@ -372,6 +376,7 @@ async fn main_read_deleted_row_should_succeed(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
+        5
     );
 
     let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");

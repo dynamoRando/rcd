@@ -19,6 +19,7 @@ use rcd_common::rcd_enum::{
 
 use log::info;
 use std::error::Error;
+use std::time::Duration;
 use tonic::transport::Channel;
 
 /// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the
@@ -31,14 +32,16 @@ pub struct RcdClient {
     /// The user name you will identify yourself to the `rcd` instance
     user_name: String,
     pw: String,
+    timeout_in_seconds: u32,
 }
 
 impl RcdClient {
-    pub fn new(addr_port: String, user_name: String, pw: String) -> RcdClient {
+    pub fn new(addr_port: String, user_name: String, pw: String, timeout_in_seconds: u32) -> RcdClient {
         return RcdClient {
             addr_port: addr_port,
             user_name: user_name,
             pw: pw,
+            timeout_in_seconds,
         };
     }
 
@@ -884,7 +887,8 @@ impl RcdClient {
 
     async fn get_client(self: &Self) -> SqlClientClient<Channel> {
         println!("get_client addr_port {}", self.addr_port);
-        let endpoint = tonic::transport::Channel::builder(self.addr_port.parse().unwrap());
+        // need to make the timeout configurable
+        let endpoint = tonic::transport::Channel::builder(self.addr_port.parse().unwrap()).timeout(Duration::from_secs(self.timeout_in_seconds.into()));
         let channel = endpoint.connect().await.unwrap();
         return SqlClientClient::new(channel);
     }

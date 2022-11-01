@@ -66,7 +66,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
     let addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("has_table attempting to connect {}", addr_port);
 
-    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"), 5);
 
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();

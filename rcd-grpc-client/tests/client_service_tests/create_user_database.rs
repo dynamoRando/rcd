@@ -64,7 +64,7 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
         addr_port
     );
 
-    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"), 5);
     return client.create_user_database(db_name).await.unwrap();
 }
 
@@ -129,6 +129,7 @@ async fn negative_client(db_name: &str, addr_port: &str) -> bool {
         addr_port,
         String::from("wrong_user"),
         String::from("123456"),
+        5
     );
     return client.create_user_database(db_name).await.unwrap();
 }

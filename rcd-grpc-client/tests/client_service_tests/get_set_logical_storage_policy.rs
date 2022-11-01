@@ -75,7 +75,7 @@ async fn client(db_name: &str, addr_port: &str, policy_num: u32) -> u32 {
         addr_port
     );
 
-    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"), 5);
 
     let create_db_is_successful = client.create_user_database(db_name).await.unwrap();
 

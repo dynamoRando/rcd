@@ -70,6 +70,6 @@ async fn client(db_name: &str, addr_port: &str) -> bool {
         addr_port
     );
 
-    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"));
+    let client = RcdClient::new(addr_port, String::from("tester"), String::from("123456"), 5);
     return client.enable_cooperative_features(db_name).await.unwrap();
 }
