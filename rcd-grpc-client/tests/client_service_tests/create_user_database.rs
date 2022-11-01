@@ -129,7 +129,7 @@ async fn negative_client(db_name: &str, addr_port: &str) -> bool {
         addr_port,
         String::from("wrong_user"),
         String::from("123456"),
-        5
+        5,
     );
     return client.create_user_database(db_name).await.unwrap();
 }

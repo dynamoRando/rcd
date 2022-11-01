@@ -36,7 +36,12 @@ pub struct RcdClient {
 }
 
 impl RcdClient {
-    pub fn new(addr_port: String, user_name: String, pw: String, timeout_in_seconds: u32) -> RcdClient {
+    pub fn new(
+        addr_port: String,
+        user_name: String,
+        pw: String,
+        timeout_in_seconds: u32,
+    ) -> RcdClient {
         return RcdClient {
             addr_port: addr_port,
             user_name: user_name,
@@ -888,7 +893,8 @@ impl RcdClient {
     async fn get_client(self: &Self) -> SqlClientClient<Channel> {
         println!("get_client addr_port {}", self.addr_port);
         // need to make the timeout configurable
-        let endpoint = tonic::transport::Channel::builder(self.addr_port.parse().unwrap()).timeout(Duration::from_secs(self.timeout_in_seconds.into()));
+        let endpoint = tonic::transport::Channel::builder(self.addr_port.parse().unwrap())
+            .timeout(Duration::from_secs(self.timeout_in_seconds.into()));
         let channel = endpoint.connect().await.unwrap();
         return SqlClientClient::new(channel);
     }

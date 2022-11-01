@@ -409,7 +409,8 @@ async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<C
 
     println!("{}", http_addr_port);
 
-    let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap()).timeout(Duration::from_secs(5));
+    let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap())
+        .timeout(Duration::from_secs(5));
     let channel = endpoint.connect().await.unwrap();
 
     return DataServiceClient::new(channel);

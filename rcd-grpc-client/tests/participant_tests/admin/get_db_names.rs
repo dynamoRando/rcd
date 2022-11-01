@@ -163,7 +163,7 @@ async fn main_service_client(
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
-        5
+        5,
     );
     client.create_user_database(db_name).await.unwrap();
 
@@ -230,7 +230,7 @@ async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: Servi
         main_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
-        5
+        5,
     );
 
     client
@@ -297,7 +297,7 @@ async fn participant_service_client(
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
-        5
+        5,
     );
 
     let is_generated_host = client.generate_host_info("participant").await.unwrap();
@@ -349,7 +349,7 @@ async fn participant_get_databases(participant_client_addr: ServiceAddr) -> bool
         participant_client_addr.to_full_string_with_http(),
         String::from("tester"),
         String::from("123456"),
-        5
+        5,
     );
 
     let result = client.get_databases().await;
