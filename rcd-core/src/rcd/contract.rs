@@ -1,26 +1,26 @@
-use rcdproto::rcdp::{AcceptPendingContractReply, AcceptPendingContractRequest, AuthResult};
+use rcdproto::rcdp::{
+    AcceptPendingContractReply, AcceptPendingContractRequest, Contract, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
+};
 
 use super::Rcd;
-#[allow(dead_code, unused_variables)]
+
 pub async fn accept_pending_contract(
+    core: &Rcd,
     request: AcceptPendingContractRequest,
-    client: &Rcd,
 ) -> AcceptPendingContractReply {
-    // check if the user is authenticated
-    let auth_request = request.authentication.unwrap();
-    let is_authenticated = client
-        .dbi()
-        .verify_login(&auth_request.user_name, &auth_request.pw);
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
     let mut is_accepted = false;
     let mut return_message = String::from("");
 
-    if is_authenticated {
+    if auth_result.0 {
         // 1 - we need to update the rcd_db record that we are accepting this contract
         // 2 - then we actually need to create the database with the properties of the
         // contract
         // 3 - we need to notify the host that we have accepted the contract
 
-        let contracts = client.dbi().get_pending_contracts();
+        let contracts = core.dbi().get_pending_contracts();
         let pending_contract = contracts
             .iter()
             .enumerate()
@@ -32,17 +32,17 @@ pub async fn accept_pending_contract(
         let param_contract = pending_contract.last().unwrap().clone();
 
         // 1 - accept the contract
-        let is_contract_updated = client.dbi().accept_pending_contract(&request.host_alias);
+        let is_contract_updated = core.dbi().accept_pending_contract(&request.host_alias);
 
         // 2 - create the database with the properties of the contract
         // make the database
-        let db_is_created = client
+        let db_is_created = core
             .dbi()
             .create_partial_database_from_contract(&param_contract);
 
-        let self_host_info = client.dbi().rcd_get_host_info();
+        let self_host_info = core.dbi().rcd_get_host_info();
         // 3 - notify the host that we've accepted the contract
-        let is_host_notified = client
+        let is_host_notified = core
             .remote()
             .notify_host_of_acceptance_of_contract(&param_contract, &self_host_info)
             .await;
@@ -59,18 +59,30 @@ pub async fn accept_pending_contract(
         }
     };
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let accepted_reply = AcceptPendingContractReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         is_successful: is_accepted,
         message: return_message,
     };
 
     return accepted_reply;
+}
+
+pub async fn review_pending_contracts(
+    core: &Rcd,
+    request: ViewPendingContractsRequest,
+) -> ViewPendingContractsReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let mut pending_contracts: Vec<Contract> = Vec::new();
+
+    if auth_result.0 {
+        pending_contracts = core.dbi().get_pending_contracts();
+    };
+
+    let review_pending_contracts_reply = ViewPendingContractsReply {
+        authentication_result: Some(auth_result.1),
+        contracts: pending_contracts,
+    };
+
+    return review_pending_contracts_reply;
 }

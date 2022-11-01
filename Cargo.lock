@@ -2242,6 +2242,7 @@ dependencies = [
  "prost",
  "prost-types",
  "rcd-common",
+ "rcd-query",
  "rcd-sqlite",
  "rcdproto",
  "rusqlite",

@@ -1,30 +1,24 @@
-use crate::remote_db_srv;
-use rcd_common::rcd_enum::DeletesToHostBehavior;
-use rcd_common::rcd_enum::UpdatesToHostBehavior;
-use rcd_common::rcd_enum::{DmlType, PartialDataStatus, RcdDatabaseType};
-use rcdproto::rcdp::{
-    AuthResult, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
-    ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, StatementResultset,
-};
-
-use super::SqlClientImpl;
+use super::Rcd;
 use conv::UnwrapOk;
 use conv::ValueFrom;
+use rcd_common::rcd_enum::DeletesToHostBehavior;
+use rcd_common::rcd_enum::DmlType;
+use rcd_common::rcd_enum::PartialDataStatus;
+use rcd_common::rcd_enum::RcdDatabaseType;
+use rcd_common::rcd_enum::UpdatesToHostBehavior;
+use rcd_query::query_parser::determine_dml_type;
+use rcd_query::query_parser::get_table_name;
+use rcdproto::rcdp::ExecuteCooperativeWriteReply;
+use rcdproto::rcdp::ExecuteCooperativeWriteRequest;
+use rcdproto::rcdp::ExecuteWriteReply;
+use rcdproto::rcdp::ExecuteWriteRequest;
+use rcdproto::rcdp::{ExecuteReadReply, ExecuteReadRequest, StatementResultset};
 
-use rcd_query::query_parser as query;
+pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> ExecuteReadReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
 
-pub async fn execute_read_at_host(
-    request: ExecuteReadRequest,
-    client: &SqlClientImpl,
-) -> ExecuteReadReply {
-    // check if the user is authenticated
-    let message = request.clone();
-
-    let a = message.authentication.unwrap();
-
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-    let sql = message.sql_statement;
+    let db_name = request.database_name;
+    let sql = request.sql_statement;
 
     let mut result_table = Vec::new();
 
@@ -36,26 +30,23 @@ pub async fn execute_read_at_host(
         execution_error_message: String::from(""),
     };
 
-    if is_authenticated {
-        if client.dbi().has_cooperative_tables(&db_name, &sql) {
+    if auth_result.0 {
+        if core.dbi().has_cooperative_tables(&db_name, &sql) {
             // println!("cooperative tables found for {}", sql);
 
             // we would need to get a list of participants for each of the cooperative tables
-            let cooperative_tables = client.dbi().get_cooperative_tables(&db_name, &sql);
+            let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
 
             for ct in &cooperative_tables {
-                let participants_for_table = client
-                    .dbi()
-                    .get_participants_for_table(&db_name, ct.as_str());
+                let participants_for_table =
+                    core.dbi().get_participants_for_table(&db_name, ct.as_str());
                 for participant in &participants_for_table {
                     // we would need to get rows for that table from the participant
-                    let host_info = client.dbi().rcd_get_host_info();
-                    let remote_data_result = remote_db_srv::get_row_from_participant(
-                        participant.clone(),
-                        host_info,
-                        client.own_db_addr_port.clone(),
-                    )
-                    .await;
+                    let host_info = core.dbi().rcd_get_host_info();
+                    let remote_data_result = core
+                        .remote()
+                        .get_row_from_participant(participant.clone(), host_info)
+                        .await;
 
                     let data_hash_for_row = remote_data_result.row.as_ref().unwrap().hash.clone();
 
@@ -77,7 +68,7 @@ pub async fn execute_read_at_host(
 
             statement_result_set.rows = result_table;
         } else {
-            let query_result = client.dbi().execute_read_at_host(&db_name, &sql);
+            let query_result = core.dbi().execute_read_at_host(&db_name, &sql);
 
             if query_result.is_ok() {
                 let result_rows = query_result.unwrap().to_cdata_rows();
@@ -95,15 +86,8 @@ pub async fn execute_read_at_host(
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let execute_read_reply = ExecuteReadReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
     };
@@ -112,16 +96,13 @@ pub async fn execute_read_at_host(
 }
 
 pub async fn execute_read_at_participant(
+    core: &Rcd,
     request: ExecuteReadRequest,
-    client: &SqlClientImpl,
 ) -> ExecuteReadReply {
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
+    let auth_result = core.verify_login(request.authentication.unwrap());
 
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-    let sql = message.sql_statement;
+    let db_name = request.database_name;
+    let sql = request.sql_statement;
 
     let mut statement_result_set = StatementResultset {
         is_error: true,
@@ -131,8 +112,8 @@ pub async fn execute_read_at_participant(
         execution_error_message: String::from(""),
     };
 
-    if is_authenticated {
-        let query_result = client.dbi().execute_read_at_participant(&db_name, &sql);
+    if auth_result.0 {
+        let query_result = core.dbi().execute_read_at_participant(&db_name, &sql);
 
         if query_result.is_ok() {
             let result_rows = query_result.unwrap().to_cdata_rows();
@@ -148,15 +129,8 @@ pub async fn execute_read_at_participant(
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let execute_read_reply = ExecuteReadReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
     };
@@ -165,39 +139,36 @@ pub async fn execute_read_at_participant(
 }
 
 pub async fn execute_write_at_participant(
+    core: &Rcd,
     request: ExecuteWriteRequest,
-    client: &SqlClientImpl,
 ) -> ExecuteWriteReply {
     let mut rows_affected: u32 = 0;
     let mut is_overall_successful = false;
 
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
+    let auth_result = core.verify_login(request.authentication.unwrap());
 
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-    let statement = message.sql_statement;
-    let where_clause = message.where_clause;
+    let db_name = request.database_name;
+    let statement = request.sql_statement;
+    let where_clause = request.where_clause;
 
-    if is_authenticated {
-        let db_type = client.dbi().db_type();
-        let rcd_db_type = client.dbi().get_rcd_db_type(&db_name);
-        let known_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+    if auth_result.0 {
+        let db_type = core.dbi().db_type();
+        let rcd_db_type = core.dbi().get_rcd_db_type(&db_name);
+        let known_host = core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
 
         if rcd_db_type == RcdDatabaseType::Partial {
-            let statement_type = query::determine_dml_type(&statement, db_type);
-            let table_name = query::get_table_name(&statement, db_type);
+            let statement_type = determine_dml_type(&statement, db_type);
+            let table_name = get_table_name(&statement, db_type);
 
             match statement_type {
                 DmlType::Unknown => todo!(),
                 DmlType::Insert => todo!(),
                 DmlType::Update => {
-                    let update_behavior = client
+                    let update_behavior = core
                         .dbi()
                         .get_updates_to_host_behavior(&db_name, &table_name);
 
-                    let data_result = client.dbi().update_data_into_partial_db(
+                    let data_result = core.dbi().update_data_into_partial_db(
                         &db_name,
                         &table_name,
                         &statement,
@@ -209,21 +180,21 @@ pub async fn execute_write_at_participant(
                         UpdatesToHostBehavior::Unknown => todo!(),
                         UpdatesToHostBehavior::SendDataHashChange => {
                             let remote_host =
-                                client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
-                            let own_host_info = client.dbi().rcd_get_host_info().clone();
-                            let own_db_addr_port = client.own_db_addr_port.clone();
+                                core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                            let own_host_info = core.dbi().rcd_get_host_info().clone();
 
-                            let notify_result = remote_db_srv::notify_host_of_updated_hash(
-                                &remote_host,
-                                &own_host_info,
-                                own_db_addr_port,
-                                &db_name,
-                                &table_name,
-                                data_result.row_id,
-                                data_result.data_hash,
-                                false,
-                            )
-                            .await;
+                            let notify_result = core
+                                .remote()
+                                .notify_host_of_updated_hash(
+                                    &remote_host,
+                                    &own_host_info,
+                                    &db_name,
+                                    &table_name,
+                                    data_result.row_id,
+                                    data_result.data_hash,
+                                    false,
+                                )
+                                .await;
 
                             if data_result.is_successful && notify_result {
                                 is_overall_successful = true;
@@ -237,13 +208,13 @@ pub async fn execute_write_at_participant(
                     }
                 }
                 DmlType::Delete => {
-                    let known_host = client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                    let known_host = core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
 
-                    let delete_behavior = client
+                    let delete_behavior = core
                         .dbi()
                         .get_deletes_to_host_behavior(&db_name, &table_name);
 
-                    let delete_result = client.dbi().delete_data_in_partial_db(
+                    let delete_result = core.dbi().delete_data_in_partial_db(
                         &db_name,
                         &table_name,
                         &statement,
@@ -255,19 +226,19 @@ pub async fn execute_write_at_participant(
                         DeletesToHostBehavior::Unknown => todo!(),
                         DeletesToHostBehavior::SendNotification => {
                             let remote_host =
-                                client.dbi().get_cds_host_for_part_db(&db_name).unwrap();
-                            let own_host_info = client.dbi().rcd_get_host_info().clone();
-                            let own_db_addr_port = client.own_db_addr_port.clone();
+                                core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+                            let own_host_info = core.dbi().rcd_get_host_info().clone();
 
-                            let notify_result = remote_db_srv::notify_host_of_removed_row(
-                                &remote_host,
-                                &own_host_info,
-                                own_db_addr_port,
-                                &db_name,
-                                &table_name,
-                                delete_result.row_id,
-                            )
-                            .await;
+                            let notify_result = core
+                                .remote()
+                                .notify_host_of_removed_row(
+                                    &remote_host,
+                                    &own_host_info,
+                                    &db_name,
+                                    &table_name,
+                                    delete_result.row_id,
+                                )
+                                .await;
 
                             if delete_result.is_successful && notify_result {
                                 is_overall_successful = true;
@@ -294,15 +265,8 @@ pub async fn execute_write_at_participant(
         }
     }
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let execute_write_reply = ExecuteWriteReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         is_successful: is_overall_successful,
         total_rows_affected: rows_affected,
     };
@@ -310,36 +274,21 @@ pub async fn execute_write_at_participant(
     return execute_write_reply;
 }
 
-pub async fn execute_write_at_host(
-    request: ExecuteWriteRequest,
-    client: &SqlClientImpl,
-) -> ExecuteWriteReply {
+pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> ExecuteWriteReply {
     let mut rows_affected: u32 = 0;
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let statement = request.sql_statement;
 
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
-
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-    let statement = message.sql_statement;
-
-    if is_authenticated {
+    if auth_result.0 {
         // println!("{:?}", &statement);
-        rows_affected = client.dbi().execute_write_at_host(&db_name, &statement) as u32;
+        rows_affected = core.dbi().execute_write_at_host(&db_name, &statement) as u32;
     } else {
         println!("WARNING: execute_write_at_host not authenticated!");
     }
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let execute_write_reply = ExecuteWriteReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         is_successful: true,
         total_rows_affected: rows_affected,
     };
@@ -348,29 +297,25 @@ pub async fn execute_write_at_host(
 }
 
 pub async fn execute_cooperative_write_at_host(
+    core: &Rcd,
     request: ExecuteCooperativeWriteRequest,
-    client: &SqlClientImpl,
 ) -> ExecuteCooperativeWriteReply {
     let mut is_remote_action_successful = false;
 
-    // check if the user is authenticated
-    let message = request.clone();
-    let a = message.authentication.unwrap();
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let statement = request.sql_statement;
 
-    let is_authenticated = client.verify_login(&a.user_name, &a.pw);
-    let db_name = message.database_name;
-    let statement = message.sql_statement;
-
-    if is_authenticated {
-        if client.dbi().has_participant(&db_name, &message.alias) {
-            let dml_type = query::determine_dml_type(&statement, client.dbi().db_type());
-            let db_participant = client
+    if auth_result.0 {
+        if core.dbi().has_participant(&db_name, &request.alias) {
+            let dml_type = determine_dml_type(&statement, core.dbi().db_type());
+            let db_participant = core
                 .dbi()
-                .get_participant_by_alias(&db_name, &message.alias)
+                .get_participant_by_alias(&db_name, &request.alias)
                 .unwrap();
-            let host_info = client.dbi().rcd_get_host_info();
-            let cmd_table_name = query::get_table_name(&statement, client.dbi().db_type());
-            let where_clause = message.where_clause.clone();
+            let host_info = core.dbi().rcd_get_host_info();
+            let cmd_table_name = get_table_name(&statement, core.dbi().db_type());
+            let where_clause = request.where_clause.clone();
 
             let db_participant_reference = db_participant.clone();
 
@@ -379,14 +324,16 @@ pub async fn execute_cooperative_write_at_host(
                     panic!();
                 }
                 DmlType::Insert => {
-                    let remote_insert_result = remote_db_srv::insert_row_at_participant(
-                        db_participant,
-                        &host_info,
-                        &db_name,
-                        &cmd_table_name,
-                        &statement,
-                    )
-                    .await;
+                    let remote_insert_result = core
+                        .remote()
+                        .insert_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                        )
+                        .await;
 
                     if remote_insert_result.is_successful {
                         // we need to add the data hash and row id here
@@ -396,7 +343,7 @@ pub async fn execute_cooperative_write_at_host(
                         let internal_participant_id =
                             db_participant_reference.internal_id.to_string().clone();
 
-                        let local_insert_is_successful = client.dbi().insert_metadata_into_host_db(
+                        let local_insert_is_successful = core.dbi().insert_metadata_into_host_db(
                             &db_name,
                             &cmd_table_name,
                             row_id,
@@ -410,15 +357,17 @@ pub async fn execute_cooperative_write_at_host(
                     }
                 }
                 DmlType::Update => {
-                    let remote_update_result = remote_db_srv::update_row_at_participant(
-                        db_participant,
-                        &host_info,
-                        &db_name,
-                        &cmd_table_name,
-                        &statement,
-                        &where_clause,
-                    )
-                    .await;
+                    let remote_update_result = core
+                        .remote()
+                        .update_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                            &where_clause,
+                        )
+                        .await;
 
                     if remote_update_result.is_successful {
                         let data_hash: u64;
@@ -436,7 +385,7 @@ pub async fn execute_cooperative_write_at_host(
                                     db_participant_reference.internal_id.to_string().clone();
 
                                 let local_update_is_successful =
-                                    client.dbi().update_metadata_in_host_db(
+                                    core.dbi().update_metadata_in_host_db(
                                         &db_name,
                                         &cmd_table_name,
                                         row_id,
@@ -461,15 +410,17 @@ pub async fn execute_cooperative_write_at_host(
                     }
                 }
                 DmlType::Delete => {
-                    let remote_delete_result = remote_db_srv::remove_row_at_participant(
-                        db_participant,
-                        &host_info,
-                        &db_name,
-                        &cmd_table_name,
-                        &statement,
-                        &where_clause,
-                    )
-                    .await;
+                    let remote_delete_result = core
+                        .remote()
+                        .remove_row_at_participant(
+                            db_participant,
+                            &host_info,
+                            &db_name,
+                            &cmd_table_name,
+                            &statement,
+                            &where_clause,
+                        )
+                        .await;
 
                     if remote_delete_result.is_successful {
                         let row_id: u32;
@@ -483,7 +434,7 @@ pub async fn execute_cooperative_write_at_host(
                         let internal_participant_id =
                             db_participant_reference.internal_id.to_string().clone();
 
-                        let local_delete_is_successful = client.dbi().delete_metadata_in_host_db(
+                        let local_delete_is_successful = core.dbi().delete_metadata_in_host_db(
                             &db_name,
                             &cmd_table_name,
                             row_id,
@@ -500,15 +451,8 @@ pub async fn execute_cooperative_write_at_host(
         }
     }
 
-    let auth_response = AuthResult {
-        is_authenticated: is_authenticated,
-        user_name: String::from(""),
-        token: String::from(""),
-        authentication_message: String::from(""),
-    };
-
     let execute_write_reply = ExecuteCooperativeWriteReply {
-        authentication_result: Some(auth_response),
+        authentication_result: Some(auth_result.1),
         is_successful: is_remote_action_successful,
         total_rows_affected: 0,
     };

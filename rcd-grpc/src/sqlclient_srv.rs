@@ -1,5 +1,3 @@
-use crate::remote_db_srv;
-use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
@@ -9,12 +7,6 @@ use rcdproto::rcdp::{
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
-mod contract;
-
-mod io;
-mod logical_storage_policy;
-mod participant;
-
 #[derive(Default, Debug)]
 /// Implements the `SQLClient` definition from the protobuff file
 pub struct SqlClientImpl {
@@ -22,20 +14,10 @@ pub struct SqlClientImpl {
     pub database_name: String,
     pub addr_port: String,
     pub own_db_addr_port: String,
-    pub db_interface: Option<Dbi>,
     pub core: Option<Rcd>,
 }
 
 impl SqlClientImpl {
-    fn verify_login(self: &Self, login: &str, pw: &str) -> bool {
-        let dbi = self.db_interface.as_ref().unwrap().clone();
-        return dbi.verify_login(&login, &pw);
-    }
-
-    fn dbi(self: &Self) -> Dbi {
-        return self.db_interface.as_ref().unwrap().clone();
-    }
-
     fn core(self: &Self) -> Rcd {
         return self.core.as_ref().unwrap().clone();
     }
@@ -136,7 +118,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_read_reply = io::execute_read_at_host(request.into_inner(), self).await;
+        let execute_read_reply = self.core().execute_read_at_host(request.into_inner()).await;
         Ok(Response::new(execute_read_reply))
     }
 
@@ -145,7 +127,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_read_reply = io::execute_read_at_participant(request.into_inner(), self).await;
+        let execute_read_reply = self
+            .core()
+            .execute_read_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(execute_read_reply))
     }
 
@@ -154,7 +139,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply = io::execute_write_at_host(request.into_inner(), self).await;
+        let execute_write_reply = self
+            .core()
+            .execute_write_at_host(request.into_inner())
+            .await;
         Ok(Response::new(execute_write_reply))
     }
 
@@ -163,8 +151,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply =
-            io::execute_write_at_participant(request.into_inner(), self).await;
+        let execute_write_reply = self
+            .core()
+            .execute_write_at_participant(request.into_inner())
+            .await;
         Ok(Response::new(execute_write_reply))
     }
 
@@ -174,8 +164,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let execute_write_reply =
-            io::execute_cooperative_write_at_host(request.into_inner(), self).await;
+        let execute_write_reply = self
+            .core()
+            .execute_cooperative_write_at_host(request.into_inner())
+            .await;
         Ok(Response::new(execute_write_reply))
     }
 
@@ -193,8 +185,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<SetLogicalStoragePolicyRequest>,
     ) -> Result<Response<SetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let set_policy_reply =
-            logical_storage_policy::set_logical_storage_policy(request.into_inner(), self).await;
+        let set_policy_reply = self
+            .core()
+            .set_logical_storage_policy(request.into_inner())
+            .await;
         Ok(Response::new(set_policy_reply))
     }
 
@@ -203,8 +197,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetLogicalStoragePolicyRequest>,
     ) -> Result<Response<GetLogicalStoragePolicyReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let get_policy_reply =
-            logical_storage_policy::get_logical_storage_policy(request.into_inner(), self).await;
+        let get_policy_reply = self
+            .core()
+            .get_logical_storage_policy(request.into_inner())
+            .await;
         Ok(Response::new(get_policy_reply))
     }
 
@@ -222,7 +218,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let add_participant_reply = participant::add_participant(request.into_inner(), self).await;
+        let add_participant_reply = self.core().add_participant(request.into_inner()).await;
         Ok(Response::new(add_participant_reply))
     }
 
@@ -231,8 +227,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<SendParticipantContractRequest>,
     ) -> Result<Response<SendParticipantContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let send_participant_contract_reply =
-            participant::send_participant_contract(request.into_inner(), self).await;
+        let send_participant_contract_reply = self
+            .core()
+            .send_participant_contract(request.into_inner())
+            .await;
         Ok(Response::new(send_participant_contract_reply))
     }
 
@@ -241,8 +239,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<ViewPendingContractsRequest>,
     ) -> Result<Response<ViewPendingContractsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let review_pending_contracts_reply =
-            contract::review_pending_contracts(request.into_inner(), self).await;
+        let review_pending_contracts_reply = self
+            .core()
+            .review_pending_contracts(request.into_inner())
+            .await;
         Ok(Response::new(review_pending_contracts_reply))
     }
 
@@ -251,7 +251,10 @@ impl SqlClient for SqlClientImpl {
         request: Request<AcceptPendingContractRequest>,
     ) -> Result<Response<AcceptPendingContractReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let accepted_reply = contract::accept_pending_contract(request.into_inner(), self).await;
+        let accepted_reply = self
+            .core()
+            .accept_pending_contract(request.into_inner())
+            .await;
         Ok(Response::new(accepted_reply))
     }
 
@@ -278,30 +281,10 @@ impl SqlClient for SqlClientImpl {
     ) -> Result<tonic::Response<TryAuthAtPartipantReply>, tonic::Status> {
         println!("Request from {:?}", request.remote_addr());
 
-        let message = request.into_inner();
-        let own_host_info = self.dbi().rcd_get_host_info();
-        let a = message.authentication.unwrap();
-        let is_authenticated = self.verify_login(&a.user_name, &a.pw);
-
-        let db_participant = self
-            .dbi()
-            .get_participant_by_alias(&message.db_name, &message.participant_alias)
-            .unwrap();
-
-        let result = remote_db_srv::try_auth_at_participant(db_participant, &own_host_info).await;
-
-        let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
-            user_name: String::from(""),
-            token: String::from(""),
-            authentication_message: String::from(""),
-        };
-
-        let response = TryAuthAtPartipantReply {
-            authentication_result: Some(auth_response),
-            is_successful: result,
-            message: String::from(""),
-        };
+        let response = self
+            .core()
+            .try_auth_at_participant(request.into_inner())
+            .await;
 
         Ok(Response::new(response))
     }
@@ -415,7 +398,6 @@ pub async fn start_client_service(
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
-        db_interface: None,
         core: None,
     };
 

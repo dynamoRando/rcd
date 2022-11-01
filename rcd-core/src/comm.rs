@@ -1,5 +1,13 @@
-use rcd_common::{db::CdsHosts, host_info::HostInfo};
-use rcdproto::rcdp::Contract;
+use rcd_common::{
+    coop_database_contract::CoopDatabaseContract,
+    coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    db::CdsHosts,
+    host_info::HostInfo,
+};
+use rcdproto::rcdp::{
+    Contract, DatabaseSchema, DeleteDataResult, GetRowFromPartialDatabaseResult, InsertDataResult,
+    UpdateDataResult,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{remote_grpc::RemoteGrpc, remote_http::RemoteHttp};
@@ -38,6 +46,155 @@ pub struct RcdRemoteDbClient {
 }
 
 impl RcdRemoteDbClient {
+    pub async fn try_auth_at_participant(
+        &self,
+        participant: CoopDatabaseParticipant,
+        own_host_info: &HostInfo,
+    ) -> bool {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .try_auth_at_participant(participant, own_host_info)
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn send_participant_contract(
+        &self,
+        participant: CoopDatabaseParticipant,
+        host_info: HostInfo,
+        contract: CoopDatabaseContract,
+        db_schema: DatabaseSchema,
+    ) -> bool {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .send_participant_contract(participant, host_info, contract, db_schema)
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn notify_host_of_removed_row(
+        &self,
+        host: &CdsHosts,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        row_id: u32,
+    ) -> bool {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .notify_host_of_removed_row(host, own_host_info, db_name, table_name, row_id)
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn remove_row_at_participant(
+        &self,
+        participant: CoopDatabaseParticipant,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        sql: &str,
+        where_clause: &str,
+    ) -> DeleteDataResult {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .remove_row_at_participant(
+                        participant,
+                        own_host_info,
+                        db_name,
+                        table_name,
+                        sql,
+                        where_clause,
+                    )
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn update_row_at_participant(
+        &self,
+        participant: CoopDatabaseParticipant,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        sql: &str,
+        where_clause: &str,
+    ) -> UpdateDataResult {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .update_row_at_participant(
+                        participant,
+                        own_host_info,
+                        db_name,
+                        table_name,
+                        sql,
+                        where_clause,
+                    )
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn insert_row_at_participant(
+        &self,
+        participant: CoopDatabaseParticipant,
+        own_host_info: &HostInfo,
+        db_name: &str,
+        table_name: &str,
+        sql: &str,
+    ) -> InsertDataResult {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .insert_row_at_participant(participant, own_host_info, db_name, table_name, sql)
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
+    pub async fn get_row_from_participant(
+        &self,
+        participant: CoopDatabaseParticipantData,
+        own_host_info: HostInfo,
+    ) -> GetRowFromPartialDatabaseResult {
+        match self.comm_type {
+            RcdCommunication::Unknown => todo!(),
+            RcdCommunication::Grpc => {
+                return self
+                    .grpc()
+                    .get_row_from_participant(participant, own_host_info)
+                    .await;
+            }
+            RcdCommunication::Http => todo!(),
+        };
+    }
+
     pub async fn notify_host_of_updated_hash(
         &self,
         host: &CdsHosts,

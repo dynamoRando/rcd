@@ -1,0 +1,94 @@
+use rcdproto::rcdp::{
+    AddParticipantReply, AddParticipantRequest, SendParticipantContractReply,
+    SendParticipantContractRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+};
+
+use super::Rcd;
+
+pub async fn try_auth_at_participant(
+    core: &Rcd,
+    request: TryAuthAtParticipantRequest,
+) -> TryAuthAtPartipantReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_participant = core
+        .dbi()
+        .get_participant_by_alias(&request.db_name, &request.participant_alias)
+        .unwrap();
+
+    let result = core
+        .remote()
+        .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info())
+        .await;
+
+    let response = TryAuthAtPartipantReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: result,
+        message: String::from(""),
+    };
+
+    return response;
+}
+
+pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddParticipantReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+    let alias = request.alias;
+    let ip4addr = request.ip4_address;
+    let db_port: u32 = request.port;
+
+    let reply_message = String::from("");
+    let mut is_successful = false;
+
+    if auth_result.0 {
+        is_successful = core
+            .dbi()
+            .add_participant(&db_name, &alias, &ip4addr, db_port);
+    };
+
+    let add_participant_reply = AddParticipantReply {
+        authentication_result: Some(auth_result.1),
+        is_successful: is_successful,
+        message: reply_message,
+    };
+
+    return add_participant_reply;
+}
+
+pub async fn send_participant_contract(
+    core: &Rcd,
+    request: SendParticipantContractRequest,
+) -> SendParticipantContractReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+    let participant_alias = request.participant_alias;
+
+    let reply_message = String::from("");
+    let mut is_successful = false;
+
+    if auth_result.0 {
+        if core.dbi().has_participant(&db_name, &participant_alias) {
+            let participant = core
+                .dbi()
+                .get_participant_by_alias(&db_name, &participant_alias)
+                .unwrap();
+            let active_contract = core.dbi().get_active_contract(&db_name);
+            let db_schema = core.dbi().get_database_schema(&db_name);
+            let host_info = core.dbi().rcd_get_host_info();
+            is_successful = core
+                .remote()
+                .send_participant_contract(participant, host_info, active_contract, db_schema)
+                .await;
+        }
+    };
+
+    let send_participant_contract_reply = SendParticipantContractReply {
+        authentication_result: Some(auth_result.1),
+        is_sent: is_successful,
+        message: reply_message,
+    };
+
+    return send_participant_contract_reply;
+}

@@ -9,6 +9,7 @@ edition = "2021"
 rcdproto = { path = "../rcdproto" }
 rcd-sqlite = { path = "../rcd-sqlite" }
 rcd-common = { path = "../rcd-common" }
+rcd-query = { path = "../rcd-query" }
 serde = "1"
 serde_derive = "1"
 config = "0.13.1"

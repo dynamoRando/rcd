@@ -11,19 +11,24 @@ This 'core' will handle most client actions by way of the defined proto types.
 
 use chrono::Utc;
 use rcd_common::defaults;
-
 use rcdproto::rcdp::{
-    AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest, AuthResult,
-    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AcceptPendingContractReply,
+    AcceptPendingContractRequest, AddParticipantReply, AddParticipantRequest, AuthRequest,
+    AuthResult, ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
     ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
     ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
     ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
-    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
+    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
+    ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
+    ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply,
-    GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
-    HasTableRequest, TestReply, TestRequest,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
+    GetLogicalStoragePolicyRequest, GetPendingActionsReply, GetPendingActionsRequest,
+    GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
+    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyRequest, TestReply, TestRequest, TryAuthAtParticipantRequest,
+    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -31,6 +36,9 @@ use crate::dbi::Dbi;
 
 mod contract;
 mod db;
+mod io;
+mod logical_storage_policy;
+mod participant;
 
 #[derive(Debug, Clone)]
 pub struct Rcd {
@@ -39,6 +47,79 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn try_auth_at_participant(
+        &self,
+        request: TryAuthAtParticipantRequest,
+    ) -> TryAuthAtPartipantReply {
+        return participant::try_auth_at_participant(self, request).await;
+    }
+
+    pub async fn get_logical_storage_policy(
+        &self,
+        request: GetLogicalStoragePolicyRequest,
+    ) -> GetLogicalStoragePolicyReply {
+        return logical_storage_policy::get_logical_storage_policy(self, request).await;
+    }
+
+    pub async fn set_logical_storage_policy(
+        &self,
+        request: SetLogicalStoragePolicyRequest,
+    ) -> SetLogicalStoragePolicyReply {
+        return logical_storage_policy::set_logical_storage_policy(self, request).await;
+    }
+
+    pub async fn send_participant_contract(
+        &self,
+        request: SendParticipantContractRequest,
+    ) -> SendParticipantContractReply {
+        return participant::send_participant_contract(self, request).await;
+    }
+
+    pub async fn add_participant(&self, request: AddParticipantRequest) -> AddParticipantReply {
+        return participant::add_participant(self, request).await;
+    }
+
+    pub async fn execute_write_at_participant(
+        &self,
+        request: ExecuteWriteRequest,
+    ) -> ExecuteWriteReply {
+        return io::execute_write_at_participant(self, request).await;
+    }
+
+    pub async fn execute_cooperative_write_at_host(
+        &self,
+        request: ExecuteCooperativeWriteRequest,
+    ) -> ExecuteCooperativeWriteReply {
+        return io::execute_cooperative_write_at_host(self, request).await;
+    }
+    pub async fn execute_write_at_host(&self, request: ExecuteWriteRequest) -> ExecuteWriteReply {
+        return io::execute_write_at_host(self, request).await;
+    }
+
+    pub async fn execute_read_at_participant(
+        &self,
+        request: ExecuteReadRequest,
+    ) -> ExecuteReadReply {
+        return io::execute_read_at_participant(self, request).await;
+    }
+    pub async fn execute_read_at_host(&self, request: ExecuteReadRequest) -> ExecuteReadReply {
+        return io::execute_read_at_host(self, request).await;
+    }
+
+    pub async fn review_pending_contracts(
+        &self,
+        request: ViewPendingContractsRequest,
+    ) -> ViewPendingContractsReply {
+        return contract::review_pending_contracts(self, request).await;
+    }
+
+    pub async fn accept_pending_contract(
+        &self,
+        request: AcceptPendingContractRequest,
+    ) -> AcceptPendingContractReply {
+        return contract::accept_pending_contract(self, request).await;
+    }
+
     pub async fn get_data_hash_at_participant(
         &self,
         request: GetDataHashRequest,

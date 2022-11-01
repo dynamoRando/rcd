@@ -1,6 +1,7 @@
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
+use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_grpc::RemoteGrpc;
 use rcd_grpc::data_srv::DataServiceImpl;
 use rcd_grpc::sqlclient_srv::SqlClientImpl;
@@ -17,7 +18,6 @@ pub async fn start_client_service_at_addr_with_shutdown(
     own_db_addr_port: &str,
     address_port: String,
     root_folder: String,
-    db_interface: Option<Dbi>,
     shutdown: Listener,
     core: Rcd,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -28,7 +28,6 @@ pub async fn start_client_service_at_addr_with_shutdown(
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
-        db_interface: db_interface,
         core: Some(core),
     };
 
@@ -52,7 +51,7 @@ pub async fn start_db_service_at_addr_with_shutdown(
     database_name: &str,
     address_port: String,
     root_folder: String,
-    db_interface: Option<Dbi>,
+    core: Option<RcdData>,
     shutdown: Listener,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let addr = address_port.parse().unwrap();
@@ -61,7 +60,7 @@ pub async fn start_db_service_at_addr_with_shutdown(
         root_folder: root_folder,
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
-        db_interface: db_interface,
+        core: core,
     };
 
     let data_service_server = tonic_reflection::server::Builder::configure()
@@ -99,7 +98,6 @@ pub fn start_grpc_at_addrs_with_shutdown(
 
     let dbi1 = service.db_interface.clone();
     let dbi2 = service.db_interface.clone();
-    let dbi3 = service.db_interface.clone();
 
     let grpc = RemoteGrpc {
         db_addr_port: db_address_port.clone(),
@@ -112,8 +110,12 @@ pub fn start_grpc_at_addrs_with_shutdown(
     };
 
     let core = Rcd {
-        db_interface: Some(dbi3.unwrap()),
+        db_interface: Some(dbi1.unwrap()),
         remote_client: Some(remote_client),
+    };
+
+    let core_data = RcdData {
+        db_interface: Some(dbi2.unwrap()),
     };
 
     thread::spawn(move || {
@@ -123,7 +125,6 @@ pub fn start_grpc_at_addrs_with_shutdown(
             &db_addr1,
             client_address_port,
             root1,
-            dbi1,
             client_shutdown_listener,
             core,
         )
@@ -136,7 +137,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
             &name.to_string(),
             db_addr2,
             root2,
-            dbi2,
+            Some(core_data),
             db_shutdown_listener,
         )
         .unwrap();
@@ -180,7 +181,6 @@ pub async fn start_grpc_client_service_alt(
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
-        db_interface: Some(dbi),
         core: Some(core),
     };
 
@@ -219,7 +219,6 @@ pub async fn start_grpc_client_service_at_addr(
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
-        db_interface: Some(dbi),
         core: Some(core),
     };
 
