@@ -14,8 +14,8 @@ pub struct DataServiceImpl {
 }
 
 impl DataServiceImpl {
-    fn core(self: &Self) -> RcdData {
-        return self.core.as_ref().unwrap().clone();
+    fn core(self: &Self) -> &RcdData {
+        return self.core.as_ref().unwrap();
     }
 }
 
