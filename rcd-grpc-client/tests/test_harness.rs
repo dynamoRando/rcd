@@ -94,6 +94,7 @@ pub fn start_service(
         dir.clone(),
         client_listener,
         db_listener,
+        5,
     );
 
     return (

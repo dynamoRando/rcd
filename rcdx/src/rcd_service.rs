@@ -180,6 +180,7 @@ impl RcdService {
         root_folder: String,
         client_shutdown_listener: Listener,
         db_shutdown_listener: Listener,
+        data_grpc_timeout_in_seconds: u32,
     ) -> Result<(), Box<dyn std::error::Error>> {
         return grpc::start_grpc_at_addrs_with_shutdown(
             &mut self,
@@ -189,6 +190,7 @@ impl RcdService {
             root_folder,
             client_shutdown_listener,
             db_shutdown_listener,
+            data_grpc_timeout_in_seconds,
         );
     }
 
@@ -275,6 +277,17 @@ pub fn get_config_from_settings_file() -> RcdSettings {
         .get_string(&String::from("client_service_addr_port"))
         .unwrap();
 
+    let s_client_timeout = settings
+        .get_string(&String::from("client_grpc_timeout_in_seconds"))
+        .unwrap();
+
+    let s_data_timeout = settings
+        .get_string(&String::from("data_grpc_timeout_in_seconds"))
+        .unwrap();
+
+    let client_timeout_in_seconds: u32 = s_client_timeout.parse().unwrap();
+    let data_timeout_in_seconds: u32 = s_data_timeout.parse().unwrap();
+
     let d_client_service_addr_port = settings
         .get_string(&String::from("data_service_addr_port"))
         .unwrap();
@@ -290,6 +303,8 @@ pub fn get_config_from_settings_file() -> RcdSettings {
         backing_database_name: s_db_name,
         client_service_addr_port: s_client_service_addr_port,
         database_service_addr_port: d_client_service_addr_port,
+        client_grpc_timeout_in_seconds: client_timeout_in_seconds,
+        data_grpc_timeout_in_seconds: data_timeout_in_seconds,
     };
 
     return rcd_setting;

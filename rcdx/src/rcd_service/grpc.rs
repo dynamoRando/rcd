@@ -86,6 +86,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
     root_folder: String,
     client_shutdown_listener: Listener,
     db_shutdown_listener: Listener,
+    data_grpc_timeout_in_seconds: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db1 = db_name.clone();
     let db2 = db_name.clone();
@@ -101,6 +102,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
 
     let grpc = RemoteGrpc {
         db_addr_port: db_address_port.clone(),
+        timeout_in_seconds: data_grpc_timeout_in_seconds,
     };
 
     let remote_client = RcdRemoteDbClient {
@@ -154,6 +156,7 @@ pub async fn start_grpc_client_service_alt(
     let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
     let addr = address_port.parse().unwrap();
     let database_name = &service.rcd_settings.backing_database_name;
+    let data_timeout = &service.rcd_settings.data_grpc_timeout_in_seconds;
 
     let wd = env::current_dir().unwrap();
     let root_folder = wd.to_str().unwrap();
@@ -163,6 +166,7 @@ pub async fn start_grpc_client_service_alt(
 
     let grpc = RemoteGrpc {
         db_addr_port: own_db_addr_port.clone(),
+        timeout_in_seconds: *data_timeout,
     };
 
     let remote_client = RcdRemoteDbClient {
@@ -212,7 +216,11 @@ pub async fn start_grpc_client_service_at_addr(
     let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
 
     let dbi = service.db_interface.clone().unwrap();
-    let core = configure_core_for_grpc(&dbi, own_db_addr_port);
+    let core = configure_core_for_grpc(
+        &dbi,
+        own_db_addr_port,
+        service.rcd_settings.data_grpc_timeout_in_seconds,
+    );
 
     let sql_client = SqlClientImpl {
         root_folder: root_folder,
@@ -240,9 +248,14 @@ pub async fn start_grpc_client_service_at_addr(
     Ok(())
 }
 
-fn configure_core_for_grpc(dbi: &Dbi, own_db_addr_port: &str) -> Rcd {
+fn configure_core_for_grpc(
+    dbi: &Dbi,
+    own_db_addr_port: &str,
+    data_grpc_timeout_in_seconds: u32,
+) -> Rcd {
     let grpc = RemoteGrpc {
         db_addr_port: own_db_addr_port.to_string(),
+        timeout_in_seconds: data_grpc_timeout_in_seconds,
     };
 
     let remote_client = RcdRemoteDbClient {

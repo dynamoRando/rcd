@@ -9,4 +9,6 @@ pub struct RcdSettings {
     pub backing_database_name: String,
     pub client_service_addr_port: String,
     pub database_service_addr_port: String,
+    pub client_grpc_timeout_in_seconds: u32,
+    pub data_grpc_timeout_in_seconds: u32,
 }

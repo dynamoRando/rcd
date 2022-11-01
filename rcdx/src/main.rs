@@ -48,6 +48,7 @@ async fn main() {
     let client_port = settings.client_service_addr_port.clone();
     let db_port = settings.database_service_addr_port.clone();
     let root_dir = service.root_dir.clone();
+    let data_timeout = settings.data_grpc_timeout_in_seconds;
 
     let _ = task::spawn_blocking(move || {
         let _ = service.start_grpc_at_addrs_with_shutdown(
@@ -57,6 +58,7 @@ async fn main() {
             root_dir.to_string(),
             client_listener,
             db_listener,
+            data_timeout,
         );
     })
     .await;
@@ -196,9 +198,14 @@ fn configure_rcd_w_http_new(dbi: Dbi) -> Rcd {
 }
 
 #[allow(dead_code)]
-fn configure_rcd_w_grpc_new(dbi: Dbi, db_addr_port: String) -> Rcd {
+fn configure_rcd_w_grpc_new(
+    dbi: Dbi,
+    db_addr_port: String,
+    data_grpc_timeout_in_seconds: u32,
+) -> Rcd {
     let grpc = RemoteGrpc {
         db_addr_port: db_addr_port,
+        timeout_in_seconds: data_grpc_timeout_in_seconds,
     };
 
     let remote_db = RcdRemoteDbClient {

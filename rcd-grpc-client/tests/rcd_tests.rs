@@ -33,6 +33,8 @@ fn read_settings_from_config() {
         backing_database_name: String::from(""),
         client_service_addr_port: String::from("[::1]:50051"),
         database_service_addr_port: String::from(""),
+        data_grpc_timeout_in_seconds: 5,
+        client_grpc_timeout_in_seconds: 5,
     };
 
     // ACT
@@ -58,6 +60,8 @@ fn configure_backing_db() {
         backing_database_name: String::from("rcd_test.db"),
         client_service_addr_port: String::from("[::1]:50051"),
         database_service_addr_port: String::from(""),
+        data_grpc_timeout_in_seconds: 5,
+        client_grpc_timeout_in_seconds: 5,
     };
 
     let cwd = env::current_dir().unwrap();

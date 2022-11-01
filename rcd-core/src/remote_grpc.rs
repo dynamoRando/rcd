@@ -31,6 +31,7 @@ use rcd_common::db::CdsHosts;
 #[derive(Debug, Clone)]
 pub struct RemoteGrpc {
     pub db_addr_port: String,
+    pub timeout_in_seconds: u32,
 }
 
 impl RemoteGrpc {
@@ -44,7 +45,7 @@ impl RemoteGrpc {
             authentication: Some(auth),
         };
 
-        let client = get_client(participant);
+        let client = get_client(participant, self.timeout_in_seconds);
         let response = client.await.try_auth(request).await;
         let result = response.unwrap().into_inner();
         return result.authentication_result.unwrap().is_authenticated;
@@ -77,7 +78,7 @@ impl RemoteGrpc {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let client = get_client(participant);
+        let client = get_client(participant, self.timeout_in_seconds);
         let response = client.await.save_contract(request).await.unwrap();
 
         return response.into_inner().is_saved;
@@ -139,7 +140,7 @@ impl RemoteGrpc {
             where_clause: where_clause.to_string(),
         };
 
-        let client = get_client(participant);
+        let client = get_client(participant, self.timeout_in_seconds);
         let response = client
             .await
             .delete_command_into_table(request)
@@ -168,7 +169,7 @@ impl RemoteGrpc {
             where_clause: where_clause.to_string(),
         };
 
-        let client = get_client(participant);
+        let client = get_client(participant, self.timeout_in_seconds);
         let response = client
             .await
             .update_command_into_table(request)
@@ -197,7 +198,7 @@ impl RemoteGrpc {
             cmd: sql.to_string(),
         };
 
-        let client = get_client(participant);
+        let client = get_client(participant, self.timeout_in_seconds);
         let response = client
             .await
             .insert_command_into_table(request)
@@ -229,7 +230,7 @@ impl RemoteGrpc {
 
         let participant_info = participant.participant.clone();
 
-        let client = get_client(participant_info);
+        let client = get_client(participant_info, self.timeout_in_seconds);
         let response = client
             .await
             .get_row_from_partial_database(request)
@@ -342,7 +343,8 @@ impl RemoteGrpc {
         info!("{}", message);
         println!("{}", message);
 
-        let client = get_client_with_addr_port(host_info.ip4_address.clone());
+        let client =
+            get_client_with_addr_port(host_info.ip4_address.clone(), self.timeout_in_seconds);
         let response = client.await.accept_contract(request).await.unwrap();
 
         return response.into_inner().contract_acceptance_is_acknowledged;
@@ -390,19 +392,26 @@ fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
     return auth;
 }
 
-async fn get_client_with_addr_port(addr_port: String) -> DataServiceClient<Channel> {
+async fn get_client_with_addr_port(
+    addr_port: String,
+    timeout_in_seconds: u32,
+) -> DataServiceClient<Channel> {
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     let message = format!("configuring to connect to rcd at: {}", addr_port);
     info!("{}", message);
 
-    let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
+    let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap())
+        .timeout(Duration::from_secs(timeout_in_seconds.into()));
     let channel = endpoint.connect().await.unwrap();
 
     return DataServiceClient::new(channel);
 }
 
 #[allow(dead_code)]
-async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<Channel> {
+async fn get_client(
+    participant: CoopDatabaseParticipant,
+    timeout_in_seconds: u32,
+) -> DataServiceClient<Channel> {
     let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
@@ -410,7 +419,7 @@ async fn get_client(participant: CoopDatabaseParticipant) -> DataServiceClient<C
     println!("{}", http_addr_port);
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap())
-        .timeout(Duration::from_secs(5));
+        .timeout(Duration::from_secs(timeout_in_seconds.into()));
     let channel = endpoint.connect().await.unwrap();
 
     return DataServiceClient::new(channel);
