@@ -112,6 +112,7 @@ fn process_cmd_args(args: Vec<String>) {
 
 fn set_default_config() {
     let cwd = get_current_directory();
+    println!("cwd: {}", cwd);
     let default_settings_content = String::from(
         "
 debug = false
@@ -122,6 +123,8 @@ client_service_addr_port = \"0.0.0.0:50051\"
 data_service_addr_port = \"0.0.0.0:50052\"
 admin_un = \"tester\"
 admin_pw = \"123456\"
+client_grpc_timeout_in_seconds = 5
+data_grpc_timeout_in_seconds = 5
     ",
     );
 

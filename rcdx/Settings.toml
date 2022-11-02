@@ -7,4 +7,6 @@ client_service_addr_port = "0.0.0.0:50051"
 data_service_addr_port = "0.0.0.0:50052"
 admin_un = "tester"
 admin_pw = "123456"
+client_grpc_timeout_in_seconds = 5
+data_grpc_timeout_in_seconds = 5
     
