@@ -5,7 +5,7 @@ use web_sys::{console, HtmlInputElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_conn_ui;
 use rcd_messages::client::{
-    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TestRequest,
+    AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest,
 };
 use reqwasm::http::{Method, Request};
 
@@ -51,18 +51,7 @@ impl RcdAdminApp {
         }
     }
 
-    fn view_connection(&self, _link: &Scope<Self>) -> Html {
-        html! {
-            <div>
-            <li>
-                <label>{ self.state.conn_ui.conn.ip.to_string() }</label>
-                <label>{ self.state.conn_ui.conn.port.to_string() }</label>
-            </li>
-            </div>
-        }
-    }
-
-    pub fn view_databases(&self, link: &Scope<Self>) -> Html {
+    pub fn view_databases(&self, _link: &Scope<Self>) -> Html {
         let mut db_names: Vec<String> = Vec::new();
 
         for db in &self.state.conn_ui.conn.databases {
