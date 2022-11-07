@@ -1,13 +1,17 @@
 use rcd_conn_ui::{RcdConn, RcdConnUi};
 use serde::Deserialize;
+use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement};
-use yew::{html::Scope, prelude::*};
+use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_conn_ui;
-use rcd_messages::client::{AuthRequest, GetDatabasesRequest, TestRequest};
+use rcd_messages::client::{
+    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TestRequest,
+};
 use reqwasm::http::{Method, Request};
 
 pub enum AppMessage {
     Connect(),
+    GetDatabases(AttrValue),
 }
 
 struct ApplicationState {
@@ -47,7 +51,6 @@ impl RcdAdminApp {
         }
     }
 
-    #[allow(dead_code)]
     fn view_connection(&self, _link: &Scope<Self>) -> Html {
         html! {
             <div>
@@ -56,6 +59,26 @@ impl RcdAdminApp {
                 <label>{ self.state.conn_ui.conn.port.to_string() }</label>
             </li>
             </div>
+        }
+    }
+
+    pub fn view_databases(&self, link: &Scope<Self>) -> Html {
+        let mut db_names: Vec<String> = Vec::new();
+
+        for db in &self.state.conn_ui.conn.databases {
+            db_names.push(db.database_name.clone());
+        }
+
+        html! {
+           <div>
+           <h1> {"Databases"} </h1>
+           <ul>
+           {
+            db_names.into_iter().map(|name| {
+                html!{<div key={name.clone()}><li>{name.clone()}</li></div>}
+            }).collect::<Html>()
+        }</ul>
+           </div>
         }
     }
 }
@@ -70,6 +93,7 @@ impl Component for RcdAdminApp {
             pw: "123456".to_string(),
             ip: "localhost".to_string(),
             port: 8000,
+            databases: Vec::new(),
         };
 
         let conn_ui = RcdConnUi {
@@ -78,6 +102,7 @@ impl Component for RcdAdminApp {
             pw: NodeRef::default(),
             ip: NodeRef::default(),
             port: NodeRef::default(),
+            databases: NodeRef::default(),
         };
 
         let app_state = ApplicationState { conn_ui };
@@ -93,6 +118,9 @@ impl Component for RcdAdminApp {
                 <header class="header">
                     { self.view_input_for_connection(ctx.link()) }
                 </header>
+               </section>
+               <section class ="databases">
+                {self.view_databases(ctx.link())}
                </section>
             </div>
         }
@@ -127,55 +155,11 @@ impl Component for RcdAdminApp {
                     request_echo_message: "rcdadmin-test".to_string(),
                 };
 
-                let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", port_val);
-                let url =  format!("{}{}", base_address.clone(), "/client/version");
-
-                let base_address2 = base_address.clone();
-                let base_address3 = base_address.clone();
-                let base_address4 = base_address.clone();
+                let base_address =
+                    format!("{}{}{}{}", "http://", ip_val.to_string(), ":", port_val);
 
                 let request_json = serde_json::to_string(&request).unwrap();
-                let request_json2 = request_json.clone();
-                let request_json3 = request_json.clone();
 
-                // we expect to get the "Status From Rocket" message
-                wasm_bindgen_futures::spawn_local(async move {
-                    let url = format!("{}{}", base_address2.clone(), "/client/status");
-                    let res = Request::get(&url.to_string())
-                        .send()
-                        .await
-                        .unwrap()
-                        .text()
-                        .await
-                        .unwrap();
-
-                    console::log_1(&res.into());
-                });
-
-                // test to see if we can POST
-                wasm_bindgen_futures::spawn_local(async move {
-                    console::log_1(&"local".into());
-                    let url = format!("{}{}", base_address3.clone(), "/client/version");
-
-                    // let js = wasm_bindgen::JsValue::from_str(&request_json2);
-                    console::log_1(&request_json.into());
-
-                    let http_response = Request::new(&url)
-                        .method(Method::POST)
-                        .header("Content-Type", "application/json")
-                        .body(request_json2)
-                        .send()
-                        .await
-                        .unwrap()
-                        .text()
-                        .await
-                        .unwrap();
-
-                    console::log_1(&"response".into());
-                    console::log_1(&http_response.into());
-                });
-
-                // test to see if we can get databases
                 let auth_request = AuthRequest {
                     user_name: "tester".to_string(),
                     pw: "123456".to_string(),
@@ -188,28 +172,17 @@ impl Component for RcdAdminApp {
                 };
 
                 let db_request_json = serde_json::to_string(&db_request).unwrap();
-                let db_request_json2 = serde_json::to_string(&db_request).unwrap();
-                wasm_bindgen_futures::spawn_local(async move {
-                    console::log_1(&"local".into());
-                    let url = format!("{}{}", base_address4.clone(), "/client/databases");
-
-                    // let js = wasm_bindgen::JsValue::from_str(&request_json2);
-                    console::log_1(&db_request_json.into());
-
-                    let http_response = Request::new(&url)
-                        .method(Method::POST)
-                        .header("Content-Type", "application/json")
-                        .body(db_request_json2)
-                        .send()
-                        .await
-                        .unwrap()
-                        .text()
-                        .await
-                        .unwrap();
-
-                    console::log_1(&"response".into());
-                    console::log_1(&http_response.into());
-                });
+                let db_callback = ctx.link().callback(AppMessage::GetDatabases);
+                let url = format!("{}{}", base_address.clone(), "/client/databases");
+                get_data(url, db_request_json, db_callback);
+            }
+            AppMessage::GetDatabases(db_response) => {
+                console::log_1(&db_response.to_string().clone().into());
+                let db_response: GetDatabasesReply =
+                    serde_json::from_str(&db_response.to_string()).unwrap();
+                if db_response.authentication_result.unwrap().is_authenticated {
+                    self.state.conn_ui.conn.databases = db_response.databases.clone();
+                }
             }
         }
         true
@@ -218,4 +191,20 @@ impl Component for RcdAdminApp {
 
 fn main() {
     yew::start_app::<RcdAdminApp>();
+}
+
+pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
+    spawn_local(async move {
+        let http_response = Request::new(&url)
+            .method(Method::POST)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+        callback.emit(AttrValue::from(http_response));
+    });
 }

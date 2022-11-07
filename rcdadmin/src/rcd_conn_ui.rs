@@ -1,3 +1,4 @@
+use rcd_messages::client::DatabaseSchema;
 use serde::{Deserialize, Serialize};
 use yew::{Component, Html, NodeRef};
 
@@ -9,6 +10,7 @@ pub struct RcdConn {
     pub pw: String,
     pub ip: String,
     pub port: u32,
+    pub databases: Vec<DatabaseSchema>,
 }
 
 pub struct RcdConnUi {
@@ -17,6 +19,7 @@ pub struct RcdConnUi {
     pub pw: NodeRef,
     pub ip: NodeRef,
     pub port: NodeRef,
+    pub databases: NodeRef,
 }
 
 impl RcdConnUi {}
