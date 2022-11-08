@@ -4,14 +4,13 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_conn_ui;
-use rcd_messages::client::{
-    AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest,
-};
+use rcd_messages::client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest};
 use reqwasm::http::{Method, Request};
 
 pub enum AppMessage {
     Connect(),
     GetDatabases(AttrValue),
+    GetTablesForDatabase(String),
 }
 
 struct ApplicationState {
@@ -51,7 +50,7 @@ impl RcdAdminApp {
         }
     }
 
-    pub fn view_databases(&self, _link: &Scope<Self>) -> Html {
+    pub fn view_databases(&self, link: &Scope<Self>) -> Html {
         let mut db_names: Vec<String> = Vec::new();
 
         for db in &self.state.conn_ui.conn.databases {
@@ -64,7 +63,9 @@ impl RcdAdminApp {
            <ul>
            {
             db_names.into_iter().map(|name| {
-                html!{<div key={name.clone()}><li>{name.clone()}</li></div>}
+                let db_name = name.clone();
+                html!{<div key={db_name.clone()}>
+                <li onclick={link.callback(move |_| AppMessage::GetTablesForDatabase(name.clone()))}>{db_name.clone()}</li></div>}
             }).collect::<Html>()
         }</ul>
            </div>
@@ -172,6 +173,10 @@ impl Component for RcdAdminApp {
                 if db_response.authentication_result.unwrap().is_authenticated {
                     self.state.conn_ui.conn.databases = db_response.databases.clone();
                 }
+            }
+            AppMessage::GetTablesForDatabase(db_name) => {
+                console::log_1(&"AppMessage::GetTablesForDatabase".into());
+                console::log_1(&db_name.clone().into());
             }
         }
         true
