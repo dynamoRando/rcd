@@ -11,6 +11,7 @@ pub enum AppMessage {
     Connect(),
     GetDatabases(AttrValue),
     GetTablesForDatabase(String),
+    GetColumnsForTable(String, String),
 }
 
 struct ApplicationState {
@@ -72,7 +73,7 @@ impl RcdAdminApp {
         }
     }
 
-    pub fn view_tables_for_database(&self, _link: &Scope<Self>) -> Html {
+    pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
         let db_name = self.state.conn_ui.conn.current_db_name.clone();
 
         if db_name == "" {
@@ -98,17 +99,63 @@ impl RcdAdminApp {
 
             html! {
                <div>
-               <h1> {"Tables"} </h1>
+               <h1> {"Tables for database "}{&db_name}</h1>
                <ul>
                {
                 table_names.into_iter().map(|name| {
                     let table_name = name.clone();
+                    let d_name = db_name.clone();
                     html!{<div key={table_name.clone()}>
-                    <li>{table_name.clone()}</li></div>}
+                    <li onclick={link.callback(move |_| AppMessage::GetColumnsForTable(d_name.clone(), table_name.clone()))}>{name.clone()}</li></div>}
                 }).collect::<Html>()
             }</ul>
                </div>
             }
+        }
+    }
+
+    pub fn view_columns_for_table(&self, _link: &Scope<Self>) -> Html {
+        let db_name = self.state.conn_ui.conn.current_db_name.clone();
+        let table_name = self.state.conn_ui.conn.current_table_name.clone();
+
+        if db_name == "" || table_name == "" {
+            html! {
+                <div/>
+            }
+        } else {
+            let table = self
+                .state
+                .conn_ui
+                .conn
+                .databases
+                .iter()
+                .find(|x| x.database_name.as_str() == db_name)
+                .unwrap()
+                .tables
+                .iter()
+                .find(|x| x.table_name.as_str() == table_name)
+                .unwrap()
+                .clone();
+
+            let mut col_names: Vec<String> = Vec::new();
+
+            for column in &table.columns {
+                col_names.push(column.column_name.clone());
+            }
+
+            html! {
+                <div>
+                <h1> {"Columns for table "}{&table_name} {" in database "}{&db_name}</h1>
+                <ul>
+                {
+                 col_names.into_iter().map(|name| {
+                     let col_name = name.clone();
+                     html!{<div key={col_name.clone()}>
+                     <li>{col_name.clone()}</li></div>}
+                 }).collect::<Html>()
+             }</ul>
+                </div>
+             }
         }
     }
 }
@@ -125,6 +172,7 @@ impl Component for RcdAdminApp {
             port: 8000,
             databases: Vec::new(),
             current_db_name: "".to_string(),
+            current_table_name: "".to_string(),
         };
 
         let conn_ui = RcdConnUi {
@@ -155,6 +203,9 @@ impl Component for RcdAdminApp {
                </section>
                <section class ="tables">
                {self.view_tables_for_database(ctx.link())}
+              </section>
+              <section class ="columns">
+               {self.view_columns_for_table(ctx.link())}
               </section>
             </div>
         }
@@ -221,10 +272,13 @@ impl Component for RcdAdminApp {
                 }
             }
             AppMessage::GetTablesForDatabase(db_name) => {
-                // console::log_1(&"AppMessage::GetTablesForDatabase".into());
-                // console::log_1(&db_name.clone().into());
                 self.state.conn_ui.conn.current_db_name = db_name;
                 self.view_tables_for_database(ctx.link());
+            }
+            AppMessage::GetColumnsForTable(db_name, table_name) => {
+                self.state.conn_ui.conn.current_db_name = db_name;
+                self.state.conn_ui.conn.current_table_name = table_name;
+                self.view_columns_for_table(ctx.link());
             }
         }
         true
