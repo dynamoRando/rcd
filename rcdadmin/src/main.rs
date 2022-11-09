@@ -71,6 +71,46 @@ impl RcdAdminApp {
            </div>
         }
     }
+
+    pub fn view_tables_for_database(&self, _link: &Scope<Self>) -> Html {
+        let db_name = self.state.conn_ui.conn.current_db_name.clone();
+
+        if db_name == "" {
+            html! {
+                <div/>
+            }
+        } else {
+            let tables = self
+                .state
+                .conn_ui
+                .conn
+                .databases
+                .iter()
+                .find(|x| x.database_name.as_str() == db_name)
+                .unwrap()
+                .tables
+                .clone();
+
+            let mut table_names: Vec<String> = Vec::new();
+            for table in &tables {
+                table_names.push(table.table_name.clone());
+            }
+
+            html! {
+               <div>
+               <h1> {"Tables"} </h1>
+               <ul>
+               {
+                table_names.into_iter().map(|name| {
+                    let table_name = name.clone();
+                    html!{<div key={table_name.clone()}>
+                    <li>{table_name.clone()}</li></div>}
+                }).collect::<Html>()
+            }</ul>
+               </div>
+            }
+        }
+    }
 }
 
 impl Component for RcdAdminApp {
@@ -84,6 +124,7 @@ impl Component for RcdAdminApp {
             ip: "localhost".to_string(),
             port: 8000,
             databases: Vec::new(),
+            current_db_name: "".to_string(),
         };
 
         let conn_ui = RcdConnUi {
@@ -112,13 +153,16 @@ impl Component for RcdAdminApp {
                <section class ="databases">
                 {self.view_databases(ctx.link())}
                </section>
+               <section class ="tables">
+               {self.view_tables_for_database(ctx.link())}
+              </section>
             </div>
         }
     }
 
     #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        console::log_1(&"update".into());
+        // console::log_1(&"update".into());
         match msg {
             AppMessage::Connect() => {
                 let un = &self.state.conn_ui.un;
@@ -131,10 +175,12 @@ impl Component for RcdAdminApp {
                 let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
                 let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-                console::log_1(&un_val.clone().into());
-                console::log_1(&pw_val.clone().into());
-                console::log_1(&ip_val.clone().into());
-                console::log_1(&port_val.clone().into());
+                /*
+                   console::log_1(&un_val.clone().into());
+                   console::log_1(&pw_val.clone().into());
+                   console::log_1(&ip_val.clone().into());
+                   console::log_1(&port_val.clone().into());
+                */
 
                 let request = TestRequest {
                     request_time_utc: "".to_string(),
@@ -175,8 +221,10 @@ impl Component for RcdAdminApp {
                 }
             }
             AppMessage::GetTablesForDatabase(db_name) => {
-                console::log_1(&"AppMessage::GetTablesForDatabase".into());
-                console::log_1(&db_name.clone().into());
+                // console::log_1(&"AppMessage::GetTablesForDatabase".into());
+                // console::log_1(&db_name.clone().into());
+                self.state.conn_ui.conn.current_db_name = db_name;
+                self.view_tables_for_database(ctx.link());
             }
         }
         true

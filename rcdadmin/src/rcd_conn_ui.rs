@@ -11,6 +11,7 @@ pub struct RcdConn {
     pub ip: String,
     pub port: u32,
     pub databases: Vec<DatabaseSchema>,
+    pub current_db_name: String,
 }
 
 pub struct RcdConnUi {
