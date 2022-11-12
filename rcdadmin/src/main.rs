@@ -1,9 +1,9 @@
-use rcd_conn_ui::{RcdConn, RcdConnUi};
+use rcd_ui::{RcdConn, RcdConnUi};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
-mod rcd_conn_ui;
+mod rcd_ui;
 use rcd_messages::client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest};
 use reqwasm::http::{Method, Request};
 
@@ -158,6 +158,32 @@ impl RcdAdminApp {
              }
         }
     }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn view_input_for_execute_read_host(&self, link: &Scope<Self>) -> Html { 
+        todo!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn view_input_for_execute_read_part(&self, link: &Scope<Self>) -> Html { 
+        todo!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn view_input_for_execute_write_host(&self, link: &Scope<Self>) -> Html { 
+        todo!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn view_input_for_execute_write_part(&self, link: &Scope<Self>) -> Html { 
+        todo!()
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn view_sql_result(&self, link: &Scope<Self>) -> Html { 
+        todo!()
+    }
+
 }
 
 impl Component for RcdAdminApp {

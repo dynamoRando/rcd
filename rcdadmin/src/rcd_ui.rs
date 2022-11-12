@@ -38,3 +38,12 @@ impl Component for RcdConnUi {
         todo!()
     }
 }
+
+#[allow(dead_code)]
+pub struct RcdInputOutputUi {
+    pub execute_read_at_host_sql: NodeRef,
+    pub execute_read_at_part_sql: NodeRef,
+    pub execute_write_at_host_sql: NodeRef,
+    pub execute_write_at_part_sql: NodeRef,
+    pub sql_result: NodeRef,
+}

@@ -96,12 +96,17 @@ impl Rcd {
         return io::execute_write_at_host(self, request).await;
     }
 
+    /// Attempts to execute a `SELECT` statement 
+    /// at the specified location against a partial database
     pub async fn execute_read_at_participant(
         &self,
         request: ExecuteReadRequest,
     ) -> ExecuteReadReply {
         return io::execute_read_at_participant(self, request).await;
     }
+
+    /// Attempts to execute a `SELECT` statement
+    /// at the specified location against a host database
     pub async fn execute_read_at_host(&self, request: ExecuteReadRequest) -> ExecuteReadReply {
         return io::execute_read_at_host(self, request).await;
     }
