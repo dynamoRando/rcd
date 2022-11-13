@@ -13,6 +13,8 @@ pub struct RcdConn {
     pub databases: Vec<DatabaseSchema>,
     pub current_db_name: String,
     pub current_table_name: String,
+    pub sql_input: String,
+    pub sql_output: String,
 }
 
 pub struct RcdConnUi {
@@ -22,6 +24,7 @@ pub struct RcdConnUi {
     pub ip: NodeRef,
     pub port: NodeRef,
     pub databases: NodeRef,
+    pub sql: RcdInputOutputUi,
 }
 
 impl RcdConnUi {}
@@ -41,9 +44,8 @@ impl Component for RcdConnUi {
 
 #[allow(dead_code)]
 pub struct RcdInputOutputUi {
-    pub execute_read_at_host_sql: NodeRef,
-    pub execute_read_at_part_sql: NodeRef,
-    pub execute_write_at_host_sql: NodeRef,
-    pub execute_write_at_part_sql: NodeRef,
+    pub execute_sql: NodeRef,
     pub sql_result: NodeRef,
+    pub db_name: NodeRef,
+    pub selected_db_name: String,
 }

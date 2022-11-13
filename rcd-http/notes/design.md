@@ -12,7 +12,8 @@ This is not final, this is just brainstorming.
 - /client/version
     - POST: `is_online`
 - /client/databases/
-    - GET: `get_databases`
+    - POST: `get_databases` (this really should be a GET)
+- /client/databases/new/
     - POST: `create_user_database`
 - /client/databases/contract/
     - POST: `generate_contract`
@@ -23,7 +24,7 @@ This is not final, this is just brainstorming.
 - /client/databases/table/
     - POST: `has_table`
 - /client/databases/table/policy/
-    - GET: `get_logical_storage_policy`
+    - post: `get_logical_storage_policy`
     - POST: `set_logical_storage_policy`
 - /client/sql/host/read/
     - POST: `execute_read_at_host`

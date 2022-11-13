@@ -96,7 +96,7 @@ impl Rcd {
         return io::execute_write_at_host(self, request).await;
     }
 
-    /// Attempts to execute a `SELECT` statement 
+    /// Attempts to execute a `SELECT` statement
     /// at the specified location against a partial database
     pub async fn execute_read_at_participant(
         &self,

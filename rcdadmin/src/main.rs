@@ -1,17 +1,28 @@
-use rcd_ui::{RcdConn, RcdConnUi};
+use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, HtmlInputElement};
+use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_ui;
 use rcd_messages::client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest};
 use reqwasm::http::{Method, Request};
+
+pub enum ExecuteSQLIntent {
+    Unknown,
+    ReadAtHost,
+    ReadAtPart,
+    WriteAtHost,
+    WriteAtPart,
+}
 
 pub enum AppMessage {
     Connect(),
     GetDatabases(AttrValue),
     GetTablesForDatabase(String),
     GetColumnsForTable(String, String),
+    ExecuteSQL(ExecuteSQLIntent),
+    SQLResult(AttrValue),
+    SetExecuteSQLDatabase(String),
 }
 
 struct ApplicationState {
@@ -144,46 +155,87 @@ impl RcdAdminApp {
             }
 
             html! {
-                <div>
-                <h1> {"Columns for table "}{&table_name} {" in database "}{&db_name}</h1>
-                <ul>
-                {
-                 col_names.into_iter().map(|name| {
-                     let col_name = name.clone();
-                     html!{<div key={col_name.clone()}>
-                     <li>{col_name.clone()}</li></div>}
-                 }).collect::<Html>()
-             }</ul>
-                </div>
-             }
+               <div>
+               <h1> {"Columns for table "}{&table_name} {" in database "}{&db_name}</h1>
+               <ul>
+               {
+                col_names.into_iter().map(|name| {
+                    let col_name = name.clone();
+                    html!{<div key={col_name.clone()}>
+                    <li>{col_name.clone()}</li></div>}
+                }).collect::<Html>()
+            }</ul>
+               </div>
+            }
         }
     }
 
     #[allow(dead_code, unused_variables)]
-    pub fn view_input_for_execute_read_host(&self, link: &Scope<Self>) -> Html { 
-        todo!()
+    pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
+
+        let mut db_names: Vec<String> = Vec::new();
+
+        for db in &self.state.conn_ui.conn.databases {
+            db_names.push(db.database_name.clone());
+        }
+
+        // console::log_1(&"view_input_for_sql".into());
+        // console::log_1(&db_names.len().to_string().into());
+
+        html! {
+            <div>
+            <h1> {"Execute SQL"} </h1>
+            <label for="execute_sql">{ "Enter SQL" }</label>
+            <p>
+            <label for="execute_sql_dbs">{ "Select Database " }</label>
+            <select name="execute_sql_dbs" id="execute_sql_dbs"
+            
+            onchange={link.batch_callback(|e: Event| {
+                if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                    // console::log_1(&"some onchange".into());
+                    Some(AppMessage::SetExecuteSQLDatabase(input.value()))   
+                } else {
+                    // console::log_1(&"none onchange".into());
+                    None
+                }
+            })}
+            >
+            {
+                db_names.into_iter().map(|name| {
+                    // console::log_1(&name.clone().into());
+                    html!{
+                    <option value={name.clone()}>{name.clone()}</option>}
+                }).collect::<Html>()
+            }
+            </select>
+            </p>
+            <p>
+            <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&self.state.conn_ui.sql.execute_sql}/>
+            </p>
+            <input type="button" id="read_at_host" value="Execute Read At Host" onclick={link.callback(|_|
+                {
+                    AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtHost)
+                })}/>
+                <input type="button" id="read_at_part" value="Execute Read At Part" onclick={link.callback(|_|
+                {
+                    AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtPart)
+                })}/>
+                <input type="button" id="write_at_host" value="Execute Write At Host" onclick={link.callback(|_|
+                {
+                    AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtHost)
+                })}/>
+                <input type="button" id="write_at_part" value="Execute Write At Part" onclick={link.callback(|_|
+                {
+                    AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtPart)
+                })}/>
+            </div>
+        }
     }
 
     #[allow(dead_code, unused_variables)]
-    pub fn view_input_for_execute_read_part(&self, link: &Scope<Self>) -> Html { 
+    pub fn view_sql_result(&self, link: &Scope<Self>) -> Html {
         todo!()
     }
-
-    #[allow(dead_code, unused_variables)]
-    pub fn view_input_for_execute_write_host(&self, link: &Scope<Self>) -> Html { 
-        todo!()
-    }
-
-    #[allow(dead_code, unused_variables)]
-    pub fn view_input_for_execute_write_part(&self, link: &Scope<Self>) -> Html { 
-        todo!()
-    }
-
-    #[allow(dead_code, unused_variables)]
-    pub fn view_sql_result(&self, link: &Scope<Self>) -> Html { 
-        todo!()
-    }
-
 }
 
 impl Component for RcdAdminApp {
@@ -199,6 +251,15 @@ impl Component for RcdAdminApp {
             databases: Vec::new(),
             current_db_name: "".to_string(),
             current_table_name: "".to_string(),
+            sql_input: "".to_string(),
+            sql_output: "".to_string(),
+        };
+
+        let input_output = RcdInputOutputUi {
+            execute_sql: NodeRef::default(),
+            sql_result: NodeRef::default(),
+            db_name: NodeRef::default(),
+            selected_db_name: "".to_string(),
         };
 
         let conn_ui = RcdConnUi {
@@ -208,6 +269,7 @@ impl Component for RcdAdminApp {
             ip: NodeRef::default(),
             port: NodeRef::default(),
             databases: NodeRef::default(),
+            sql: input_output,
         };
 
         let app_state = ApplicationState { conn_ui };
@@ -232,6 +294,9 @@ impl Component for RcdAdminApp {
               </section>
               <section class ="columns">
                {self.view_columns_for_table(ctx.link())}
+              </section>
+              <section class ="input_sql">
+               {self.view_input_for_sql(ctx.link())}
               </section>
             </div>
         }
@@ -305,6 +370,13 @@ impl Component for RcdAdminApp {
                 self.state.conn_ui.conn.current_db_name = db_name;
                 self.state.conn_ui.conn.current_table_name = table_name;
                 self.view_columns_for_table(ctx.link());
+            }
+            AppMessage::ExecuteSQL(_) => todo!(),
+            AppMessage::SQLResult(_) => todo!(),
+            AppMessage::SetExecuteSQLDatabase(db_name) => {
+                // console::log_1(&db_name.into());
+                self.state.conn_ui.sql.selected_db_name = db_name.clone();
+                console::log_1(&self.state.conn_ui.sql.selected_db_name.clone().into());
             }
         }
         true
