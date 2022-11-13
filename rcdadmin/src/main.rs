@@ -172,7 +172,6 @@ impl RcdAdminApp {
 
     #[allow(dead_code, unused_variables)]
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
-
         let mut db_names: Vec<String> = Vec::new();
 
         for db in &self.state.conn_ui.conn.databases {
@@ -189,11 +188,11 @@ impl RcdAdminApp {
             <p>
             <label for="execute_sql_dbs">{ "Select Database " }</label>
             <select name="execute_sql_dbs" id="execute_sql_dbs"
-            
+
             onchange={link.batch_callback(|e: Event| {
                 if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                     // console::log_1(&"some onchange".into());
-                    Some(AppMessage::SetExecuteSQLDatabase(input.value()))   
+                    Some(AppMessage::SetExecuteSQLDatabase(input.value()))
                 } else {
                     // console::log_1(&"none onchange".into());
                     None

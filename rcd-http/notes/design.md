@@ -24,7 +24,7 @@ This is not final, this is just brainstorming.
 - /client/databases/table/
     - POST: `has_table`
 - /client/databases/table/policy/
-    - post: `get_logical_storage_policy`
+    - POST: `get_logical_storage_policy`
     - POST: `set_logical_storage_policy`
 - /client/sql/host/read/
     - POST: `execute_read_at_host`
