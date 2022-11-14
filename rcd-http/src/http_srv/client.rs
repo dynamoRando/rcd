@@ -4,6 +4,7 @@ use rcdproto::rcdp::{TestReply, TestRequest};
 use rocket::{get, http::Status, post, serde::json::Json};
 
 pub mod database;
+pub mod sql;
 
 #[get("/client/status")]
 pub async fn status() -> &'static str {

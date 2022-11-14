@@ -4,7 +4,10 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_ui;
-use rcd_messages::client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest, TestRequest};
+use rcd_messages::client::{
+    AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
+    TestRequest,
+};
 use reqwasm::http::{Method, Request};
 
 pub enum ExecuteSQLIntent {
@@ -233,16 +236,16 @@ impl RcdAdminApp {
 
     #[allow(dead_code, unused_variables)]
     pub fn view_sql_result(&self, link: &Scope<Self>) -> Html {
-      html!(
-        <div>
-            <h1> {"SQL Results"} </h1>
-            <label for="sql_result">{ "Results" }</label>
-            <p>
-            <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here" 
-            ref={&self.state.conn_ui.sql.sql_result}/>
-            </p>
-            </div>
-      )
+        html!(
+          <div>
+              <h1> {"SQL Results"} </h1>
+              <label for="sql_result">{ "Results" }</label>
+              <p>
+              <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here"
+              ref={&self.state.conn_ui.sql.sql_result}/>
+              </p>
+              </div>
+        )
     }
 }
 
@@ -261,6 +264,8 @@ impl Component for RcdAdminApp {
             current_table_name: "".to_string(),
             sql_input: "".to_string(),
             sql_output: "".to_string(),
+            url: "".to_string(),
+            auth_request_json: "".to_string(),
         };
 
         let input_output = RcdInputOutputUi {
@@ -357,13 +362,18 @@ impl Component for RcdAdminApp {
                 };
 
                 let db_request = GetDatabasesRequest {
-                    authentication: Some(auth_request),
+                    authentication: Some(auth_request.clone()),
                 };
 
                 let db_request_json = serde_json::to_string(&db_request).unwrap();
                 let db_callback = ctx.link().callback(AppMessage::GetDatabases);
                 let url = format!("{}{}", base_address.clone(), "/client/databases");
                 get_data(url, db_request_json, db_callback);
+
+                let auth_request_json = serde_json::to_string(&auth_request).unwrap();
+
+                self.state.conn_ui.conn.auth_request_json = auth_request_json.clone();
+                self.state.conn_ui.conn.url = base_address.clone();
             }
             AppMessage::GetDatabases(db_response) => {
                 console::log_1(&db_response.to_string().clone().into());
@@ -382,8 +392,49 @@ impl Component for RcdAdminApp {
                 self.state.conn_ui.conn.current_table_name = table_name;
                 self.view_columns_for_table(ctx.link());
             }
-            AppMessage::ExecuteSQL(_) => todo!(),
-            AppMessage::SQLResult(_) => todo!(),
+            AppMessage::ExecuteSQL(intent) => match intent {
+                ExecuteSQLIntent::Unknown => todo!(),
+                ExecuteSQLIntent::ReadAtHost => {
+                    let base_address = self.state.conn_ui.conn.url.clone();
+                    let url = format!("{}{}", base_address.clone(), "/client/sql/host/read/");
+                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
+                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
+                    let db_name = &self.state.conn_ui.sql.selected_db_name;
+
+                    console::log_1(&"selected db".into());
+                    console::log_1(&db_name.into());
+
+                    let sql_text_node = &self.state.conn_ui.sql.execute_sql;
+                    let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
+
+                    console::log_1(&"sql_text".into());
+                    console::log_1(&sql_text.clone().into());
+
+                    let read_request = ExecuteReadRequest {
+                        authentication: Some(auth),
+                        database_name: db_name.clone(),
+                        sql_statement: sql_text,
+                        database_type: 1,
+                    };
+
+                    let read_request_json = serde_json::to_string(&read_request).unwrap();
+
+                    let sql_callback = ctx.link().callback(AppMessage::SQLResult);
+
+                    get_data(url, read_request_json, sql_callback);
+                }
+                ExecuteSQLIntent::ReadAtPart => todo!(),
+                ExecuteSQLIntent::WriteAtHost => todo!(),
+                ExecuteSQLIntent::WriteAtPart => todo!(),
+            },
+            AppMessage::SQLResult(json_response) => {
+                console::log_1(&json_response.to_string().clone().into());
+                let read_reply: ExecuteReadReply =
+                    serde_json::from_str(&&json_response.to_string()).unwrap();
+                if read_reply.authentication_result.unwrap().is_authenticated {
+                    todo!()
+                }
+            }
             AppMessage::SetExecuteSQLDatabase(db_name) => {
                 // console::log_1(&db_name.into());
                 self.state.conn_ui.sql.selected_db_name = db_name.clone();

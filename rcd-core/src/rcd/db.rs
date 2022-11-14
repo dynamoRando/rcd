@@ -313,6 +313,7 @@ pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatab
         let db_names = core.dbi().get_database_names();
         for name in &db_names {
             let db_schema = core.dbi().get_database_schema(&name);
+            println!("{:?}", db_schema);
             db_result.push(db_schema);
         }
     }

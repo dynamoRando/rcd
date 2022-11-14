@@ -15,6 +15,8 @@ pub struct RcdConn {
     pub current_table_name: String,
     pub sql_input: String,
     pub sql_output: String,
+    pub url: String,
+    pub auth_request_json: String,
 }
 
 pub struct RcdConnUi {
