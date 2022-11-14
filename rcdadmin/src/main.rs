@@ -170,7 +170,6 @@ impl RcdAdminApp {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
         let mut db_names: Vec<String> = Vec::new();
 
@@ -199,6 +198,7 @@ impl RcdAdminApp {
                 }
             })}
             >
+            <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
             {
                 db_names.into_iter().map(|name| {
                     // console::log_1(&name.clone().into());
@@ -233,7 +233,16 @@ impl RcdAdminApp {
 
     #[allow(dead_code, unused_variables)]
     pub fn view_sql_result(&self, link: &Scope<Self>) -> Html {
-        todo!()
+      html!(
+        <div>
+            <h1> {"SQL Results"} </h1>
+            <label for="sql_result">{ "Results" }</label>
+            <p>
+            <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here" 
+            ref={&self.state.conn_ui.sql.sql_result}/>
+            </p>
+            </div>
+      )
     }
 }
 
@@ -296,6 +305,9 @@ impl Component for RcdAdminApp {
               </section>
               <section class ="input_sql">
                {self.view_input_for_sql(ctx.link())}
+              </section>
+              <section class ="sql_result">
+               {self.view_sql_result(ctx.link())}
               </section>
             </div>
         }
