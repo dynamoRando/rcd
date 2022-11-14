@@ -15,6 +15,9 @@ mod get_set_logical_storage_policy;
 mod has_table;
 #[path = "client_service_tests/is_online.rs"]
 mod is_online;
+#[path = "client_service_tests/host_only.rs"]
+mod host_only;
+
 
 #[test]
 fn get_harness_value() {
