@@ -10,6 +10,8 @@ use rcd_messages::client::{
 };
 use reqwasm::http::{Method, Request};
 
+// for testing, use the databases from the test "host_only"
+
 pub enum ExecuteSQLIntent {
     Unknown,
     ReadAtHost,
