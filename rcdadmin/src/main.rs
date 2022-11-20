@@ -4,10 +4,10 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_ui;
-use rcd_messages::client::{
+use rcd_messages::{client::{
     AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
     TestRequest,
-};
+}, formatter};
 use reqwasm::http::{Method, Request};
 
 // for testing, use the databases from the test "host_only"
@@ -238,13 +238,15 @@ impl RcdAdminApp {
 
     #[allow(dead_code, unused_variables)]
     pub fn view_sql_result(&self, link: &Scope<Self>) -> Html {
+        let text = self.state.conn_ui.sql_text_result.clone();
+
         html!(
           <div>
               <h1> {"SQL Results"} </h1>
               <label for="sql_result">{ "Results" }</label>
               <p>
               <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here"
-              ref={&self.state.conn_ui.sql.sql_result}/>
+              ref={&self.state.conn_ui.sql.sql_result} value={text}/>
               </p>
               </div>
         )
@@ -285,6 +287,7 @@ impl Component for RcdAdminApp {
             port: NodeRef::default(),
             databases: NodeRef::default(),
             sql: input_output,
+            sql_text_result: "".to_string()
         };
 
         let app_state = ApplicationState { conn_ui };
@@ -433,8 +436,12 @@ impl Component for RcdAdminApp {
                 console::log_1(&json_response.to_string().clone().into());
                 let read_reply: ExecuteReadReply =
                     serde_json::from_str(&&json_response.to_string()).unwrap();
+
                 if read_reply.authentication_result.unwrap().is_authenticated {
-                    todo!()
+                    let rows = read_reply.results.first().unwrap().rows.clone();
+
+                    let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
+                    self.state.conn_ui.sql_text_result = sql_table_text;
                 }
             }
             AppMessage::SetExecuteSQLDatabase(db_name) => {

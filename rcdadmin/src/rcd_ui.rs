@@ -27,6 +27,7 @@ pub struct RcdConnUi {
     pub port: NodeRef,
     pub databases: NodeRef,
     pub sql: RcdInputOutputUi,
+    pub sql_text_result: String,
 }
 
 impl RcdConnUi {}

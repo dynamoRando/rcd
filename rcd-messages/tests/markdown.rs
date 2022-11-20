@@ -1,5 +1,3 @@
-use std::result;
-
 use rcd_messages::{
     client::{ColumnSchema, Row, RowValue},
     formatter,
