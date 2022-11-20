@@ -778,7 +778,7 @@ pub struct CreateDatabaseResult {
     pub database_id: String,
 }
 /// an object for representing a row in a table. used for returning data
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct Row {
     pub database_name: String,
 
@@ -795,7 +795,7 @@ pub struct Row {
     pub hash: Vec<u8>,
 }
 /// an object for storing values for a row in a table. used for returning data
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RowValue {
     pub column: ::core::option::Option<ColumnSchema>,
 
@@ -810,7 +810,7 @@ pub struct RowValue {
 /// describes the data status of the host in relation to the participant
 /// if for example the data hash between the host and the participant do not match
 /// or if the row was deleted at the participant, but the reference at the host is not
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RowRemoteMetadata {
     pub is_remote_out_of_sync_with_host: bool,
 
