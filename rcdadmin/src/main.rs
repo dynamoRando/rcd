@@ -1,4 +1,4 @@
-use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi};
+use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy};
 use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
@@ -7,7 +7,7 @@ mod rcd_ui;
 use rcd_messages::{
     client::{
         AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
-        TestRequest,
+        GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, TestRequest, SetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
     },
     formatter,
 };
@@ -31,7 +31,7 @@ pub enum ContractIntent {
     AcceptContract(String),
     GenerateContract,
     SendContractToParticipant(String),
-    RejectContract(String)
+    RejectContract(String),
 }
 
 pub enum TableIntent {
@@ -39,7 +39,7 @@ pub enum TableIntent {
     // Database, Table
     GetTablePolicy((String, String)),
     /// Database, Table, Logical Storage Policy
-    SetTablePolicy((String, String, u32)),
+    SetTablePolicy,
 }
 
 pub enum AppMessage {
@@ -52,6 +52,8 @@ pub enum AppMessage {
     SetExecuteSQLDatabase(String),
     HandleContract(ContractIntent),
     HandleTablePolicy(TableIntent),
+    HandleTablePolicyResponse(AttrValue),
+    HandleTablePolicyUpdateResponse(AttrValue),
 }
 
 struct ApplicationState {
@@ -115,6 +117,7 @@ impl RcdAdminApp {
 
     pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
         let db_name = self.state.conn_ui.conn.current_db_name.clone();
+        let current_table_policy = self.state.conn_ui.sql.current_policy.policy_text.clone();
 
         if db_name == "" {
             html! {
@@ -178,9 +181,10 @@ impl RcdAdminApp {
             }
             </select>
             <label for="selected_table_policy">{"Current Policy:"}</label>
-            <input type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&self.state.conn_ui.current_selected_table}/>
+            <input type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&self.state.conn_ui.sql.current_policy.policy_node}
+             value={current_table_policy}/>
             <label for="table_policy_value">{ "Set Policy" }</label>
-            <select name="set_policy_for_table" id="set_policy_for_table">
+            <select name="set_policy_for_table" id="set_policy_for_table" ref={&self.state.conn_ui.sql.current_policy.new_policy}>
             /*
                 None = 0,
                 HostOnly = 1,
@@ -194,10 +198,11 @@ impl RcdAdminApp {
             <option value={"3"}>{"Shared"}</option>
             <option value={"4"}>{"Mirror"}</option>
             </select>
-            <input type="button" id="submit_new_table_policy" value="Update Policy" onclick={link.callback(|_|
+            <input type="button" id="submit_new_table_policy" value="Update Policy" onclick={link.callback(move |_|
                 {
                     console::log_1(&"submit_new_table_policy".into());
-                    AppMessage::HandleTablePolicy(TableIntent::SetTablePolicy(("".to_string(), "".to_string(), 0)))
+
+                    AppMessage::HandleTablePolicy(TableIntent::SetTablePolicy)
                 })}/>
             </p>
                </div>
@@ -372,11 +377,21 @@ impl Component for RcdAdminApp {
             auth_request_json: "".to_string(),
         };
 
+        let policy = RcdTablePolicy {
+            db_name: "".to_string(),
+            table_name: "".to_string(),
+            policy: 0,
+            policy_text: "".to_string(),
+            policy_node: NodeRef::default(),
+            new_policy: NodeRef::default(),
+        };
+
         let input_output = RcdInputOutputUi {
             execute_sql: NodeRef::default(),
             sql_result: NodeRef::default(),
             db_name: NodeRef::default(),
             selected_db_name: "".to_string(),
+            current_policy: policy,
         };
 
         let conn_ui = RcdConnUi {
@@ -554,7 +569,107 @@ impl Component for RcdAdminApp {
                 console::log_1(&self.state.conn_ui.sql.selected_db_name.clone().into());
             }
             AppMessage::HandleContract(_) => todo!(),
-            AppMessage::HandleTablePolicy(_) => todo!(),
+            AppMessage::HandleTablePolicy(intent) => match intent {
+                TableIntent::Unknown => todo!(),
+                TableIntent::GetTablePolicy(data) => {
+                    self.state.conn_ui.sql.current_policy.db_name = data.0.clone();
+                    self.state.conn_ui.sql.current_policy.table_name = data.1.clone();
+
+                    if data.1 == "SELECT TABLE" {
+                        return true;
+                    }
+
+                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
+                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
+
+                    let request = GetLogicalStoragePolicyRequest {
+                        authentication: Some(auth),
+                        database_name: data.0.clone(),
+                        table_name: data.1.clone(),
+                    };
+
+                    let request_json = serde_json::to_string(&request).unwrap();
+                    let base_address = self.state.conn_ui.conn.url.clone();
+                    let url = format!(
+                        "{}{}",
+                        base_address.clone(),
+                        "/client/databases/table/policy/get"
+                    );
+                    let callback = ctx.link().callback(AppMessage::HandleTablePolicyResponse);
+
+                    get_data(url, request_json, callback);
+                }
+                TableIntent::SetTablePolicy => {
+                    let policy_node = &self.state.conn_ui.sql.current_policy.new_policy;
+                    let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
+                    
+                    let db = self.state.conn_ui.sql.current_policy.db_name.clone();
+                    let table = self.state.conn_ui.sql.current_policy.table_name.clone();
+                    let policy_num: u32 = policy_val.parse().unwrap();
+
+                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
+                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
+
+                    let request = SetLogicalStoragePolicyRequest {
+                        authentication: Some(auth),
+                        database_name: db,
+                        table_name: table,
+                        policy_mode: policy_num,
+                    };
+
+                    let request_json = serde_json::to_string(&request).unwrap();
+                    let base_address = self.state.conn_ui.conn.url.clone();
+                    let url = format!(
+                        "{}{}",
+                        base_address.clone(),
+                        "/client/databases/table/policy/set"
+                    );
+                    let callback = ctx.link().callback(AppMessage::HandleTablePolicyUpdateResponse);
+
+                    get_data(url, request_json, callback);
+
+                },
+            },
+            AppMessage::HandleTablePolicyResponse(json_response) => {
+                console::log_1(&json_response.to_string().clone().into());
+                let reply: GetLogicalStoragePolicyReply =
+                    serde_json::from_str(&&json_response.to_string()).unwrap();
+
+                if reply.authentication_result.unwrap().is_authenticated {
+                    let policy_value = reply.policy_mode;
+                    self.state.conn_ui.sql.current_policy.policy = policy_value;
+
+                    /*
+                      None = 0,
+                      HostOnly = 1,
+                      ParticpantOwned = 2,
+                      Shared = 3,
+                      Mirror = 4,
+                    */
+
+                    let policy_name = match policy_value {
+                        0 => "None",
+                        1 => "Host Only",
+                        2 => "Participant Owned",
+                        3 => "Shared",
+                        4 => "Mirror",
+                        _ => "Unknown",
+                    };
+
+                    self.state.conn_ui.sql.current_policy.policy_text = policy_name.to_string();
+                }
+            }
+            AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
+                console::log_1(&json_response.to_string().clone().into());
+                let reply: SetLogicalStoragePolicyReply =
+                    serde_json::from_str(&&json_response.to_string()).unwrap();
+
+                if reply.authentication_result.unwrap().is_authenticated {
+                    let policy_update_result = reply.is_successful;
+                    console::log_1(&"policy_update_response".to_string().clone().into());
+                    console::log_1(&policy_update_result.to_string().clone().into());
+                }
+            },
         }
         true
     }

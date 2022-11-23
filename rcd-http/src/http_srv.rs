@@ -55,6 +55,8 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::version,
                 shutdown,
                 client::database::post_get_databases,
+                client::database::get_logical_storage_policy,
+                client::database::set_logical_storage_policy,
                 client::sql::post_read_at_host,
             ],
         )

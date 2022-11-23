@@ -52,4 +52,14 @@ pub struct RcdInputOutputUi {
     pub sql_result: NodeRef,
     pub db_name: NodeRef,
     pub selected_db_name: String,
+    pub current_policy: RcdTablePolicy,
+}
+
+pub struct RcdTablePolicy{
+    pub db_name: String,
+    pub table_name: String,
+    pub policy: u32,
+    pub policy_text: String,
+    pub policy_node: NodeRef,
+    pub new_policy: NodeRef,
 }
