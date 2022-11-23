@@ -4,10 +4,13 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 mod rcd_ui;
-use rcd_messages::{client::{
-    AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
-    TestRequest,
-}, formatter};
+use rcd_messages::{
+    client::{
+        AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
+        TestRequest,
+    },
+    formatter,
+};
 use reqwasm::http::{Method, Request};
 
 // for testing, use the databases from the test "host_only"
@@ -20,6 +23,25 @@ pub enum ExecuteSQLIntent {
     WriteAtPart,
 }
 
+pub enum ContractIntent {
+    Unknown,
+    GetPending,
+    GetAccepted,
+    GetRejected,
+    AcceptContract(String),
+    GenerateContract,
+    SendContractToParticipant(String),
+    RejectContract(String)
+}
+
+pub enum TableIntent {
+    Unknown,
+    // Database, Table
+    GetTablePolicy((String, String)),
+    /// Database, Table, Logical Storage Policy
+    SetTablePolicy((String, String, u32)),
+}
+
 pub enum AppMessage {
     Connect(),
     GetDatabases(AttrValue),
@@ -28,6 +50,8 @@ pub enum AppMessage {
     ExecuteSQL(ExecuteSQLIntent),
     SQLResult(AttrValue),
     SetExecuteSQLDatabase(String),
+    HandleContract(ContractIntent),
+    HandleTablePolicy(TableIntent),
 }
 
 struct ApplicationState {
@@ -113,6 +137,8 @@ impl RcdAdminApp {
                 table_names.push(table.table_name.clone());
             }
 
+            let table_names_clone = table_names.clone();
+
             html! {
                <div>
                <h1> {"Tables for database "}{&db_name}</h1>
@@ -125,6 +151,55 @@ impl RcdAdminApp {
                     <li onclick={link.callback(move |_| AppMessage::GetColumnsForTable(d_name.clone(), table_name.clone()))}>{name.clone()}</li></div>}
                 }).collect::<Html>()
             }</ul>
+            <p>
+            <h2>{"Table Policies"}</h2>
+            <label for="table_policy">{ "Table Name" }</label>
+            <select name="select_table_for_policy" id="table_policy"
+
+            onchange={link.batch_callback(move |e: Event| {
+                if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                    // console::log_1(&"some onchange".into());
+                    let table_name = input.value();
+                    let d_name = db_name.clone();
+                    Some(AppMessage::HandleTablePolicy(TableIntent::GetTablePolicy((d_name.clone(), table_name))))
+                } else {
+                    // console::log_1(&"none onchange".into());
+                    None
+                }
+            })}
+            >
+            <option value="SELECT TABLE">{"SELECT TABLE"}</option>
+            {
+                table_names_clone.into_iter().map(|name| {
+                    // console::log_1(&name.clone().into());
+                    html!{
+                    <option value={name.clone()}>{name.clone()}</option>}
+                }).collect::<Html>()
+            }
+            </select>
+            <label for="selected_table_policy">{"Current Policy:"}</label>
+            <input type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&self.state.conn_ui.current_selected_table}/>
+            <label for="table_policy_value">{ "Set Policy" }</label>
+            <select name="set_policy_for_table" id="set_policy_for_table">
+            /*
+                None = 0,
+                HostOnly = 1,
+                ParticpantOwned = 2,
+                Shared = 3,
+                Mirror = 4,
+             */
+            <option value={"0"}>{"None"}</option>
+            <option value={"1"}>{"Host Only"}</option>
+            <option value={"2"}>{"Participant Owned"}</option>
+            <option value={"3"}>{"Shared"}</option>
+            <option value={"4"}>{"Mirror"}</option>
+            </select>
+            <input type="button" id="submit_new_table_policy" value="Update Policy" onclick={link.callback(|_|
+                {
+                    console::log_1(&"submit_new_table_policy".into());
+                    AppMessage::HandleTablePolicy(TableIntent::SetTablePolicy(("".to_string(), "".to_string(), 0)))
+                })}/>
+            </p>
                </div>
             }
         }
@@ -236,8 +311,7 @@ impl RcdAdminApp {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
-    pub fn view_sql_result(&self, link: &Scope<Self>) -> Html {
+    pub fn view_sql_result(&self, _link: &Scope<Self>) -> Html {
         let text = self.state.conn_ui.sql_text_result.clone();
 
         html!(
@@ -247,6 +321,32 @@ impl RcdAdminApp {
               <p>
               <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here"
               ref={&self.state.conn_ui.sql.sql_result} value={text}/>
+              </p>
+              </div>
+        )
+    }
+
+    pub fn view_contracts(&self, link: &Scope<Self>) -> Html {
+        html!(
+          <div>
+              <h1> {"Contracts"} </h1>
+              <p>
+              <input type="button" id="view_pending_contracts" value="View Pending Contracts" onclick={link.callback(|_|
+                  {
+                      AppMessage::HandleContract(ContractIntent::GetPending)
+                  })}/>
+              <input type="button" id="view_accepted_contracts" value="View Accepted Contracts" onclick={link.callback(|_|
+                  {
+                      AppMessage::HandleContract(ContractIntent::GetAccepted)
+                  })}/>
+              <input type="button" id="accepted_contracts" value="Accept Contract" onclick={link.callback(|_|
+                  {
+                      AppMessage::HandleContract(ContractIntent::AcceptContract("".to_string()))
+                  })}/>
+                  <input type="button" id="reject_contracts" value="Reject Contract" onclick={link.callback(|_|
+                    {
+                        AppMessage::HandleContract(ContractIntent::RejectContract("".to_string()))
+                    })}/>
               </p>
               </div>
         )
@@ -287,7 +387,8 @@ impl Component for RcdAdminApp {
             port: NodeRef::default(),
             databases: NodeRef::default(),
             sql: input_output,
-            sql_text_result: "".to_string()
+            sql_text_result: "".to_string(),
+            current_selected_table: NodeRef::default(),
         };
 
         let app_state = ApplicationState { conn_ui };
@@ -319,6 +420,9 @@ impl Component for RcdAdminApp {
               <section class ="sql_result">
                {self.view_sql_result(ctx.link())}
               </section>
+              <section class ="contracts">
+              {self.view_contracts(ctx.link())}
+             </section>
             </div>
         }
     }
@@ -449,6 +553,8 @@ impl Component for RcdAdminApp {
                 self.state.conn_ui.sql.selected_db_name = db_name.clone();
                 console::log_1(&self.state.conn_ui.sql.selected_db_name.clone().into());
             }
+            AppMessage::HandleContract(_) => todo!(),
+            AppMessage::HandleTablePolicy(_) => todo!(),
         }
         true
     }
