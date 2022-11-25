@@ -356,6 +356,26 @@ impl RcdAdminApp {
               </div>
         )
     }
+
+    pub fn view_host_info(&self, link: &Scope<Self>) -> Html { 
+        html!(
+            <div>
+                <h1> {"Host Info"} </h1>
+                <p>
+                </p>
+                </div>
+          )
+    }
+
+    pub fn view_participants(&self, link: &Scope<Self>) -> Html { 
+        html!(
+            <div>
+                <h1> {"Participants"} </h1>
+                <p>
+                </p>
+                </div>
+          )
+    }
 }
 
 impl Component for RcdAdminApp {
@@ -438,6 +458,12 @@ impl Component for RcdAdminApp {
               <section class ="contracts">
               {self.view_contracts(ctx.link())}
              </section>
+             <section class ="host_info">
+             {self.view_host_info(ctx.link())}
+            </section>
+            <section class ="participants">
+            {self.view_participants(ctx.link())}
+           </section>
             </div>
         }
     }
@@ -676,7 +702,7 @@ impl Component for RcdAdminApp {
 }
 
 fn main() {
-    yew::start_app::<RcdAdminApp>();
+    yew::Renderer::<RcdAdminApp>::new().render();
 }
 
 pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
