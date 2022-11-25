@@ -376,6 +376,26 @@ impl RcdAdminApp {
                 </div>
           )
     }
+
+    pub fn view_write_behaviors(&self, link: &Scope<Self>) -> Html { 
+        html!(
+            <div>
+                <h1> {"Configure Incoming Behaviors (Update, Delete)"} </h1>
+                <p>
+                </p>
+                </div>
+          )
+    }
+
+    pub fn view_coop_hosts(&self, link: &Scope<Self>) -> Html { 
+        html!(
+            <div>
+                <h1> {"Cooperating Hosts"} </h1>
+                <p>
+                </p>
+                </div>
+          )
+    }
 }
 
 impl Component for RcdAdminApp {
@@ -464,6 +484,12 @@ impl Component for RcdAdminApp {
             <section class ="participants">
             {self.view_participants(ctx.link())}
            </section>
+           <section class ="behaviors">
+           {self.view_write_behaviors(ctx.link())}
+          </section>
+          <section class ="coop_hosts">
+          {self.view_coop_hosts(ctx.link())}
+         </section>
             </div>
         }
     }
