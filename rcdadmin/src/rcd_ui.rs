@@ -28,7 +28,7 @@ pub struct RcdConnUi {
     pub databases: NodeRef,
     pub sql: RcdInputOutputUi,
     pub sql_text_result: String,
-    pub current_selected_table: NodeRef
+    pub current_selected_table: NodeRef,
 }
 
 impl RcdConnUi {}
@@ -55,7 +55,7 @@ pub struct RcdInputOutputUi {
     pub current_policy: RcdTablePolicy,
 }
 
-pub struct RcdTablePolicy{
+pub struct RcdTablePolicy {
     pub db_name: String,
     pub table_name: String,
     pub policy: u32,

@@ -13,11 +13,10 @@ mod generate_contract;
 mod get_set_logical_storage_policy;
 #[path = "client_service_tests/has_table.rs"]
 mod has_table;
-#[path = "client_service_tests/is_online.rs"]
-mod is_online;
 #[path = "client_service_tests/host_only.rs"]
 mod host_only;
-
+#[path = "client_service_tests/is_online.rs"]
+mod is_online;
 
 #[test]
 fn get_harness_value() {

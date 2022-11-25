@@ -7,7 +7,8 @@ mod rcd_ui;
 use rcd_messages::{
     client::{
         AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
-        GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, TestRequest, SetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
+        GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
+        SetLogicalStoragePolicyRequest, TestRequest,
     },
     formatter,
 };
@@ -357,44 +358,44 @@ impl RcdAdminApp {
         )
     }
 
-    pub fn view_host_info(&self, link: &Scope<Self>) -> Html { 
+    pub fn view_host_info(&self, link: &Scope<Self>) -> Html {
         html!(
-            <div>
-                <h1> {"Host Info"} </h1>
-                <p>
-                </p>
-                </div>
-          )
+          <div>
+              <h1> {"Host Info"} </h1>
+              <p>
+              </p>
+              </div>
+        )
     }
 
-    pub fn view_participants(&self, link: &Scope<Self>) -> Html { 
+    pub fn view_participants(&self, link: &Scope<Self>) -> Html {
         html!(
-            <div>
-                <h1> {"Participants"} </h1>
-                <p>
-                </p>
-                </div>
-          )
+          <div>
+              <h1> {"Participants"} </h1>
+              <p>
+              </p>
+              </div>
+        )
     }
 
-    pub fn view_write_behaviors(&self, link: &Scope<Self>) -> Html { 
+    pub fn view_write_behaviors(&self, link: &Scope<Self>) -> Html {
         html!(
-            <div>
-                <h1> {"Configure Incoming Behaviors (Update, Delete)"} </h1>
-                <p>
-                </p>
-                </div>
-          )
+          <div>
+              <h1> {"Configure Incoming Behaviors (Update, Delete)"} </h1>
+              <p>
+              </p>
+              </div>
+        )
     }
 
-    pub fn view_coop_hosts(&self, link: &Scope<Self>) -> Html { 
+    pub fn view_coop_hosts(&self, link: &Scope<Self>) -> Html {
         html!(
-            <div>
-                <h1> {"Cooperating Hosts"} </h1>
-                <p>
-                </p>
-                </div>
-          )
+          <div>
+              <h1> {"Cooperating Hosts"} </h1>
+              <p>
+              </p>
+              </div>
+        )
     }
 }
 
@@ -452,46 +453,44 @@ impl Component for RcdAdminApp {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-            <div>
+        html! {<div>
             <h1>{ "Rcd Admin" }</h1>
-               <section class ="rcdadmin">
+            <section class="rcdadmin">
                 <header class="header">
                     { self.view_input_for_connection(ctx.link()) }
                 </header>
-               </section>
-               <section class ="databases">
-                {self.view_databases(ctx.link())}
-               </section>
-               <section class ="tables">
-               {self.view_tables_for_database(ctx.link())}
-              </section>
-              <section class ="columns">
-               {self.view_columns_for_table(ctx.link())}
-              </section>
-              <section class ="input_sql">
-               {self.view_input_for_sql(ctx.link())}
-              </section>
-              <section class ="sql_result">
-               {self.view_sql_result(ctx.link())}
-              </section>
-              <section class ="contracts">
-              {self.view_contracts(ctx.link())}
-             </section>
-             <section class ="host_info">
-             {self.view_host_info(ctx.link())}
             </section>
-            <section class ="participants">
-            {self.view_participants(ctx.link())}
-           </section>
-           <section class ="behaviors">
-           {self.view_write_behaviors(ctx.link())}
-          </section>
-          <section class ="coop_hosts">
-          {self.view_coop_hosts(ctx.link())}
-         </section>
-            </div>
-        }
+            <section class="databases">
+                {self.view_databases(ctx.link())}
+            </section>
+            <section class="tables">
+                {self.view_tables_for_database(ctx.link())}
+            </section>
+            <section class="columns">
+                {self.view_columns_for_table(ctx.link())}
+            </section>
+            <section class="input_sql">
+                {self.view_input_for_sql(ctx.link())}
+            </section>
+            <section class="sql_result">
+                {self.view_sql_result(ctx.link())}
+            </section>
+            <section class="contracts">
+                {self.view_contracts(ctx.link())}
+            </section>
+            <section class="host_info">
+                {self.view_host_info(ctx.link())}
+            </section>
+            <section class="participants">
+                {self.view_participants(ctx.link())}
+            </section>
+            <section class="behaviors">
+                {self.view_write_behaviors(ctx.link())}
+            </section>
+            <section class="coop_hosts">
+                {self.view_coop_hosts(ctx.link())}
+            </section>
+        </div>}
     }
 
     #[allow(unused_variables)]
@@ -654,7 +653,7 @@ impl Component for RcdAdminApp {
                 TableIntent::SetTablePolicy => {
                     let policy_node = &self.state.conn_ui.sql.current_policy.new_policy;
                     let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
-                    
+
                     let db = self.state.conn_ui.sql.current_policy.db_name.clone();
                     let table = self.state.conn_ui.sql.current_policy.table_name.clone();
                     let policy_num: u32 = policy_val.parse().unwrap();
@@ -676,11 +675,12 @@ impl Component for RcdAdminApp {
                         base_address.clone(),
                         "/client/databases/table/policy/set"
                     );
-                    let callback = ctx.link().callback(AppMessage::HandleTablePolicyUpdateResponse);
+                    let callback = ctx
+                        .link()
+                        .callback(AppMessage::HandleTablePolicyUpdateResponse);
 
                     get_data(url, request_json, callback);
-
-                },
+                }
             },
             AppMessage::HandleTablePolicyResponse(json_response) => {
                 console::log_1(&json_response.to_string().clone().into());
@@ -721,7 +721,7 @@ impl Component for RcdAdminApp {
                     console::log_1(&"policy_update_response".to_string().clone().into());
                     console::log_1(&policy_update_result.to_string().clone().into());
                 }
-            },
+            }
         }
         true
     }
