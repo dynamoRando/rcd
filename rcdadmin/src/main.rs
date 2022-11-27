@@ -3,7 +3,6 @@ use serde::Deserialize;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
-mod rcd_ui;
 use rcd_messages::{
     client::{
         AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
@@ -13,6 +12,14 @@ use rcd_messages::{
     formatter,
 };
 use reqwasm::http::{Method, Request};
+
+mod rcd_ui;
+mod sql;
+mod contract;
+mod conn;
+mod participant;
+mod host;
+mod request;
 
 // for testing, use the databases from the test "host_only"
 
@@ -543,7 +550,7 @@ impl Component for RcdAdminApp {
                 let db_request_json = serde_json::to_string(&db_request).unwrap();
                 let db_callback = ctx.link().callback(AppMessage::GetDatabases);
                 let url = format!("{}{}", base_address.clone(), "/client/databases");
-                get_data(url, db_request_json, db_callback);
+                request::get_data(url, db_request_json, db_callback);
 
                 let auth_request_json = serde_json::to_string(&auth_request).unwrap();
 
@@ -596,7 +603,7 @@ impl Component for RcdAdminApp {
 
                     let sql_callback = ctx.link().callback(AppMessage::SQLResult);
 
-                    get_data(url, read_request_json, sql_callback);
+                    request::get_data(url, read_request_json, sql_callback);
                 }
                 ExecuteSQLIntent::ReadAtPart => todo!(),
                 ExecuteSQLIntent::WriteAtHost => todo!(),
@@ -648,7 +655,7 @@ impl Component for RcdAdminApp {
                     );
                     let callback = ctx.link().callback(AppMessage::HandleTablePolicyResponse);
 
-                    get_data(url, request_json, callback);
+                    request::get_data(url, request_json, callback);
                 }
                 TableIntent::SetTablePolicy => {
                     let policy_node = &self.state.conn_ui.sql.current_policy.new_policy;
@@ -679,7 +686,7 @@ impl Component for RcdAdminApp {
                         .link()
                         .callback(AppMessage::HandleTablePolicyUpdateResponse);
 
-                    get_data(url, request_json, callback);
+                    request::get_data(url, request_json, callback);
                 }
             },
             AppMessage::HandleTablePolicyResponse(json_response) => {
@@ -731,18 +738,3 @@ fn main() {
     yew::Renderer::<RcdAdminApp>::new().render();
 }
 
-pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
-    spawn_local(async move {
-        let http_response = Request::new(&url)
-            .method(Method::POST)
-            .header("Content-Type", "application/json")
-            .body(body)
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap();
-        callback.emit(AttrValue::from(http_response));
-    });
-}
