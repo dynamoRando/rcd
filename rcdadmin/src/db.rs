@@ -3,6 +3,9 @@ use rcd_messages::client::GetDatabasesReply;
 use web_sys::console;
 use yew::{AttrValue, Context};
 
+pub mod view_tables;
+pub mod view_columns;
+
 pub fn handle_get_databases(app: &mut RcdAdminApp, db_response: AttrValue) {
     console::log_1(&db_response.to_string().clone().into());
     let db_response: GetDatabasesReply = serde_json::from_str(&db_response.to_string()).unwrap();

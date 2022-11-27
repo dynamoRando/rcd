@@ -1,7 +1,10 @@
-use crate::{ExecuteSQLIntent, RcdAdminApp, request, AppMessage};
-use rcd_messages::client::{AuthRequest, ExecuteReadRequest};
+use crate::{request, AppMessage, ExecuteSQLIntent, RcdAdminApp};
+use rcd_messages::{
+    client::{AuthRequest, ExecuteReadReply, ExecuteReadRequest},
+    formatter,
+};
 use web_sys::{console, HtmlInputElement};
-use yew::Context;
+use yew::{AttrValue, Context};
 
 pub fn handle_execute_sql(
     app: &mut RcdAdminApp,
@@ -42,5 +45,21 @@ pub fn handle_execute_sql(
         ExecuteSQLIntent::ReadAtPart => todo!(),
         ExecuteSQLIntent::WriteAtHost => todo!(),
         ExecuteSQLIntent::WriteAtPart => todo!(),
+    }
+}
+
+pub fn handle_sql_result(
+    app: &mut RcdAdminApp,
+    _ctx: &Context<RcdAdminApp>,
+    json_response: AttrValue,
+) {
+    console::log_1(&json_response.to_string().clone().into());
+    let read_reply: ExecuteReadReply = serde_json::from_str(&&json_response.to_string()).unwrap();
+
+    if read_reply.authentication_result.unwrap().is_authenticated {
+        let rows = read_reply.results.first().unwrap().rows.clone();
+
+        let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
+        app.state.conn_ui.sql_text_result = sql_table_text;
     }
 }
