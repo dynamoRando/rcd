@@ -1,25 +1,24 @@
-use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy};
-use serde::Deserialize;
-use wasm_bindgen_futures::spawn_local;
-use web_sys::{console, HtmlInputElement, HtmlSelectElement};
-use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 use rcd_messages::{
     client::{
-        AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetDatabasesReply, GetDatabasesRequest,
-        GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
-        SetLogicalStoragePolicyRequest, TestRequest,
+        AuthRequest, ExecuteReadReply, GetLogicalStoragePolicyReply,
+        GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
+        SetLogicalStoragePolicyRequest,
     },
     formatter,
 };
-use reqwasm::http::{Method, Request};
+use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy};
+use serde::Deserialize;
+use web_sys::{console, HtmlInputElement, HtmlSelectElement};
+use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
-mod rcd_ui;
-mod sql;
-mod contract;
 mod conn;
-mod participant;
+mod contract;
+mod db;
 mod host;
+mod participant;
+mod rcd_ui;
 mod request;
+mod sql;
 
 // for testing, use the databases from the test "host_only"
 
@@ -70,7 +69,7 @@ struct ApplicationState {
 
 impl ApplicationState {}
 
-struct RcdAdminApp {
+pub struct RcdAdminApp {
     state: ApplicationState,
 }
 
@@ -81,24 +80,7 @@ struct AdminMsg {
 
 impl RcdAdminApp {
     pub fn view_input_for_connection(&self, link: &Scope<Self>) -> Html {
-        html! {
-           <div>
-           <h1> {"Connect to rcd"} </h1>
-           <label for="ip_address">{ "IP Address" }</label>
-            <input type="text" id ="ip_address" placeholder="localhost" ref={&self.state.conn_ui.ip}/>
-            <label for="port">{ "Port Number" }</label>
-            <input type="text" id="port" placeholder="8000" ref={&self.state.conn_ui.port} />
-            <label for="un">{ "User Name" }</label>
-            <input type="text" id="un" placeholder="tester" ref={&self.state.conn_ui.un} />
-            <label for="pw">{ "Pw" }</label>
-            <input type="text" id="pw" placeholder="123456" ref={&self.state.conn_ui.pw} />
-            <input type="button" id="submit" value="Connect" onclick={link.callback(|_|
-                {
-                    console::log_1(&"clicked".into());
-                    AppMessage::Connect()
-                })}/>
-           </div>
-        }
+        conn::view_input_for_connection(self, link)
     }
 
     pub fn view_databases(&self, link: &Scope<Self>) -> Html {
@@ -365,7 +347,7 @@ impl RcdAdminApp {
         )
     }
 
-    pub fn view_host_info(&self, link: &Scope<Self>) -> Html {
+    pub fn view_host_info(&self, _link: &Scope<Self>) -> Html {
         html!(
           <div>
               <h1> {"Host Info"} </h1>
@@ -375,7 +357,7 @@ impl RcdAdminApp {
         )
     }
 
-    pub fn view_participants(&self, link: &Scope<Self>) -> Html {
+    pub fn view_participants(&self, _link: &Scope<Self>) -> Html {
         html!(
           <div>
               <h1> {"Participants"} </h1>
@@ -385,7 +367,7 @@ impl RcdAdminApp {
         )
     }
 
-    pub fn view_write_behaviors(&self, link: &Scope<Self>) -> Html {
+    pub fn view_write_behaviors(&self, _link: &Scope<Self>) -> Html {
         html!(
           <div>
               <h1> {"Configure Incoming Behaviors (Update, Delete)"} </h1>
@@ -395,7 +377,7 @@ impl RcdAdminApp {
         )
     }
 
-    pub fn view_coop_hosts(&self, link: &Scope<Self>) -> Html {
+    pub fn view_coop_hosts(&self, _link: &Scope<Self>) -> Html {
         html!(
           <div>
               <h1> {"Cooperating Hosts"} </h1>
@@ -500,115 +482,18 @@ impl Component for RcdAdminApp {
         </div>}
     }
 
-    #[allow(unused_variables)]
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         // console::log_1(&"update".into());
         match msg {
-            AppMessage::Connect() => {
-                let un = &self.state.conn_ui.un;
-                let pw = &self.state.conn_ui.pw;
-                let ip = &self.state.conn_ui.ip;
-                let port = &self.state.conn_ui.port;
-
-                let un_val = un.cast::<HtmlInputElement>().unwrap().value();
-                let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
-                let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
-                let port_val = port.cast::<HtmlInputElement>().unwrap().value();
-
-                /*
-                   console::log_1(&un_val.clone().into());
-                   console::log_1(&pw_val.clone().into());
-                   console::log_1(&ip_val.clone().into());
-                   console::log_1(&port_val.clone().into());
-                */
-
-                let request = TestRequest {
-                    request_time_utc: "".to_string(),
-                    request_origin_url: "".to_string(),
-                    request_origin_ip4: "".to_string(),
-                    request_origin_ip6: "".to_string(),
-                    request_port_number: 0,
-                    request_echo_message: "rcdadmin-test".to_string(),
-                };
-
-                let base_address =
-                    format!("{}{}{}{}", "http://", ip_val.to_string(), ":", port_val);
-
-                let request_json = serde_json::to_string(&request).unwrap();
-
-                let auth_request = AuthRequest {
-                    user_name: "tester".to_string(),
-                    pw: "123456".to_string(),
-                    pw_hash: Vec::new(),
-                    token: Vec::new(),
-                };
-
-                let db_request = GetDatabasesRequest {
-                    authentication: Some(auth_request.clone()),
-                };
-
-                let db_request_json = serde_json::to_string(&db_request).unwrap();
-                let db_callback = ctx.link().callback(AppMessage::GetDatabases);
-                let url = format!("{}{}", base_address.clone(), "/client/databases");
-                request::get_data(url, db_request_json, db_callback);
-
-                let auth_request_json = serde_json::to_string(&auth_request).unwrap();
-
-                self.state.conn_ui.conn.auth_request_json = auth_request_json.clone();
-                self.state.conn_ui.conn.url = base_address.clone();
-            }
-            AppMessage::GetDatabases(db_response) => {
-                console::log_1(&db_response.to_string().clone().into());
-                let db_response: GetDatabasesReply =
-                    serde_json::from_str(&db_response.to_string()).unwrap();
-                if db_response.authentication_result.unwrap().is_authenticated {
-                    self.state.conn_ui.conn.databases = db_response.databases.clone();
-                }
-            }
+            AppMessage::Connect() => conn::handle_connect(self, ctx),
+            AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
             AppMessage::GetTablesForDatabase(db_name) => {
-                self.state.conn_ui.conn.current_db_name = db_name;
-                self.view_tables_for_database(ctx.link());
+                db::handle_get_tables_for_database(self, db_name, ctx)
             }
             AppMessage::GetColumnsForTable(db_name, table_name) => {
-                self.state.conn_ui.conn.current_db_name = db_name;
-                self.state.conn_ui.conn.current_table_name = table_name;
-                self.view_columns_for_table(ctx.link());
+                db::handle_get_columns_for_table(self, db_name, table_name, ctx)
             }
-            AppMessage::ExecuteSQL(intent) => match intent {
-                ExecuteSQLIntent::Unknown => todo!(),
-                ExecuteSQLIntent::ReadAtHost => {
-                    let base_address = self.state.conn_ui.conn.url.clone();
-                    let url = format!("{}{}", base_address.clone(), "/client/sql/host/read/");
-                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
-                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
-                    let db_name = &self.state.conn_ui.sql.selected_db_name;
-
-                    console::log_1(&"selected db".into());
-                    console::log_1(&db_name.into());
-
-                    let sql_text_node = &self.state.conn_ui.sql.execute_sql;
-                    let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
-
-                    console::log_1(&"sql_text".into());
-                    console::log_1(&sql_text.clone().into());
-
-                    let read_request = ExecuteReadRequest {
-                        authentication: Some(auth),
-                        database_name: db_name.clone(),
-                        sql_statement: sql_text,
-                        database_type: 1,
-                    };
-
-                    let read_request_json = serde_json::to_string(&read_request).unwrap();
-
-                    let sql_callback = ctx.link().callback(AppMessage::SQLResult);
-
-                    request::get_data(url, read_request_json, sql_callback);
-                }
-                ExecuteSQLIntent::ReadAtPart => todo!(),
-                ExecuteSQLIntent::WriteAtHost => todo!(),
-                ExecuteSQLIntent::WriteAtPart => todo!(),
-            },
+            AppMessage::ExecuteSQL(intent) => sql::handle_execute_sql(self, ctx, intent),
             AppMessage::SQLResult(json_response) => {
                 console::log_1(&json_response.to_string().clone().into());
                 let read_reply: ExecuteReadReply =
@@ -737,4 +622,3 @@ impl Component for RcdAdminApp {
 fn main() {
     yew::Renderer::<RcdAdminApp>::new().render();
 }
-
