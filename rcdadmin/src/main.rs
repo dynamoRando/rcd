@@ -78,25 +78,7 @@ impl RcdAdminApp {
     }
 
     pub fn view_databases(&self, link: &Scope<Self>) -> Html {
-        let mut db_names: Vec<String> = Vec::new();
-
-        for db in &self.state.conn_ui.conn.databases {
-            db_names.push(db.database_name.clone());
-        }
-
-        html! {
-           <div>
-           <h1> {"Databases"} </h1>
-           <ul>
-           {
-            db_names.into_iter().map(|name| {
-                let db_name = name.clone();
-                html!{<div key={db_name.clone()}>
-                <li onclick={link.callback(move |_| AppMessage::GetTablesForDatabase(name.clone()))}>{db_name.clone()}</li></div>}
-            }).collect::<Html>()
-        }</ul>
-           </div>
-        }
+        db::view_databases(self, link)
     }
 
     pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
