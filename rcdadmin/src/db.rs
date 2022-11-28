@@ -1,14 +1,19 @@
+use crate::AppMessage;
 use crate::RcdAdminApp;
 use rcd_messages::client::GetDatabasesReply;
 use web_sys::console;
-use yew::{AttrValue, Context};
-use crate::{ AppMessage};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
+use yew::{AttrValue, Context};
 
-
-pub mod view_tables;
 pub mod view_columns;
+pub mod view_tables;
+
+pub fn handle_execute_sql_db(app: &mut RcdAdminApp, db_name: String) {
+    // console::log_1(&db_name.into());
+    app.state.conn_ui.sql.selected_db_name = db_name.clone();
+    console::log_1(&app.state.conn_ui.sql.selected_db_name.clone().into());
+}
 
 pub fn handle_get_databases(app: &mut RcdAdminApp, db_response: AttrValue) {
     console::log_1(&db_response.to_string().clone().into());
@@ -26,7 +31,6 @@ pub fn handle_get_tables_for_database(
     app.state.conn_ui.conn.current_db_name = db_name;
     app.view_tables_for_database(ctx.link());
 }
-
 
 pub fn handle_get_columns_for_table(
     app: &mut RcdAdminApp,

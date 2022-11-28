@@ -227,11 +227,7 @@ impl Component for RcdAdminApp {
             AppMessage::SQLResult(json_response) => {
                 sql::handle_sql_result(self, ctx, json_response)
             }
-            AppMessage::SetExecuteSQLDatabase(db_name) => {
-                // console::log_1(&db_name.into());
-                self.state.conn_ui.sql.selected_db_name = db_name.clone();
-                console::log_1(&self.state.conn_ui.sql.selected_db_name.clone().into());
-            }
+            AppMessage::SetExecuteSQLDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
             AppMessage::HandleContract(_) => todo!(),
             AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
