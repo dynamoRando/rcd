@@ -1,6 +1,5 @@
 use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy};
 use serde::Deserialize;
-use web_sys::console;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
 mod behaviors;
