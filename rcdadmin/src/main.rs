@@ -1,17 +1,15 @@
-use rcd_messages::client::{
-    AuthRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
-};
 use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy};
 use serde::Deserialize;
-use web_sys::{console, HtmlInputElement, HtmlSelectElement};
+use web_sys::console;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
+mod behaviors;
 mod conn;
 mod contract;
 mod db;
 mod host;
 mod participant;
+mod policy;
 mod rcd_ui;
 mod request;
 mod sql;
@@ -110,145 +108,31 @@ impl RcdAdminApp {
     }
 
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
-        let mut db_names: Vec<String> = Vec::new();
-
-        for db in &self.state.conn_ui.conn.databases {
-            db_names.push(db.database_name.clone());
-        }
-
-        // console::log_1(&"view_input_for_sql".into());
-        // console::log_1(&db_names.len().to_string().into());
-
-        html! {
-            <div>
-            <h1> {"Execute SQL"} </h1>
-            <label for="execute_sql">{ "Enter SQL" }</label>
-            <p>
-            <label for="execute_sql_dbs">{ "Select Database " }</label>
-            <select name="execute_sql_dbs" id="execute_sql_dbs"
-
-            onchange={link.batch_callback(|e: Event| {
-                if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
-                    // console::log_1(&"some onchange".into());
-                    Some(AppMessage::SetExecuteSQLDatabase(input.value()))
-                } else {
-                    // console::log_1(&"none onchange".into());
-                    None
-                }
-            })}
-            >
-            <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
-            {
-                db_names.into_iter().map(|name| {
-                    // console::log_1(&name.clone().into());
-                    html!{
-                    <option value={name.clone()}>{name.clone()}</option>}
-                }).collect::<Html>()
-            }
-            </select>
-            </p>
-            <p>
-            <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&self.state.conn_ui.sql.execute_sql}/>
-            </p>
-            <input type="button" id="read_at_host" value="Execute Read At Host" onclick={link.callback(|_|
-                {
-                    AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtHost)
-                })}/>
-                <input type="button" id="read_at_part" value="Execute Read At Part" onclick={link.callback(|_|
-                {
-                    AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtPart)
-                })}/>
-                <input type="button" id="write_at_host" value="Execute Write At Host" onclick={link.callback(|_|
-                {
-                    AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtHost)
-                })}/>
-                <input type="button" id="write_at_part" value="Execute Write At Part" onclick={link.callback(|_|
-                {
-                    AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtPart)
-                })}/>
-            </div>
-        }
+        sql::view_input_for_sql(self, link)
     }
 
     pub fn view_sql_result(&self, _link: &Scope<Self>) -> Html {
-        let text = self.state.conn_ui.sql_text_result.clone();
-
-        html!(
-          <div>
-              <h1> {"SQL Results"} </h1>
-              <label for="sql_result">{ "Results" }</label>
-              <p>
-              <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here"
-              ref={&self.state.conn_ui.sql.sql_result} value={text}/>
-              </p>
-              </div>
-        )
+        sql::view_sql_result(self, _link)
     }
 
     pub fn view_contracts(&self, link: &Scope<Self>) -> Html {
-        html!(
-          <div>
-              <h1> {"Contracts"} </h1>
-              <p>
-              <input type="button" id="view_pending_contracts" value="View Pending Contracts" onclick={link.callback(|_|
-                  {
-                      AppMessage::HandleContract(ContractIntent::GetPending)
-                  })}/>
-              <input type="button" id="view_accepted_contracts" value="View Accepted Contracts" onclick={link.callback(|_|
-                  {
-                      AppMessage::HandleContract(ContractIntent::GetAccepted)
-                  })}/>
-              <input type="button" id="accepted_contracts" value="Accept Contract" onclick={link.callback(|_|
-                  {
-                      AppMessage::HandleContract(ContractIntent::AcceptContract("".to_string()))
-                  })}/>
-                  <input type="button" id="reject_contracts" value="Reject Contract" onclick={link.callback(|_|
-                    {
-                        AppMessage::HandleContract(ContractIntent::RejectContract("".to_string()))
-                    })}/>
-              </p>
-              </div>
-        )
+        contract::view_contracts(self, link)
     }
 
     pub fn view_host_info(&self, _link: &Scope<Self>) -> Html {
-        html!(
-          <div>
-              <h1> {"Host Info"} </h1>
-              <p>
-              </p>
-              </div>
-        )
+        host::view_host_info(self, _link)
     }
 
     pub fn view_participants(&self, _link: &Scope<Self>) -> Html {
-        html!(
-          <div>
-              <h1> {"Participants"} </h1>
-              <p>
-              </p>
-              </div>
-        )
+        participant::view_participants(self, _link)
     }
 
     pub fn view_write_behaviors(&self, _link: &Scope<Self>) -> Html {
-        html!(
-          <div>
-              <h1> {"Configure Incoming Behaviors (Update, Delete)"} </h1>
-              <p>
-              </p>
-              </div>
-        )
+        behaviors::view_write_behaviors(self, _link)
     }
 
     pub fn view_coop_hosts(&self, _link: &Scope<Self>) -> Html {
-        html!(
-          <div>
-              <h1> {"Cooperating Hosts"} </h1>
-              <p>
-              </p>
-              </div>
-        )
+        host::view_coop_hosts(self, _link)
     }
 }
 
@@ -367,107 +251,12 @@ impl Component for RcdAdminApp {
                 console::log_1(&self.state.conn_ui.sql.selected_db_name.clone().into());
             }
             AppMessage::HandleContract(_) => todo!(),
-            AppMessage::HandleTablePolicy(intent) => match intent {
-                TableIntent::Unknown => todo!(),
-                TableIntent::GetTablePolicy(data) => {
-                    self.state.conn_ui.sql.current_policy.db_name = data.0.clone();
-                    self.state.conn_ui.sql.current_policy.table_name = data.1.clone();
-
-                    if data.1 == "SELECT TABLE" {
-                        return true;
-                    }
-
-                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
-                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
-
-                    let request = GetLogicalStoragePolicyRequest {
-                        authentication: Some(auth),
-                        database_name: data.0.clone(),
-                        table_name: data.1.clone(),
-                    };
-
-                    let request_json = serde_json::to_string(&request).unwrap();
-                    let base_address = self.state.conn_ui.conn.url.clone();
-                    let url = format!(
-                        "{}{}",
-                        base_address.clone(),
-                        "/client/databases/table/policy/get"
-                    );
-                    let callback = ctx.link().callback(AppMessage::HandleTablePolicyResponse);
-
-                    request::get_data(url, request_json, callback);
-                }
-                TableIntent::SetTablePolicy => {
-                    let policy_node = &self.state.conn_ui.sql.current_policy.new_policy;
-                    let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
-
-                    let db = self.state.conn_ui.sql.current_policy.db_name.clone();
-                    let table = self.state.conn_ui.sql.current_policy.table_name.clone();
-                    let policy_num: u32 = policy_val.parse().unwrap();
-
-                    let auth_json = &self.state.conn_ui.conn.auth_request_json;
-                    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
-
-                    let request = SetLogicalStoragePolicyRequest {
-                        authentication: Some(auth),
-                        database_name: db,
-                        table_name: table,
-                        policy_mode: policy_num,
-                    };
-
-                    let request_json = serde_json::to_string(&request).unwrap();
-                    let base_address = self.state.conn_ui.conn.url.clone();
-                    let url = format!(
-                        "{}{}",
-                        base_address.clone(),
-                        "/client/databases/table/policy/set"
-                    );
-                    let callback = ctx
-                        .link()
-                        .callback(AppMessage::HandleTablePolicyUpdateResponse);
-
-                    request::get_data(url, request_json, callback);
-                }
-            },
+            AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
-                console::log_1(&json_response.to_string().clone().into());
-                let reply: GetLogicalStoragePolicyReply =
-                    serde_json::from_str(&&json_response.to_string()).unwrap();
-
-                if reply.authentication_result.unwrap().is_authenticated {
-                    let policy_value = reply.policy_mode;
-                    self.state.conn_ui.sql.current_policy.policy = policy_value;
-
-                    /*
-                      None = 0,
-                      HostOnly = 1,
-                      ParticpantOwned = 2,
-                      Shared = 3,
-                      Mirror = 4,
-                    */
-
-                    let policy_name = match policy_value {
-                        0 => "None",
-                        1 => "Host Only",
-                        2 => "Participant Owned",
-                        3 => "Shared",
-                        4 => "Mirror",
-                        _ => "Unknown",
-                    };
-
-                    self.state.conn_ui.sql.current_policy.policy_text = policy_name.to_string();
-                }
+                policy::handle_table_response(json_response, self)
             }
             AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
-                console::log_1(&json_response.to_string().clone().into());
-                let reply: SetLogicalStoragePolicyReply =
-                    serde_json::from_str(&&json_response.to_string()).unwrap();
-
-                if reply.authentication_result.unwrap().is_authenticated {
-                    let policy_update_result = reply.is_successful;
-                    console::log_1(&"policy_update_response".to_string().clone().into());
-                    console::log_1(&policy_update_result.to_string().clone().into());
-                }
+                policy::handle_table_update_response(json_response, self)
             }
         }
         true
