@@ -2,7 +2,10 @@ use crate::{AppMessage, ContractIntent, RcdAdminApp};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
 
-pub fn view_contracts(_app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+
+    let text = app.state.conn_ui.sql.current_contract.contract_markdown.clone();
+
     html!(
       <div>
           <h1> {"Contracts"} </h1>
@@ -23,6 +26,10 @@ pub fn view_contracts(_app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                 {
                     AppMessage::HandleContract(ContractIntent::RejectContract("".to_string()))
                 })}/>
+          </p>
+          <p>
+          <textarea rows="5" cols="60"  id ="contract_details" placeholder="Contract Details Will Be Here"
+          ref={&app.state.conn_ui.sql.current_contract.contract_detail_ui} value={text}/>
           </p>
           </div>
     )

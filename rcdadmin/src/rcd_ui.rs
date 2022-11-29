@@ -1,4 +1,4 @@
-use rcd_messages::client::DatabaseSchema;
+use rcd_messages::client::{DatabaseSchema, Contract};
 use serde::{Deserialize, Serialize};
 use yew::{Component, Html, NodeRef};
 
@@ -53,6 +53,7 @@ pub struct RcdInputOutputUi {
     pub db_name: NodeRef,
     pub selected_db_name: String,
     pub current_policy: RcdTablePolicy,
+    pub current_contract: RcdContractInfo,
 }
 
 pub struct RcdTablePolicy {
@@ -62,4 +63,11 @@ pub struct RcdTablePolicy {
     pub policy_text: String,
     pub policy_node: NodeRef,
     pub new_policy: NodeRef,
+}
+
+pub struct RcdContractInfo {
+    pub contract_detail_ui: NodeRef,
+    pub contract_markdown: String,
+    pub pending_contracts: Vec<Contract>,
+    pub accepted_contracts: Vec<Contract>,
 }
