@@ -1,11 +1,11 @@
 use indexmap::IndexMap;
-
 use super::get_max_length_for_vec_strings;
 
 pub mod db;
 pub mod host;
 pub mod rows;
 pub mod table;
+pub mod contract;
 
 pub fn build_markdown_row(
     key_string: &String,

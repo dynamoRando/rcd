@@ -1,0 +1,47 @@
+use super::{
+    build_markdown_key_value_table, db::{database_schema_to_markdown_table, full_database_schema_to_tables},
+    host::host_to_markdown_table,
+};
+use crate::client::Contract;
+use indexmap::IndexMap;
+
+pub fn contract_to_markdown_table(contract: &Contract) -> String {
+    let mut markdown_table = String::new();
+    let mut contract_kv: IndexMap<String, String> = IndexMap::new();
+
+    contract_kv.insert("GUID".to_string(), contract.contract_guid.clone());
+    contract_kv.insert("Description".to_string(), contract.description.clone());
+    contract_kv.insert(
+        "Status".to_string(),
+        contract_value_to_status(contract.status),
+    );
+    contract_kv.insert("Version".to_string(), contract.contract_version.clone());
+
+    markdown_table = markdown_table + "Contract Details: ";
+    markdown_table = markdown_table + "\n";
+    markdown_table = markdown_table + &build_markdown_key_value_table(contract_kv);
+    markdown_table = markdown_table + "\n";
+    markdown_table = markdown_table + "Database Schema: ";
+    markdown_table = markdown_table + "\n";
+    markdown_table =
+        markdown_table + &full_database_schema_to_tables(&contract.schema.as_ref().unwrap());
+    markdown_table = markdown_table + "\n";
+    markdown_table = markdown_table + "Host: ";
+    markdown_table = markdown_table + "\n";
+    markdown_table =
+        markdown_table + &host_to_markdown_table(&contract.host_info.as_ref().unwrap());
+    markdown_table = markdown_table + "\n";
+
+    return markdown_table;
+}
+
+fn contract_value_to_status(status: u32) -> String {
+    return match status {
+        0 => "Unknown".to_string(),
+        1 => "NotSent".to_string(),
+        2 => "Pending".to_string(),
+        3 => "Accepted".to_string(),
+        4 => "Rejected".to_string(),
+        _ => "Unknown".to_string(),
+    };
+}

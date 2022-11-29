@@ -1,6 +1,6 @@
 use rcd_messages::{
-    client::{ColumnSchema, DatabaseSchema, Host, Row, RowValue, TableSchema},
-    formatter::{self, markdown::db},
+    client::{ColumnSchema, DatabaseSchema, Host, Row, RowValue, TableSchema, Contract},
+    formatter::{self, markdown::{db, contract}},
 };
 
 #[test]
@@ -309,4 +309,114 @@ ADDRESS
 "#;
 
     assert_eq!(md, md_expect)
+}
+
+#[test]
+pub fn test_contract() {
+
+    let cs11 = ColumnSchema {
+        column_name: "Id".to_string(),
+        column_type: 1,
+        column_length: 0,
+        is_nullable: false,
+        ordinal: 1,
+        table_id: "EMPLOYEE".to_string(),
+        column_id: "".to_string(),
+        is_primary_key: false,
+    };
+
+    let cs12 = ColumnSchema {
+        column_name: "Name".to_string(),
+        column_type: 9,
+        column_length: 0,
+        is_nullable: false,
+        ordinal: 1,
+        table_id: "EMPLOYEE".to_string(),
+        column_id: "".to_string(),
+        is_primary_key: false,
+    };
+
+    let mut cv1: Vec<ColumnSchema> = Vec::new();
+    cv1.push(cs11);
+    cv1.push(cs12);
+
+    let ts1 = TableSchema {
+        table_name: "EMPLOYEE".to_string(),
+        table_id: "EMPLOYEE".to_string(),
+        database_name: "TEST".to_string(),
+        database_id: "TEST".to_string(),
+        columns: cv1,
+        logical_storage_policy: 1,
+    };
+
+    let cs21 = ColumnSchema {
+        column_name: "Id".to_string(),
+        column_type: 1,
+        column_length: 0,
+        is_nullable: false,
+        ordinal: 1,
+        table_id: "EMPLOYEE".to_string(),
+        column_id: "".to_string(),
+        is_primary_key: false,
+    };
+
+    let cs22 = ColumnSchema {
+        column_name: "Address".to_string(),
+        column_type: 9,
+        column_length: 0,
+        is_nullable: false,
+        ordinal: 1,
+        table_id: "EMPLOYEE".to_string(),
+        column_id: "".to_string(),
+        is_primary_key: false,
+    };
+
+    let mut cv2: Vec<ColumnSchema> = Vec::new();
+    cv2.push(cs21);
+    cv2.push(cs22);
+
+    let ts2 = TableSchema {
+        table_name: "ADDRESS".to_string(),
+        table_id: "ADDRESS".to_string(),
+        database_name: "TEST".to_string(),
+        database_id: "TEST".to_string(),
+        columns: cv2,
+        logical_storage_policy: 2,
+    };
+
+    let mut tv: Vec<TableSchema> = Vec::new();
+    tv.push(ts1);
+    tv.push(ts2);
+
+    let ds = DatabaseSchema {
+        database_name: "TEST".to_string(),
+        database_id: "TEST".to_string(),
+        tables: tv,
+        database_type: 1,
+        rcd_database_type: 2,
+    };
+
+    let host = Host {
+        host_guid: "76A9AC34-B28C-DC39-09A6-59F401E496C7".to_string(),
+        host_name: "Example".to_string(),
+        ip4_address: "127.0.0.1".to_string(),
+        ip6_address: "2001:0db8:85a3:0000:0000:8a2e:0370:7334".to_string(),
+        database_port_number: 5050,
+        token: Vec::new(),
+    };
+
+    let contract = Contract {
+        contract_guid: "76A9AC34-B28C-DC39-09A6-59F401E496C7".to_string(),
+        description: "This is a test contract".to_string(),
+        schema: Some(ds),
+        contract_version: "76A9AC34-B28C-DC39-09A6-59F401E496C7".to_string(),
+        host_info: Some(host),
+        status: 2,
+    };
+
+    let md = contract::contract_to_markdown_table(&contract);
+
+    println!("{}", md);
+
+    panic!()
 }
