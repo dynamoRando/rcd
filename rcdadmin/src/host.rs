@@ -26,6 +26,7 @@ pub fn view_coop_hosts(_app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
 }
 
 /// takes a Host struct and returns HTML for it
+#[allow(dead_code)]
 pub fn view_host_html(host: &Host) -> Html {
     let host_name = &host.host_name;
     let host_ip4 = &host.ip4_address;

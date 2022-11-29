@@ -1,15 +1,29 @@
+use super::build_markdown_key_value_table;
 use crate::client::Host;
+use indexmap::IndexMap;
 
+/// takes a Host and returns a markdown table in a key/value format
 pub fn host_to_markdown_table(host: &Host) -> String {
-    let mut markdown_table = String::new();
-    let mut total_length_of_table = 0;
+    let mut kv: IndexMap<String, String> = IndexMap::new();
 
     let guid_label = "GUID: ";
     let name_label = "Host Name: ";
-    let ip4_label =  "IP 4: ";
-    let ip6_label =  "IP 6: ";
+    let ip4_label = "IP 4: ";
+    let ip6_label = "IP 6: ";
     let db_port_label = "Db Port: ";
     let token_label = "Token: ";
 
-    todo!()
+    let token_string = String::from_utf8_lossy(&host.token).to_owned().to_string();
+
+    kv.insert(guid_label.to_string(), host.host_guid.clone());
+    kv.insert(name_label.to_string(), host.host_name.clone());
+    kv.insert(ip4_label.to_string(), host.ip4_address.clone());
+    kv.insert(ip6_label.to_string(), host.ip6_address.clone());
+    kv.insert(
+        db_port_label.to_string(),
+        host.database_port_number.to_string(),
+    );
+    kv.insert(token_label.to_string(), token_string);
+
+    return build_markdown_key_value_table(kv);
 }
