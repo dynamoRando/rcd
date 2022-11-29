@@ -1,5 +1,5 @@
 use super::{
-    build_markdown_key_value_table, db::{database_schema_to_markdown_table, full_database_schema_to_tables},
+    build_markdown_key_value_table, db::full_database_schema_to_tables,
     host::host_to_markdown_table,
 };
 use crate::client::Contract;

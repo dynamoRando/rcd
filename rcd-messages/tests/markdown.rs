@@ -1,6 +1,9 @@
 use rcd_messages::{
-    client::{ColumnSchema, DatabaseSchema, Host, Row, RowValue, TableSchema, Contract},
-    formatter::{self, markdown::{db, contract}},
+    client::{ColumnSchema, Contract, DatabaseSchema, Host, Row, RowValue, TableSchema},
+    formatter::{
+        self,
+        markdown::{contract, db},
+    },
 };
 
 #[test]
@@ -313,7 +316,6 @@ ADDRESS
 
 #[test]
 pub fn test_contract() {
-
     let cs11 = ColumnSchema {
         column_name: "Id".to_string(),
         column_type: 1,
@@ -418,5 +420,46 @@ pub fn test_contract() {
 
     println!("{}", md);
 
-    panic!()
+    let md_expect = r#"Contract Details: 
+| Key          | Value                                 |
+| ------------ | ------------------------------------- |
+| GUID         | 76A9AC34-B28C-DC39-09A6-59F401E496C7  |
+| Description  | This is a test contract               |
+| Status       | Pending                               |
+| Version      | 76A9AC34-B28C-DC39-09A6-59F401E496C7  |
+
+Database Schema: 
+
+Tables: 
+| Key       | Value             |
+| --------- | ----------------- |
+| EMPLOYEE  | HostOnly          |
+| ADDRESS   | ParticipantOwned  |
+
+Table Details: 
+EMPLOYEE
+| Key   | Value  |
+| ----- | ------ |
+| Id    | Int    |
+| Name  | Text   |
+
+ADDRESS
+| Key      | Value  |
+| -------- | ------ |
+| Id       | Int    |
+| Address  | Text   |
+
+Host: 
+| Key          | Value                                    |
+| ------------ | ---------------------------------------- |
+| GUID:        | 76A9AC34-B28C-DC39-09A6-59F401E496C7     |
+| Host Name:   | Example                                  |
+| IP 4:        | 127.0.0.1                                |
+| IP 6:        | 2001:0db8:85a3:0000:0000:8a2e:0370:7334  |
+| Db Port:     | 5050                                     |
+| Token:       |                                          |
+
+"#;
+
+    assert_eq!(md, md_expect);
 }
