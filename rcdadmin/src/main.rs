@@ -1,4 +1,4 @@
-use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy, RcdContractInfo};
+use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy, RcdContractInfo, RcdContractGenUi};
 use serde::Deserialize;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
@@ -145,11 +145,17 @@ impl Component for RcdAdminApp {
             new_policy: NodeRef::default(),
         };
 
+        let con_gen = RcdContractGenUi {
+            host_name_ui: NodeRef::default(),
+            contract_desc_ui: NodeRef::default(),
+        };
+
         let ci = RcdContractInfo {
             contract_detail_ui: NodeRef::default(),
             contract_markdown: "".to_string(),
             pending_contracts: Vec::new(),
-            accepted_contracts: Vec::new()
+            accepted_contracts: Vec::new(),
+            contract_gen_ui: con_gen,
         };
 
         let input_output = RcdInputOutputUi {

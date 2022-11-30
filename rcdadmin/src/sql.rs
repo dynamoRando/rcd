@@ -135,7 +135,7 @@ pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
           <h1> {"SQL Results"} </h1>
           <label for="sql_result">{ "Results" }</label>
           <p>
-          <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here"
+          <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here As Markdown Table"
           ref={&app.state.conn_ui.sql.sql_result} value={text}/>
           </p>
           </div>

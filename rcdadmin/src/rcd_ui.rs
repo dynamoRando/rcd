@@ -70,4 +70,10 @@ pub struct RcdContractInfo {
     pub contract_markdown: String,
     pub pending_contracts: Vec<Contract>,
     pub accepted_contracts: Vec<Contract>,
+    pub contract_gen_ui: RcdContractGenUi
+}
+
+pub struct RcdContractGenUi {
+    pub host_name_ui: NodeRef,
+    pub contract_desc_ui: NodeRef
 }
