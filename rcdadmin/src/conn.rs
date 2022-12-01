@@ -48,8 +48,12 @@ pub fn handle_connect(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
 }
 
 pub fn view_input_for_connection(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+
+    let is_visible = !app.state.page_ui.conn_is_visible;
+
+
     html! {
-       <div>
+       <div hidden={is_visible}>
        <h1> {"Connect to rcd"} </h1>
        <label for="ip_address">{ "IP Address" }</label>
         <input type="text" id ="ip_address" placeholder="localhost" ref={&app.state.conn_ui.ip}/>

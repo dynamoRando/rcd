@@ -5,6 +5,18 @@ use yew::{Component, Html, NodeRef};
 use crate::AppMessage;
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct RcdPageUi {
+    pub conn_is_visible: bool,
+    pub databases_is_visible: bool,
+    pub sql_is_visible: bool,
+    pub contract_is_visible: bool,
+    pub host_is_visible: bool,
+    pub participants_is_visible: bool,
+    pub behaviors_is_visible: bool,
+    pub coop_hosts_is_visible: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct RcdConn {
     pub un: String,
     pub pw: String,

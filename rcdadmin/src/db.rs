@@ -44,6 +44,9 @@ pub fn handle_get_columns_for_table(
 }
 
 pub fn view_databases(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+    
+    let is_visible = !app.state.page_ui.databases_is_visible;
+
     let mut db_names: Vec<String> = Vec::new();
 
     for db in &app.state.conn_ui.conn.databases {
@@ -51,7 +54,7 @@ pub fn view_databases(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     }
 
     html! {
-       <div>
+       <div hidden={is_visible}>
        <h1> {"Databases"} </h1>
        <ul>
        {

@@ -8,6 +8,7 @@ use yew::prelude::*;
 use crate::{AppMessage, RcdAdminApp, TableIntent};
 
 pub fn view_tables_for_database(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+    let is_visible = !app.state.page_ui.databases_is_visible;
     let db_name = app.state.conn_ui.conn.current_db_name.clone();
     let current_table_policy = app.state.conn_ui.sql.current_policy.policy_text.clone();
 
@@ -35,7 +36,7 @@ pub fn view_tables_for_database(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) ->
         let table_names_clone = table_names.clone();
 
         html! {
-           <div>
+           <div hidden={is_visible}>
            <h1> {"Tables for database "}{&db_name}</h1>
            <ul>
            {

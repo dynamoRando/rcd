@@ -1,4 +1,7 @@
-use rcd_ui::{RcdConn, RcdConnUi, RcdInputOutputUi, RcdTablePolicy, RcdContractInfo, RcdContractGenUi};
+use rcd_ui::{
+    RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi, RcdPageUi,
+    RcdTablePolicy,
+};
 use serde::Deserialize;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
@@ -12,6 +15,19 @@ mod policy;
 mod rcd_ui;
 mod request;
 mod sql;
+mod ui;
+
+#[derive(Debug, Copy, Clone)]
+pub enum UiVisibility {
+    Connection(bool),
+    Databases(bool),
+    SQL(bool),
+    Contract(bool),
+    Host(bool),
+    Participant(bool),
+    Behaviors(bool),
+    CoopHosts(bool),
+}
 
 // for testing, use the databases from the test "host_only"
 
@@ -54,10 +70,12 @@ pub enum AppMessage {
     HandleTablePolicy(TableIntent),
     HandleTablePolicyResponse(AttrValue),
     HandleTablePolicyUpdateResponse(AttrValue),
+    HandleToggleVisiblity(UiVisibility),
 }
 
 struct ApplicationState {
     conn_ui: RcdConnUi,
+    page_ui: RcdPageUi,
 }
 
 impl ApplicationState {}
@@ -72,6 +90,10 @@ struct AdminMsg {
 }
 
 impl RcdAdminApp {
+    pub fn view_ui_options(&self, link: &Scope<Self>) -> Html {
+        ui::view_ui_options(self, link)
+    }
+
     pub fn view_input_for_connection(&self, link: &Scope<Self>) -> Html {
         conn::view_input_for_connection(self, link)
     }
@@ -179,7 +201,18 @@ impl Component for RcdAdminApp {
             current_selected_table: NodeRef::default(),
         };
 
-        let app_state = ApplicationState { conn_ui };
+        let page_ui = RcdPageUi {
+            conn_is_visible: true,
+            contract_is_visible: true,
+            host_is_visible: true,
+            databases_is_visible: true,
+            sql_is_visible: true,
+            participants_is_visible: true,
+            behaviors_is_visible: true,
+            coop_hosts_is_visible: true,
+        };
+
+        let app_state = ApplicationState { conn_ui, page_ui };
 
         Self { state: app_state }
     }
@@ -187,6 +220,11 @@ impl Component for RcdAdminApp {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {<div>
             <h1>{ "Rcd Admin" }</h1>
+            <section class="ui">
+            <header>
+            { self.view_ui_options(ctx.link()) }
+            </header>
+        </section>
             <section class="rcdadmin">
                 <header class="header">
                     { self.view_input_for_connection(ctx.link()) }
@@ -249,6 +287,7 @@ impl Component for RcdAdminApp {
             AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
                 policy::handle_table_update_response(json_response, self)
             }
+            AppMessage::HandleToggleVisiblity(ui) => handle_ui_visibility(ui, self),
         }
         true
     }
@@ -256,4 +295,35 @@ impl Component for RcdAdminApp {
 
 fn main() {
     yew::Renderer::<RcdAdminApp>::new().render();
+}
+
+fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
+    match item {
+        UiVisibility::Connection(is_visible) => {
+            app.state.page_ui.conn_is_visible = is_visible;
+        }
+        UiVisibility::SQL(is_visible) => 
+        {
+            app.state.page_ui.sql_is_visible = is_visible;
+        },
+        UiVisibility::Databases(is_visible) => {
+            app.state.page_ui.databases_is_visible = is_visible;
+        },
+        UiVisibility::Contract(is_visible) => 
+        {
+            app.state.page_ui.contract_is_visible = is_visible;
+        },
+        UiVisibility::Host(is_visible) => {
+            app.state.page_ui.host_is_visible = is_visible;
+        },
+        UiVisibility::Participant(is_visible) => {
+            app.state.page_ui.participants_is_visible = is_visible;
+        },
+        UiVisibility::Behaviors(is_visible) => {
+            app.state.page_ui.behaviors_is_visible = is_visible;
+        },
+        UiVisibility::CoopHosts(is_visible) => {
+            app.state.page_ui.coop_hosts_is_visible = is_visible;
+        },
+    }
 }

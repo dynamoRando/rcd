@@ -4,7 +4,7 @@ use yew::prelude::*;
 use yew::{html::Scope, Html};
 
 pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-
+    let is_visible = !app.state.page_ui.contract_is_visible;
     let text = app.state.conn_ui.sql.current_contract.contract_markdown.clone();
 
     let mut db_names: Vec<String> = Vec::new();
@@ -15,7 +15,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
 
     html!(
-      <div>
+      <div hidden={is_visible}>
           <h1> {"Contracts"} </h1>
           <p>
           <input type="button" id="view_pending_contracts" value="View Pending Contracts" onclick={link.callback(|_|

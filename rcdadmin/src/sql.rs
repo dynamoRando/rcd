@@ -66,6 +66,7 @@ pub fn handle_sql_result(
 }
 
 pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+    let is_visible = !app.state.page_ui.sql_is_visible;
     let mut db_names: Vec<String> = Vec::new();
 
     for db in &app.state.conn_ui.conn.databases {
@@ -76,7 +77,7 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
     // console::log_1(&db_names.len().to_string().into());
 
     html! {
-        <div>
+        <div hidden={is_visible}>
         <h1> {"Execute SQL"} </h1>
         <label for="execute_sql">{ "Enter SQL" }</label>
         <p>
@@ -128,10 +129,11 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
 
 
 pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
+    let is_visible = !app.state.page_ui.sql_is_visible;
     let text = app.state.conn_ui.sql_text_result.clone();
 
     html!(
-      <div>
+      <div hidden={is_visible}>
           <h1> {"SQL Results"} </h1>
           <label for="sql_result">{ "Results" }</label>
           <p>
