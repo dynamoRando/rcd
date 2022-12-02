@@ -56,6 +56,7 @@ pub fn view_databases(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     html! {
        <div hidden={is_visible}>
        <h1> {"Databases"} </h1>
+       <p>{"After connecting, the list of databases on the rcd instance will appear here. Click on one to view schema details."}</p>
        <ul>
        {
         db_names.into_iter().map(|name| {

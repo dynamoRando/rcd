@@ -38,6 +38,7 @@ pub fn view_tables_for_database(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) ->
         html! {
            <div hidden={is_visible}>
            <h1> {"Tables for database "}{&db_name}</h1>
+           <p>{"Tables for the specified database will appear here. Click on a table name to view schema info."}</p>
            <ul>
            {
             table_names.into_iter().map(|name| {
