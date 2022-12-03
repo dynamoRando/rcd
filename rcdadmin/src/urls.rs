@@ -23,3 +23,7 @@ pub fn url_write_sql_at_participant() -> &'static str {
 pub fn url_generate_contract() -> &'static str {
     return "/client/databases/contract/generate/"
 }
+
+pub fn url_add_participant() -> &'static str {
+    return "/client/databases/participant/add/"
+}

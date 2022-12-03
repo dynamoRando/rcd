@@ -41,6 +41,7 @@ pub struct RcdConnUi {
     pub sql: RcdInputOutputUi,
     pub sql_text_result: String,
     pub current_selected_table: NodeRef,
+    pub add_participant_ui: RcdAddParticipantUi,
 }
 
 impl RcdConnUi {}
@@ -90,4 +91,11 @@ pub struct RcdContractGenUi {
     pub contract_desc_ui: NodeRef,
     pub contract_gen_remote_delete_behavior: u32,
     pub last_gen_result: bool,
+}
+
+pub struct RcdAddParticipantUi {
+    pub alias_ui: NodeRef,
+    pub ip4_address_ui: NodeRef,
+    pub port_num_ui: NodeRef,
+    pub last_add_result: bool,
 }

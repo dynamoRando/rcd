@@ -1,7 +1,7 @@
 use rcd_messages::client::AuthRequest;
 use rcd_ui::{
-    RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi, RcdPageUi,
-    RcdTablePolicy,
+    RcdAddParticipantUi, RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi,
+    RcdPageUi, RcdTablePolicy,
 };
 use serde::Deserialize;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
@@ -76,6 +76,8 @@ pub enum AppMessage {
     HandleTablePolicyResponse(AttrValue),
     HandleTablePolicyUpdateResponse(AttrValue),
     HandleToggleVisiblity(UiVisibility),
+    HandleAddParticipant,
+    HandleAddParticipantResponse(AttrValue),
 }
 
 struct ApplicationState {
@@ -196,6 +198,13 @@ impl Component for RcdAdminApp {
             current_contract: ci,
         };
 
+        let participant_ui = RcdAddParticipantUi {
+            alias_ui: NodeRef::default(),
+            ip4_address_ui: NodeRef::default(),
+            port_num_ui: NodeRef::default(),
+            last_add_result: false
+        };
+
         let conn_ui = RcdConnUi {
             conn,
             un: NodeRef::default(),
@@ -206,6 +215,7 @@ impl Component for RcdAdminApp {
             sql: input_output,
             sql_text_result: "".to_string(),
             current_selected_table: NodeRef::default(),
+            add_participant_ui: participant_ui,
         };
 
         let page_ui = RcdPageUi {
@@ -310,6 +320,10 @@ impl Component for RcdAdminApp {
                     .current_contract
                     .contract_gen_ui
                     .contract_gen_remote_delete_behavior = behavior;
+            }
+            AppMessage::HandleAddParticipant => participant::handle_add_participant(self, ctx),
+            AppMessage::HandleAddParticipantResponse(json_response) => {
+                participant::handle_add_participant_response(self, ctx, json_response)
             }
         }
         true
