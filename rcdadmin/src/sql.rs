@@ -1,11 +1,11 @@
 use crate::{
     request,
     urls::{url_read_sql_at_host, url_write_sql_at_host},
-    AppMessage, ExecuteSQLIntent, RcdAdminApp,
+    AppMessage, ExecuteSQLIntent, RcdAdminApp, get_base_address, get_auth_request,
 };
 use rcd_messages::{
     client::{
-        AuthRequest, ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
+        ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
     },
     formatter,
 };
@@ -215,12 +215,3 @@ pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
     )
 }
 
-fn get_base_address(app: &RcdAdminApp) -> String {
-    return app.state.conn_ui.conn.url.clone();
-}
-
-fn get_auth_request(app: &RcdAdminApp) -> AuthRequest {
-    let auth_json = &app.state.conn_ui.conn.auth_request_json;
-    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
-    return auth;
-}

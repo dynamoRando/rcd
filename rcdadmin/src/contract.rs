@@ -1,5 +1,7 @@
-use crate::{AppMessage, ContractIntent, RcdAdminApp, TableIntent};
-use web_sys::{console, HtmlSelectElement};
+use crate::urls::url_generate_contract;
+use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
+use rcd_messages::client::{GenerateContractReply, GenerateContractRequest};
+use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
 
@@ -14,6 +16,14 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         .clone();
 
     let mut db_names: Vec<String> = Vec::new();
+
+    let last_gen_result = app
+        .state
+        .conn_ui
+        .sql
+        .current_contract
+        .contract_gen_ui
+        .last_gen_result;
 
     for db in &app.state.conn_ui.conn.databases {
         db_names.push(db.database_name.clone());
@@ -84,7 +94,18 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           <p>
           <label for="set_remote_delete_behavior">{ "Set Remote Delete Behavior" }</label>
           <p>
-          <select name="set_remote_delete_behavior" id="set_remote_delete_behavior">
+          <select name="set_remote_delete_behavior" id="set_remote_delete_behavior"
+          onchange={link.batch_callback(|e: Event| {
+            if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                // console::log_1(&"some onchange".into());
+                let val = input.value();
+                Some(AppMessage::SetRemoteDeleteBehavior(val.parse::<u32>().unwrap()))
+            } else {
+                // console::log_1(&"none onchange".into());
+                None
+            }
+        })}
+          >
           <option value="0">{"SELECT BEHAVIOR"}</option>
           <option value="1">{"Ignore"}</option>
           <option value="2">{"AutoDelete"}</option>
@@ -108,25 +129,94 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                 let intent = ContractIntent::GenerateContract;
                 AppMessage::HandleContract(intent)
             })}/>
+            <p><label for="last_gen_result">{ "Last Gen Result: "}</label>{last_gen_result.to_string()}</p>
           </div>
     )
 }
 
-pub fn handle_contract_intent(app: &RcdAdminApp, intent: ContractIntent) {
+pub fn handle_contract_intent(
+    app: &RcdAdminApp,
+    intent: ContractIntent,
+    link: &Scope<RcdAdminApp>,
+) {
     match intent {
         ContractIntent::Unknown => todo!(),
         ContractIntent::GetPending => todo!(),
         ContractIntent::GetAccepted => todo!(),
         ContractIntent::GetRejected => todo!(),
         ContractIntent::AcceptContract(_) => todo!(),
-        ContractIntent::GenerateContract => todo!(),
+        ContractIntent::GenerateContract => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), url_generate_contract());
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+
+            let host_name_ui = &app
+                .state
+                .conn_ui
+                .sql
+                .current_contract
+                .contract_gen_ui
+                .host_name_ui;
+            let host_name = host_name_ui.cast::<HtmlInputElement>().unwrap().value();
+
+            let desc_ui = &app
+                .state
+                .conn_ui
+                .sql
+                .current_contract
+                .contract_gen_ui
+                .contract_desc_ui;
+            let description = desc_ui.cast::<HtmlInputElement>().unwrap().value();
+
+            let behavior = &app
+                .state
+                .conn_ui
+                .sql
+                .current_contract
+                .contract_gen_ui
+                .contract_gen_remote_delete_behavior;
+
+            console::log_1(&"selected db".into());
+            console::log_1(&db_name.into());
+
+            let request = GenerateContractRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+                host_name: host_name,
+                description: description,
+                remote_delete_behavior: *behavior,
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let callback = link.callback(AppMessage::HandleContractResponse);
+
+            request::get_data(url, request_json, callback);
+        }
         ContractIntent::SendContractToParticipant(_) => todo!(),
         ContractIntent::RejectContract(_) => todo!(),
     }
 }
 
-pub fn handle_contract_response(app: &RcdAdminApp, json_response: String){
-    todo!()
+pub fn handle_contract_response(app: &mut RcdAdminApp, json_response: String) {
+    console::log_1(&json_response.to_string().clone().into());
+    let reply: GenerateContractReply = serde_json::from_str(&&json_response.to_string()).unwrap();
+
+    if reply.authentication_result.unwrap().is_authenticated {
+        let mut result_message = String::new();
+
+        result_message =
+            result_message + &format!("Is result successful: {}", reply.is_successful.to_string());
+
+        console::log_1(&result_message.to_string().clone().into());
+        app.state
+            .conn_ui
+            .sql
+            .current_contract
+            .contract_gen_ui
+            .last_gen_result = reply.is_successful;
+    }
 }
 
 #[allow(dead_code)]
@@ -139,4 +229,3 @@ fn remote_delete_behavior_status_to_text(behavior: u32) -> String {
         _ => "Unknown".to_string(),
     }
 }
-

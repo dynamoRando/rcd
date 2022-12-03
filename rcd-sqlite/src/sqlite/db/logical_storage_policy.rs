@@ -37,7 +37,6 @@ pub fn set_logical_storage_policy(
     config: DbiConfigSqlite,
 ) -> Result<bool, RcdDbError> {
     let conn = get_db_conn(&config, db_name);
-
     if has_table(table_name.to_string(), &conn) {
         // insert or update on the coop tables
         let mut cmd = String::from(
@@ -55,7 +54,10 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection_at_host(db_name, &cmd, &config);
+            let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
+            if result.is_err() {
+                return Err(RcdDbError::General(result.err().unwrap().to_string()));
+            }
         } else {
             // then this is an insert
             let mut cmd = String::from(
@@ -73,7 +75,10 @@ pub fn set_logical_storage_policy(
 
             cmd = cmd.replace(":table_name", &table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
-            execute_write_on_connection_at_host(db_name, &cmd, &config);
+            let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
+            if result.is_err() {
+                return Err(RcdDbError::General(result.err().unwrap().to_string()));
+            }
         }
 
         populate_data_host_tables(db_name, &conn);

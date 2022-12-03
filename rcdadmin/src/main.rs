@@ -1,3 +1,4 @@
+use rcd_messages::client::AuthRequest;
 use rcd_ui::{
     RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi, RcdPageUi,
     RcdTablePolicy,
@@ -68,6 +69,7 @@ pub enum AppMessage {
     SQLReadResult(AttrValue),
     SQLWriteResult(AttrValue),
     SetExecuteSQLDatabase(String),
+    SetRemoteDeleteBehavior(u32),
     HandleContract(ContractIntent),
     HandleContractResponse(AttrValue),
     HandleTablePolicy(TableIntent),
@@ -173,6 +175,8 @@ impl Component for RcdAdminApp {
         let con_gen = RcdContractGenUi {
             host_name_ui: NodeRef::default(),
             contract_desc_ui: NodeRef::default(),
+            contract_gen_remote_delete_behavior: 0,
+            last_gen_result: false,
         };
 
         let ci = RcdContractInfo {
@@ -282,7 +286,9 @@ impl Component for RcdAdminApp {
                 sql::handle_sql_read_result(self, ctx, json_response)
             }
             AppMessage::SetExecuteSQLDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
-            AppMessage::HandleContract(intent) => contract::handle_contract_intent(self, intent),
+            AppMessage::HandleContract(intent) => {
+                contract::handle_contract_intent(self, intent, ctx.link())
+            }
             AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
                 policy::handle_table_response(json_response, self)
@@ -296,7 +302,15 @@ impl Component for RcdAdminApp {
             }
             AppMessage::HandleContractResponse(json_response) => {
                 contract::handle_contract_response(self, json_response.to_string())
-            },
+            }
+            AppMessage::SetRemoteDeleteBehavior(behavior) => {
+                self.state
+                    .conn_ui
+                    .sql
+                    .current_contract
+                    .contract_gen_ui
+                    .contract_gen_remote_delete_behavior = behavior;
+            }
         }
         true
     }
@@ -333,4 +347,14 @@ fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
             app.state.page_ui.coop_hosts_is_visible = is_visible;
         }
     }
+}
+
+pub fn get_base_address(app: &RcdAdminApp) -> String {
+    return app.state.conn_ui.conn.url.clone();
+}
+
+pub fn get_auth_request(app: &RcdAdminApp) -> AuthRequest {
+    let auth_json = &app.state.conn_ui.conn.auth_request_json;
+    let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
+    return auth;
 }

@@ -1,6 +1,6 @@
 use super::get_core;
 use rcdproto::rcdp::{
-    AddParticipantReply, AddParticipantRequest, GenerateContractReply, GenerateContractRequest,
+    GenerateContractReply, GenerateContractRequest,
     GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
     GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, CreateUserDatabaseRequest, CreateUserDatabaseReply,
 };
