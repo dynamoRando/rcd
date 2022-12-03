@@ -7,9 +7,10 @@ use rcdproto::rcdp::{
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
     ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
     GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyRequest,
-    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest, HasTableRequest,
-    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, StatementResultset,
-    TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    GetParticipantsReply, GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest,
+    GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
+    SetLogicalStoragePolicyRequest, StatementResultset, TestRequest, TryAuthAtParticipantRequest,
+    ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -92,6 +93,28 @@ impl RcdClient {
             .await
             .unwrap()
             .into_inner();
+
+        Ok(response)
+    }
+
+    pub async fn get_participants_for_database(
+        self: &Self,
+        db_name: &str,
+    ) -> Result<GetParticipantsReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetParticipantsRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+        });
+
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let response = client.get_participants(request).await.unwrap().into_inner();
+        println!("RESPONSE={:?}", response);
+        info!("response back");
 
         Ok(response)
     }

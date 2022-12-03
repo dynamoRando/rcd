@@ -11,7 +11,9 @@ use rcd_common::{
     table::Table,
 };
 use rcd_sqlite::sqlite::{self};
-use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Participant, PendingStatement, Row};
+use rcdproto::rcdp::{
+    ColumnSchema, Contract, DatabaseSchema, Participant, ParticipantStatus, PendingStatement, Row,
+};
 use rusqlite::{Connection, Error};
 
 #[derive(Debug, Clone)]
@@ -1026,6 +1028,19 @@ impl Dbi {
                 return sqlite::db::participant::get_participants_for_table(
                     db_name, table_name, settings,
                 );
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_participants_for_database(self: &Self, db_name: &str) -> Vec<ParticipantStatus> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return sqlite::db::participant::get_participants_for_database(db_name, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

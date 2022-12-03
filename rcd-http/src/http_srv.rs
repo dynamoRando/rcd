@@ -61,6 +61,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::database::set_logical_storage_policy,
                 client::database::participant::add_participant,
                 client::database::participant::send_contract_to_participant,
+                client::database::participant::get_participants,
                 client::database::generate_contract,
                 client::sql::read_at_host,
                 client::sql::write_at_host,

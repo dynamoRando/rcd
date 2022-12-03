@@ -1,5 +1,5 @@
 use super::get_core;
-use rcdproto::rcdp::{AddParticipantReply, AddParticipantRequest, SendParticipantContractRequest, SendParticipantContractReply};
+use rcdproto::rcdp::{AddParticipantReply, AddParticipantRequest, SendParticipantContractRequest, SendParticipantContractReply, GetParticipantsRequest, GetParticipantsReply};
 use rocket::{http::Status, post, serde::json::Json};
 
 #[post(
@@ -24,6 +24,19 @@ pub async fn send_contract_to_participant(
     request: Json<SendParticipantContractRequest>,
 ) -> (Status, Json<SendParticipantContractReply>) {
     let result = get_core().send_participant_contract(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/participant/get",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn get_participants(
+    request: Json<GetParticipantsRequest>,
+) -> (Status, Json<GetParticipantsReply>) {
+    let result = get_core().get_participants(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }

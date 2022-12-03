@@ -36,6 +36,17 @@ service SQLClient {
 	rpc AcceptPendingActionAtParticipant (AcceptPendingActionRequest) returns (AcceptPendingActionReply);
 	// admin calls
 	rpc GetDatabases (GetDatabasesRequest) returns (GetDatabasesReply);
+	rpc GetParticipants(GetParticipantsRequest) returns (GetParticipantsReply);
+}
+
+message GetParticipantsRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+}
+
+message GetParticipantsReply {
+	AuthResult authenticationResult = 1;
+	repeated ParticipantStatus participants = 2;
 }
 
 message GetDatabasesRequest {
@@ -703,6 +714,12 @@ message Participant {
 	string ip6Address = 4;
 	uint32 databasePortNumber = 5;
 	bytes token = 6;
+	string internalParticipantGUID = 7;
+}
+
+message ParticipantStatus {
+	Participant participant = 1;
+	uint32 contractStatus = 2;
 }
 
 message Host{

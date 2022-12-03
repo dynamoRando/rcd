@@ -321,6 +321,7 @@ impl RemoteGrpc {
             ip6_address: String::from(""),
             database_port_number: 0,
             token: own_host_info.token.clone(),
+            internal_participant_guid: "".to_string()
         };
 
         let request = ParticipantAcceptsContractRequest {

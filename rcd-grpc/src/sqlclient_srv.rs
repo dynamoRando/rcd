@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_participants(
+        &self,
+        request: Request<GetParticipantsRequest>,
+    ) -> Result<Response<GetParticipantsReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = self.core().get_participants(request.into_inner()).await;
+        Ok(Response::new(result))
+    }
+
     async fn get_databases(
         &self,
         request: Request<GetDatabasesRequest>,

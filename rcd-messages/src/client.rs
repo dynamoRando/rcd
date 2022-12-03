@@ -1,4 +1,22 @@
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct GetParticipantsRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct GetParticipantsReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub participants: Vec<ParticipantStatus>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct ParticipantStatus {
+    pub participant: ::core::option::Option<Participant>,
+    pub contract_status: u32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetDatabasesRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
 }
@@ -872,6 +890,8 @@ pub struct Participant {
     pub database_port_number: u32,
 
     pub token: Vec<u8>,
+
+    pub internal_participant_guid: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct Host {

@@ -78,6 +78,8 @@ pub enum AppMessage {
     HandleToggleVisiblity(UiVisibility),
     HandleAddParticipant,
     HandleAddParticipantResponse(AttrValue),
+    HandleViewParticipants,
+    HandleViewParticipantsResponse(AttrValue)
 }
 
 struct ApplicationState {
@@ -202,7 +204,8 @@ impl Component for RcdAdminApp {
             alias_ui: NodeRef::default(),
             ip4_address_ui: NodeRef::default(),
             port_num_ui: NodeRef::default(),
-            last_add_result: false
+            last_add_result: false,
+            current_participants: Vec::new(),
         };
 
         let conn_ui = RcdConnUi {
@@ -325,6 +328,12 @@ impl Component for RcdAdminApp {
             AppMessage::HandleAddParticipantResponse(json_response) => {
                 participant::handle_add_participant_response(self, ctx, json_response)
             }
+            AppMessage::HandleViewParticipants => {
+                participant::handle_view_participants(self, ctx)
+            },
+            AppMessage::HandleViewParticipantsResponse(json_response) => {
+                participant::handle_view_participant_response(self, ctx, json_response)
+            },
         }
         true
     }

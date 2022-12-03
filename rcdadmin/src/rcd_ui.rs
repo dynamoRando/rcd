@@ -1,4 +1,4 @@
-use rcd_messages::client::{DatabaseSchema, Contract};
+use rcd_messages::client::{DatabaseSchema, Contract, ParticipantStatus};
 use serde::{Deserialize, Serialize};
 use yew::{Component, Html, NodeRef};
 
@@ -98,4 +98,5 @@ pub struct RcdAddParticipantUi {
     pub ip4_address_ui: NodeRef,
     pub port_num_ui: NodeRef,
     pub last_add_result: bool,
+    pub current_participants: Vec<ParticipantStatus>
 }

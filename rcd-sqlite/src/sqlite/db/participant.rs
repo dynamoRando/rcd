@@ -5,6 +5,7 @@ use rcd_common::{
     defaults,
     rcd_enum::ContractStatus,
 };
+use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
 use crate::sqlite::{get_db_conn, has_any_rows};
@@ -306,6 +307,76 @@ pub fn get_participant_by_alias(
     } else {
         return None;
     }
+}
+
+pub fn get_participants_for_database(
+    db_name: &str,
+    config: &DbiConfigSqlite,
+) -> Vec<ParticipantStatus> {
+    let mut result: Vec<ParticipantStatus> = Vec::new();
+
+    let conn = get_db_conn(&config, db_name);
+
+    let cmd = "
+    SELECT 
+        INTERNAL_PARTICIPANT_ID,
+        ALIAS,
+        IP4ADDRESS,
+        IP6ADDRESS,
+        PORT,
+        CONTRACT_STATUS,
+        PARTICIPANT_ID
+    FROM
+        COOP_PARTICIPANT
+    ";
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let row_to_participant = |internal_participant_id: String,
+                              alias: String,
+                              ip4: String,
+                              ip6: String,
+                              port: u32,
+                              contract_status: u32,
+                              participant_id: String|
+     -> Result<ParticipantStatus> {
+        let p = Participant {
+            participant_guid: participant_id,
+            alias,
+            ip4_address: ip4,
+            ip6_address: ip6,
+            database_port_number: port,
+            token: Vec::new(),
+            internal_participant_guid: internal_participant_id,
+        };
+
+        let ps = ParticipantStatus {
+            participant: Some(p),
+            contract_status,
+        };
+
+        Ok(ps)
+    };
+
+    let participants = statement
+        .query_and_then([], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for p in participants {
+        result.push(p.unwrap());
+    }
+
+    return result;
 }
 
 pub fn get_participants_for_table(

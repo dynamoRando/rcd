@@ -10,9 +10,9 @@ use rcdproto::rcdp::{
     CreateUserDatabaseReply, CreateUserDatabaseRequest, DatabaseSchema,
     EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetPendingActionsReply,
-    GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
-    HasTableRequest, PendingStatement,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply,
+    GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
+    GetReadRowIdsRequest, HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement,
 };
 
 use super::Rcd;
@@ -302,6 +302,26 @@ pub async fn change_updates_from_host_behavior(
     };
 
     return reply;
+}
+
+pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> GetParticipantsReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let mut participants_result: Vec<ParticipantStatus> = Vec::new();
+
+    if auth_result.0 {
+        let participants = core
+            .dbi()
+            .get_participants_for_database(&request.database_name);
+        participants_result = participants;
+    }
+
+    let result = GetParticipantsReply {
+        authentication_result: Some(auth_result.1),
+        participants: participants_result,
+    };
+
+    return result;
 }
 
 pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatabasesReply {

@@ -27,3 +27,7 @@ pub fn url_generate_contract() -> &'static str {
 pub fn url_add_participant() -> &'static str {
     return "/client/databases/participant/add/"
 }
+
+pub fn url_get_participants() -> &'static str { 
+    return "/client/databases/participant/get/"
+}
