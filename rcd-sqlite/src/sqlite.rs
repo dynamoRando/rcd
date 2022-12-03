@@ -346,13 +346,13 @@ pub fn execute_read_at_host(
     config: DbiConfigSqlite,
 ) -> rusqlite::Result<Table> {
     let conn = get_db_conn(&config, db_name);
-    let mut statement = conn.prepare(cmd).unwrap();
+    let mut statement = conn.prepare(cmd)?;
     let total_columns = statement.column_count();
     let cols = statement.columns();
     let mut table = Table::new();
 
     for col in cols {
-        let col_idx = statement.column_index(col.name()).unwrap();
+        let col_idx = statement.column_index(col.name())?;
 
         let c = Column {
             name: col.name().to_string(),
@@ -441,13 +441,20 @@ pub fn execute_write_on_connection_at_host(
     db_name: &str,
     cmd: &str,
     config: &DbiConfigSqlite,
-) -> usize {
+) -> Result<usize, String> {
     let conn = get_db_conn(&config, db_name);
 
     // println!("{:?}", conn);
     // println!("{:?}", cmd);
 
-    return conn.execute(&cmd, []).unwrap();
+    let result = conn.execute(&cmd, []);
+
+    if result.is_ok() {
+        return Ok(result.unwrap());
+    } else {
+        let err = result.expect_err("No error");
+        return Err(err.to_string());
+    }
 }
 
 pub fn execute_write_on_connection_at_participant(

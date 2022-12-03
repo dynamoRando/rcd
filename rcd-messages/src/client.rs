@@ -314,6 +314,8 @@ pub struct ExecuteWriteReply {
     pub is_successful: bool,
 
     pub total_rows_affected: u32,
+    
+    pub error_message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HasTableRequest {

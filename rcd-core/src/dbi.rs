@@ -946,7 +946,7 @@ impl Dbi {
         }
     }
 
-    pub fn execute_write_at_host(self: &Self, db_name: &str, cmd: &str) -> usize {
+    pub fn execute_write_at_host(self: &Self, db_name: &str, cmd: &str) -> Result<usize, String> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

@@ -91,10 +91,17 @@ pub fn handle_sql_read_result(
     let read_reply: ExecuteReadReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if read_reply.authentication_result.unwrap().is_authenticated {
-        let rows = read_reply.results.first().unwrap().rows.clone();
-
-        let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
-        app.state.conn_ui.sql_text_result = sql_table_text;
+        let result = read_reply.results.first().unwrap();
+        if !result.is_error {
+            let rows = result.clone().rows;
+            let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
+            app.state.conn_ui.sql_text_result = sql_table_text;
+        } else {
+            let mut message = String::new();
+            message = message + &"ERROR: ";
+            message = message + &result.execution_error_message.clone();
+            app.state.conn_ui.sql_text_result = message;
+        }
     }
 }
 
@@ -121,6 +128,9 @@ pub fn handle_sql_write_result(
                 "Total rows affected: {}",
                 write_reply.total_rows_affected.to_string()
             );
+        result_message = result_message + &"\n";
+        result_message =
+            result_message + &format!("Error Message: {}", write_reply.error_message.clone());
 
         let sql_table_text = result_message.clone();
         app.state.conn_ui.sql_text_result = sql_table_text;

@@ -390,6 +390,8 @@ pub struct ExecuteWriteReply {
     pub is_successful: bool,
     #[prost(uint32, tag="3")]
     pub total_rows_affected: u32,
+    #[prost(string, tag="4")]
+    pub error_message: ::prost::alloc::string::String,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]

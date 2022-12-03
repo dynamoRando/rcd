@@ -271,6 +271,7 @@ message ExecuteWriteReply {
 	AuthResult authenticationResult = 1;
 	bool isSuccessful = 2;
 	uint32 totalRowsAffected = 3;
+	string errorMessage = 4;
 }
 
 message HasTableRequest{

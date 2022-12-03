@@ -269,6 +269,7 @@ pub async fn execute_write_at_participant(
         authentication_result: Some(auth_result.1),
         is_successful: is_overall_successful,
         total_rows_affected: rows_affected,
+        error_message: "".to_string(),
     };
 
     return execute_write_reply;
@@ -279,18 +280,28 @@ pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> 
     let auth_result = core.verify_login(request.authentication.unwrap());
     let db_name = request.database_name;
     let statement = request.sql_statement;
+    let mut is_sql_successful: bool = false;
+    let mut error_message = String::new();
 
     if auth_result.0 {
         // println!("{:?}", &statement);
-        rows_affected = core.dbi().execute_write_at_host(&db_name, &statement) as u32;
+        let sql_result = core.dbi().execute_write_at_host(&db_name, &statement);
+        if sql_result.is_ok() {
+            rows_affected = sql_result.unwrap() as u32;
+            is_sql_successful = true;
+        } else {
+            is_sql_successful = false;
+            error_message = sql_result.err().unwrap();
+        }
     } else {
         println!("WARNING: execute_write_at_host not authenticated!");
     }
 
     let execute_write_reply = ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
-        is_successful: true,
+        is_successful: is_sql_successful,
         total_rows_affected: rows_affected,
+        error_message,
     };
 
     return execute_write_reply;
