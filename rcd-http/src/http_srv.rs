@@ -3,7 +3,7 @@ use log::info;
 use rcd_core::rcd::Rcd;
 use rocket::fairing::Kind;
 use rocket::http::Header;
-use rocket::{Shutdown, Config};
+use rocket::{Shutdown};
 use rocket::{
     fairing::{Fairing, Info},
     get,
