@@ -1,18 +1,23 @@
-use crate::{AppMessage, ContractIntent, RcdAdminApp};
-use web_sys::HtmlSelectElement;
+use crate::{AppMessage, ContractIntent, RcdAdminApp, TableIntent};
+use web_sys::{console, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
 
 pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let is_visible = !app.state.page_ui.contract_is_visible;
-    let text = app.state.conn_ui.sql.current_contract.contract_markdown.clone();
+    let text = app
+        .state
+        .conn_ui
+        .sql
+        .current_contract
+        .contract_markdown
+        .clone();
 
     let mut db_names: Vec<String> = Vec::new();
 
     for db in &app.state.conn_ui.conn.databases {
         db_names.push(db.database_name.clone());
     }
-
 
     html!(
       <div hidden={is_visible}>
@@ -45,7 +50,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           <p>
           <label for="gen_contract_db">{ "Select Database " }</label>
           <select name="gen_contract_db" id="gen_contract_db"
-  
+
           onchange={link.batch_callback(|e: Event| {
               if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                   // console::log_1(&"some onchange".into());
@@ -68,12 +73,12 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           </p>
           <label for="gen_contract_hostname">{ "Host Name" }</label>
           <p>
-          <textarea rows="2" cols="60"  id ="gen_contract_hostname" placeholder="Name you wish to identify to participants" 
+          <textarea rows="2" cols="60"  id ="gen_contract_hostname" placeholder="Name you wish to identify to participants"
           ref={&app.state.conn_ui.sql.current_contract.contract_gen_ui.host_name_ui}/>
           </p>
           <label for="gen_contract_desc">{ "Description" }</label>
           <p>
-          <textarea rows="5" cols="60"  id ="gen_contract_desc" placeholder="A bried description of the purpose of this database" 
+          <textarea rows="5" cols="60"  id ="gen_contract_desc" placeholder="A bried description of the purpose of this database"
           ref={&app.state.conn_ui.sql.current_contract.contract_gen_ui.contract_desc_ui}/>
           </p>
           <p>
@@ -87,7 +92,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           </select>
           </p>
           </p>
-          <p>{"Explanation: The Remote Delete Behavior determines how reference rows in the host database will be updated. 
+          <p>{"Explanation: The Remote Delete Behavior determines how reference rows in the host database will be updated.
           The options are: "}
           <ul>
             <li>{"Ignore: If the participant has deleted the row, the host will take no action."}</li>
@@ -96,8 +101,32 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           </ul>
           {"Note that a reference row in the host database, while having it's target marked as deleted, can itself be deleted at any time."}
           </p>
+          <input type="button" id="generate_new_contract" value="Generate Contract" onclick={link.callback(move |_|
+            {
+                console::log_1(&"generate_new_contract".into());
+
+                let intent = ContractIntent::GenerateContract;
+                AppMessage::HandleContract(intent)
+            })}/>
           </div>
     )
+}
+
+pub fn handle_contract_intent(app: &RcdAdminApp, intent: ContractIntent) {
+    match intent {
+        ContractIntent::Unknown => todo!(),
+        ContractIntent::GetPending => todo!(),
+        ContractIntent::GetAccepted => todo!(),
+        ContractIntent::GetRejected => todo!(),
+        ContractIntent::AcceptContract(_) => todo!(),
+        ContractIntent::GenerateContract => todo!(),
+        ContractIntent::SendContractToParticipant(_) => todo!(),
+        ContractIntent::RejectContract(_) => todo!(),
+    }
+}
+
+pub fn handle_contract_response(app: &RcdAdminApp, json_response: String){
+    todo!()
 }
 
 #[allow(dead_code)]
@@ -107,6 +136,7 @@ fn remote_delete_behavior_status_to_text(behavior: u32) -> String {
         1 => "Ignore".to_string(),
         2 => "AutoDelete".to_string(),
         3 => "UpdateStatusOnly".to_string(),
-        _ => "Unknown".to_string()
+        _ => "Unknown".to_string(),
     }
 }
+

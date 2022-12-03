@@ -5,6 +5,7 @@ use rocket::{get, http::Status, post, serde::json::Json};
 
 pub mod database;
 pub mod sql;
+pub mod host;
 
 #[get("/client/status")]
 pub async fn status() -> &'static str {

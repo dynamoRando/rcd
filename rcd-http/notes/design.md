@@ -11,28 +11,51 @@ This is not final, this is just brainstorming.
 - /client/status
 - /client/version
     - POST: `is_online`
-- /client/databases/
+
+## Databases 
+- [X] /client/databases/
     - POST: `get_databases` (this really should be a GET)
-- /client/databases/new/
+- [X] /client/databases/new/
     - POST: `create_user_database`
-- /client/databases/contract/
+- [X] /client/databases/contract/generate/
     - POST: `generate_contract`
-- /client/databases/participant/
+- [X] /client/databases/participant/add/
     - POST: `add_participant`
-- /client/databases/participant/cooperative/
+- [X] /client/databases/participant/send-contract/
     - POST: `send_participant_contract`
-- /client/databases/table/
+- [ ] /client/databases/table/
     - POST: `has_table`
-- /client/databases/table/policy/
+- [X] /client/databases/table/policy/get/
     - POST: `get_logical_storage_policy`
+- [X] /client/databases/table/policy/set/
     - POST: `set_logical_storage_policy`
-- /client/sql/host/read/
+
+## SQL 
+- [X] /client/sql/host/read/
     - POST: `execute_read_at_host`
-- /client/sql/host/write/
+- [X] /client/sql/host/write/
     - POST: `execute_write_at_host`
-- /client/sql/host/write/cooperative/
+- [ ] /client/sql/host/write/cooperative/
     - POST: `execute_cooperative_write_at_host`
-- /client/sql/participant/read/
+- [ ] /client/sql/participant/read/
     - POST: `execute_read_at_participant`
-- /client/sql/participant/write/
+- [ ] /client/sql/participant/write/
     - POST: `execute_write_at_participant`
+
+## Host 
+- [X] /client/host/generate
+    - POST: `generate_host_info`
+- /client/host/status
+    - POST: `change_host_status`    
+
+## Contract
+- [X] /client/contract/generate/
+    - POST: `generate_contract`
+- [ ] /client/contract/send/
+    - POST: `send_participant_contract`
+- [ ] /client/contract/pending/
+    - POST: `review_pending_contracts`
+- [ ] /client/contract/accept/
+    - POST: `accept_pending_contract`
+- [ ] /client/contract/reject/
+    - POST: `reject_pending_contract`

@@ -54,11 +54,16 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::status,
                 client::version,
                 shutdown,
+                client::host::generate_host_info,
+                client::database::new_database,
                 client::database::post_get_databases,
                 client::database::get_logical_storage_policy,
                 client::database::set_logical_storage_policy,
-                client::sql::post_read_at_host,
-                client::sql::post_write_at_host,
+                client::database::participant::add_participant,
+                client::database::participant::send_contract_to_participant,
+                client::database::generate_contract,
+                client::sql::read_at_host,
+                client::sql::write_at_host,
             ],
         )
         .launch()

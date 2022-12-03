@@ -69,6 +69,7 @@ pub enum AppMessage {
     SQLWriteResult(AttrValue),
     SetExecuteSQLDatabase(String),
     HandleContract(ContractIntent),
+    HandleContractResponse(AttrValue),
     HandleTablePolicy(TableIntent),
     HandleTablePolicyResponse(AttrValue),
     HandleTablePolicyUpdateResponse(AttrValue),
@@ -281,7 +282,7 @@ impl Component for RcdAdminApp {
                 sql::handle_sql_read_result(self, ctx, json_response)
             }
             AppMessage::SetExecuteSQLDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
-            AppMessage::HandleContract(_) => todo!(),
+            AppMessage::HandleContract(intent) => contract::handle_contract_intent(self, intent),
             AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
                 policy::handle_table_response(json_response, self)
@@ -292,6 +293,9 @@ impl Component for RcdAdminApp {
             AppMessage::HandleToggleVisiblity(ui) => handle_ui_visibility(ui, self),
             AppMessage::SQLWriteResult(json_response) => {
                 sql::handle_sql_write_result(self, ctx, json_response)
+            }
+            AppMessage::HandleContractResponse(json_response) => {
+                contract::handle_contract_response(self, json_response.to_string())
             },
         }
         true
@@ -307,28 +311,26 @@ fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
         UiVisibility::Connection(is_visible) => {
             app.state.page_ui.conn_is_visible = is_visible;
         }
-        UiVisibility::SQL(is_visible) => 
-        {
+        UiVisibility::SQL(is_visible) => {
             app.state.page_ui.sql_is_visible = is_visible;
-        },
+        }
         UiVisibility::Databases(is_visible) => {
             app.state.page_ui.databases_is_visible = is_visible;
-        },
-        UiVisibility::Contract(is_visible) => 
-        {
+        }
+        UiVisibility::Contract(is_visible) => {
             app.state.page_ui.contract_is_visible = is_visible;
-        },
+        }
         UiVisibility::Host(is_visible) => {
             app.state.page_ui.host_is_visible = is_visible;
-        },
+        }
         UiVisibility::Participant(is_visible) => {
             app.state.page_ui.participants_is_visible = is_visible;
-        },
+        }
         UiVisibility::Behaviors(is_visible) => {
             app.state.page_ui.behaviors_is_visible = is_visible;
-        },
+        }
         UiVisibility::CoopHosts(is_visible) => {
             app.state.page_ui.coop_hosts_is_visible = is_visible;
-        },
+        }
     }
 }

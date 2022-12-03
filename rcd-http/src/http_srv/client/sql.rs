@@ -9,7 +9,7 @@ use rocket::{http::Status, post, serde::json::Json};
     format = "application/json",
     data = "<request>"
 )]
-pub async fn post_read_at_host(
+pub async fn read_at_host(
     request: Json<ExecuteReadRequest>,
 ) -> (Status, Json<ExecuteReadReply>) {
     // note: this doesn't make sense for HTTP
@@ -27,7 +27,7 @@ pub async fn post_read_at_host(
     format = "application/json",
     data = "<request>"
 )]
-pub async fn post_write_at_host(
+pub async fn write_at_host(
     request: Json<ExecuteWriteRequest>,
 ) -> (Status, Json<ExecuteWriteReply>) {
     // note: this doesn't make sense for HTTP
