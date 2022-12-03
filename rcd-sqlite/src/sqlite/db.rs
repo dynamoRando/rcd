@@ -391,6 +391,91 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
 
         // println!("db_schema: {:?}", db_schema);
 
+        // get all remaining tables that don't have a policy defined, because we may want to set them
+        let table_names = get_all_user_table_names_in_db(conn);
+
+        let mut existing_tables: Vec<String> = Vec::new();
+        for t in &tables_in_db {
+            existing_tables.push(t.1.clone());
+        }
+
+        for table_name in &table_names {
+            if !existing_tables.contains(table_name) {
+                let mut ts = TableSchema {
+                    table_name: table_name.clone(),
+                    table_id: String::from(""),
+                    database_id: String::from(""),
+                    database_name: db_name.to_string(),
+                    columns: Vec::new(),
+                    logical_storage_policy: LogicalStoragePolicy::to_u32(
+                        LogicalStoragePolicy::None,
+                    ),
+                };
+
+                let schema = get_schema_of_table(table_name.clone().to_string(), conn);
+
+                // # Columns:
+                // 1. columnId
+                // 2. name
+                // 3. type
+                // 4. NotNull
+                // 5. defaultValue
+                // 6. IsPK
+
+                // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
+
+                for row in schema.unwrap().rows {
+                    let mut cs = ColumnSchema {
+                        column_id: String::from(""),
+                        column_name: String::from(""),
+                        column_type: 0,
+                        column_length: 0,
+                        is_nullable: false,
+                        ordinal: 0,
+                        table_id: String::from(""),
+                        is_primary_key: false,
+                    };
+
+                    for val in row.vals {
+                        println!("{:?}", val);
+
+                        if val.col.name == "columnId" {
+                            let item = val.data.clone().unwrap();
+                            cs.ordinal = item.data_string.parse().unwrap();
+                        }
+
+                        if val.col.name == "name" {
+                            let item = val.data.clone().unwrap();
+                            cs.column_name = item.data_string.parse().unwrap();
+                        }
+
+                        if val.col.name == "type" {
+                            let item = val.data.clone().unwrap();
+                            let ct = ColumnType::data_type_to_enum_u32(item.data_string.clone());
+                            let len = ColumnType::data_type_len(item.data_string.clone());
+
+                            cs.column_type = ct;
+                            cs.column_length = len;
+                        }
+
+                        if val.col.name == "NotNull" {
+                            let item = val.data.clone().unwrap();
+                            cs.is_nullable = item.data_string.parse().unwrap();
+                        }
+
+                        if val.col.name == "IsPK" {
+                            let item = val.data.clone().unwrap();
+                            cs.is_primary_key = item.data_string.parse().unwrap();
+                        }
+                    }
+
+                    ts.columns.push(cs);
+                }
+
+                db_schema.tables.push(ts);
+            }
+        }
+
         return db_schema;
     }
 

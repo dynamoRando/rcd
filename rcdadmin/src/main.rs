@@ -16,6 +16,7 @@ mod rcd_ui;
 mod request;
 mod sql;
 mod ui;
+mod urls;
 
 #[derive(Debug, Copy, Clone)]
 pub enum UiVisibility {
@@ -64,7 +65,8 @@ pub enum AppMessage {
     GetTablesForDatabase(String),
     GetColumnsForTable(String, String),
     ExecuteSQL(ExecuteSQLIntent),
-    SQLResult(AttrValue),
+    SQLReadResult(AttrValue),
+    SQLWriteResult(AttrValue),
     SetExecuteSQLDatabase(String),
     HandleContract(ContractIntent),
     HandleTablePolicy(TableIntent),
@@ -275,8 +277,8 @@ impl Component for RcdAdminApp {
                 db::handle_get_columns_for_table(self, db_name, table_name, ctx)
             }
             AppMessage::ExecuteSQL(intent) => sql::handle_execute_sql(self, ctx, intent),
-            AppMessage::SQLResult(json_response) => {
-                sql::handle_sql_result(self, ctx, json_response)
+            AppMessage::SQLReadResult(json_response) => {
+                sql::handle_sql_read_result(self, ctx, json_response)
             }
             AppMessage::SetExecuteSQLDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
             AppMessage::HandleContract(_) => todo!(),
@@ -288,6 +290,9 @@ impl Component for RcdAdminApp {
                 policy::handle_table_update_response(json_response, self)
             }
             AppMessage::HandleToggleVisiblity(ui) => handle_ui_visibility(ui, self),
+            AppMessage::SQLWriteResult(json_response) => {
+                sql::handle_sql_write_result(self, ctx, json_response)
+            },
         }
         true
     }
