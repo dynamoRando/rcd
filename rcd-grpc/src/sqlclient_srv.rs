@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_active_contract(
+        &self,
+        request: Request<GetActiveContractRequest>,
+    ) -> Result<Response<GetActiveContractReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = self.core().get_active_contact(request.into_inner()).await;
+        Ok(Response::new(result))
+    }
+
     async fn get_participants(
         &self,
         request: Request<GetParticipantsRequest>,

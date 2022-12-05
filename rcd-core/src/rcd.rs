@@ -28,7 +28,7 @@ use rcdproto::rcdp::{
     GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
     SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
     SetLogicalStoragePolicyRequest, TestReply, TestRequest, TryAuthAtParticipantRequest,
-    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest, GetParticipantsRequest, GetParticipantsReply,
+    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest, GetParticipantsRequest, GetParticipantsReply, GetActiveContractRequest, GetActiveContractReply,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -213,6 +213,10 @@ impl Rcd {
 
     pub async fn get_participants(&self, request: GetParticipantsRequest) -> GetParticipantsReply {
         return db::get_participants(self, request).await;
+    }
+
+    pub async fn get_active_contact(&self, request: GetActiveContractRequest) -> GetActiveContractReply {
+        return db::get_active_contract(self, request).await;
     }
 
     pub async fn read_row_id_at_participant(

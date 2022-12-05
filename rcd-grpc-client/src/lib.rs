@@ -6,11 +6,11 @@ use rcdproto::rcdp::{
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorRequest, Contract,
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest,
     ExecuteReadRequest, ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyRequest,
-    GetParticipantsReply, GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest,
-    GetReadRowIdsRequest, HasTableRequest, SendParticipantContractRequest,
-    SetLogicalStoragePolicyRequest, StatementResultset, TestRequest, TryAuthAtParticipantRequest,
-    ViewPendingContractsRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDataHashRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetLogicalStoragePolicyRequest, GetParticipantsReply,
+    GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest,
+    HasTableRequest, SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
+    StatementResultset, TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -68,6 +68,29 @@ impl RcdClient {
         let result = client.is_online(request).await.unwrap();
 
         return result.into_inner().reply_echo_message == test_string;
+    }
+
+    pub async fn get_active_contract(
+        self: &Self,
+        db_name: &str,
+    ) -> Result<GetActiveContractReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+        info!("sending request");
+
+        let mut client = self.get_client().await;
+
+        let request = GetActiveContractRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+        };
+
+        let response = client
+            .get_active_contract(request)
+            .await
+            .unwrap()
+            .into_inner();
+
+        Ok(response)
     }
 
     pub async fn accept_pending_action_at_participant(

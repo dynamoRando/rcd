@@ -31,3 +31,7 @@ pub fn url_add_participant() -> &'static str {
 pub fn url_get_participants() -> &'static str { 
     return "/client/databases/participant/get/"
 }
+
+pub fn url_get_active_contract() -> &'static str {
+    return "/client/databases/contract/get/"
+}

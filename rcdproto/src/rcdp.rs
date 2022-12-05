@@ -1,5 +1,21 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetActiveContractRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetActiveContractReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(message, optional, tag="2")]
+    pub contract: ::core::option::Option<Contract>,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetParticipantsRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -1889,6 +1905,25 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn get_active_contract(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetActiveContractRequest>,
+        ) -> Result<tonic::Response<super::GetActiveContractReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetActiveContract",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -2356,6 +2391,10 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GetParticipantsRequest>,
         ) -> Result<tonic::Response<super::GetParticipantsReply>, tonic::Status>;
+        async fn get_active_contract(
+            &self,
+            request: tonic::Request<super::GetActiveContractRequest>,
+        ) -> Result<tonic::Response<super::GetActiveContractReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -3751,6 +3790,46 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetParticipantsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetActiveContract" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetActiveContractSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetActiveContractRequest>
+                    for GetActiveContractSvc<T> {
+                        type Response = super::GetActiveContractReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetActiveContractRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_active_contract(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetActiveContractSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

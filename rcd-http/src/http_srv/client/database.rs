@@ -1,8 +1,9 @@
 use super::get_core;
 use rcdproto::rcdp::{
-    GenerateContractReply, GenerateContractRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
-    GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, CreateUserDatabaseRequest, CreateUserDatabaseReply,
+    CreateUserDatabaseReply, CreateUserDatabaseRequest, GenerateContractReply,
+    GenerateContractRequest, GetActiveContractReply, GetActiveContractRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
 use rocket::{http::Status, post, serde::json::Json};
 
@@ -65,7 +66,6 @@ pub async fn generate_contract(
     (Status::Ok, Json(result))
 }
 
-
 #[post(
     "/client/databases/new",
     format = "application/json",
@@ -75,6 +75,19 @@ pub async fn new_database(
     request: Json<CreateUserDatabaseRequest>,
 ) -> (Status, Json<CreateUserDatabaseReply>) {
     let result = get_core().create_user_database(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/contract/get",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn get_active_contact(
+    request: Json<GetActiveContractRequest>,
+) -> (Status, Json<GetActiveContractReply>) {
+    let result = get_core().get_active_contact(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }

@@ -50,6 +50,7 @@ pub enum ContractIntent {
     GenerateContract,
     SendContractToParticipant(String),
     RejectContract(String),
+    ViewCurrentContract,
 }
 
 pub enum TableIntent {
@@ -72,6 +73,7 @@ pub enum AppMessage {
     SetRemoteDeleteBehavior(u32),
     HandleContract(ContractIntent),
     HandleContractResponse(AttrValue),
+    HandleGetActiveContractResponse(AttrValue),
     HandleTablePolicy(TableIntent),
     HandleTablePolicyResponse(AttrValue),
     HandleTablePolicyUpdateResponse(AttrValue),
@@ -79,7 +81,7 @@ pub enum AppMessage {
     HandleAddParticipant,
     HandleAddParticipantResponse(AttrValue),
     HandleViewParticipants,
-    HandleViewParticipantsResponse(AttrValue)
+    HandleViewParticipantsResponse(AttrValue),
 }
 
 struct ApplicationState {
@@ -189,6 +191,8 @@ impl Component for RcdAdminApp {
             pending_contracts: Vec::new(),
             accepted_contracts: Vec::new(),
             contract_gen_ui: con_gen,
+            contract_detail_db_ui: NodeRef::default(),
+            active_contract_markdown: "".to_string(),
         };
 
         let input_output = RcdInputOutputUi {
@@ -328,12 +332,13 @@ impl Component for RcdAdminApp {
             AppMessage::HandleAddParticipantResponse(json_response) => {
                 participant::handle_add_participant_response(self, ctx, json_response)
             }
-            AppMessage::HandleViewParticipants => {
-                participant::handle_view_participants(self, ctx)
-            },
+            AppMessage::HandleViewParticipants => participant::handle_view_participants(self, ctx),
             AppMessage::HandleViewParticipantsResponse(json_response) => {
                 participant::handle_view_participant_response(self, ctx, json_response)
-            },
+            }
+            AppMessage::HandleGetActiveContractResponse(json_response) => {
+                contract::handle_view_active_contract(self, json_response.to_string())
+            }
         }
         true
     }

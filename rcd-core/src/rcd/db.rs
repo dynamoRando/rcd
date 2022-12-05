@@ -9,10 +9,11 @@ use rcdproto::rcdp::{
     ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
     CreateUserDatabaseReply, CreateUserDatabaseRequest, DatabaseSchema,
     EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
-    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply,
-    GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
-    GetReadRowIdsRequest, HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement,
+    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply, GetParticipantsRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
+    HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement,
 };
 
 use super::Rcd;
@@ -302,6 +303,27 @@ pub async fn change_updates_from_host_behavior(
     };
 
     return reply;
+}
+
+pub async fn get_active_contract(
+    core: &Rcd,
+    request: GetActiveContractRequest,
+) -> GetActiveContractReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    if auth_result.0 {
+        let contract = core.dbi().get_active_contract_proto(&request.database_name);
+
+        return GetActiveContractReply {
+            authentication_result: Some(auth_result.1),
+            contract: Some(contract),
+        };
+    }
+
+    return GetActiveContractReply {
+        authentication_result: Some(auth_result.1),
+        contract: None,
+    };
 }
 
 pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> GetParticipantsReply {

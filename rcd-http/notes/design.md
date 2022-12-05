@@ -19,6 +19,8 @@ This is not final, this is just brainstorming.
     - POST: `create_user_database`
 - [X] /client/databases/contract/generate/
     - POST: `generate_contract`
+- [X] /client/databases/contract/get/
+    - POST: `get_active_contract`    
 - [X] /client/databases/participant/get/
     - POST: `get_participants`    
 - [X] /client/databases/participant/add/

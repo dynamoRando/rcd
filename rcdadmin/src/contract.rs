@@ -1,6 +1,7 @@
-use crate::urls::url_generate_contract;
+use crate::urls::{url_generate_contract, url_get_active_contract};
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
-use rcd_messages::client::{GenerateContractReply, GenerateContractRequest};
+use rcd_messages::client::{GenerateContractReply, GenerateContractRequest, GetActiveContractRequest, GetActiveContractReply};
+use rcd_messages::formatter;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
@@ -13,6 +14,14 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         .sql
         .current_contract
         .contract_markdown
+        .clone();
+
+    let active_contract = app
+        .state
+        .conn_ui
+        .sql
+        .current_contract
+        .active_contract_markdown
         .clone();
 
     let mut db_names: Vec<String> = Vec::new();
@@ -73,7 +82,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           >
           <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
           {
-              db_names.into_iter().map(|name| {
+              db_names.clone().into_iter().map(|name| {
                   // console::log_1(&name.clone().into());
                   html!{
                   <option value={name.clone()}>{name.clone()}</option>}
@@ -130,6 +139,41 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                 AppMessage::HandleContract(intent)
             })}/>
             <p><label for="last_gen_result">{ "Last Gen Result: "}</label>{last_gen_result.to_string()}</p>
+            <h2>{ "View Active Contract" }</h2>
+            <p>
+          <label for="gen_contract_db">{ "Select Database " }</label>
+          <select name="gen_contract_db" id="gen_contract_db"
+
+          onchange={link.batch_callback(|e: Event| {
+              if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                  // console::log_1(&"some onchange".into());
+                  Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+              } else {
+                  // console::log_1(&"none onchange".into());
+                  None
+              }
+          })}
+          >
+          <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
+          {
+              db_names.clone().into_iter().map(|name| {
+                  // console::log_1(&name.clone().into());
+                  html!{
+                  <option value={name.clone()}>{name.clone()}</option>}
+              }).collect::<Html>()
+          }
+          </select>
+          <input type="button" id="view_active_contract_for_db" value="View Active Contract" onclick={link.callback(move |_|
+            {
+                console::log_1(&"view_active_contract".into());
+                let intent = ContractIntent::ViewCurrentContract;
+                AppMessage::HandleContract(intent)
+            })}/>
+          </p>
+          <p>
+          <textarea rows="5" cols="60" id="current_contract_details" placeholder="Active Contract Details Will Be Here As Markdown Table"
+          ref={&app.state.conn_ui.sql.current_contract.contract_detail_db_ui} value={active_contract}/>
+          </p>
           </div>
     )
 }
@@ -196,6 +240,23 @@ pub fn handle_contract_intent(
         }
         ContractIntent::SendContractToParticipant(_) => todo!(),
         ContractIntent::RejectContract(_) => todo!(),
+        ContractIntent::ViewCurrentContract => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), url_get_active_contract());
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+
+            let request = GetActiveContractRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let callback = link.callback(AppMessage::HandleGetActiveContractResponse);
+
+            request::get_data(url, request_json, callback);
+        },
     }
 }
 
@@ -216,6 +277,16 @@ pub fn handle_contract_response(app: &mut RcdAdminApp, json_response: String) {
             .current_contract
             .contract_gen_ui
             .last_gen_result = reply.is_successful;
+    }
+}
+
+pub fn handle_view_active_contract(app: &mut RcdAdminApp, json_response: String) {
+    console::log_1(&json_response.to_string().clone().into());
+    let reply: GetActiveContractReply = serde_json::from_str(&&json_response.to_string()).unwrap();
+
+    if reply.authentication_result.unwrap().is_authenticated {
+        let contract_markdown = formatter::markdown::contract::contract_to_markdown_table(&reply.contract.unwrap());
+        app.state.conn_ui.sql.current_contract.active_contract_markdown = contract_markdown;
     }
 }
 

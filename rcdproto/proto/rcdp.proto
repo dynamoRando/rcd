@@ -37,6 +37,17 @@ service SQLClient {
 	// admin calls
 	rpc GetDatabases (GetDatabasesRequest) returns (GetDatabasesReply);
 	rpc GetParticipants(GetParticipantsRequest) returns (GetParticipantsReply);
+	rpc GetActiveContract(GetActiveContractRequest) returns (GetActiveContractReply);
+}
+
+message GetActiveContractRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;	
+}
+
+message GetActiveContractReply {
+	AuthResult authenticationResult = 1;
+	Contract contract = 2;	
 }
 
 message GetParticipantsRequest {

@@ -4,9 +4,9 @@ use rcd_common::{
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
     rcd_enum::{
-        DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
-        RcdDatabaseType, RcdDbError, RcdGenerateContractError, RemoteDeleteBehavior,
-        UpdatesFromHostBehavior, UpdatesToHostBehavior,
+        ContractStatus, DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior,
+        LogicalStoragePolicy, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
+        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
     table::Table,
 };
@@ -1034,6 +1034,20 @@ impl Dbi {
             DatabaseType::Postgres => unimplemented!(),
             DatabaseType::Sqlserver => unimplemented!(),
         }
+    }
+
+    pub fn get_active_contract_proto(self: &Self, db_name: &str) -> Contract {
+        let active_contract = self.get_active_contract(&db_name);
+        let db_schema = self.get_database_schema(&db_name);
+        let host_info = self.rcd_get_host_info();
+        return active_contract.to_cdata_contract(
+            &host_info,
+            "",
+            "",
+            0,
+            ContractStatus::Unknown,
+            db_schema,
+        );
     }
 
     pub fn get_participants_for_database(self: &Self, db_name: &str) -> Vec<ParticipantStatus> {

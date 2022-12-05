@@ -17,6 +17,8 @@ mod has_table;
 mod host_only;
 #[path = "client_service_tests/is_online.rs"]
 mod is_online;
+#[path = "client_service_tests/get_active_contract.rs"]
+mod get_active_contract;
 
 #[test]
 fn get_harness_value() {

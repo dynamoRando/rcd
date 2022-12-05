@@ -3,7 +3,7 @@ use log::info;
 use rcd_core::rcd::Rcd;
 use rocket::fairing::Kind;
 use rocket::http::Header;
-use rocket::{Shutdown};
+use rocket::Shutdown;
 use rocket::{
     fairing::{Fairing, Info},
     get,
@@ -59,6 +59,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::database::post_get_databases,
                 client::database::get_logical_storage_policy,
                 client::database::set_logical_storage_policy,
+                client::database::get_active_contact,
                 client::database::participant::add_participant,
                 client::database::participant::send_contract_to_participant,
                 client::database::participant::get_participants,

@@ -75,10 +75,10 @@ pub fn generate_contract(
         // then generate a new contract
         let contracts = get_all_database_contracts(&conn);
         // println!("generate contract: retire contracts");
-        // println!(
-        //     "generate contract: retire contracts count: {}",
-        //     contracts.len().to_string()
-        //  );
+        println!(
+            "generate contract: retire contracts count: {}",
+            contracts.len().to_string()
+        );
         for con in contracts {
             if !con.is_retired() {
                 println!(
@@ -86,11 +86,11 @@ pub fn generate_contract(
                     &con.contract_id.to_string()
                 );
                 retire_contract(con.version_id, &conn);
-                println!(
-                    "generate contract: save retired contract {}",
-                    &con.contract_id.to_string()
-                );
-                save_contract_at_connection(con, conn);
+                // println!(
+                //     "generate contract: save retired contract {}",
+                //     &con.contract_id.to_string()
+                // );
+                // save_contract_at_connection(con, conn);
             }
         }
 

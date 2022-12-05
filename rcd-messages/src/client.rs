@@ -1,7 +1,17 @@
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct GetActiveContractRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]pub struct GetActiveContractReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub contract: ::core::option::Option<Contract>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetParticipantsRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-    pub database_name: String
+    pub database_name: String,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -332,7 +342,7 @@ pub struct ExecuteWriteReply {
     pub is_successful: bool,
 
     pub total_rows_affected: u32,
-    
+
     pub error_message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
