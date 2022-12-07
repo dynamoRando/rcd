@@ -1,5 +1,5 @@
-use crate::urls::{url_generate_contract, url_get_active_contract, url_send_contract_to_participant};
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
+use rcd_http_common::url::{GENERATE_CONTRACT, SEND_CONTRACT_TO_PARTICIPANT, GET_ACTIVE_CONTRACT};
 use rcd_messages::client::{GenerateContractReply, GenerateContractRequest, GetActiveContractRequest, GetActiveContractReply, SendParticipantContractRequest, SendParticipantContractReply};
 use rcd_messages::formatter;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
@@ -191,7 +191,7 @@ pub fn handle_contract_intent(
         ContractIntent::AcceptContract(_) => todo!(),
         ContractIntent::GenerateContract => {
             let base_address = get_base_address(app);
-            let url = format!("{}{}", base_address.clone(), url_generate_contract());
+            let url = format!("{}{}", base_address.clone(), GENERATE_CONTRACT);
             let auth = get_auth_request(app);
             let db_name = &app.state.conn_ui.sql.selected_db_name;
 
@@ -240,7 +240,7 @@ pub fn handle_contract_intent(
         }
         ContractIntent::SendContractToParticipant => {
             let base_address = get_base_address(app);
-            let url = format!("{}{}", base_address.clone(), url_send_contract_to_participant());
+            let url = format!("{}{}", base_address.clone(), SEND_CONTRACT_TO_PARTICIPANT);
             let auth = get_auth_request(app);
             let db_name = &app.state.conn_ui.sql.selected_db_name;
             let participant_alias = app.state.conn_ui.send_participant_contract_ui.participant_alias.clone();
@@ -260,7 +260,7 @@ pub fn handle_contract_intent(
         ContractIntent::RejectContract(_) => todo!(),
         ContractIntent::ViewCurrentContract => {
             let base_address = get_base_address(app);
-            let url = format!("{}{}", base_address.clone(), url_get_active_contract());
+            let url = format!("{}{}", base_address.clone(), GET_ACTIVE_CONTRACT);
             let auth = get_auth_request(app);
             let db_name = &app.state.conn_ui.sql.selected_db_name;
 

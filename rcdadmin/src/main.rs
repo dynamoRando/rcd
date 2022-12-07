@@ -17,7 +17,6 @@ mod rcd_ui;
 mod request;
 mod sql;
 mod ui;
-mod urls;
 
 #[derive(Debug, Copy, Clone)]
 pub enum UiVisibility {

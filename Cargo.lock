@@ -2385,6 +2385,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-http-common"
+version = "0.1.0"
+
+[[package]]
 name = "rcd-messages"
 version = "0.1.0"
 dependencies = [
@@ -2458,6 +2462,7 @@ name = "rcdadmin"
 version = "0.1.0"
 dependencies = [
  "gloo",
+ "rcd-http-common",
  "rcd-messages",
  "reqwasm",
  "serde",

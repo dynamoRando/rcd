@@ -1,8 +1,8 @@
 use crate::{
     request,
-    urls::{url_read_sql_at_host, url_write_sql_at_host},
     AppMessage, ExecuteSQLIntent, RcdAdminApp, get_base_address, get_auth_request,
 };
+use rcd_http_common::url::{READ_SQL_AT_HOST, WRITE_SQL_AT_HOST};
 use rcd_messages::{
     client::{
         ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
@@ -22,7 +22,7 @@ pub fn handle_execute_sql(
         ExecuteSQLIntent::Unknown => todo!(),
         ExecuteSQLIntent::ReadAtHost => {
             let base_address = get_base_address(app);
-            let url = format!("{}{}", base_address.clone(), url_read_sql_at_host());
+            let url = format!("{}{}", base_address.clone(), READ_SQL_AT_HOST);
             let auth = get_auth_request(app);
             let db_name = &app.state.conn_ui.sql.selected_db_name;
 
@@ -51,7 +51,7 @@ pub fn handle_execute_sql(
         ExecuteSQLIntent::ReadAtPart => todo!(),
         ExecuteSQLIntent::WriteAtHost => {
             let base_address = get_base_address(app);
-            let url = format!("{}{}", base_address.clone(), url_write_sql_at_host());
+            let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_HOST);
             let auth = get_auth_request(app);
             let db_name = &app.state.conn_ui.sql.selected_db_name;
 

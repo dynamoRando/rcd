@@ -1,5 +1,5 @@
-use crate::urls::{url_add_participant, url_get_participants};
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
+use rcd_http_common::url::{ADD_PARTICIPANT, GET_PARTICIPANTS};
 use rcd_messages::client::{
     AddParticipantReply, AddParticipantRequest, GetParticipantsReply, GetParticipantsRequest,
 };
@@ -158,7 +158,7 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
 pub fn handle_add_participant(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
     let base_address = get_base_address(app);
-    let url = format!("{}{}", base_address.clone(), url_add_participant());
+    let url = format!("{}{}", base_address.clone(), ADD_PARTICIPANT);
     let auth = get_auth_request(app);
     let db_name = &app.state.conn_ui.sql.selected_db_name;
 
@@ -210,7 +210,7 @@ pub fn handle_add_participant_response(
 
 pub fn handle_view_participants(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
     let base_address = get_base_address(app);
-    let url = format!("{}{}", base_address.clone(), url_get_participants());
+    let url = format!("{}{}", base_address.clone(), GET_PARTICIPANTS);
     let auth = get_auth_request(app);
     let db_name = &app.state.conn_ui.sql.selected_db_name;
 

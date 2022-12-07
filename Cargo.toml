@@ -27,5 +27,7 @@ members = [
     "rcd-http",
     # lib - (may be deprecated) - pure rcd messages (same as `rcdproto`, but without dependency on `prost`)
     # used to try and interact with web assembly
-    "rcd-messages"
+    "rcd-messages",
+    # library for http urls
+    "rcd-http-common"
 ]
