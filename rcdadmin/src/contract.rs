@@ -1,6 +1,6 @@
-use crate::urls::{url_generate_contract, url_get_active_contract};
+use crate::urls::{url_generate_contract, url_get_active_contract, url_send_contract_to_participant};
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
-use rcd_messages::client::{GenerateContractReply, GenerateContractRequest, GetActiveContractRequest, GetActiveContractReply};
+use rcd_messages::client::{GenerateContractReply, GenerateContractRequest, GetActiveContractRequest, GetActiveContractReply, SendParticipantContractRequest, SendParticipantContractReply};
 use rcd_messages::formatter;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
@@ -179,7 +179,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 }
 
 pub fn handle_contract_intent(
-    app: &RcdAdminApp,
+    app: &mut RcdAdminApp,
     intent: ContractIntent,
     link: &Scope<RcdAdminApp>,
 ) {
@@ -238,7 +238,25 @@ pub fn handle_contract_intent(
 
             request::get_data(url, request_json, callback);
         }
-        ContractIntent::SendContractToParticipant(_) => todo!(),
+        ContractIntent::SendContractToParticipant => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), url_send_contract_to_participant());
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let participant_alias = app.state.conn_ui.send_participant_contract_ui.participant_alias.clone();
+
+            let request = SendParticipantContractRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+                participant_alias: participant_alias,
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let callback = link.callback(AppMessage::HandleContractSendToParticipant);
+
+            request::get_data(url, request_json, callback);
+        },
         ContractIntent::RejectContract(_) => todo!(),
         ContractIntent::ViewCurrentContract => {
             let base_address = get_base_address(app);
@@ -256,6 +274,9 @@ pub fn handle_contract_intent(
             let callback = link.callback(AppMessage::HandleGetActiveContractResponse);
 
             request::get_data(url, request_json, callback);
+        },
+        ContractIntent::SetParticipantForPendingContractSend(participant_alias) => {
+            app.state.conn_ui.send_participant_contract_ui.participant_alias = participant_alias.clone();
         },
     }
 }
@@ -287,6 +308,15 @@ pub fn handle_view_active_contract(app: &mut RcdAdminApp, json_response: String)
     if reply.authentication_result.unwrap().is_authenticated {
         let contract_markdown = formatter::markdown::contract::contract_to_markdown_table(&reply.contract.unwrap());
         app.state.conn_ui.sql.current_contract.active_contract_markdown = contract_markdown;
+    }
+}
+
+pub fn handle_send_contract_to_participant_response(app: &mut RcdAdminApp, json_response: String) { 
+    console::log_1(&json_response.to_string().clone().into());
+    let reply: SendParticipantContractReply = serde_json::from_str(&&json_response.to_string()).unwrap();
+
+    if reply.authentication_result.unwrap().is_authenticated {
+            app.state.conn_ui.send_participant_contract_ui.last_send_result = reply.is_sent;
     }
 }
 

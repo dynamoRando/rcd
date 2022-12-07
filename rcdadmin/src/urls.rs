@@ -4,6 +4,10 @@ pub fn url_read_sql_at_host() -> &'static str {
     return "/client/sql/host/read/"
 }
 
+pub fn url_send_contract_to_participant() -> &'static str {
+    return "/client/databases/participant/send-contract/"
+}
+
 
 #[allow(dead_code)]
 pub fn url_read_sql_at_participant() -> &'static str {

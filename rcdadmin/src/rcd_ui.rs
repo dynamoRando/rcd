@@ -42,6 +42,7 @@ pub struct RcdConnUi {
     pub sql_text_result: String,
     pub current_selected_table: NodeRef,
     pub add_participant_ui: RcdAddParticipantUi,
+    pub send_participant_contract_ui: RcdSendParticipantContractUi,
 }
 
 impl RcdConnUi {}
@@ -101,4 +102,9 @@ pub struct RcdAddParticipantUi {
     pub port_num_ui: NodeRef,
     pub last_add_result: bool,
     pub current_participants: Vec<ParticipantStatus>
+}
+
+pub struct RcdSendParticipantContractUi {
+    pub participant_alias: String,
+    pub last_send_result: bool,
 }

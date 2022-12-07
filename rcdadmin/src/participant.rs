@@ -1,5 +1,5 @@
 use crate::urls::{url_add_participant, url_get_participants};
-use crate::{get_auth_request, get_base_address, request, AppMessage, RcdAdminApp};
+use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
 use rcd_messages::client::{
     AddParticipantReply, AddParticipantRequest, GetParticipantsReply, GetParticipantsRequest,
 };
@@ -13,6 +13,8 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let mut db_names: Vec<String> = Vec::new();
 
     let last_add_result = app.state.conn_ui.add_participant_ui.last_add_result;
+
+    let last_send_result = app.state.conn_ui.send_participant_contract_ui.last_send_result;
 
     for db in &app.state.conn_ui.conn.databases {
         db_names.push(db.database_name.clone());
@@ -117,6 +119,39 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                 AppMessage::HandleViewParticipants
             })}/>
             <p><label for="last_add_result">{ "Last Add Participant Result: "}</label>{last_add_result.to_string()}</p>
+
+            <h3>{ "Send Contract To Participant" }</h3>
+            <p>
+            <label for="send_contract_to_participant">{ "Select Participant " }</label>
+          <select name="send_contract_to_participnat" id="send_contract_to_participant"
+
+          onchange={link.batch_callback(|e: Event| {
+              if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                  // console::log_1(&"some onchange".into());
+                  let intent = ContractIntent::SetParticipantForPendingContractSend(input.value());
+                  Some(AppMessage::HandleContract(intent))
+              } else {
+                  // console::log_1(&"none onchange".into());
+                  None
+              }
+          })}
+          >
+          <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
+          {
+              participants.clone().into_iter().map(|ps| {
+                let participant = ps.participant.unwrap();
+                  html!{
+                  <option value={participant.alias.clone()}>{participant.alias.clone()}</option>}
+              }).collect::<Html>()
+          }
+          </select>
+          <input type="button" id="send_contract_to_part" value="Send Contract" onclick={link.callback(|_|
+            {
+                let intent = ContractIntent::SendContractToParticipant;
+                AppMessage::HandleContract(intent)
+            })}/>
+            <p><label for="last_send_result">{ "Last Send Participant Contract Result: "}</label>{last_send_result.to_string()}</p>
+            </p>
           </div>
     )
 }

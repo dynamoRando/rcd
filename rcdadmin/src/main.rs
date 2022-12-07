@@ -1,7 +1,7 @@
 use rcd_messages::client::AuthRequest;
 use rcd_ui::{
     RcdAddParticipantUi, RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi,
-    RcdPageUi, RcdTablePolicy,
+    RcdPageUi, RcdTablePolicy, RcdSendParticipantContractUi,
 };
 use serde::Deserialize;
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
@@ -48,7 +48,8 @@ pub enum ContractIntent {
     GetRejected,
     AcceptContract(String),
     GenerateContract,
-    SendContractToParticipant(String),
+    SetParticipantForPendingContractSend(String),
+    SendContractToParticipant,
     RejectContract(String),
     ViewCurrentContract,
 }
@@ -73,6 +74,7 @@ pub enum AppMessage {
     SetRemoteDeleteBehavior(u32),
     HandleContract(ContractIntent),
     HandleContractResponse(AttrValue),
+    HandleContractSendToParticipant(AttrValue),
     HandleGetActiveContractResponse(AttrValue),
     HandleTablePolicy(TableIntent),
     HandleTablePolicyResponse(AttrValue),
@@ -212,6 +214,11 @@ impl Component for RcdAdminApp {
             current_participants: Vec::new(),
         };
 
+        let send_participant_contract_ui = RcdSendParticipantContractUi {
+            participant_alias: "".to_string(),
+            last_send_result: false,
+        };
+
         let conn_ui = RcdConnUi {
             conn,
             un: NodeRef::default(),
@@ -223,6 +230,7 @@ impl Component for RcdAdminApp {
             sql_text_result: "".to_string(),
             current_selected_table: NodeRef::default(),
             add_participant_ui: participant_ui,
+            send_participant_contract_ui: send_participant_contract_ui,
         };
 
         let page_ui = RcdPageUi {
@@ -339,6 +347,9 @@ impl Component for RcdAdminApp {
             AppMessage::HandleGetActiveContractResponse(json_response) => {
                 contract::handle_view_active_contract(self, json_response.to_string())
             }
+            AppMessage::HandleContractSendToParticipant(json_response) => {
+                contract::handle_send_contract_to_participant_response(self, json_response.to_string())
+            },
         }
         true
     }
