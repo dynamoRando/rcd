@@ -8,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 rcd-messages = { path = "../rcd-messages" }
+# rcd-common = { path = "../rcd-common" }
 yew = { version = "0.20", features = ["csr"] }
 gloo = "0.8"
 strum = "0.24"
@@ -18,6 +19,7 @@ wasm-bindgen = "0.2.83"
 serde_json = "1"
 wasm-bindgen-futures = "0.4"
 reqwasm = "0.5"
+
 
 [dependencies.web-sys]
 version = "0.3"

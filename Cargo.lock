@@ -1141,6 +1141,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "guid-create"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ffaed4f9f5dc0122ad87b29821cdea00243a1bd2531deed69c1054cc5515ed33"
+dependencies = [
+ "chomp",
+ "guid-parser",
+ "rand",
+ "winapi 0.3.9",
+]
+
+[[package]]
 name = "guid-macro-impl"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2221,29 +2233,12 @@ dependencies = [
 name = "rcd-common"
 version = "0.1.0"
 dependencies = [
- "antlr-rust",
  "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create",
- "lazy_static",
- "log",
- "log4rs",
- "prost",
- "prost-types",
+ "guid-create 0.3.0",
  "rcdproto",
- "rusqlite",
  "serde",
- "serde_derive",
- "serde_json",
  "sodiumoxide",
  "substring",
- "tokio",
- "tonic",
- "tonic-reflection",
- "triggered",
 ]
 
 [[package]]
@@ -2256,7 +2251,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.3.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2266,6 +2261,7 @@ dependencies = [
  "rcd-query",
  "rcd-sqlite",
  "rcdproto",
+ "reqwest",
  "rusqlite",
  "serde",
  "serde_derive",
@@ -2274,7 +2270,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.6.0",
  "triggered",
 ]
 
@@ -2288,7 +2284,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.2.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2307,7 +2303,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.5.0",
  "triggered",
 ]
 
@@ -2321,7 +2317,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.3.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2339,7 +2335,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.6.0",
  "triggered",
 ]
 
@@ -2354,7 +2350,7 @@ dependencies = [
  "endianness",
  "env_logger",
  "futures",
- "guid-create",
+ "guid-create 0.2.0",
  "lazy_static",
  "log",
  "prost",
@@ -2369,7 +2365,7 @@ dependencies = [
  "tokio",
  "tonic",
  "tonic-build",
- "tonic-reflection",
+ "tonic-reflection 0.5.0",
  "triggered",
 ]
 
@@ -2407,7 +2403,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.2.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2422,7 +2418,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.5.0",
  "triggered",
 ]
 
@@ -2436,7 +2432,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.3.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2453,7 +2449,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.6.0",
  "triggered",
 ]
 
@@ -2505,7 +2501,7 @@ dependencies = [
  "conv",
  "endianness",
  "futures",
- "guid-create",
+ "guid-create 0.3.0",
  "lazy_static",
  "log",
  "log4rs",
@@ -2527,7 +2523,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection",
+ "tonic-reflection 0.6.0",
  "triggered",
 ]
 
@@ -3336,6 +3332,20 @@ dependencies = [
  "tokio-stream",
  "tonic",
  "tonic-build",
+]
+
+[[package]]
+name = "tonic-reflection"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "67494bad4dda4c9bffae901dfe14e2b2c0f760adb4706dc10beeb81799f7f7b2"
+dependencies = [
+ "bytes",
+ "prost",
+ "prost-types",
+ "tokio",
+ "tokio-stream",
+ "tonic",
 ]
 
 [[package]]
