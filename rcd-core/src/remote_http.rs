@@ -43,22 +43,11 @@ impl RemoteHttp {
         info!("sending request to rcd at: {}", addr_port);
 
         // to do: need to setup HTTP DATA instead of HTTP client
-
+        let url = "".to_string();
         todo!();
 
-        let client = reqwest::Client::new();
-
-        let resp = client
-            .post("NEW URL SHOULD GO HERE")
-            .header("Content-Type", "application/json")
-            .body(request_json)
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap();
-        let reply: SaveContractResult = serde_json::from_str(&resp.to_string()).unwrap();
+        let result = send_message(request_json, url).await;       
+        let reply: SaveContractResult = serde_json::from_str(&result.to_string()).unwrap();
 
         /*
         let http_response = reqwest::new(&url)
@@ -105,4 +94,19 @@ fn is_little_endian() -> bool {
     };
 
     return result;
+}
+
+async fn send_message(json_message: String, url: String) -> String {
+    let client = reqwest::Client::new();
+
+    return client
+        .post("NEW URL SHOULD GO HERE")
+        .header("Content-Type", "application/json")
+        .body(request_json)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
 }
