@@ -2,9 +2,8 @@ use log::info;
 use log4rs;
 use rcd_common::defaults;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
-use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
-use rcd_core::remote_grpc::RemoteGrpc;
+use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_http::RemoteHttp;
 use rcd_http::http_srv;
 use rcd_service::get_current_directory;
@@ -41,14 +40,18 @@ async fn main() {
     service.start();
 
     let dbi_settings = service.get_dbi();
-    let dbi_clone = dbi_settings.clone();
+    let dbi_core_clone = dbi_settings.clone();
+    let dbi_data_clone = dbi_settings.clone();
 
     let settings = service.rcd_settings.clone();
     let db_name = settings.backing_database_name.clone();
-    let client_port = settings.client_service_addr_port.clone();
-    let db_port = settings.database_service_addr_port.clone();
+    let client_port = settings.grpc_client_service_addr_port.clone();
+    let db_port = settings.grpc_data_service_addr_port.clone();
     let root_dir = service.root_dir.clone();
     let data_timeout = settings.data_grpc_timeout_in_seconds;
+
+    let http_addr = settings.http_addr;
+    let http_port = settings.http_port;
 
     let _ = task::spawn_blocking(move || {
         let _ = service.start_grpc_at_addrs_with_shutdown(
@@ -65,7 +68,10 @@ async fn main() {
 
     // start http, need to make this configurable
     let _ = task::spawn_blocking(move || {
-        let http = RemoteHttp {};
+        let http = RemoteHttp {
+            own_http_addr: http_addr.clone(),
+            own_http_port: http_port as u32,
+        };
 
         let remote_client = RcdRemoteDbClient {
             comm_type: RcdCommunication::Http,
@@ -74,11 +80,15 @@ async fn main() {
         };
 
         let core = Rcd {
-            db_interface: Some(dbi_clone),
+            db_interface: Some(dbi_core_clone),
             remote_client: Some(remote_client),
         };
 
-        let _ = http_srv::start_http(core);
+        let data = RcdData {
+            db_interface: Some(dbi_data_clone),
+        };
+
+        let _ = http_srv::start_http(core, data, http_addr, http_port);
     });
 
     let mut input = String::from("");
@@ -114,18 +124,20 @@ fn set_default_config() {
     let cwd = get_current_directory();
     println!("cwd: {}", cwd);
     let default_settings_content = String::from(
-        "
+        r#"
 debug = false
 database_type = 1
-backing_database_name = \"rcd.db\"
-rcd_schema = \"rcd\"
-client_service_addr_port = \"0.0.0.0:50051\"
-data_service_addr_port = \"0.0.0.0:50052\"
-admin_un = \"tester\"
-admin_pw = \"123456\"
+backing_database_name = "rcd.db"
+rcd_schema = "rcd"
+grpc_client_service_addr_port = "0.0.0.0:50051"
+grpc_data_service_addr_port = "0.0.0.0:50052"
+http_addr = "0.0.0.0"
+http_port = "50055"
+admin_un = "tester"
+admin_pw = "123456"
 client_grpc_timeout_in_seconds = 5
 data_grpc_timeout_in_seconds = 5
-    ",
+    "#,
     );
 
     let default_src_path = Path::new(&cwd).join("src/Settings.toml");
@@ -182,6 +194,8 @@ root:
     }
 }
 
+
+/*
 #[allow(dead_code)]
 fn configure_rcd_w_http_new(dbi: Dbi) -> Rcd {
     let http = RemoteHttp {};
@@ -224,3 +238,4 @@ fn configure_rcd_w_grpc_new(
 
     return rcd;
 }
+ */

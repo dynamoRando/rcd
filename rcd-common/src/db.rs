@@ -54,6 +54,8 @@ pub struct CdsHosts {
     pub ip6: String,
     pub port: u32,
     pub last_comm_utc: String,
+    pub http_addr: String,
+    pub http_port: u32
 }
 
 #[derive(Debug, Clone)]

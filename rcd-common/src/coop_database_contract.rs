@@ -35,6 +35,8 @@ impl CoopDatabaseContract {
         host_db_port: u32,
         contract_status: ContractStatus,
         db_schema: DatabaseSchema,
+        host_http_addr: &str,
+        host_http_port: u32
     ) -> Contract {
         let c_host_info = Host {
             host_guid: host_info.id.clone(),
@@ -43,6 +45,8 @@ impl CoopDatabaseContract {
             ip6_address: host_ip6_addr.to_string(),
             database_port_number: host_db_port,
             token: host_info.token.clone(),
+            http_addr: host_http_addr.to_string(),
+            http_port: host_http_port,
         };
 
         let contract = Contract {

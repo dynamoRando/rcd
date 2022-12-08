@@ -2,7 +2,7 @@ use crate::{
     request,
     AppMessage, ExecuteSQLIntent, RcdAdminApp, get_base_address, get_auth_request,
 };
-use rcd_http_common::url::{READ_SQL_AT_HOST, WRITE_SQL_AT_HOST};
+use rcd_http_common::url::client::{READ_SQL_AT_HOST, WRITE_SQL_AT_HOST};
 use rcd_messages::{
     client::{
         ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,

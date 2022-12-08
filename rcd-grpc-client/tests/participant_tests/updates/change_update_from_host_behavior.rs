@@ -230,6 +230,8 @@ async fn main_service_client(
             "participant",
             &participant_db_addr.ip4_addr,
             participant_db_addr.port,
+            "".to_string(),
+            0
         )
         .await
         .unwrap();

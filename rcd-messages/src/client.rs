@@ -446,6 +446,10 @@ pub struct AddParticipantRequest {
     pub ip4_address: String,
 
     pub port: u32,
+
+    pub http_addr: String,
+
+    pub http_port: u32
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AddParticipantReply {
@@ -902,6 +906,10 @@ pub struct Participant {
     pub token: Vec<u8>,
 
     pub internal_participant_guid: String,
+
+    pub http_addr: String,
+
+    pub http_port: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct Host {

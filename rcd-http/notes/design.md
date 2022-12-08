@@ -5,6 +5,13 @@ This is not final, this is just brainstorming.
 
 # Data
 - /data
+- /data/status
+- /data/version
+    - POST: `is_online`
+
+## Participant
+- [X] /data/participant/send-contract
+    - POST: `send_contract_to_participant` (this really should be a GET)    
 
 # Client 
 - /client

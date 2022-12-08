@@ -44,7 +44,7 @@ fn test() {
     println!("{}", root_dir);
 
     let mut service = get_service_from_config_file();
-    let client_address_port = service.rcd_settings.client_service_addr_port.clone();
+    let client_address_port = service.rcd_settings.grpc_client_service_addr_port.clone();
     println!("{:?}", &service);
     service.start_at_dir(&root_dir);
 

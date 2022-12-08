@@ -10,11 +10,13 @@ pub fn handle_connect(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
     let pw = &app.state.conn_ui.pw;
     let ip = &app.state.conn_ui.ip;
     let port = &app.state.conn_ui.port;
+    let http_port = &app.state.conn_ui.http_port;
 
     let un_val = un.cast::<HtmlInputElement>().unwrap().value();
     let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
     let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
-    let port_val = port.cast::<HtmlInputElement>().unwrap().value();
+    let _port_val = port.cast::<HtmlInputElement>().unwrap().value();
+    let http_port_val = http_port.cast::<HtmlInputElement>().unwrap().value();
 
     /*
        console::log_1(&un_val.clone().into());
@@ -23,7 +25,7 @@ pub fn handle_connect(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
        console::log_1(&port_val.clone().into());
     */
 
-    let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", port_val);
+    let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", http_port_val);
 
     let auth_request = AuthRequest {
         user_name: un_val.to_string(),
@@ -58,7 +60,9 @@ pub fn view_input_for_connection(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -
        <label for="ip_address">{ "IP Address" }</label>
         <input type="text" id ="ip_address" placeholder="localhost" ref={&app.state.conn_ui.ip}/>
         <label for="port">{ "Port Number" }</label>
-        <input type="text" id="port" placeholder="8000" ref={&app.state.conn_ui.port} />
+        <input type="text" id="port" placeholder="50051" ref={&app.state.conn_ui.port} />
+        <label for="http_port">{ "HTTP Port Number" }</label>
+        <input type="text" id="http_port" placeholder="50055" ref={&app.state.conn_ui.http_port} />
         <label for="un">{ "User Name" }</label>
         <input type="text" id="un" placeholder="tester" ref={&app.state.conn_ui.un} />
         <label for="pw">{ "Pw" }</label>

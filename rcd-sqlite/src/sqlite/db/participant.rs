@@ -24,7 +24,9 @@ pub fn create_participant_table(conn: &Connection) {
         CONTRACT_STATUS INT,
         ACCEPTED_CONTRACT_VERSION_ID CHAR(36),
         TOKEN BLOB NOT NULL,
-        PARTICIPANT_ID CHAR(36)
+        PARTICIPANT_ID CHAR(36),
+        HTTP_ADDR VARCHAR(50),
+        HTTP_PORT INT
     );",
     );
 
@@ -44,7 +46,9 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
             CONTRACT_STATUS = ':contract_status',
             ACCEPTED_CONTRACT_VERSION_ID = ':accepted_contract_version',
             TOKEN = ':token',
-            PARTICIPANT_ID = ':id'
+            PARTICIPANT_ID = ':id',
+            HTTP_ADDR = ':http_addr',
+            HTTP_PORT = ':http_port',
         WHERE
             ALIAS = ':alias'
         ;
@@ -62,6 +66,8 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
                     ":token": &participant.token,
                     ":id": &participant.id.to_string(),
                     ":alias": &participant.alias,
+                    ":http_addr": &participant.http_addr,
+                    ":http_port": &participant.http_port,
             })
             .unwrap();
     } else {
@@ -81,7 +87,9 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
             CONTRACT_STATUS,
             ACCEPTED_CONTRACT_VERSION_ID,
             TOKEN,
-            PARTICIPANT_ID
+            PARTICIPANT_ID,
+            HTTP_ADDR,
+            HTTP_PORT
         )
         VALUES
         (
@@ -93,7 +101,9 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
             :contract_status,
             :accepted_contract_version,
             :token,
-            :id
+            :id,
+            :http_addr,
+            :http_port
         );
         ",
         );
@@ -109,7 +119,9 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
                     ":contract_status": &ContractStatus::to_u32(participant.contract_status),
                     ":accepted_contract_version": &participant.accepted_contract_version.to_string(),
                     ":token": &participant.token,
-                    ":id": &participant.id.to_string()
+                    ":id": &participant.id.to_string(),
+                    ":http_addr": &participant.http_addr,
+                    ":http_port": &participant.http_port
             })
             .unwrap();
     }
@@ -121,6 +133,8 @@ pub fn add_participant(
     ip4addr: &str,
     db_port: u32,
     config: DbiConfigSqlite,
+    http_addr: String,
+    http_port: u16
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
     let is_added: bool;
@@ -138,6 +152,8 @@ pub fn add_participant(
             accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             token: Vec::new(),
+            http_addr: http_addr,
+            http_port: http_port
         };
         save_participant(participant, conn);
         is_added = true;
@@ -163,7 +179,9 @@ pub fn get_participant_by_internal_id(
             CONTRACT_STATUS,
             ACCEPTED_CONTRACT_VERSION_ID,
             TOKEN,
-            PARTICIPANT_ID
+            PARTICIPANT_ID,
+            HTTP_ADDR,
+            HTTP_PORT
         FROM
             COOP_PARTICIPANT
         WHERE
@@ -181,7 +199,10 @@ pub fn get_participant_by_internal_id(
                               contract_status: u32,
                               accepted_contract_version_id: String,
                               token: Vec<u8>,
-                              id: String|
+                              id: String,
+                              http_addr: String,
+                              http_port: u16
+                              |
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
@@ -193,6 +214,8 @@ pub fn get_participant_by_internal_id(
             accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
             token: token,
             id: GUID::parse(&id).unwrap(),
+            http_addr: http_addr,
+            http_port: http_port
         };
 
         Ok(participant)
@@ -213,6 +236,8 @@ pub fn get_participant_by_internal_id(
                 row.get(6).unwrap(),
                 row.get(7).unwrap(),
                 row.get(8).unwrap(),
+                row.get(9).unwrap(),
+                row.get(10).unwrap(),
             )
         })
         .unwrap();
@@ -241,7 +266,9 @@ pub fn get_participant_by_alias(
             CONTRACT_STATUS,
             ACCEPTED_CONTRACT_VERSION_ID,
             TOKEN,
-            PARTICIPANT_ID
+            PARTICIPANT_ID,
+            HTTP_ADDR,
+            HTTP_PORT
         FROM
             COOP_PARTICIPANT
         WHERE
@@ -262,7 +289,10 @@ pub fn get_participant_by_alias(
                               contract_status: u32,
                               accepted_contract_version_id: String,
                               token: Vec<u8>,
-                              id: String|
+                              id: String,
+                              http_addr: String,
+                              http_port: u16
+                              |
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
@@ -274,6 +304,8 @@ pub fn get_participant_by_alias(
             accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
             token: token,
             id: GUID::parse(&id).unwrap(),
+            http_addr: http_addr,
+            http_port: http_port,
         };
 
         Ok(participant)
@@ -294,6 +326,8 @@ pub fn get_participant_by_alias(
                 row.get(6).unwrap(),
                 row.get(7).unwrap(),
                 row.get(8).unwrap(),
+                row.get(9).unwrap(),
+                row.get(10).unwrap(),
             )
         })
         .unwrap();
@@ -325,7 +359,9 @@ pub fn get_participants_for_database(
         IP6ADDRESS,
         PORT,
         CONTRACT_STATUS,
-        PARTICIPANT_ID
+        PARTICIPANT_ID,
+        HTTP_ADDR,
+        HTTP_PORT
     FROM
         COOP_PARTICIPANT
     ";
@@ -338,7 +374,10 @@ pub fn get_participants_for_database(
                               ip6: String,
                               port: u32,
                               contract_status: u32,
-                              participant_id: String|
+                              participant_id: String,
+                              http_addr: String,
+                              http_port: u32
+                              |
      -> Result<ParticipantStatus> {
         let p = Participant {
             participant_guid: participant_id,
@@ -348,6 +387,8 @@ pub fn get_participants_for_database(
             database_port_number: port,
             token: Vec::new(),
             internal_participant_guid: internal_participant_id,
+            http_addr: http_addr,
+            http_port: http_port
         };
 
         let ps = ParticipantStatus {
@@ -368,6 +409,8 @@ pub fn get_participants_for_database(
                 row.get(4).unwrap(),
                 row.get(5).unwrap(),
                 row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
             )
         })
         .unwrap();

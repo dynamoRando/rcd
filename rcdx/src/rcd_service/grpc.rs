@@ -152,8 +152,8 @@ pub fn start_grpc_at_addrs_with_shutdown(
 pub async fn start_grpc_client_service_alt(
     service: &RcdService,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let address_port = &service.rcd_settings.client_service_addr_port;
-    let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
+    let address_port = &service.rcd_settings.grpc_client_service_addr_port;
+    let own_db_addr_port = &service.rcd_settings.grpc_data_service_addr_port;
     let addr = address_port.parse().unwrap();
     let database_name = &service.rcd_settings.backing_database_name;
     let data_timeout = &service.rcd_settings.data_grpc_timeout_in_seconds;
@@ -213,7 +213,7 @@ pub async fn start_grpc_client_service_at_addr(
 
     let addr = address_port.parse().unwrap();
     let database_name = &service.rcd_settings.backing_database_name;
-    let own_db_addr_port = &service.rcd_settings.database_service_addr_port;
+    let own_db_addr_port = &service.rcd_settings.grpc_data_service_addr_port;
 
     let dbi = service.db_interface.clone().unwrap();
     let core = configure_core_for_grpc(

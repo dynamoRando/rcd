@@ -211,6 +211,8 @@ impl Component for RcdAdminApp {
             port_num_ui: NodeRef::default(),
             last_add_result: false,
             current_participants: Vec::new(),
+            participant_http_addr_ui: NodeRef::default(),
+            participant_http_port_num_ui: NodeRef::default(),
         };
 
         let send_participant_contract_ui = RcdSendParticipantContractUi {
@@ -224,6 +226,7 @@ impl Component for RcdAdminApp {
             pw: NodeRef::default(),
             ip: NodeRef::default(),
             port: NodeRef::default(),
+            http_port: NodeRef::default(),
             databases: NodeRef::default(),
             sql: input_output,
             sql_text_result: "".to_string(),

@@ -496,7 +496,9 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
             IP4ADDRESS,
             IP6ADDRESS,
             PORT,
-            LAST_COMMUNICATION_UTC
+            LAST_COMMUNICATION_UTC,
+            HTTP_ADDR,
+            HTTP_PORT
         FROM
             CDS_HOSTS
         WHERE
@@ -512,7 +514,9 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
                        ip4: String,
                        ip6: String,
                        port: u32,
-                       last_comm_utc: String|
+                       last_comm_utc: String,
+                       http_addr: String,
+                       http_port: u32|
      -> Result<CdsHosts> {
         let host = CdsHosts {
             host_id,
@@ -522,6 +526,8 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
             ip6,
             port,
             last_comm_utc,
+            http_addr,
+            http_port,
         };
         Ok(host)
     };
@@ -536,6 +542,8 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
                 row.get(4).unwrap(),
                 row.get(5).unwrap(),
                 row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
             )
         })
         .unwrap();

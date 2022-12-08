@@ -67,6 +67,8 @@ impl RemoteGrpc {
             0,
             ContractStatus::Pending,
             db_schema,
+            "",
+            0
         );
 
         let request = tonic::Request::new(SaveContractRequest {
@@ -102,6 +104,8 @@ impl RemoteGrpc {
             ip6_address: String::from(""),
             database_port_number: 0,
             token: own_host_info.token.clone(),
+            http_addr: "".to_string(),
+            http_port: 0
         };
 
         let request = NotifyHostOfRemovedRowRequest {
@@ -260,6 +264,8 @@ impl RemoteGrpc {
             ip6_address: String::from(""),
             database_port_number: 0,
             token: own_host_info.token.clone(),
+            http_addr: "".to_string(),
+            http_port: 0
         };
 
         let hash_val = match hash {
@@ -321,7 +327,9 @@ impl RemoteGrpc {
             ip6_address: String::from(""),
             database_port_number: 0,
             token: own_host_info.token.clone(),
-            internal_participant_guid: "".to_string()
+            internal_participant_guid: "".to_string(),
+            http_addr: "".to_string(),
+            http_port: 0,
         };
 
         let request = ParticipantAcceptsContractRequest {

@@ -244,7 +244,9 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             IP4ADDRESS,
             IP6ADDRESS,
             PORT,
-            LAST_COMMUNICATION_UTC
+            LAST_COMMUNICATION_UTC,
+            HTTP_ADDR,
+            HTTP_PORT
         FROM
             CDS_HOSTS
         WHERE
@@ -260,7 +262,9 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                        ip4: String,
                        ip6: String,
                        port: u32,
-                       last_comm_utc: String|
+                       last_comm_utc: String,
+                       http_addr: String,
+                       http_port: u32|
      -> Result<CdsHosts> {
         let host = CdsHosts {
             host_id,
@@ -270,6 +274,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             ip6,
             port,
             last_comm_utc,
+            http_addr,
+            http_port,
         };
         Ok(host)
     };
@@ -287,6 +293,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                     row.get(4).unwrap(),
                     row.get(5).unwrap(),
                     row.get(6).unwrap(),
+                    row.get(7).unwrap(),
+                    row.get(8).unwrap(),
                 )
             })
             .unwrap();
@@ -377,6 +385,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             ip6_address: h.ip6.clone(),
             database_port_number: h.port,
             token: h.token.clone(),
+            http_addr: h.http_addr.clone(),
+            http_port: h.http_port,
         };
 
         let pc = Contract {
@@ -581,7 +591,9 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
         IP6ADDRESS,
         PORT,
         LAST_COMMUNICATION_UTC,
-        HOST_STATUS
+        HOST_STATUS,
+        HTTP_ADDR,
+        HTTP_PORT
     )
     VALUES
     (
@@ -592,7 +604,9 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
         :ip6,
         :port,
         :last_comm,
-        1
+        1,
+        :http_addr,
+        :http_port
     )
     ;",
     );
@@ -608,7 +622,9 @@ fn save_contract_host_data(contract: &Contract, conn: &Connection) {
             ":ip4" : &host.ip4_address,
             ":ip6" : &host.ip6_address,
             ":port" : &host.database_port_number,
-            ":last_comm" : Utc::now().to_string()
+            ":last_comm" : Utc::now().to_string(),
+            ":http_addr" : &host.http_addr,
+            ":http_port" : &host.http_port,
         })
         .unwrap();
 }

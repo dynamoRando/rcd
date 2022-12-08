@@ -548,6 +548,10 @@ pub struct AddParticipantRequest {
     pub ip4_address: ::prost::alloc::string::String,
     #[prost(uint32, tag="5")]
     pub port: u32,
+    #[prost(string, tag="6")]
+    pub http_addr: ::prost::alloc::string::String,
+    #[prost(uint32, tag="7")]
+    pub http_port: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1107,6 +1111,10 @@ pub struct Participant {
     pub token: ::prost::alloc::vec::Vec<u8>,
     #[prost(string, tag="7")]
     pub internal_participant_guid: ::prost::alloc::string::String,
+    #[prost(string, tag="8")]
+    pub http_addr: ::prost::alloc::string::String,
+    #[prost(uint32, tag="9")]
+    pub http_port: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1131,6 +1139,10 @@ pub struct Host {
     pub database_port_number: u32,
     #[prost(bytes="vec", tag="6")]
     pub token: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="7")]
+    pub http_addr: ::prost::alloc::string::String,
+    #[prost(uint32, tag="8")]
+    pub http_port: u32,
 }
 /// a message for describing the schema of a database
 #[derive(serde::Serialize, serde::Deserialize)]

@@ -13,10 +13,14 @@ use rcd_common::{
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
     rcd_enum::ContractStatus,
 };
+use rcd_http_common::url::data::SAVE_CONTRACT;
 use rcdproto::rcdp::{DatabaseSchema, MessageInfo, SaveContractRequest, SaveContractResult};
 
 #[derive(Debug, Clone)]
-pub struct RemoteHttp {}
+pub struct RemoteHttp {
+    pub own_http_addr: String,
+    pub own_http_port: u32,
+}
 
 impl RemoteHttp {
     pub async fn send_participant_contract(
@@ -28,8 +32,16 @@ impl RemoteHttp {
     ) -> bool {
         let message_info = get_message_info(&host_info, "".to_string());
 
-        let contract =
-            contract.to_cdata_contract(&host_info, "", "", 0, ContractStatus::Pending, db_schema);
+        let contract = contract.to_cdata_contract(
+            &host_info,
+            "",
+            "",
+            0,
+            ContractStatus::Pending,
+            db_schema,
+            &self.own_http_addr,
+            self.own_http_port,
+        );
 
         let request = SaveContractRequest {
             contract: Some(contract),
@@ -37,16 +49,16 @@ impl RemoteHttp {
         };
 
         let request_json = serde_json::to_string(&request).unwrap();
-
-        let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
+        let addr_port = format!(
+            "{}:{}",
+            participant.http_addr,
+            participant.http_port.to_string()
+        );
 
         info!("sending request to rcd at: {}", addr_port);
 
-        // to do: need to setup HTTP DATA instead of HTTP client
-        let url = "".to_string();
-        todo!();
-
-        let result = send_message(request_json, url).await;       
+        let url = format!("http://{}{}", addr_port, SAVE_CONTRACT);
+        let result = send_message(request_json, url).await;
         let reply: SaveContractResult = serde_json::from_str(&result.to_string()).unwrap();
 
         /*
@@ -100,9 +112,9 @@ async fn send_message(json_message: String, url: String) -> String {
     let client = reqwest::Client::new();
 
     return client
-        .post("NEW URL SHOULD GO HERE")
+        .post(url)
         .header("Content-Type", "application/json")
-        .body(request_json)
+        .body(json_message)
         .send()
         .await
         .unwrap()

@@ -817,12 +817,14 @@ impl Dbi {
         alias: &str,
         ip4addr: &str,
         db_port: u32,
+        http_addr: String,
+        http_port: u16,
     ) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 return sqlite::db::participant::add_participant(
-                    db_name, alias, ip4addr, db_port, settings,
+                    db_name, alias, ip4addr, db_port, settings, http_addr, http_port,
                 );
             }
             DatabaseType::Unknown => unimplemented!(),
@@ -1047,6 +1049,8 @@ impl Dbi {
             0,
             ContractStatus::Unknown,
             db_schema,
+            "",
+            0
         );
     }
 

@@ -31,10 +31,12 @@ fn read_settings_from_config() {
         admin_pw: String::from("123456"),
         database_type: rcd_common::rcd_enum::DatabaseType::Unknown,
         backing_database_name: String::from(""),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
+        grpc_client_service_addr_port: String::from("[::1]:50051"),
+        grpc_data_service_addr_port: String::from(""),
         data_grpc_timeout_in_seconds: 5,
         client_grpc_timeout_in_seconds: 5,
+        http_addr: "".to_string(),
+        http_port: 0
     };
 
     // ACT
@@ -58,10 +60,12 @@ fn configure_backing_db() {
         admin_pw: String::from("123456"),
         database_type: DatabaseType::Sqlite,
         backing_database_name: String::from("rcd_test.db"),
-        client_service_addr_port: String::from("[::1]:50051"),
-        database_service_addr_port: String::from(""),
+        grpc_client_service_addr_port: String::from("[::1]:50051"),
+        grpc_data_service_addr_port: String::from(""),
         data_grpc_timeout_in_seconds: 5,
         client_grpc_timeout_in_seconds: 5,
+        http_addr: "".to_string(),
+        http_port: 0
     };
 
     let cwd = env::current_dir().unwrap();

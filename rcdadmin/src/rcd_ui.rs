@@ -37,6 +37,7 @@ pub struct RcdConnUi {
     pub pw: NodeRef,
     pub ip: NodeRef,
     pub port: NodeRef,
+    pub http_port: NodeRef,
     pub databases: NodeRef,
     pub sql: RcdInputOutputUi,
     pub sql_text_result: String,
@@ -101,7 +102,9 @@ pub struct RcdAddParticipantUi {
     pub ip4_address_ui: NodeRef,
     pub port_num_ui: NodeRef,
     pub last_add_result: bool,
-    pub current_participants: Vec<ParticipantStatus>
+    pub current_participants: Vec<ParticipantStatus>,
+    pub participant_http_addr_ui: NodeRef,
+    pub participant_http_port_num_ui: NodeRef
 }
 
 pub struct RcdSendParticipantContractUi {

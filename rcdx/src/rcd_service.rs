@@ -274,7 +274,7 @@ pub fn get_config_from_settings_file() -> RcdSettings {
         .unwrap();
 
     let s_client_service_addr_port = settings
-        .get_string(&String::from("client_service_addr_port"))
+        .get_string(&String::from("grpc_client_service_addr_port"))
         .unwrap();
 
     let s_client_timeout = settings
@@ -289,22 +289,27 @@ pub fn get_config_from_settings_file() -> RcdSettings {
     let data_timeout_in_seconds: u32 = s_data_timeout.parse().unwrap();
 
     let d_client_service_addr_port = settings
-        .get_string(&String::from("data_service_addr_port"))
+        .get_string(&String::from("grpc_data_service_addr_port"))
         .unwrap();
 
     let admin_un = settings.get_string(&String::from("admin_un")).unwrap();
 
     let admin_pw = settings.get_string(&String::from("admin_pw")).unwrap();
 
+    let http_addr = settings.get_string(&String::from("http_addr")).unwrap();
+    let http_port = settings.get_int(&String::from("http_port")).unwrap() as u16;
+
     let rcd_setting = RcdSettings {
         admin_un: admin_un,
         admin_pw: admin_pw,
         database_type: database_type,
         backing_database_name: s_db_name,
-        client_service_addr_port: s_client_service_addr_port,
-        database_service_addr_port: d_client_service_addr_port,
+        grpc_client_service_addr_port: s_client_service_addr_port,
+        grpc_data_service_addr_port: d_client_service_addr_port,
         client_grpc_timeout_in_seconds: client_timeout_in_seconds,
         data_grpc_timeout_in_seconds: data_timeout_in_seconds,
+        http_addr,
+        http_port,
     };
 
     return rcd_setting;

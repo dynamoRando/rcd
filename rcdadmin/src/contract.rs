@@ -1,5 +1,5 @@
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
-use rcd_http_common::url::{GENERATE_CONTRACT, SEND_CONTRACT_TO_PARTICIPANT, GET_ACTIVE_CONTRACT};
+use rcd_http_common::url::client::{GENERATE_CONTRACT, SEND_CONTRACT_TO_PARTICIPANT, GET_ACTIVE_CONTRACT};
 use rcd_messages::client::{GenerateContractReply, GenerateContractRequest, GetActiveContractRequest, GetActiveContractReply, SendParticipantContractRequest, SendParticipantContractReply};
 use rcd_messages::formatter;
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};

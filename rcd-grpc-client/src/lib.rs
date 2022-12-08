@@ -595,6 +595,8 @@ impl RcdClient {
         participant_alias: &str,
         participant_ip4addr: &str,
         participant_db_port: u32,
+        participant_http_addr: String,
+        participant_http_port: u16
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -604,6 +606,8 @@ impl RcdClient {
             alias: participant_alias.to_string(),
             ip4_address: participant_ip4addr.to_string(),
             port: participant_db_port,
+            http_addr: participant_http_addr,
+            http_port: participant_http_port as u32
         });
 
         info!("sending request");

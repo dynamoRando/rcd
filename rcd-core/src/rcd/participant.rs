@@ -37,14 +37,21 @@ pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddP
     let alias = request.alias;
     let ip4addr = request.ip4_address;
     let db_port: u32 = request.port;
+    let http_addr = request.http_addr;
+    let http_port = request.http_port;
 
     let reply_message = String::from("");
     let mut is_successful = false;
 
     if auth_result.0 {
-        is_successful = core
-            .dbi()
-            .add_participant(&db_name, &alias, &ip4addr, db_port);
+        is_successful = core.dbi().add_participant(
+            &db_name,
+            &alias,
+            &ip4addr,
+            db_port,
+            http_addr,
+            http_port as u16,
+        );
     };
 
     let add_participant_reply = AddParticipantReply {

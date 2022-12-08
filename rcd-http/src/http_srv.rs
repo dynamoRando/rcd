@@ -1,41 +1,87 @@
 use lazy_static::lazy_static;
 use log::info;
 use rcd_core::rcd::Rcd;
+use rcd_core::rcd_data::RcdData;
 use rocket::fairing::Kind;
 use rocket::http::Header;
-use rocket::Shutdown;
 use rocket::{
     fairing::{Fairing, Info},
     get,
     http::Status,
     routes,
 };
+use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
 use std::sync::Mutex;
 use std::thread;
 
 mod client;
+mod data;
 
 pub struct Core {
     core: Option<Rcd>,
+    data: Option<RcdData>,
+    addr: String,
+    port: u16,
 }
 
 impl Core {
-    pub fn set(&mut self, core: Rcd) {
+    pub fn set_addr(&mut self, addr: String) {
+        self.addr = addr.clone();
+    }
+
+    pub fn set_port(&mut self, port: u16) {
+        self.port = port;
+    }
+
+    pub fn set_core(&mut self, core: Rcd) {
         self.core = Some(core.clone());
     }
 
-    pub fn get(&self) -> Rcd {
+    pub fn get_core(&self) -> Rcd {
         return self.core.as_ref().unwrap().clone();
+    }
+
+    pub fn set_data(&mut self, data: RcdData) {
+        self.data = Some(data.clone());
+    }
+
+    pub fn get_data(&self) -> RcdData {
+        return self.data.as_ref().unwrap().clone();
+    }
+
+    pub fn get_addr(&mut self) -> String {
+        return self.addr.clone();
+    }
+
+    pub fn get_port(&mut self) -> u16 {
+        return self.port;
     }
 }
 
 lazy_static! {
-    pub static ref CORE: Mutex<Core> = Mutex::new(Core { core: None });
+    pub static ref CORE: Mutex<Core> = Mutex::new(Core {
+        core: None,
+        data: None,
+        addr: "".to_string(),
+        port: 0,
+    });
 }
 
 pub fn get_core() -> Rcd {
-    return CORE.lock().unwrap().get();
+    return CORE.lock().unwrap().get_core();
+}
+
+pub fn get_data() -> RcdData {
+    return CORE.lock().unwrap().get_data();
+}
+
+pub fn get_addr() -> String {
+    return CORE.lock().unwrap().get_addr();
+}
+
+pub fn get_port() -> u16 {
+    return CORE.lock().unwrap().get_port();
 }
 
 #[get("/")]
@@ -45,7 +91,13 @@ fn index() -> &'static str {
 
 #[rocket::main]
 pub async fn start() -> Result<(), rocket::Error> {
-    let _rocket = rocket::build()
+    let config = Config {
+        port: get_port(),
+        address: get_addr().parse().unwrap(),
+        ..Config::debug_default()
+    };
+
+    let _rocket = rocket::custom(config)
         .attach(CORS)
         .mount(
             "/",
@@ -66,6 +118,9 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::database::generate_contract,
                 client::sql::read_at_host,
                 client::sql::write_at_host,
+                data::status,
+                data::version,
+                data::contract::save_contract,
             ],
         )
         .launch()
@@ -83,8 +138,11 @@ fn shutdown(shutdown: Shutdown) -> &'static str {
 }
 
 #[tokio::main]
-pub async fn start_http(core: Rcd) {
-    CORE.lock().unwrap().set(core);
+pub async fn start_http(core: Rcd, data: RcdData, addr: String, port: u16) {
+    CORE.lock().unwrap().set_core(core);
+    CORE.lock().unwrap().set_data(data);
+    CORE.lock().unwrap().set_addr(addr);
+    CORE.lock().unwrap().set_port(port);
 
     thread::spawn(move || {
         let _ = start();
@@ -92,9 +150,10 @@ pub async fn start_http(core: Rcd) {
 }
 
 pub async fn shutdown_http() {
-    let _ = reqwest::get("http://127.0.0.1:8000/shutdown")
-        .await
-        .unwrap();
+    let http_addr = get_addr().clone();
+    let http_port = get_port();
+    let url = format!("http://{}:{}/shutdown", http_addr, http_port);
+    let _ = reqwest::get(url).await.unwrap();
 }
 
 pub struct CORS;

@@ -366,6 +366,8 @@ message AddParticipantRequest{
 	string alias = 3;
 	string ip4Address = 4;
 	uint32 port = 5;
+	string http_addr =  6;
+	uint32 http_port = 7;
 }
 
 message AddParticipantReply{
@@ -726,6 +728,8 @@ message Participant {
 	uint32 databasePortNumber = 5;
 	bytes token = 6;
 	string internalParticipantGUID = 7;
+	string http_addr = 8;
+	uint32 http_port = 9;
 }
 
 message ParticipantStatus {
@@ -740,6 +744,8 @@ message Host{
 	string ip6Address = 4;
 	uint32 databasePortNumber = 5;
 	bytes token = 6;
+	string http_addr = 7;
+	uint32 http_port = 8;
 }
 
 // a message for describing the schema of a database
