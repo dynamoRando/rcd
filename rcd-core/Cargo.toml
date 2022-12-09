@@ -13,15 +13,15 @@ rcd-query = { path = "../rcd-query" }
 rcd-http-common = { path = "../rcd-http-common" }
 serde = "1"
 serde_derive = "1"
-config = "0.13.1"
+# config = "0.13.1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 tonic = "0.8.1"
-tonic-reflection = "0.6.0"
+# tonic-reflection = "0.6.0"
 tokio = { version = "1.18.0", features = ["full"] }
 prost = "0.11.0"
-prost-types = "0.11.0"
+# prost-types = "0.11.0"
 chrono = "0.4"
-futures = { version = "0.3.*" }
+# futures = { version = "0.3.*" }
 sodiumoxide = "0.2.7"
 serde_json = "1"
 lazy_static = "1.4.0"
@@ -30,7 +30,5 @@ guid-create = "0.3.0"
 substring = "1.4.5"
 endianness = "0.2.0"
 antlr-rust = "0.3.0-beta"
-log4rs = "1"
 log = "0.4"
-triggered = "0.1"
 reqwest = { version = "0.11", features = ["json"] }

@@ -180,3 +180,8 @@ And so on.
 
 - [Tracing](https://burgers.io/custom-logging-in-rust-using-tracing)
 - [Log4rs](https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/)
+
+# Find unused crates
+
+`cargo +nightly udeps` - requires nightly to be installed.
+

@@ -2325,16 +2325,12 @@ version = "0.1.0"
 dependencies = [
  "antlr-rust",
  "chrono",
- "config",
  "conv",
  "endianness",
- "futures",
  "guid-create 0.3.0",
  "lazy_static",
  "log",
- "log4rs",
  "prost",
- "prost-types",
  "rcd-common",
  "rcd-http-common",
  "rcd-query",
@@ -2349,8 +2345,6 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection 0.6.0",
- "triggered",
 ]
 
 [[package]]
@@ -2390,32 +2384,12 @@ dependencies = [
 name = "rcd-grpc"
 version = "0.1.0"
 dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create 0.3.0",
- "lazy_static",
- "log",
- "log4rs",
- "prost",
- "prost-types",
- "rcd-common",
  "rcd-core",
- "rcd-query",
  "rcdproto",
  "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "sodiumoxide",
- "substring",
  "tokio",
  "tonic",
  "tonic-reflection 0.6.0",
- "triggered",
 ]
 
 [[package]]
@@ -2424,7 +2398,6 @@ version = "0.1.0"
 dependencies = [
  "lazy_static",
  "log",
- "log4rs",
  "rcd-common",
  "rcd-core",
  "rcdproto",
@@ -2452,27 +2425,18 @@ version = "0.1.0"
 dependencies = [
  "antlr-rust",
  "chrono",
- "config",
  "conv",
- "endianness",
- "futures",
  "guid-create 0.2.0",
  "lazy_static",
  "log",
- "log4rs",
  "prost",
- "prost-types",
  "rcd-common",
- "rusqlite",
  "serde",
  "serde_derive",
- "serde_json",
  "sodiumoxide",
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection 0.5.0",
- "triggered",
 ]
 
 [[package]]
@@ -2481,29 +2445,21 @@ version = "0.1.0"
 dependencies = [
  "antlr-rust",
  "chrono",
- "config",
  "conv",
- "endianness",
- "futures",
  "guid-create 0.3.0",
  "lazy_static",
  "log",
- "log4rs",
  "prost",
- "prost-types",
  "rcd-common",
  "rcd-query",
  "rcdproto",
  "rusqlite",
  "serde",
  "serde_derive",
- "serde_json",
  "sodiumoxide",
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection 0.6.0",
- "triggered",
 ]
 
 [[package]]
