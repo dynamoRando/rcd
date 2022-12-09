@@ -47,7 +47,32 @@ pub fn release_port(port: u32) {
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service(
+pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceAddr {
+    let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
+    let mut service = get_service_from_config_file();
+
+    let http_addr = ServiceAddr {
+        ip4_addr: "localhost".to_string(),
+        port: http_port_num,
+        addr_type: AddrType::Client,
+    };
+
+    println!("{:?}", &service);
+    println!("{:?}", &root_dir);
+
+    service.start_at_dir(root_dir.as_str());
+
+    let cwd = service.cwd();
+    delete_test_database(test_db_name, &cwd);
+
+    let _ =
+        service.start_http_at_addr_and_dir("localhost".to_string(), http_port_num as u16, root_dir);
+    return http_addr;
+}
+
+#[allow(dead_code)]
+/// returns a tuple for the addr_port of the client service and the db service
+pub fn start_service_with_grpc(
     test_db_name: &str,
     root_dir: String,
 ) -> (ServiceAddr, ServiceAddr, u32, u32, Trigger, Trigger) {

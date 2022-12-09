@@ -49,7 +49,7 @@ fn test() {
 
     let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = test_harness::start_service(&test_db_name, dirs.1);
+    let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
     let main_addr_client_port = main_addrs.2;
     let main_addr_db_port = main_addrs.3;
@@ -57,7 +57,7 @@ fn test() {
     let main_client_shutdown_trigger = main_addrs.4;
     let main_db_shutdown_triger = main_addrs.5;
 
-    let participant_addrs = test_harness::start_service(&test_db_name, dirs.2);
+    let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
 
     let part_addr_client_port = participant_addrs.2;
     let part_addr_db_port = participant_addrs.3;

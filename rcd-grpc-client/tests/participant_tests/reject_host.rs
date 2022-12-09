@@ -47,8 +47,8 @@ fn test() {
 
     let dirs = super::test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
-    let main_addrs = super::test_harness::start_service(&test_db_name, dirs.1);
-    let participant_addrs = super::test_harness::start_service(&test_db_name, dirs.2);
+    let main_addrs = super::test_harness::start_service_with_grpc(&test_db_name, dirs.1);
+    let participant_addrs = super::test_harness::start_service_with_grpc(&test_db_name, dirs.2);
 
     let time = time::Duration::from_secs(1);
 

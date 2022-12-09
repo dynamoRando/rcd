@@ -172,6 +172,16 @@ impl RcdService {
     }
 
     #[tokio::main]
+    pub async fn start_http_at_addr(mut self, http_addr: String, http_port: u16) {
+        http::start_http_at_addr(&mut self, http_addr, http_port)
+    }
+
+    #[tokio::main]
+    pub async fn start_http_at_addr_and_dir(mut self, http_addr: String, http_port: u16, root_dir: String) {
+        http::start_http_at_addr_and_dir(&mut self, http_addr, http_port, root_dir)
+    }
+
+    #[tokio::main]
     pub async fn start_grpc_at_addrs_with_shutdown(
         mut self,
         db_name: String,
