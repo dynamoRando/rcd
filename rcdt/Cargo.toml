@@ -8,5 +8,5 @@ edition = "2021"
 
 [dependencies]
 rcdproto = { path = "../rcdproto" }
-rcd-grpc-client = { path = "../rcd-grpc-client" }
+rcd-client = { path = "../rcd-client" }
 rcd-grpc = { path = "../rcd-grpc" }

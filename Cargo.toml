@@ -10,7 +10,7 @@ members = [
     # lib - a thin business layer abstraction for rcd
     "rcd-core",
     # lib - to interact with a rcd via grpc calls
-    "rcd-grpc-client",
+    # "rcd-grpc-client",
     # lib - all functionality for a sqlite db
     "rcd-sqlite",
     # lib - for all code common between 'rcd-core' and others
@@ -29,5 +29,7 @@ members = [
     # used to try and interact with web assembly
     "rcd-messages",
     # library for http urls
-    "rcd-http-common"
+    "rcd-http-common",
+    # supersedes rcd-grpc-client
+    "rcd-client"
 ]
