@@ -13,23 +13,12 @@ rcd-common = { path = "../rcd-common" }
 rcd-query = { path = "../rcd-query" }
 rcdx = { path = "../rcdx" }
 
-config = "0.13.1"
 tonic = "0.8.1"
-tonic-reflection = "0.6.0"
 tokio = { version = "1.18.0", features = ["full"] }
-prost = "0.11.0"
-prost-types = "0.11.0"
-chrono = "0.4"
 futures = { version = "0.3.*" }
-sodiumoxide = "0.2.7"
 log = "0.4.17"
 env_logger = "0.10.0"
 lazy_static = "1.4.0"
-# conv = "0.3.3"
-# guid-create = "0.3.0"
-# substring = "1.4.5"
-# endianness = "0.2.0"
-# antlr-rust = "0.3.0-beta"
 triggered = "0.1"
 reqwest = { version = "0.11", features = ["json"] }
 

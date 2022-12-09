@@ -9,8 +9,6 @@ members = [
     "rcdadmin",
     # lib - a thin business layer abstraction for rcd
     "rcd-core",
-    # lib - to interact with a rcd via grpc calls
-    # "rcd-grpc-client",
     # lib - all functionality for a sqlite db
     "rcd-sqlite",
     # lib - for all code common between 'rcd-core' and others
@@ -30,6 +28,6 @@ members = [
     "rcd-messages",
     # library for http urls
     "rcd-http-common",
-    # supersedes rcd-grpc-client
+    # abstract client for http or grpc calls
     "rcd-client"
 ]
