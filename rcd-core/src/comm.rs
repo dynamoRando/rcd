@@ -59,7 +59,12 @@ impl RcdRemoteDbClient {
                     .try_auth_at_participant(participant, own_host_info)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .try_auth_at_participant(participant, own_host_info)
+                    .await;
+            }
         };
     }
 
@@ -103,7 +108,12 @@ impl RcdRemoteDbClient {
                     .notify_host_of_removed_row(host, own_host_info, db_name, table_name, row_id)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .notify_host_of_removed_row(host, own_host_info, db_name, table_name, row_id)
+                    .await;
+            }
         };
     }
 
@@ -131,7 +141,19 @@ impl RcdRemoteDbClient {
                     )
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .remove_row_at_participant(
+                        participant,
+                        own_host_info,
+                        db_name,
+                        table_name,
+                        sql,
+                        where_clause,
+                    )
+                    .await;
+            }
         };
     }
 
@@ -159,7 +181,19 @@ impl RcdRemoteDbClient {
                     )
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .update_row_at_participant(
+                        participant,
+                        own_host_info,
+                        db_name,
+                        table_name,
+                        sql,
+                        where_clause,
+                    )
+                    .await;
+            }
         };
     }
 
@@ -179,7 +213,12 @@ impl RcdRemoteDbClient {
                     .insert_row_at_participant(participant, own_host_info, db_name, table_name, sql)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .insert_row_at_participant(participant, own_host_info, db_name, table_name, sql)
+                    .await;
+            }
         };
     }
 
@@ -196,7 +235,12 @@ impl RcdRemoteDbClient {
                     .get_row_from_participant(participant, own_host_info)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                .http()
+                .get_row_from_participant(participant, own_host_info)
+                .await;
+            },
         };
     }
 
@@ -256,7 +300,6 @@ impl RcdRemoteDbClient {
         return self.grpc.as_ref().unwrap().clone();
     }
 
-    #[allow(dead_code)]
     fn http(&self) -> RemoteHttp {
         return self.http.as_ref().unwrap().clone();
     }

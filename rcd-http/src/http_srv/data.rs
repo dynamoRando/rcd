@@ -1,8 +1,11 @@
 pub mod contract;
+pub mod io;
 
 use rcd_common::defaults;
-use rcdproto::rcdp::{TestReply, TestRequest};
-use rocket::{get, http::Status, post, serde::json::Json};
+use rcdproto::rcdp::{TestReply, TestRequest, TryAuthRequest, TryAuthResult};
+use rocket::{get, http::Status, post, serde::json::Json, State};
+
+use crate::http_srv::Core;
 
 #[get("/data/status")]
 pub async fn status() -> &'static str {
@@ -18,4 +21,15 @@ pub fn version(request: Json<TestRequest>) -> (Status, Json<TestReply>) {
     };
 
     (Status::Ok, Json(response))
+}
+
+#[post("/data/try-auth", format = "application/json", data = "<request>")]
+pub async fn try_auth(
+    request: Json<TryAuthRequest>,
+    state: &State<Core>,
+) -> (Status, Json<TryAuthResult>) {
+    let core = state.get_data();
+    let result = core.try_auth(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
 }

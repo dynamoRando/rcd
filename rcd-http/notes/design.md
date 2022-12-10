@@ -12,6 +12,16 @@ This is not final, this is just brainstorming.
     - POST: `save_contract`
 - data/contract/accepted-by-participant
     - POST: `participant_accepts_contract`
+- /data/io/remove-row/
+    - POST: `remove_row_at_participant`
+- /data/io/notify-host-removed-row
+    - POST: `notify_host_of_removed_row`
+- /data/try-auth/
+    - POST: `try_auth`
+- /data/io/update-row
+    - POST: `update_row_at_participant`
+- /data/io/insert-row
+    - POST: `insert_row_at_participant`
 
 # Client 
 - /client

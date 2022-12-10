@@ -20,4 +20,10 @@ pub mod client {
 pub mod data {
     pub const SAVE_CONTRACT: &str = "/data/contract/save/";
     pub const PARTICIPANT_ACCEPTS_CONTRACT: &str = "/data/contract/accepted-by-participant";
+    pub const REMOVE_ROW_AT_PARTICIPANT: &str = "/data/io/remove-row";
+    pub const UPDATE_ROW_AT_PARTICIPANT: &str = "/data/io/update-row";
+    pub const INSERT_ROW_AT_PARTICIPANT: &str = "/data/io/insert-row";
+    pub const GET_ROW_AT_PARTICIPANT: &str = "/data/io/get-row";
+    pub const NOTIFY_HOST_OF_REMOVED_ROW: &str = "/data/io/notify-host-removed-row";
+    pub const TRY_AUTH: &str = "/data/try-auth";
 }

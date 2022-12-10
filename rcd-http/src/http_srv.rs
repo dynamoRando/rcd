@@ -140,8 +140,14 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::contract::accept_pending_contract,
                 data::status,
                 data::version,
+                data::try_auth,
                 data::contract::save_contract,
                 data::contract::participant_accepts_contract,
+                data::io::remove_row_at_participant,
+                data::io::notify_host_of_removed_row,
+                data::io::update_row_at_participant,
+                data::io::insert_row_at_participant,
+                data::io::get_row_at_participant,
             ],
         )
         .manage(core)
