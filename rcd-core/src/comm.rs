@@ -78,7 +78,12 @@ impl RcdRemoteDbClient {
                     .send_participant_contract(participant, host_info, contract, db_schema)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .send_participant_contract(participant, host_info, contract, db_schema)
+                    .await;
+            }
         };
     }
 
@@ -238,7 +243,12 @@ impl RcdRemoteDbClient {
                     .notify_host_of_acceptance_of_contract(accepted_contract, own_host_info)
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                    .http()
+                    .notify_host_of_acceptance_of_contract(accepted_contract, own_host_info)
+                    .await;
+            }
         };
     }
 

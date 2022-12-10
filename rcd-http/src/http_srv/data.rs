@@ -1,6 +1,5 @@
 pub mod contract;
 
-use super::get_data;
 use rcd_common::defaults;
 use rcdproto::rcdp::{TestReply, TestRequest};
 use rocket::{get, http::Status, post, serde::json::Json};

@@ -1,8 +1,8 @@
-use super::get_core;
+use crate::http_srv::Core;
 use rcdproto::rcdp::{
     ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
 };
-use rocket::{http::Status, post, serde::json::Json};
+use rocket::{http::Status, post, serde::json::Json, State};
 
 #[post(
     "/client/sql/host/read",
@@ -11,13 +11,14 @@ use rocket::{http::Status, post, serde::json::Json};
 )]
 pub async fn read_at_host(
     request: Json<ExecuteReadRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<ExecuteReadReply>) {
     // note: this doesn't make sense for HTTP
     // this should be a GET instead of a POST
     // need to look at HTTP spec and figure out how to send
     // authorization in the header rather than a POST
-
-    let result = get_core().execute_read_at_host(request.into_inner()).await;
+    let core = state.get_core();
+    let result = core.execute_read_at_host(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
@@ -29,13 +30,15 @@ pub async fn read_at_host(
 )]
 pub async fn write_at_host(
     request: Json<ExecuteWriteRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<ExecuteWriteReply>) {
     // note: this doesn't make sense for HTTP
     // this should be a GET instead of a POST
     // need to look at HTTP spec and figure out how to send
     // authorization in the header rather than a POST
 
-    let result = get_core().execute_write_at_host(request.into_inner()).await;
+    let core = state.get_core();
+    let result = core.execute_write_at_host(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }

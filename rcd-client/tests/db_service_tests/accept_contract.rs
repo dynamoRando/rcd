@@ -376,10 +376,10 @@ pub mod http {
             .add_participant(
                 db_name,
                 "participant",
-                &participant_db_addr.ip4_addr,
+                &participant_db_addr.ip4_addr.clone(),
                 participant_db_addr.port,
-                "".to_string(),
-                0,
+                participant_db_addr.ip4_addr.clone(),
+                participant_db_addr.port as u16,
             )
             .await
             .unwrap();

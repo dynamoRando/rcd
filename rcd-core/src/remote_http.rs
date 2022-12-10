@@ -13,8 +13,11 @@ use rcd_common::{
     coop_database_participant::CoopDatabaseParticipant, host_info::HostInfo,
     rcd_enum::ContractStatus,
 };
-use rcd_http_common::url::data::SAVE_CONTRACT;
-use rcdproto::rcdp::{DatabaseSchema, MessageInfo, SaveContractRequest, SaveContractResult};
+use rcd_http_common::url::data::{PARTICIPANT_ACCEPTS_CONTRACT, SAVE_CONTRACT};
+use rcdproto::rcdp::{
+    Contract, DatabaseSchema, MessageInfo, Participant, ParticipantAcceptsContractRequest,
+    ParticipantAcceptsContractResult, SaveContractRequest, SaveContractResult,
+};
 
 #[derive(Debug, Clone)]
 pub struct RemoteHttp {
@@ -23,6 +26,57 @@ pub struct RemoteHttp {
 }
 
 impl RemoteHttp {
+    pub async fn notify_host_of_acceptance_of_contract(
+        &self,
+        accepted_contract: &Contract,
+        own_host_info: &HostInfo,
+    ) -> bool {
+        let message_info = get_message_info(&own_host_info, "".to_string());
+        let host_info = accepted_contract.host_info.as_ref().unwrap().clone();
+
+        let participant = Participant {
+            participant_guid: own_host_info.id.clone(),
+            alias: own_host_info.name.clone(),
+            ip4_address: self.own_http_addr.clone(),
+            ip6_address: String::from(""),
+            database_port_number: 0,
+            token: own_host_info.token.clone(),
+            internal_participant_guid: "".to_string(),
+            http_addr: self.own_http_addr.clone(),
+            http_port: self.own_http_port,
+        };
+
+        let request = ParticipantAcceptsContractRequest {
+            participant: Some(participant),
+            contract_guid: accepted_contract.contract_guid.clone(),
+            contract_version_guid: accepted_contract.contract_version.clone(),
+            database_name: accepted_contract
+                .schema
+                .as_ref()
+                .unwrap()
+                .database_name
+                .clone(),
+            message_info: Some(message_info),
+        };
+
+        let request_json = serde_json::to_string(&request).unwrap();
+
+        let addr_port = format!(
+            "{}:{}",
+            host_info.http_addr,
+            host_info.http_port.to_string()
+        );
+
+        info!("sending request to rcd at: {}", addr_port);
+
+        let url = format!("http://{}{}", addr_port, PARTICIPANT_ACCEPTS_CONTRACT);
+        let result = send_message(request_json, url).await;
+        let reply: ParticipantAcceptsContractResult =
+            serde_json::from_str(&result.to_string()).unwrap();
+
+        return reply.contract_acceptance_is_acknowledged;
+    }
+
     pub async fn send_participant_contract(
         &self,
         participant: CoopDatabaseParticipant,
@@ -110,6 +164,9 @@ fn is_little_endian() -> bool {
 
 async fn send_message(json_message: String, url: String) -> String {
     let client = reqwest::Client::new();
+
+    println!("{}", json_message);
+    println!("{}", url);
 
     return client
         .post(url)

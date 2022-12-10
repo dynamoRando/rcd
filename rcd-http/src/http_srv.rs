@@ -59,7 +59,6 @@ impl Core {
     pub fn get_port(&mut self) -> u16 {
         return self.port;
     }
-
 }
 
 lazy_static! {
@@ -94,28 +93,26 @@ fn index() -> &'static str {
 
 #[rocket::main]
 pub async fn start() -> Result<(), rocket::Error> {
-    
     // let config = Config {
     //     port: get_port(),
-    //     address: get_addr().parse().unwrap(),    
+    //     address: get_addr().parse().unwrap(),
     //     log_level: LogLevel::Debug,
     //     ..Config::debug_default()
     // };
 
     let config = Config {
         port: get_port(),
-        address: get_addr().parse().unwrap(),    
+        address: get_addr().parse().unwrap(),
         log_level: LogLevel::Normal,
         ..Config::debug_default()
     };
-
 
     let core = Core {
         core: Some(get_core()),
         data: Some(get_data()),
         addr: get_addr(),
         port: get_port(),
-        };
+    };
 
     let _ = rocket::custom(config)
         .attach(CORS)
@@ -136,11 +133,15 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::database::participant::send_contract_to_participant,
                 client::database::participant::get_participants,
                 client::database::generate_contract,
+                client::database::enable_coooperative_features,
                 client::sql::read_at_host,
                 client::sql::write_at_host,
+                client::contract::review_pending_contracts,
+                client::contract::accept_pending_contract,
                 data::status,
                 data::version,
                 data::contract::save_contract,
+                data::contract::participant_accepts_contract,
             ],
         )
         .manage(core)

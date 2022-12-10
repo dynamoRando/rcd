@@ -1,8 +1,9 @@
 use rcdproto::rcdp::{
-    CreateUserDatabaseReply, CreateUserDatabaseRequest, GenerateContractReply,
-    GenerateContractRequest, GetActiveContractReply, GetActiveContractRequest, GetDatabasesReply,
-    GetDatabasesRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
+    CreateUserDatabaseReply, CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
+    EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDatabasesReply, GetDatabasesRequest,
+    GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyRequest,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
 
@@ -100,6 +101,23 @@ pub async fn get_active_contact(
 ) -> (Status, Json<GetActiveContractReply>) {
     let core = state.get_core();
     let result = core.get_active_contact(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/enable-cooperative-features",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn enable_coooperative_features(
+    request: Json<EnableCoooperativeFeaturesRequest>,
+    state: &State<Core>,
+) -> (Status, Json<EnableCoooperativeFeaturesReply>) {
+    let core = state.get_core();
+    let result = core
+        .enable_coooperative_features(request.into_inner())
+        .await;
 
     (Status::Ok, Json(result))
 }

@@ -8,10 +8,10 @@ This is not final, this is just brainstorming.
 - /data/status
 - /data/version
     - POST: `is_online`
-
-## Participant
-- [X] /data/participant/send-contract
-    - POST: `send_contract_to_participant` (this really should be a GET)    
+- /data/contract/save
+    - POST: `save_contract`
+- data/contract/accepted-by-participant
+    - POST: `participant_accepts_contract`
 
 # Client 
 - /client
@@ -40,6 +40,8 @@ This is not final, this is just brainstorming.
     - POST: `get_logical_storage_policy`
 - [X] /client/databases/table/policy/set/
     - POST: `set_logical_storage_policy`
+- [ ] /client/databases/enable-cooperative-features
+    - POST: `enable_cooperative_features`
 
 ## SQL 
 - [X] /client/sql/host/read/
@@ -60,13 +62,9 @@ This is not final, this is just brainstorming.
     - POST: `change_host_status`    
 
 ## Contract
-- [X] /client/contract/generate/
-    - POST: `generate_contract`
-- [ ] /client/contract/send/
-    - POST: `send_participant_contract`
-- [ ] /client/contract/pending/
+- [X] /client/contract/review
     - POST: `review_pending_contracts`
-- [ ] /client/contract/accept/
+- [X] /client/contract/accept/
     - POST: `accept_pending_contract`
 - [ ] /client/contract/reject/
     - POST: `reject_pending_contract`
