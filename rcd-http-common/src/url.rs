@@ -8,6 +8,8 @@ pub mod client {
     pub const ADD_PARTICIPANT: &str = "/client/databases/participant/add/";
     pub const GET_PARTICIPANTS: &str = "/client/databases/participant/get/";
     pub const GET_ACTIVE_CONTRACT: &str = "/client/databases/contract/get/";
+    pub const IS_ONLINE: &str = "/client/version";
+    pub const NEW_DATABASE: &str = "/client/databases/new/";
 }
 
 pub mod data {

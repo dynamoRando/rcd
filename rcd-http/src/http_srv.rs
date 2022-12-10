@@ -4,6 +4,7 @@ use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;
 use rocket::fairing::Kind;
 use rocket::http::Header;
+use rocket::log::LogLevel;
 use rocket::{
     fairing::{Fairing, Info},
     get,
@@ -18,6 +19,7 @@ use std::thread;
 mod client;
 mod data;
 
+#[derive(Debug)]
 pub struct Core {
     core: Option<Rcd>,
     data: Option<RcdData>,
@@ -57,6 +59,7 @@ impl Core {
     pub fn get_port(&mut self) -> u16 {
         return self.port;
     }
+
 }
 
 lazy_static! {
@@ -68,19 +71,19 @@ lazy_static! {
     });
 }
 
-pub fn get_core() -> Rcd {
+fn get_core() -> Rcd {
     return CORE.lock().unwrap().get_core();
 }
 
-pub fn get_data() -> RcdData {
+fn get_data() -> RcdData {
     return CORE.lock().unwrap().get_data();
 }
 
-pub fn get_addr() -> String {
+fn get_addr() -> String {
     return CORE.lock().unwrap().get_addr();
 }
 
-pub fn get_port() -> u16 {
+fn get_port() -> u16 {
     return CORE.lock().unwrap().get_port();
 }
 
@@ -91,13 +94,30 @@ fn index() -> &'static str {
 
 #[rocket::main]
 pub async fn start() -> Result<(), rocket::Error> {
+    
+    // let config = Config {
+    //     port: get_port(),
+    //     address: get_addr().parse().unwrap(),    
+    //     log_level: LogLevel::Debug,
+    //     ..Config::debug_default()
+    // };
+
     let config = Config {
         port: get_port(),
-        address: get_addr().parse().unwrap(),
+        address: get_addr().parse().unwrap(),    
+        log_level: LogLevel::Normal,
         ..Config::debug_default()
     };
 
-    let _rocket = rocket::custom(config)
+
+    let core = Core {
+        core: Some(get_core()),
+        data: Some(get_data()),
+        addr: get_addr(),
+        port: get_port(),
+        };
+
+    let _ = rocket::custom(config)
         .attach(CORS)
         .mount(
             "/",
@@ -123,6 +143,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 data::contract::save_contract,
             ],
         )
+        .manage(core)
         .launch()
         .await?;
 
@@ -153,6 +174,14 @@ pub async fn shutdown_http() {
     let http_addr = get_addr().clone();
     let http_port = get_port();
     let url = format!("http://{}:{}/shutdown", http_addr, http_port);
+    let _ = reqwest::get(url).await.unwrap();
+}
+
+pub async fn shutdown_http_addr(addr: String, port: u32) {
+    let url = format!("http://{}:{}/shutdown", addr, port);
+
+    println!("Shutdown Request for http://{}:{}", addr, port.to_string());
+
     let _ = reqwest::get(url).await.unwrap();
 }
 

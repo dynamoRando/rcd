@@ -429,6 +429,7 @@ fn has_table(table_name: String, conn: &Connection) -> bool {
 
 pub fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
     let db_path = Path::new(&config.root_folder).join(&db_name);
+    println!("{:?}", db_path);
     return Connection::open(&db_path).unwrap();
 }
 

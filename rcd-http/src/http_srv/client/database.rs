@@ -1,24 +1,26 @@
-use super::get_core;
 use rcdproto::rcdp::{
     CreateUserDatabaseReply, CreateUserDatabaseRequest, GenerateContractReply,
     GenerateContractRequest, GetActiveContractReply, GetActiveContractRequest, GetDatabasesReply,
     GetDatabasesRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
-use rocket::{http::Status, post, serde::json::Json};
+use rocket::{http::Status, post, serde::json::Json, State};
+
+use crate::http_srv::Core;
 
 pub mod participant;
 
 #[post("/client/databases", format = "application/json", data = "<request>")]
 pub async fn post_get_databases(
     request: Json<GetDatabasesRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<GetDatabasesReply>) {
     // note: this doesn't make sense for HTTP
     // this should be a GET instead of a POST
     // need to look at HTTP spec and figure out how to send
     // authorization in the header rather than a POST
 
-    let result = get_core().get_databases(request.into_inner()).await;
+    let result = state.get_core().get_databases(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
@@ -30,8 +32,10 @@ pub async fn post_get_databases(
 )]
 pub async fn get_logical_storage_policy(
     request: Json<GetLogicalStoragePolicyRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<GetLogicalStoragePolicyReply>) {
-    let result = get_core()
+    let result = state
+        .get_core()
         .get_logical_storage_policy(request.into_inner())
         .await;
 
@@ -45,8 +49,10 @@ pub async fn get_logical_storage_policy(
 )]
 pub async fn set_logical_storage_policy(
     request: Json<SetLogicalStoragePolicyRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<SetLogicalStoragePolicyReply>) {
-    let result = get_core()
+    let result = state
+        .get_core()
         .set_logical_storage_policy(request.into_inner())
         .await;
 
@@ -60,8 +66,10 @@ pub async fn set_logical_storage_policy(
 )]
 pub async fn generate_contract(
     request: Json<GenerateContractRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<GenerateContractReply>) {
-    let result = get_core().generate_contract(request.into_inner()).await;
+    let core = state.get_core();
+    let result = core.generate_contract(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
@@ -73,8 +81,10 @@ pub async fn generate_contract(
 )]
 pub async fn new_database(
     request: Json<CreateUserDatabaseRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<CreateUserDatabaseReply>) {
-    let result = get_core().create_user_database(request.into_inner()).await;
+    let core = state.get_core();
+    let result = core.create_user_database(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
@@ -86,8 +96,10 @@ pub async fn new_database(
 )]
 pub async fn get_active_contact(
     request: Json<GetActiveContractRequest>,
+    state: &State<Core>,
 ) -> (Status, Json<GetActiveContractReply>) {
-    let result = get_core().get_active_contact(request.into_inner()).await;
+    let core = state.get_core();
+    let result = core.get_active_contact(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }

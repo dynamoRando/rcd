@@ -1,4 +1,5 @@
 use client_type::RcdClientType;
+use rcd_http_common::url::client::{IS_ONLINE, NEW_DATABASE};
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AcceptPendingContractRequest,
@@ -11,7 +12,8 @@ use rcdproto::rcdp::{
     GetDatabasesRequest, GetLogicalStoragePolicyRequest, GetParticipantsReply,
     GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest,
     HasTableRequest, SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
-    StatementResultset, TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    StatementResultset, TestReply, TestRequest, TryAuthAtParticipantRequest,
+    ViewPendingContractsRequest, CreateUserDatabaseReply,
 };
 
 use rcd_common::rcd_enum::{
@@ -99,23 +101,86 @@ impl RcdClient {
         };
     }
 
-    pub async fn is_online(self: &Self) -> bool {
-        let mut client = self.get_client().await;
+    pub async fn is_online_reply(self: &Self, message: String) -> TestReply {
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let mut client = self.get_client().await;
 
-        let test_string = "is_online";
+                let request = TestRequest {
+                    request_time_utc: "".to_string(),
+                    request_origin_url: "".to_string(),
+                    request_origin_ip4: "".to_string(),
+                    request_origin_ip6: "".to_string(),
+                    request_port_number: 0,
+                    request_echo_message: message.clone().to_string(),
+                };
 
-        let request = TestRequest {
-            request_time_utc: "".to_string(),
-            request_origin_url: "".to_string(),
-            request_origin_ip4: "".to_string(),
-            request_origin_ip6: "".to_string(),
-            request_port_number: 0,
-            request_echo_message: test_string.clone().to_string(),
+                let result = client.is_online(request).await.unwrap();
+
+                return result.into_inner();
+            }
+            RcdClientType::Http => {
+                let request = TestRequest {
+                    request_time_utc: "".to_string(),
+                    request_origin_url: "".to_string(),
+                    request_origin_ip4: "".to_string(),
+                    request_origin_ip6: "".to_string(),
+                    request_port_number: 0,
+                    request_echo_message: message.clone().to_string(),
+                };
+
+                let url = self.get_http_url(IS_ONLINE);
+                let request_json = serde_json::to_string(&request).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: TestReply = serde_json::from_str(&result_json).unwrap();
+
+                return result;
+            }
         };
+    }
 
-        let result = client.is_online(request).await.unwrap();
+    pub async fn is_online(self: &Self) -> bool {
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let mut client = self.get_client().await;
 
-        return result.into_inner().reply_echo_message == test_string;
+                let test_string = "is_online";
+
+                let request = TestRequest {
+                    request_time_utc: "".to_string(),
+                    request_origin_url: "".to_string(),
+                    request_origin_ip4: "".to_string(),
+                    request_origin_ip6: "".to_string(),
+                    request_port_number: 0,
+                    request_echo_message: test_string.clone().to_string(),
+                };
+
+                let result = client.is_online(request).await.unwrap();
+
+                return result.into_inner().reply_echo_message == test_string;
+            }
+            RcdClientType::Http => {
+                let test_string = "is_online";
+
+                let request = TestRequest {
+                    request_time_utc: "".to_string(),
+                    request_origin_url: "".to_string(),
+                    request_origin_ip4: "".to_string(),
+                    request_origin_ip6: "".to_string(),
+                    request_port_number: 0,
+                    request_echo_message: test_string.clone().to_string(),
+                };
+
+                let url = self.get_http_url(IS_ONLINE);
+                let request_json = serde_json::to_string(&request).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: TestReply = serde_json::from_str(&result_json).unwrap();
+
+                return result.reply_echo_message == test_string;
+            }
+        };
     }
 
     pub async fn get_active_contract(
@@ -489,26 +554,31 @@ impl RcdClient {
     }
 
     pub async fn generate_host_info(self: &Self, host_name: &str) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GenerateHostInfoRequest {
-            authentication: Some(auth),
-            host_name: host_name.to_string(),
-        });
+                let request = tonic::Request::new(GenerateHostInfoRequest {
+                    authentication: Some(auth),
+                    host_name: host_name.to_string(),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .generate_host_info(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .generate_host_info(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn get_databases(self: &Self) -> Result<GetDatabasesReply, Box<dyn Error>> {
@@ -562,51 +632,61 @@ impl RcdClient {
     }
 
     pub async fn view_pending_contracts(self: &Self) -> Result<Vec<Contract>, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ViewPendingContractsRequest {
-            authentication: Some(auth),
-        });
+                let request = tonic::Request::new(ViewPendingContractsRequest {
+                    authentication: Some(auth),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .review_pending_contracts(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .review_pending_contracts(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.contracts)
+                Ok(response.contracts)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn accept_pending_contract(
         self: &Self,
         host_alias: &str,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(AcceptPendingContractRequest {
-            authentication: Some(auth),
-            host_alias: host_alias.to_string(),
-        });
+                let request = tonic::Request::new(AcceptPendingContractRequest {
+                    authentication: Some(auth),
+                    host_alias: host_alias.to_string(),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .accept_pending_contract(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .accept_pending_contract(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn send_participant_contract(
@@ -614,27 +694,32 @@ impl RcdClient {
         db_name: &str,
         participant_alias: &str,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(SendParticipantContractRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-            participant_alias: participant_alias.to_string(),
-        });
+                let request = tonic::Request::new(SendParticipantContractRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    participant_alias: participant_alias.to_string(),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .send_participant_contract(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .send_participant_contract(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_sent)
+                Ok(response.is_sent)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn add_participant(
@@ -646,27 +731,32 @@ impl RcdClient {
         participant_http_addr: String,
         participant_http_port: u16,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(AddParticipantRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-            alias: participant_alias.to_string(),
-            ip4_address: participant_ip4addr.to_string(),
-            port: participant_db_port,
-            http_addr: participant_http_addr,
-            http_port: participant_http_port as u32,
-        });
+                let request = tonic::Request::new(AddParticipantRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    alias: participant_alias.to_string(),
+                    ip4_address: participant_ip4addr.to_string(),
+                    port: participant_db_port,
+                    http_addr: participant_http_addr,
+                    http_port: participant_http_port as u32,
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client.add_participant(request).await.unwrap().into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client.add_participant(request).await.unwrap().into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn generate_contract(
@@ -676,29 +766,34 @@ impl RcdClient {
         desc: &str,
         remote_delete_behavior: RemoteDeleteBehavior,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GenerateContractRequest {
-            authentication: Some(auth),
-            host_name: host_name.to_string(),
-            description: desc.to_string(),
-            database_name: db_name.to_string(),
-            remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
-        });
+                let request = tonic::Request::new(GenerateContractRequest {
+                    authentication: Some(auth),
+                    host_name: host_name.to_string(),
+                    description: desc.to_string(),
+                    database_name: db_name.to_string(),
+                    remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .generate_contract(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .generate_contract(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn has_table(
@@ -761,28 +856,33 @@ impl RcdClient {
         table_name: &str,
         policy: LogicalStoragePolicy,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(SetLogicalStoragePolicyRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-            table_name: table_name.to_string(),
-            policy_mode: LogicalStoragePolicy::to_u32(policy),
-        });
+                let request = tonic::Request::new(SetLogicalStoragePolicyRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    table_name: table_name.to_string(),
+                    policy_mode: LogicalStoragePolicy::to_u32(policy),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .set_logical_storage_policy(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .set_logical_storage_policy(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn execute_write_at_host(
@@ -792,29 +892,34 @@ impl RcdClient {
         db_type: u32,
         where_clause: &str,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ExecuteWriteRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-            sql_statement: sql_statement.to_string(),
-            database_type: db_type,
-            where_clause: where_clause.to_string(),
-        });
+                let request = tonic::Request::new(ExecuteWriteRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    sql_statement: sql_statement.to_string(),
+                    database_type: db_type,
+                    where_clause: where_clause.to_string(),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .execute_write_at_host(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .execute_write_at_host(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn execute_write_at_participant(
@@ -943,26 +1048,31 @@ impl RcdClient {
         self: &Self,
         db_name: &str,
     ) -> Result<bool, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(EnableCoooperativeFeaturesRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-        });
+                let request = tonic::Request::new(EnableCoooperativeFeaturesRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                });
 
-        info!("sending request");
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .enable_coooperative_features(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .enable_coooperative_features(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => todo!(),
+        }
     }
 
     pub async fn create_user_database(self: &Self, db_name: &str) -> Result<bool, Box<dyn Error>> {
@@ -973,19 +1083,31 @@ impl RcdClient {
             database_name: db_name.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .create_user_database(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .create_user_database(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_created)
+                Ok(response.is_created)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(NEW_DATABASE);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: CreateUserDatabaseReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.is_created)
+            },
+        }
     }
 
     async fn get_client(self: &Self) -> SqlClientClient<Channel> {
@@ -1007,5 +1129,33 @@ impl RcdClient {
         };
 
         return auth;
+    }
+
+    async fn send_http_message(&self, json_message: String, url: String) -> String {
+        let client = reqwest::Client::new();
+
+        return client
+            .post(url)
+            .header("Content-Type", "application/json")
+            .body(json_message)
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+    }
+
+    fn get_http_url(&self, action_url: &str) -> String {
+        let http_base = format!(
+            "{}{}:{}",
+            "http://",
+            self.http_addr,
+            self.http_port.to_string()
+        );
+
+        let result =  format!("{}{}", http_base, action_url);
+        println!("{}", result);
+        return result;
     }
 }

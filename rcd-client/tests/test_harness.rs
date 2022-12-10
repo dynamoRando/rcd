@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use rcdx::rcd_service::get_service_from_config_file;
+use rcdx::rcd_service::RcdService;
 use std::env;
 use std::fs;
 use std::{path::Path, sync::Mutex};
@@ -52,7 +53,7 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceA
     let mut service = get_service_from_config_file();
 
     let http_addr = ServiceAddr {
-        ip4_addr: "localhost".to_string(),
+        ip4_addr: "127.0.0.1".to_string(),
         port: http_port_num,
         addr_type: AddrType::Client,
     };
@@ -65,9 +66,17 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceA
     let cwd = service.cwd();
     delete_test_database(test_db_name, &cwd);
 
+    println!("{:?}", &test_db_name);
+    println!("{:?}", &cwd);
+
     let _ =
-        service.start_http_at_addr_and_dir("localhost".to_string(), http_port_num as u16, root_dir);
+        service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
     return http_addr;
+}
+
+#[allow(dead_code)]
+pub fn shutdown_http(addr: String, port: u32) {
+    RcdService::shutdown_http(addr, port);
 }
 
 #[allow(dead_code)]
