@@ -1,25 +1,35 @@
 use client_type::RcdClientType;
 use rcd_http_common::url::client::{
-    ACCEPT_PENDING_CONTRACT, ADD_PARTICIPANT, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
-    GENERATE_HOST_INFO, IS_ONLINE, NEW_DATABASE, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY,
-    VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST,
+    ACCEPT_PENDING_ACTION, ACCEPT_PENDING_CONTRACT, ADD_PARTICIPANT,
+    CHANGE_DELETES_FROM_HOST_BEHAVIOR, CHANGE_DELETES_TO_HOST_BEHAVIOR, CHANGE_HOST_STATUS_ID,
+    CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
+    COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
+    GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABSES, GET_DATA_HASH_AT_HOST,
+    GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
+    GET_ROW_AT_PARTICIPANT, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
+    SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS,
+    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AcceptPendingContractReply,
     AcceptPendingContractRequest, AddParticipantReply, AddParticipantRequest, AuthRequest,
-    ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorRequest,
+    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+    ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
     ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
-    ChangeUpdatesToHostBehaviorRequest, Contract, CreateUserDatabaseReply,
+    ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
+    ChangesUpdatesFromHostBehaviorReply, Contract, CreateUserDatabaseReply,
     CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
-    ExecuteCooperativeWriteRequest, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
-    GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetDataHashRequest, GetDatabasesReply,
-    GetDatabasesRequest, GetLogicalStoragePolicyRequest, GetParticipantsReply,
-    GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsRequest,
-    HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
+    ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
+    ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
+    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
+    GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
+    HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
-    TestRequest, TryAuthAtParticipantRequest, ViewPendingContractsReply,
+    TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
     ViewPendingContractsRequest,
 };
 
@@ -194,23 +204,45 @@ impl RcdClient {
         self: &Self,
         db_name: &str,
     ) -> Result<GetActiveContractReply, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let request = GetActiveContractRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-        };
+                let request = GetActiveContractRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                };
 
-        let response = client
-            .get_active_contract(request)
-            .await
-            .unwrap()
-            .into_inner();
+                let response = client
+                    .get_active_contract(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
 
-        Ok(response)
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let request = GetActiveContractRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                };
+
+                let url = self.get_http_url(GET_ACTIVE_CONTRACT);
+                let request_json = serde_json::to_string(&request).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetActiveContractReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
     }
 
     pub async fn accept_pending_action_at_participant(
@@ -219,25 +251,49 @@ impl RcdClient {
         table_name: &str,
         row_id: u32,
     ) -> Result<AcceptPendingActionReply, Box<dyn Error>> {
-        let auth = self.gen_auth_request();
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let request = AcceptPendingActionRequest {
-            authentication: Some(auth),
-            database_name: db_name.to_string(),
-            table_name: table_name.to_string(),
-            row_id,
-        };
+                let request = AcceptPendingActionRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    table_name: table_name.to_string(),
+                    row_id,
+                };
 
-        let response = client
-            .accept_pending_action_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
+                let response = client
+                    .accept_pending_action_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
 
-        Ok(response)
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let request = AcceptPendingActionRequest {
+                    authentication: Some(auth),
+                    database_name: db_name.to_string(),
+                    table_name: table_name.to_string(),
+                    row_id,
+                };
+
+                let url = self.get_http_url(ACCEPT_PENDING_ACTION);
+                let request_json = serde_json::to_string(&request).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: AcceptPendingActionReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
     }
 
     pub async fn get_participants_for_database(
@@ -251,15 +307,29 @@ impl RcdClient {
             database_name: db_name.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client.get_participants(request).await.unwrap().into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client.get_participants(request).await.unwrap().into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response)
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_PARTICIPANTS);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetParticipantsReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
     }
 
     pub async fn get_pending_actions_at_participant(
@@ -277,19 +347,33 @@ impl RcdClient {
             action: action.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .get_pending_actions_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .get_pending_actions_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response)
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_PENDING_ACTIONS);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetPendingActionsReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
     }
 
     pub async fn get_row_id_at_participant(
@@ -307,19 +391,33 @@ impl RcdClient {
             where_clause: where_clause.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .read_row_id_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .read_row_id_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.row_ids)
+                Ok(response.row_ids)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_ROW_AT_PARTICIPANT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetReadRowIdsReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.row_ids);
+            }
+        }
     }
 
     pub async fn get_data_hash_at_participant(
@@ -337,19 +435,33 @@ impl RcdClient {
             row_id: row_id,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .get_data_hash_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .get_data_hash_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.data_hash)
+                Ok(response.data_hash)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_DATA_HASH_AT_PARTICIPANT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetDataHashReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.data_hash);
+            }
+        }
     }
 
     pub async fn get_data_hash_at_host(
@@ -367,19 +479,33 @@ impl RcdClient {
             row_id: row_id,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .get_data_hash_at_host(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .get_data_hash_at_host(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.data_hash)
+                Ok(response.data_hash)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_DATA_HASH_AT_HOST);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetDataHashReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.data_hash);
+            }
+        }
     }
 
     pub async fn change_deletes_to_host_behavior(
@@ -397,19 +523,34 @@ impl RcdClient {
             behavior: DeletesToHostBehavior::to_u32(behavior),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_deletes_to_host_behavior(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_deletes_to_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_DELETES_TO_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangeDeletesToHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn change_updates_to_host_behavior(
@@ -427,19 +568,34 @@ impl RcdClient {
             behavior: UpdatesToHostBehavior::to_u32(behavior),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_updates_to_host_behavior(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_updates_to_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_UPDATES_TO_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangeUpdatesToHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn change_deletes_from_host_behavior(
@@ -457,19 +613,34 @@ impl RcdClient {
             behavior: DeletesFromHostBehavior::to_u32(behavior),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_deletes_from_host_behavior(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_deletes_from_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_DELETES_FROM_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangeDeletesFromHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn change_updates_from_host_behavior(
@@ -487,19 +658,34 @@ impl RcdClient {
             behavior: UpdatesFromHostBehavior::to_u32(behavior),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_updates_from_host_behavior(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_updates_from_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_UPDATES_FROM_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangesUpdatesFromHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn change_host_status_by_id(
@@ -516,19 +702,33 @@ impl RcdClient {
             status,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_host_status(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_host_status(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_HOST_STATUS_ID);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangeHostStatusReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn change_host_status_by_name(
@@ -545,19 +745,33 @@ impl RcdClient {
             status,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .change_host_status(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .change_host_status(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(CHANGE_HOST_STATUS_NAME);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: ChangeHostStatusReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result.is_successful);
+            }
+        }
     }
 
     pub async fn generate_host_info(self: &Self, host_name: &str) -> Result<bool, Box<dyn Error>> {
@@ -601,14 +815,26 @@ impl RcdClient {
             authentication: Some(auth),
         };
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
-        let response = client.get_databases(request).await.unwrap().into_inner();
+                let mut client = self.get_client().await;
+                let response = client.get_databases(request).await.unwrap().into_inner();
 
-        println!("{:?}", response);
+                println!("{:?}", response);
 
-        return Ok(response);
+                return Ok(response);
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_DATABSES);
+                let request_json = serde_json::to_string(&request).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: GetDatabasesReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result)
+            }
+        }
     }
 
     pub async fn execute_cooperative_write_at_host(
@@ -630,18 +856,31 @@ impl RcdClient {
             where_clause: where_clause.to_string(),
         };
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
-        let response = client
-            .execute_cooperative_write_at_host(request)
-            .await
-            .unwrap()
-            .into_inner();
+                let mut client = self.get_client().await;
+                let response = client
+                    .execute_cooperative_write_at_host(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
 
-        println!("{:?}", response);
+                println!("{:?}", response);
 
-        return Ok(response.is_successful);
+                return Ok(response.is_successful);
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(COOPERATIVE_WRITE_SQL_AT_HOST);
+                let request_json = serde_json::to_string(&request).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: ExecuteCooperativeWriteReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.is_successful)
+            }
+        }
     }
 
     pub async fn view_pending_contracts(self: &Self) -> Result<Vec<Contract>, Box<dyn Error>> {
@@ -858,15 +1097,27 @@ impl RcdClient {
             table_name: table_name.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client.has_table(request).await.unwrap().into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client.has_table(request).await.unwrap().into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.has_table)
+                Ok(response.has_table)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GENERATE_CONTRACT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: HasTableReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.has_table)
+            }
+        }
     }
 
     pub async fn get_logical_storage_policy(
@@ -882,21 +1133,34 @@ impl RcdClient {
             table_name: table_name.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .get_logical_storage_policy(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .get_logical_storage_policy(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
+                let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
 
-        Ok(policy)
+                Ok(policy)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_POLICY);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: GetLogicalStoragePolicyReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                Ok(LogicalStoragePolicy::from_i64(result.policy_mode as i64))
+            }
+        }
     }
 
     pub async fn set_logical_storage_policy(
@@ -1003,19 +1267,31 @@ impl RcdClient {
             where_clause: where_clause.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .execute_write_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .execute_write_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.is_successful)
+                Ok(response.is_successful)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(WRITE_SQL_AT_PARTICIPANT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: ExecuteWriteReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.is_successful)
+            }
+        }
     }
 
     pub async fn try_auth_at_participant(
@@ -1033,19 +1309,31 @@ impl RcdClient {
             db_name: db_name.to_string(),
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .try_auth_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .try_auth_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        return response.is_successful;
+                return response.is_successful;
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(TRY_AUTH_PARTICIPANT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: TryAuthAtPartipantReply = serde_json::from_str(&result_json).unwrap();
+
+                return result.is_successful;
+            }
+        }
     }
 
     pub async fn execute_read_at_participant(
@@ -1063,19 +1351,31 @@ impl RcdClient {
             database_type: db_type,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .execute_read_at_participant(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .execute_read_at_participant(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.results[0].clone())
+                Ok(response.results[0].clone())
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(READ_SQL_AT_PARTICIPANT);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: ExecuteReadReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.results[0].clone())
+            }
+        }
     }
 
     pub async fn execute_read_at_host(
@@ -1093,19 +1393,31 @@ impl RcdClient {
             database_type: db_type,
         });
 
-        info!("sending request");
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
 
-        let mut client = self.get_client().await;
+                let mut client = self.get_client().await;
 
-        let response = client
-            .execute_read_at_host(request)
-            .await
-            .unwrap()
-            .into_inner();
-        println!("RESPONSE={:?}", response);
-        info!("response back");
+                let response = client
+                    .execute_read_at_host(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
 
-        Ok(response.results[0].clone())
+                Ok(response.results[0].clone())
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(READ_SQL_AT_HOST);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+                let result_json = self.send_http_message(request_json, url).await;
+                let result: ExecuteReadReply = serde_json::from_str(&result_json).unwrap();
+
+                Ok(result.results[0].clone())
+            }
+        }
     }
 
     pub async fn enable_cooperative_features(

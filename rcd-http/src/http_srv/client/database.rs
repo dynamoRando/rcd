@@ -1,15 +1,18 @@
 use rcdproto::rcdp::{
     CreateUserDatabaseReply, CreateUserDatabaseRequest, EnableCoooperativeFeaturesReply,
     EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetDatabasesReply, GetDatabasesRequest,
-    GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
-    SetLogicalStoragePolicyRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
+    GetLogicalStoragePolicyRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, HasTableRequest, HasTableReply,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
 
 use crate::http_srv::Core;
 
+pub mod actions;
 pub mod participant;
+pub mod behavior;
 
 #[post("/client/databases", format = "application/json", data = "<request>")]
 pub async fn post_get_databases(
@@ -118,6 +121,69 @@ pub async fn enable_coooperative_features(
     let result = core
         .enable_coooperative_features(request.into_inner())
         .await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/participant/io/get",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn get_row_id_at_participant(
+    request: Json<GetReadRowIdsRequest>,
+    state: &State<Core>,
+) -> (Status, Json<GetReadRowIdsReply>) {
+    let core = state.get_core();
+    let result = core.read_row_id_at_participant(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/participant/io/get-hash",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn get_data_hash_at_participant(
+    request: Json<GetDataHashRequest>,
+    state: &State<Core>,
+) -> (Status, Json<GetDataHashReply>) {
+    let core = state.get_core();
+    let result = core
+        .get_data_hash_at_participant(request.into_inner())
+        .await;
+
+    (Status::Ok, Json(result))
+}
+
+#[post(
+    "/client/databases/host/io/get-hash",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn get_data_hash_at_host(
+    request: Json<GetDataHashRequest>,
+    state: &State<Core>,
+) -> (Status, Json<GetDataHashReply>) {
+    let core = state.get_core();
+    let result = core.get_data_hash_at_host(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+
+#[post(
+    "/client/databases/has_table",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn has_table(
+    request: Json<HasTableRequest>,
+    state: &State<Core>,
+) -> (Status, Json<HasTableReply>) {
+    let core = state.get_core();
+    let result = core.has_table(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
