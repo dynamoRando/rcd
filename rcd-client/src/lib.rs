@@ -8,7 +8,7 @@ use rcd_http_common::url::client::{
     GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
     GET_ROW_AT_PARTICIPANT, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
     SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS,
-    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
+    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT, HAS_TABLE,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
@@ -1110,7 +1110,7 @@ impl RcdClient {
                 Ok(response.has_table)
             }
             RcdClientType::Http => {
-                let url = self.get_http_url(GENERATE_CONTRACT);
+                let url = self.get_http_url(HAS_TABLE);
                 let request_json = serde_json::to_string(&request.into_inner()).unwrap();
                 let result_json = self.send_http_message(request_json, url).await;
                 let result: HasTableReply = serde_json::from_str(&result_json).unwrap();

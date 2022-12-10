@@ -405,7 +405,7 @@ pub mod http {
         let mut has_contract = false;
 
         info!(
-            "main_service_client attempting to connect {}",
+            "participant_service_client attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
         );
 

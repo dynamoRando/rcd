@@ -1,6 +1,4 @@
 use crate::http_srv::Core;
-
-use super::get_core;
 use rcd_common::defaults;
 use rcdproto::rcdp::{ChangeHostStatusReply, ChangeHostStatusRequest, TestReply, TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply};
 use rocket::{get, http::Status, post, serde::json::Json, State};
