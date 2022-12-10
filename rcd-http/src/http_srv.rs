@@ -148,6 +148,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 data::io::update_row_at_participant,
                 data::io::insert_row_at_participant,
                 data::io::get_row_at_participant,
+                data::io::notify_host_of_updated_hash,
             ],
         )
         .manage(core)

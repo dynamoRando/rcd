@@ -1,6 +1,6 @@
 use rcdproto::rcdp::{
     DeleteDataRequest, DeleteDataResult, NotifyHostOfRemovedRowRequest,
-    NotifyHostOfRemovedRowResponse, UpdateDataRequest, UpdateDataResult, InsertDataRequest, InsertDataResult, GetRowFromPartialDatabaseRequest, GetRowFromPartialDatabaseResult,
+    NotifyHostOfRemovedRowResponse, UpdateDataRequest, UpdateDataResult, InsertDataRequest, InsertDataResult, GetRowFromPartialDatabaseRequest, GetRowFromPartialDatabaseResult, UpdateRowDataHashForHostRequest, UpdateRowDataHashForHostResponse,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
 
@@ -75,6 +75,22 @@ pub async fn get_row_at_participant(
 ) -> (Status, Json<GetRowFromPartialDatabaseResult>) {
     let core = state.get_data();
     let result = core.get_row_from_partial_database(request.into_inner()).await;
+
+    (Status::Ok, Json(result))
+}
+
+
+#[post(
+    "/data/io/notify-host-updated-hash",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn notify_host_of_updated_hash(
+    request: Json<UpdateRowDataHashForHostRequest>,
+    state: &State<Core>,
+) -> (Status, Json<UpdateRowDataHashForHostResponse>) {
+    let core = state.get_data();
+    let result = core.update_row_data_hash_for_host(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }

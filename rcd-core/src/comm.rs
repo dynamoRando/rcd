@@ -270,7 +270,20 @@ impl RcdRemoteDbClient {
                     )
                     .await;
             }
-            RcdCommunication::Http => todo!(),
+            RcdCommunication::Http => {
+                return self
+                .http()
+                .notify_host_of_updated_hash(
+                    host,
+                    own_host_info,
+                    db_name,
+                    table_name,
+                    row_id,
+                    hash,
+                    is_deleted,
+                )
+                .await;
+            },
         };
     }
 

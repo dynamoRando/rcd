@@ -22,6 +22,8 @@ This is not final, this is just brainstorming.
     - POST: `update_row_at_participant`
 - /data/io/insert-row
     - POST: `insert_row_at_participant`
+- /data/io/notify-host-updated-hash
+    - POST: `notify_host_of_updated_hash`
 
 # Client 
 - /client

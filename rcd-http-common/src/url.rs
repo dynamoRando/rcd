@@ -25,5 +25,6 @@ pub mod data {
     pub const INSERT_ROW_AT_PARTICIPANT: &str = "/data/io/insert-row";
     pub const GET_ROW_AT_PARTICIPANT: &str = "/data/io/get-row";
     pub const NOTIFY_HOST_OF_REMOVED_ROW: &str = "/data/io/notify-host-removed-row";
+    pub const NOTIFY_HOST_OF_UPDATED_HASH: &str = "/data/io/notify-host-updated-hash";
     pub const TRY_AUTH: &str = "/data/try-auth";
 }
