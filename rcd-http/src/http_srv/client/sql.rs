@@ -88,3 +88,26 @@ pub async fn write_at_participant(
 
     (Status::Ok, Json(result))
 }
+
+
+#[post(
+    "/client/sql/participant/read",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn read_at_participant(
+    request: Json<ExecuteReadRequest>,
+    state: &State<Core>,
+) -> (Status, Json<ExecuteReadReply>) {
+    // note: this doesn't make sense for HTTP
+    // this should be a GET instead of a POST
+    // need to look at HTTP spec and figure out how to send
+    // authorization in the header rather than a POST
+
+    let core = state.get_core();
+    let result = core
+        .execute_read_at_participant(request.into_inner())
+        .await;
+
+    (Status::Ok, Json(result))
+}
