@@ -65,3 +65,26 @@ pub async fn cooperative_write_at_host(
 
     (Status::Ok, Json(result))
 }
+
+
+#[post(
+    "/client/sql/participant/write",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn write_at_participant(
+    request: Json<ExecuteWriteRequest>,
+    state: &State<Core>,
+) -> (Status, Json<ExecuteWriteReply>) {
+    // note: this doesn't make sense for HTTP
+    // this should be a GET instead of a POST
+    // need to look at HTTP spec and figure out how to send
+    // authorization in the header rather than a POST
+
+    let core = state.get_core();
+    let result = core
+        .execute_write_at_participant(request.into_inner())
+        .await;
+
+    (Status::Ok, Json(result))
+}

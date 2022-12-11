@@ -1,8 +1,11 @@
 use lazy_static::lazy_static;
+use log::info;
 use rcdx::rcd_service::get_service_from_config_file;
 use rcdx::rcd_service::RcdService;
+use core::time;
 use std::env;
 use std::fs;
+use std::thread;
 use std::{path::Path, sync::Mutex};
 use triggered::Trigger;
 
@@ -192,6 +195,11 @@ pub struct TestSettings {
 
 impl TestSettings {
     pub fn get_next_avail_port(&mut self) -> u32 {
+
+        let time = time::Duration::from_secs(1);
+        info!("sleeping for 1 seconds for next port...");
+        thread::sleep(time);
+
         if self.ports.len() == 0 {
             self.max_port = self.max_port + 1;
             self.ports.push(self.max_port);

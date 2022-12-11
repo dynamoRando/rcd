@@ -150,6 +150,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::sql::read_at_host,
                 client::sql::write_at_host,
                 client::sql::cooperative_write_at_host,
+                client::sql::write_at_participant,
                 client::contract::review_pending_contracts,
                 client::contract::accept_pending_contract,
                 data::status,
