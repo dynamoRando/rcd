@@ -83,6 +83,22 @@ pub fn shutdown_http(addr: String, port: u32) {
 }
 
 #[allow(dead_code)]
+pub fn sleep_test_for_seconds(seconds: u32){
+    let time = time::Duration::from_secs(seconds as u64);
+    info!("sleeping for {} seconds...", seconds.to_string());
+    thread::sleep(time);
+
+}
+
+#[allow(dead_code)]
+pub fn sleep_test() {
+    let seconds = 3;
+    let time = time::Duration::from_secs(seconds);
+    info!("sleeping for {} seconds...", seconds.to_string());
+    thread::sleep(time);
+}
+
+#[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
 pub fn start_service_with_grpc(
     test_db_name: &str,

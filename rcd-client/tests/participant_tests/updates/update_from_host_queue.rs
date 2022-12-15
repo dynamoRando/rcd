@@ -5,7 +5,7 @@ pub mod gprc {
     use rcd_common::rcd_enum::UpdatesFromHostBehavior;
     use rcd_client::RcdClient;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
     
     /*
     # Test Description
@@ -49,11 +49,7 @@ pub mod gprc {
         let part_client_shutdown_trigger = participant_addrs.4;
         let part_db_shutdown_trigger = participant_addrs.5;
     
-        let time = time::Duration::from_secs(1);
-    
-        info!("sleeping for 1 seconds...");
-    
-        thread::sleep(time);
+        test_harness::sleep_test();
     
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
