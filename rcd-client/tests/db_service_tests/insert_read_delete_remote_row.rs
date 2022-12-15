@@ -321,7 +321,13 @@ pub mod http {
         let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+
+        let m_keep_alive = main_addrs.1;
+        let main_addrs = main_addrs.0;
+
         let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let p_keep_alive = participant_addrs.1;
+        let participant_addrs = participant_addrs.0;
 
         let main_addrs1 = main_addrs.clone();
         let main_addrs2 = main_addrs.clone();
@@ -389,6 +395,9 @@ pub mod http {
         let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
 
         assert!(write_and_read_is_successful);
+
+        m_keep_alive.send(false);
+        p_keep_alive.send(false);
 
         test_harness::release_port(main_addrs2.port);
         test_harness::release_port(participant_addrs2.port);

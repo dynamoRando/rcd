@@ -1,10 +1,15 @@
 use core::time;
 use lazy_static::lazy_static;
 use log::info;
+use rcd_client::client_type::RcdClientType;
+use rcd_client::RcdClient;
 use rcdx::rcd_service::get_service_from_config_file;
 use rcdx::rcd_service::RcdService;
 use std::env;
 use std::fs;
+use std::sync::mpsc;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
 use std::thread;
 use std::{path::Path, sync::Mutex};
 use triggered::Trigger;
@@ -51,7 +56,7 @@ pub fn release_port(port: u32) {
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceAddr {
+pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> (ServiceAddr, Sender<bool>) {
     let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let mut service = get_service_from_config_file();
 
@@ -75,9 +80,12 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceA
     let _ =
         service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
 
+        let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, http_addr.clone());
+        let _ = keep_alive.send(true);
+
     sleep_instance();
 
-    return http_addr;
+    return (http_addr, keep_alive);
 }
 
 #[allow(dead_code)]
@@ -103,11 +111,62 @@ pub fn sleep_instance() {
 }
 
 #[allow(dead_code)]
+pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -> Sender<bool> {
+    let (tx_main, rx_main) = mpsc::channel();
+
+    // main - normal database setup
+    thread::spawn(move || {
+        let _ = keep_alive(client_type, addr, rx_main);
+    })
+    .join()
+    .unwrap();
+
+    return tx_main;
+}
+
+#[allow(dead_code)]
+async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Receiver<bool>) {
+    let sleep_in_milliseconds = 5000;
+
+    match client_type {
+        RcdClientType::Grpc => {
+            let client = RcdClient::new_grpc_client(
+                addr.to_full_string_with_http(),
+                String::from("tester"),
+                String::from("123456"),
+                5,
+            );
+
+            while reciever.try_recv().unwrap() {
+                let time = time::Duration::from_millis(sleep_in_milliseconds as u64);
+                thread::sleep(time);
+                let _ = client.is_online().await;
+            }
+        }
+        RcdClientType::Http => {
+            let client = RcdClient::new_http_client(
+                String::from("tester"),
+                String::from("123456"),
+                5,
+                addr.ip4_addr,
+                addr.port,
+            );
+
+            while reciever.try_recv().unwrap() {
+                let time = time::Duration::from_millis(sleep_in_milliseconds as u64);
+                thread::sleep(time);
+                let _ = client.is_online().await;
+            }
+        }
+    };
+}
+
+#[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
 pub fn start_service_with_grpc(
     test_db_name: &str,
     root_dir: String,
-) -> (ServiceAddr, ServiceAddr, u32, u32, Trigger, Trigger) {
+) -> (ServiceAddr, ServiceAddr, u32, u32, Trigger, Trigger, Sender<bool>) {
     let (client_trigger, client_listener) = triggered::trigger();
     let (db_trigger, db_listener) = triggered::trigger();
 
@@ -154,8 +213,11 @@ pub fn start_service_with_grpc(
         5,
     );
 
-    sleep_instance();
+    let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, client_addr.clone());
+    let _ = keep_alive.send(true);
 
+    sleep_instance();
+    
     return (
         client_addr,
         db_addr,
@@ -163,6 +225,7 @@ pub fn start_service_with_grpc(
         db_port_num,
         client_trigger,
         db_trigger,
+        keep_alive,
     );
 }
 

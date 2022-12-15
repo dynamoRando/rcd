@@ -25,6 +25,8 @@ pub mod grpc {
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
+        let m_keep_alive = main_addrs.6;
+    
         let main_addr_client_port = main_addrs.2;
         let main_addr_db_port = main_addrs.3;
 
@@ -32,6 +34,8 @@ pub mod grpc {
         let main_db_shutdown_triger = main_addrs.5;
 
         let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
+
+        let p_keep_alive = participant_addrs.6;
 
         let part_addr_client_port = participant_addrs.2;
         let part_addr_db_port = participant_addrs.3;
@@ -102,6 +106,9 @@ pub mod grpc {
         let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
 
         assert!(write_and_read_is_successful);
+
+        m_keep_alive.send(false);
+        p_keep_alive.send(false);
 
         test_harness::release_port(main_addr_client_port);
         test_harness::release_port(main_addr_db_port);
@@ -317,10 +324,18 @@ pub mod http {
         let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+
+        let m_keep_alive = main_addrs.1;
+        let main_addrs = main_addrs.0;
+
         let ma1 = main_addrs.clone();
         let ma2 = main_addrs.clone();
 
         let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+
+        let p_keep_alive = participant_addrs.1;
+        let participant_addrs = participant_addrs.0;
+
         let pa1 = participant_addrs.clone();
         let pa2 = participant_addrs.clone();
 
@@ -382,6 +397,9 @@ pub mod http {
         let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
 
         assert!(write_and_read_is_successful);
+
+        m_keep_alive.send(false);
+        p_keep_alive.send(false);
 
         test_harness::release_port(ma2.port);
         test_harness::release_port(pa2.port);

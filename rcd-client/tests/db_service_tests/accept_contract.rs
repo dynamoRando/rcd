@@ -40,6 +40,8 @@ pub mod grpc {
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
+        let m_keep_alive = main_addrs.6;
+
         let main_addr_client_port = main_addrs.2;
         let main_addr_db_port = main_addrs.3;
 
@@ -48,17 +50,15 @@ pub mod grpc {
 
         let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
 
+        let p_keep_alive = participant_addrs.6;
+
         let part_addr_client_port = participant_addrs.2;
         let part_addr_db_port = participant_addrs.3;
 
         let part_client_shutdown_trigger = participant_addrs.4;
         let part_db_shutdown_trigger = participant_addrs.5;
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+        test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
@@ -103,6 +103,9 @@ pub mod grpc {
         );
 
         assert!(participant_accepted_contract);
+
+        m_keep_alive.send(false);
+        p_keep_alive.send(false);
 
         test_harness::release_port(main_addr_client_port);
         test_harness::release_port(main_addr_db_port);
@@ -255,15 +258,20 @@ pub mod http {
         println!("{:?}", dirs);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
-        let m_addr1 = main_addrs.clone();
+        
+        let m_keep_alive = main_addrs.1;
+        let m_addr1 = main_addrs.0.clone();
+
+        let main_addrs = m_addr1.clone();
 
         let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
-        let p_addr1 = participant_addrs.clone();
-        let p_addr2 = participant_addrs.clone();
+        let p_keep_alive = participant_addrs.1;
 
-        let time = time::Duration::from_secs(1);
-        info!("sleeping for 1 seconds...");
-        thread::sleep(time);
+        let p_addr1 = participant_addrs.0.clone();
+        let p_addr2 = participant_addrs.0.clone();
+        let participant_addrs = p_addr1.clone();
+
+        test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
@@ -308,6 +316,9 @@ pub mod http {
         );
 
         assert!(participant_accepted_contract);
+
+        m_keep_alive.send(false);
+        p_keep_alive.send(false);
 
         test_harness::release_port(m_addr1.port);
         test_harness::release_port(p_addr2.port);

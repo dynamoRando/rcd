@@ -427,8 +427,15 @@ pub mod http {
         let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
     
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+
+        let m_keep_alive = main_addrs.1;
+        let main_addrs = main_addrs.0;
+
         let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
-    
+
+        let p_keep_alive = participant_addrs.1;
+        let participant_addrs = participant_addrs.0;
+
         let time = time::Duration::from_secs(1);
         info!("sleeping for 1 seconds...");
         thread::sleep(time);
