@@ -188,7 +188,7 @@ pub mod http {
     use log::info;
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     use crate::test_harness;
 
@@ -225,11 +225,7 @@ pub mod http {
             );
         });
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+       test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);
@@ -278,11 +274,7 @@ pub mod http {
             );
         });
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client_negative(&test_db_name, &target_client_address_port, port_num);

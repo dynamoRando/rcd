@@ -95,7 +95,7 @@ pub mod http {
     #[cfg(test)]
     use std::sync::mpsc;
     #[cfg(test)]
-    use std::{thread, time};
+    use std::{thread};
 
     #[test]
     fn test() {
@@ -124,11 +124,7 @@ pub mod http {
             let _service = service.start_http_at_addr_and_dir("127.0.0.1".to_string(), port_num as u16, root_dir);
         });
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);

@@ -1,8 +1,8 @@
+use core::time;
 use lazy_static::lazy_static;
 use log::info;
 use rcdx::rcd_service::get_service_from_config_file;
 use rcdx::rcd_service::RcdService;
-use core::time;
 use std::env;
 use std::fs;
 use std::thread;
@@ -74,6 +74,9 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> ServiceA
 
     let _ =
         service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
+
+    sleep_instance();
+
     return http_addr;
 }
 
@@ -83,19 +86,20 @@ pub fn shutdown_http(addr: String, port: u32) {
 }
 
 #[allow(dead_code)]
-pub fn sleep_test_for_seconds(seconds: u32){
+pub fn sleep_test_for_seconds(seconds: u32) {
     let time = time::Duration::from_secs(seconds as u64);
     info!("sleeping for {} seconds...", seconds.to_string());
     thread::sleep(time);
-
 }
 
 #[allow(dead_code)]
 pub fn sleep_test() {
-    let seconds = 3;
-    let time = time::Duration::from_secs(seconds);
-    info!("sleeping for {} seconds...", seconds.to_string());
-    thread::sleep(time);
+    sleep_test_for_seconds(3);
+}
+
+#[allow(dead_code)]
+pub fn sleep_instance() {
+    sleep_test_for_seconds(2);
 }
 
 #[allow(dead_code)]
@@ -149,6 +153,8 @@ pub fn start_service_with_grpc(
         db_listener,
         5,
     );
+
+    sleep_instance();
 
     return (
         client_addr,
@@ -211,10 +217,7 @@ pub struct TestSettings {
 
 impl TestSettings {
     pub fn get_next_avail_port(&mut self) -> u32 {
-
-        let time = time::Duration::from_secs(1);
-        info!("sleeping for 1 seconds for next port...");
-        thread::sleep(time);
+        sleep_test_for_seconds(1);
 
         if self.ports.len() == 0 {
             self.max_port = self.max_port + 1;
