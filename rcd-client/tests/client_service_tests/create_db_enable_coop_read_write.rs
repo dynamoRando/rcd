@@ -9,7 +9,7 @@ pub mod grpc {
     #[cfg(test)]
     use std::sync::mpsc;
     #[cfg(test)]
-    use std::{thread, time};
+    use std::{thread};
 
     #[test]
     pub fn test() {
@@ -37,11 +37,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+       test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port);
