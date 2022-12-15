@@ -99,7 +99,7 @@ pub fn sleep_test() {
 
 #[allow(dead_code)]
 pub fn sleep_instance() {
-    sleep_test_for_seconds(2);
+    sleep_test_for_seconds(4);
 }
 
 #[allow(dead_code)]
