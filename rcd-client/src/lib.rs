@@ -6,9 +6,9 @@ use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
     GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABSES, GET_DATA_HASH_AT_HOST,
     GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
-    GET_ROW_AT_PARTICIPANT, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
-    SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS,
-    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT, HAS_TABLE,
+    GET_ROW_AT_PARTICIPANT, HAS_TABLE, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST,
+    READ_SQL_AT_PARTICIPANT, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT,
+    VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
@@ -39,6 +39,7 @@ use rcd_common::rcd_enum::{
 };
 
 use log::info;
+use reqwest::Client;
 use std::error::Error;
 use std::time::Duration;
 use tonic::transport::Channel;
@@ -60,10 +61,26 @@ pub struct RcdClient {
     http_addr: String,
     http_port: u32,
     client_type: RcdClientType,
+    grpc_client: Option<SqlClientClient<Channel>>,
+    http_client: Option<Client>,
 }
 
 impl RcdClient {
-    pub fn new(
+    async fn get_grpc_client(
+        grpc_client_addr_port: String,
+        timeout_in_seconds: u32,
+    ) -> SqlClientClient<Channel> {
+        let endpoint = tonic::transport::Channel::builder(grpc_client_addr_port.parse().unwrap())
+            .timeout(Duration::from_secs(timeout_in_seconds.into()));
+        let channel = endpoint.connect().await.unwrap();
+        return SqlClientClient::new(channel);
+    }
+
+    fn get_http_client() -> Client {
+        return reqwest::Client::new();
+    }
+
+    pub async fn new(
         grpc_client_addr_port: String,
         user_name: String,
         pw: String,
@@ -72,6 +89,10 @@ impl RcdClient {
         http_port: u32,
         client_type: RcdClientType,
     ) -> RcdClient {
+        let grpc_client =
+            Self::get_grpc_client(grpc_client_addr_port.clone(), timeout_in_seconds).await;
+        let http_client = Self::get_http_client();
+
         return RcdClient {
             grpc_client_addr_port: grpc_client_addr_port,
             user_name: user_name,
@@ -80,15 +101,20 @@ impl RcdClient {
             http_addr,
             http_port,
             client_type,
+            grpc_client: Some(grpc_client),
+            http_client: Some(http_client),
         };
     }
 
-    pub fn new_grpc_client(
+    pub async fn new_grpc_client(
         grpc_client_addr_port: String,
         user_name: String,
         pw: String,
         timeout_in_seconds: u32,
     ) -> RcdClient {
+        let grpc_client =
+            Self::get_grpc_client(grpc_client_addr_port.clone(), timeout_in_seconds).await;
+
         return RcdClient {
             grpc_client_addr_port: grpc_client_addr_port,
             user_name: user_name,
@@ -97,6 +123,8 @@ impl RcdClient {
             http_addr: "".to_string(),
             http_port: 0,
             client_type: RcdClientType::Grpc,
+            grpc_client: Some(grpc_client),
+            http_client: None,
         };
     }
 
@@ -107,6 +135,8 @@ impl RcdClient {
         http_addr: String,
         http_port: u32,
     ) -> RcdClient {
+        let http_client = Self::get_http_client();
+
         return RcdClient {
             grpc_client_addr_port: "".to_string(),
             user_name: user_name,
@@ -115,14 +145,14 @@ impl RcdClient {
             http_addr,
             http_port,
             client_type: RcdClientType::Http,
+            grpc_client: None,
+            http_client: Some(http_client),
         };
     }
 
-    pub async fn is_online_reply(self: &Self, message: String) -> TestReply {
+    pub async fn is_online_reply(self: &mut Self, message: String) -> TestReply {
         match self.client_type {
             RcdClientType::Grpc => {
-                let mut client = self.get_client().await;
-
                 let request = TestRequest {
                     request_time_utc: "".to_string(),
                     request_origin_url: "".to_string(),
@@ -132,7 +162,7 @@ impl RcdClient {
                     request_echo_message: message.clone().to_string(),
                 };
 
-                let result = client.is_online(request).await.unwrap();
+                let result = self.grpc_client.as_mut().unwrap().is_online(request).await.unwrap();
 
                 return result.into_inner();
             }
@@ -156,11 +186,10 @@ impl RcdClient {
         };
     }
 
-    pub async fn is_online(self: &Self) -> bool {
+    pub async fn is_online(self: &mut Self) -> bool {
         match self.client_type {
             RcdClientType::Grpc => {
-                let mut client = self.get_client().await;
-
+                
                 let test_string = "is_online";
 
                 let request = TestRequest {
@@ -172,7 +201,7 @@ impl RcdClient {
                     request_echo_message: test_string.clone().to_string(),
                 };
 
-                let result = client.is_online(request).await.unwrap();
+                let result = self.grpc_client.as_mut().unwrap().is_online(request).await.unwrap();
 
                 return result.into_inner().reply_echo_message == test_string;
             }
@@ -201,7 +230,7 @@ impl RcdClient {
     }
 
     pub async fn get_active_contract(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
     ) -> Result<GetActiveContractReply, Box<dyn Error>> {
         match self.client_type {
@@ -209,14 +238,12 @@ impl RcdClient {
                 let auth = self.gen_auth_request();
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
                 let request = GetActiveContractRequest {
                     authentication: Some(auth),
                     database_name: db_name.to_string(),
                 };
 
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .get_active_contract(request)
                     .await
                     .unwrap()
@@ -246,7 +273,7 @@ impl RcdClient {
     }
 
     pub async fn accept_pending_action_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         row_id: u32,
@@ -256,8 +283,6 @@ impl RcdClient {
                 let auth = self.gen_auth_request();
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
                 let request = AcceptPendingActionRequest {
                     authentication: Some(auth),
                     database_name: db_name.to_string(),
@@ -265,7 +290,7 @@ impl RcdClient {
                     row_id,
                 };
 
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .accept_pending_action_at_participant(request)
                     .await
                     .unwrap()
@@ -297,7 +322,7 @@ impl RcdClient {
     }
 
     pub async fn get_participants_for_database(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
     ) -> Result<GetParticipantsReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
@@ -311,9 +336,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client.get_participants(request).await.unwrap().into_inner();
+                let response = self.grpc_client.as_mut().unwrap().get_participants(request).await.unwrap().into_inner();
                 println!("RESPONSE={:?}", response);
                 info!("response back");
 
@@ -333,7 +356,7 @@ impl RcdClient {
     }
 
     pub async fn get_pending_actions_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         action: &str,
@@ -351,9 +374,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .get_pending_actions_at_participant(request)
                     .await
                     .unwrap()
@@ -377,7 +398,7 @@ impl RcdClient {
     }
 
     pub async fn get_row_id_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         where_clause: &str,
@@ -395,9 +416,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .read_row_id_at_participant(request)
                     .await
                     .unwrap()
@@ -421,7 +440,7 @@ impl RcdClient {
     }
 
     pub async fn get_data_hash_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         row_id: u32,
@@ -439,9 +458,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .get_data_hash_at_participant(request)
                     .await
                     .unwrap()
@@ -465,7 +482,7 @@ impl RcdClient {
     }
 
     pub async fn get_data_hash_at_host(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         row_id: u32,
@@ -483,9 +500,8 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
 
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .get_data_hash_at_host(request)
                     .await
                     .unwrap()
@@ -509,7 +525,7 @@ impl RcdClient {
     }
 
     pub async fn change_deletes_to_host_behavior(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         behavior: DeletesToHostBehavior,
@@ -527,9 +543,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .change_deletes_to_host_behavior(request)
                     .await
                     .unwrap()
@@ -554,7 +568,7 @@ impl RcdClient {
     }
 
     pub async fn change_updates_to_host_behavior(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         behavior: UpdatesToHostBehavior,
@@ -572,9 +586,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .change_updates_to_host_behavior(request)
                     .await
                     .unwrap()
@@ -599,7 +611,7 @@ impl RcdClient {
     }
 
     pub async fn change_deletes_from_host_behavior(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         behavior: DeletesFromHostBehavior,
@@ -617,9 +629,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .change_deletes_from_host_behavior(request)
                     .await
                     .unwrap()
@@ -644,7 +654,7 @@ impl RcdClient {
     }
 
     pub async fn change_updates_from_host_behavior(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         behavior: UpdatesFromHostBehavior,
@@ -662,7 +672,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .change_updates_from_host_behavior(request)
@@ -689,7 +699,7 @@ impl RcdClient {
     }
 
     pub async fn change_host_status_by_id(
-        self: &Self,
+        self: &mut Self,
         host_id: &str,
         status: u32,
     ) -> Result<bool, Box<dyn Error>> {
@@ -706,7 +716,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .change_host_status(request)
@@ -732,7 +742,7 @@ impl RcdClient {
     }
 
     pub async fn change_host_status_by_name(
-        self: &Self,
+        self: &mut Self,
         host_name: &str,
         status: u32,
     ) -> Result<bool, Box<dyn Error>> {
@@ -749,7 +759,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .change_host_status(request)
@@ -774,7 +784,10 @@ impl RcdClient {
         }
     }
 
-    pub async fn generate_host_info(self: &Self, host_name: &str) -> Result<bool, Box<dyn Error>> {
+    pub async fn generate_host_info(
+        self: &mut Self,
+        host_name: &str,
+    ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(GenerateHostInfoRequest {
@@ -785,7 +798,7 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 info!("sending request");
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .generate_host_info(request)
@@ -808,7 +821,7 @@ impl RcdClient {
         }
     }
 
-    pub async fn get_databases(self: &Self) -> Result<GetDatabasesReply, Box<dyn Error>> {
+    pub async fn get_databases(self: &mut Self) -> Result<GetDatabasesReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = GetDatabasesRequest {
@@ -819,7 +832,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
                 let response = client.get_databases(request).await.unwrap().into_inner();
 
                 println!("{:?}", response);
@@ -838,7 +851,7 @@ impl RcdClient {
     }
 
     pub async fn execute_cooperative_write_at_host(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         cmd: &str,
         participant_alias: &str,
@@ -860,7 +873,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
                 let response = client
                     .execute_cooperative_write_at_host(request)
                     .await
@@ -883,7 +896,7 @@ impl RcdClient {
         }
     }
 
-    pub async fn view_pending_contracts(self: &Self) -> Result<Vec<Contract>, Box<dyn Error>> {
+    pub async fn view_pending_contracts(self: &mut Self) -> Result<Vec<Contract>, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(ViewPendingContractsRequest {
@@ -893,7 +906,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .review_pending_contracts(request)
@@ -917,7 +930,7 @@ impl RcdClient {
     }
 
     pub async fn accept_pending_contract(
-        self: &Self,
+        self: &mut Self,
         host_alias: &str,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
@@ -931,7 +944,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .accept_pending_contract(request)
@@ -956,7 +969,7 @@ impl RcdClient {
     }
 
     pub async fn send_participant_contract(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         participant_alias: &str,
     ) -> Result<bool, Box<dyn Error>> {
@@ -972,7 +985,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .send_participant_contract(request)
@@ -997,7 +1010,7 @@ impl RcdClient {
     }
 
     pub async fn add_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         participant_alias: &str,
         participant_ip4addr: &str,
@@ -1021,7 +1034,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client.add_participant(request).await.unwrap().into_inner();
                 println!("RESPONSE={:?}", response);
@@ -1041,7 +1054,7 @@ impl RcdClient {
     }
 
     pub async fn generate_contract(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         host_name: &str,
         desc: &str,
@@ -1061,7 +1074,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .generate_contract(request)
@@ -1085,7 +1098,7 @@ impl RcdClient {
     }
 
     pub async fn has_table(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
     ) -> Result<bool, Box<dyn Error>> {
@@ -1101,7 +1114,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client.has_table(request).await.unwrap().into_inner();
                 println!("RESPONSE={:?}", response);
@@ -1121,7 +1134,7 @@ impl RcdClient {
     }
 
     pub async fn get_logical_storage_policy(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
     ) -> Result<LogicalStoragePolicy, Box<dyn Error>> {
@@ -1137,7 +1150,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .get_logical_storage_policy(request)
@@ -1164,7 +1177,7 @@ impl RcdClient {
     }
 
     pub async fn set_logical_storage_policy(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         table_name: &str,
         policy: LogicalStoragePolicy,
@@ -1182,7 +1195,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .set_logical_storage_policy(request)
@@ -1207,7 +1220,7 @@ impl RcdClient {
     }
 
     pub async fn execute_write_at_host(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
@@ -1227,7 +1240,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .execute_write_at_host(request)
@@ -1251,7 +1264,7 @@ impl RcdClient {
     }
 
     pub async fn execute_write_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
@@ -1271,7 +1284,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .execute_write_at_participant(request)
@@ -1295,7 +1308,7 @@ impl RcdClient {
     }
 
     pub async fn try_auth_at_participant(
-        self: &Self,
+        self: &mut Self,
         alias: &str,
         id: &str,
         db_name: &str,
@@ -1313,7 +1326,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .try_auth_at_participant(request)
@@ -1337,7 +1350,7 @@ impl RcdClient {
     }
 
     pub async fn execute_read_at_participant(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
@@ -1355,7 +1368,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .execute_read_at_participant(request)
@@ -1379,7 +1392,7 @@ impl RcdClient {
     }
 
     pub async fn execute_read_at_host(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
         sql_statement: &str,
         db_type: u32,
@@ -1397,7 +1410,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .execute_read_at_host(request)
@@ -1421,7 +1434,7 @@ impl RcdClient {
     }
 
     pub async fn enable_cooperative_features(
-        self: &Self,
+        self: &mut Self,
         db_name: &str,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
@@ -1435,7 +1448,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
+                let client = self.get_client();
 
                 let response = client
                     .enable_coooperative_features(request)
@@ -1459,7 +1472,10 @@ impl RcdClient {
         }
     }
 
-    pub async fn create_user_database(self: &Self, db_name: &str) -> Result<bool, Box<dyn Error>> {
+    pub async fn create_user_database(
+        self: &mut Self,
+        db_name: &str,
+    ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(CreateUserDatabaseRequest {
@@ -1471,9 +1487,7 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let mut client = self.get_client().await;
-
-                let response = client
+                let response = self.grpc_client.as_mut().unwrap()
                     .create_user_database(request)
                     .await
                     .unwrap()
@@ -1494,14 +1508,9 @@ impl RcdClient {
         }
     }
 
-    async fn get_client(self: &Self) -> SqlClientClient<Channel> {
+    fn get_client(self: &mut Self) -> &mut SqlClientClient<Channel> {
         println!("get_client addr_port {}", self.grpc_client_addr_port);
-        // need to make the timeout configurable
-        let endpoint =
-            tonic::transport::Channel::builder(self.grpc_client_addr_port.parse().unwrap())
-                .timeout(Duration::from_secs(self.timeout_in_seconds.into()));
-        let channel = endpoint.connect().await.unwrap();
-        return SqlClientClient::new(channel);
+        return self.grpc_client.as_mut().unwrap();
     }
 
     fn gen_auth_request(&self) -> AuthRequest {
@@ -1516,7 +1525,7 @@ impl RcdClient {
     }
 
     async fn send_http_message(&self, json_message: String, url: String) -> String {
-        let client = reqwest::Client::new();
+        let client = self.http_client.as_ref().unwrap();
 
         println!("{}", json_message);
         println!("{}", url);

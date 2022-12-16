@@ -117,12 +117,13 @@ pub mod grpc {
             main_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
+
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -189,12 +190,12 @@ pub mod grpc {
             participant_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             participant_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -328,7 +329,7 @@ pub mod http {
             main_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
            
             String::from("tester"),
             String::from("123456"),
@@ -402,7 +403,7 @@ pub mod http {
             participant_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,

@@ -88,7 +88,7 @@ pub mod http {
 
     #[tokio::main]
     async fn client(test_message: &str, http_addr: &str, http_port: u32) -> String {
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             "".to_string(),
             "".to_string(),
             0,
@@ -104,6 +104,9 @@ pub mod http {
     #[test]
     fn test() {
         let test_message: &str = "is_online_http";
+
+        let port_num = test_harness::get_next_avail_port();
+
         let (tx, rx) = mpsc::channel();
 
         let root_dir = test_harness::get_test_temp_dir(test_message);
@@ -112,7 +115,7 @@ pub mod http {
         let mut service = get_service_from_config_file();
 
         let http_addr = service.rcd_settings.http_addr.clone();
-        let http_port = service.rcd_settings.http_port;
+        let http_port = port_num;
 
         let addr1 = http_addr.clone();
         let addr2 = http_addr.clone();
@@ -124,7 +127,7 @@ pub mod http {
 
         thread::spawn(move || {
             let _service =
-                service.start_http_at_addr_and_dir(addr1, http_port, root_dir);
+                service.start_http_at_addr_and_dir(addr1, http_port as u16, root_dir);
         });
 
         let time = time::Duration::from_secs(1);

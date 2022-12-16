@@ -55,6 +55,11 @@ pub fn release_port(port: u32) {
 }
 
 #[allow(dead_code)]
+pub fn get_next_avail_port() -> u32 {
+    return TEST_SETTINGS.lock().unwrap().get_next_avail_port();
+}
+
+#[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
 pub fn start_service_with_http(
     test_db_name: &str,
@@ -134,12 +139,12 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
 
     match client_type {
         RcdClientType::Grpc => {
-            let client = RcdClient::new_grpc_client(
+            let mut client = RcdClient::new_grpc_client(
                 addr.to_full_string_with_http(),
                 String::from("tester"),
                 String::from("123456"),
                 5,
-            );
+            ).await;
 
             while reciever.try_recv().unwrap() {
                 let time = time::Duration::from_secs(sleep_in_seconds as u64);
@@ -148,7 +153,7 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
             }
         }
         RcdClientType::Http => {
-            let client = RcdClient::new_http_client(
+            let mut client = RcdClient::new_http_client(
                 String::from("tester"),
                 String::from("123456"),
                 5,

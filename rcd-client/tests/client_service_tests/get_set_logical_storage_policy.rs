@@ -74,12 +74,12 @@ pub mod grpc {
             addr_port
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             addr_port,
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
 
         let create_db_is_successful = client.create_user_database(db_name).await.unwrap();
 
@@ -225,7 +225,7 @@ pub mod http {
             addr_port
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,

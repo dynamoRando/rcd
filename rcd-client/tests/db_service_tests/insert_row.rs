@@ -134,12 +134,13 @@ pub mod grpc {
             main_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
+
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -191,12 +192,12 @@ pub mod grpc {
     #[tokio::main]
     #[allow(unused_variables)]
     async fn main_execute_coop_write(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
 
         return client
             .execute_cooperative_write_at_host(
@@ -228,12 +229,12 @@ pub mod grpc {
             participant_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             participant_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
 
         let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
@@ -391,7 +392,7 @@ pub mod http {
             main_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,
@@ -449,7 +450,7 @@ pub mod http {
     #[tokio::main]
     #[allow(unused_variables)]
     async fn main_execute_coop_write(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,
@@ -487,7 +488,7 @@ pub mod http {
             participant_client_addr.to_full_string_with_http()
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,

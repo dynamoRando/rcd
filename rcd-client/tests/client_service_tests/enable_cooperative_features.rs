@@ -69,7 +69,7 @@ pub mod grpc {
             addr_port
         );
 
-        let client = RcdClient::new(
+        let mut client = RcdClient::new(
             addr_port,
             String::from("tester"),
             String::from("123456"),
@@ -77,7 +77,8 @@ pub mod grpc {
             "".to_string(),
             0,
             RcdClientType::Grpc,
-        );
+        ).await;
+        
         return client.enable_cooperative_features(db_name).await.unwrap();
     }
 }
@@ -154,7 +155,7 @@ pub mod http {
             addr_port
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,

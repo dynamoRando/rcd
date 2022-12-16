@@ -63,12 +63,12 @@ pub mod grpc {
             addr_port
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             addr_port,
             String::from("tester"),
             String::from("123456"),
             5,
-        );
+        ).await;
         return client.create_user_database(db_name).await.unwrap();
     }
 
@@ -126,12 +126,13 @@ pub mod grpc {
             addr_port
         );
 
-        let client = RcdClient::new_grpc_client(
+        let mut client = RcdClient::new_grpc_client(
             addr_port,
             String::from("wrong_user"),
             String::from("123456"),
             5,
-        );
+        ).await;
+        
         return client.create_user_database(db_name).await.unwrap();
     }
 }
@@ -205,7 +206,7 @@ pub mod http {
             addr_port
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,
@@ -273,7 +274,7 @@ pub mod http {
             addr_port
         );
 
-        let client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_http_client(
             String::from("wrong_user"),
             String::from("123456"),
             5,
