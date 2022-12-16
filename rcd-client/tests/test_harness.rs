@@ -111,12 +111,12 @@ pub fn sleep_test_for_seconds(seconds: u32) {
 
 #[allow(dead_code)]
 pub fn sleep_test() {
-    sleep_test_for_seconds(3);
+    sleep_test_for_seconds(1);
 }
 
 #[allow(dead_code)]
 pub fn sleep_instance() {
-    sleep_test_for_seconds(4);
+    sleep_test_for_seconds(2);
 }
 
 #[allow(dead_code)]
@@ -310,6 +310,7 @@ impl TestSettings {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_current_port(&self) -> u32 {
         if self.ports.len() == 0 {
             return self.max_port;

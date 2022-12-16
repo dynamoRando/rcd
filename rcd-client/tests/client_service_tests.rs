@@ -7,8 +7,7 @@ mod create_db_enable_coop_read_write;
 mod create_user_database;
 #[path = "client_service_tests/enable_cooperative_features.rs"]
 mod enable_cooperative_features;
-#[path = "client_service_tests/generate_contract.rs"]
-mod generate_contract;
+
 #[path = "client_service_tests/get_set_logical_storage_policy.rs"]
 mod get_set_logical_storage_policy;
 #[path = "client_service_tests/has_table.rs"]
@@ -17,8 +16,6 @@ mod has_table;
 mod host_only;
 #[path = "client_service_tests/is_online.rs"]
 mod is_online;
-#[path = "client_service_tests/get_active_contract.rs"]
-mod get_active_contract;
 
 #[test]
 fn get_harness_value() {
