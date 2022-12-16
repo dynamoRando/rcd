@@ -3,7 +3,7 @@ pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     /*
     # Test Description
@@ -104,8 +104,8 @@ pub mod grpc {
 
         assert!(participant_accepted_contract);
 
-        m_keep_alive.send(false);
-        p_keep_alive.send(false);
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
 
         test_harness::release_port(main_addr_client_port);
         test_harness::release_port(main_addr_db_port);
@@ -240,7 +240,6 @@ pub mod grpc {
 
 pub mod http {
     use crate::test_harness::{self, ServiceAddr};
-    use core::time;
     use log::info;
     use std::{sync::mpsc, thread};
 
@@ -317,8 +316,8 @@ pub mod http {
 
         assert!(participant_accepted_contract);
 
-        m_keep_alive.send(false);
-        p_keep_alive.send(false);
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
 
         test_harness::release_port(m_addr1.port);
         test_harness::release_port(p_addr2.port);

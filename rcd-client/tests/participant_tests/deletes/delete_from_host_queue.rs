@@ -651,6 +651,9 @@ pub mod http {
         let should_have_no_rows = rx_m_no_rows.try_recv().unwrap();
     
         assert!(should_have_no_rows);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma4.port);
         test_harness::release_port(pa4.port);

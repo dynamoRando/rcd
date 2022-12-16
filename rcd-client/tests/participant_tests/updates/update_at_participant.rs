@@ -781,6 +781,9 @@ pub mod http {
         let h_data_hash = rx_h_data_hash.try_recv().unwrap();
     
         assert_eq!(p_data_hash, h_data_hash);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma4.port);
         test_harness::release_port(pa6.port);

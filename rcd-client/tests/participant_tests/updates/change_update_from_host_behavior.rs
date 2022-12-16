@@ -552,6 +552,8 @@ pub mod http {
     
         assert!(!should_fail);
     
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
      
         test_harness::release_port(ma4.port);
         test_harness::release_port(pa4.port);

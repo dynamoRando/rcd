@@ -151,14 +151,14 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir(
+            let _= service.start_http_at_addr_and_dir(
                 "127.0.0.1".to_string(),
                 port_num as u16,
                 root_dir,
             );
-        });
+            test_harness::sleep_test();
+        }).join().unwrap();
 
-       test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);

@@ -56,7 +56,10 @@ pub fn release_port(port: u32) {
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> (ServiceAddr, Sender<bool>) {
+pub fn start_service_with_http(
+    test_db_name: &str,
+    root_dir: String,
+) -> (ServiceAddr, Sender<bool>) {
     let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let mut service = get_service_from_config_file();
 
@@ -80,8 +83,8 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> (Service
     let _ =
         service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
 
-        let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, http_addr.clone());
-        let _ = keep_alive.send(true);
+    let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, http_addr.clone());
+    let _ = keep_alive.send(true);
 
     sleep_instance();
 
@@ -98,6 +101,7 @@ pub fn sleep_test_for_seconds(seconds: u32) {
     let time = time::Duration::from_secs(seconds as u64);
     info!("sleeping for {} seconds...", seconds.to_string());
     thread::sleep(time);
+    // tokio::time::sleep(time).await;
 }
 
 #[allow(dead_code)]
@@ -126,7 +130,7 @@ pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -
 
 #[allow(dead_code)]
 async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Receiver<bool>) {
-    let sleep_in_milliseconds = 5000;
+    let sleep_in_seconds = 1;
 
     match client_type {
         RcdClientType::Grpc => {
@@ -138,8 +142,8 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
             );
 
             while reciever.try_recv().unwrap() {
-                let time = time::Duration::from_millis(sleep_in_milliseconds as u64);
-                thread::sleep(time);
+                let time = time::Duration::from_secs(sleep_in_seconds as u64);
+                tokio::time::sleep(time).await;
                 let _ = client.is_online().await;
             }
         }
@@ -153,8 +157,8 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
             );
 
             while reciever.try_recv().unwrap() {
-                let time = time::Duration::from_millis(sleep_in_milliseconds as u64);
-                thread::sleep(time);
+                let time = time::Duration::from_secs(sleep_in_seconds as u64);
+                tokio::time::sleep(time).await;
                 let _ = client.is_online().await;
             }
         }
@@ -166,7 +170,15 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
 pub fn start_service_with_grpc(
     test_db_name: &str,
     root_dir: String,
-) -> (ServiceAddr, ServiceAddr, u32, u32, Trigger, Trigger, Sender<bool>) {
+) -> (
+    ServiceAddr,
+    ServiceAddr,
+    u32,
+    u32,
+    Trigger,
+    Trigger,
+    Sender<bool>,
+) {
     let (client_trigger, client_listener) = triggered::trigger();
     let (db_trigger, db_listener) = triggered::trigger();
 
@@ -217,7 +229,7 @@ pub fn start_service_with_grpc(
     let _ = keep_alive.send(true);
 
     sleep_instance();
-    
+
     return (
         client_addr,
         db_addr,

@@ -624,6 +624,9 @@ pub mod http {
 
         assert!(p_read_data_log_is_correct);
 
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
+
         test_harness::release_port(ma4.port);
         test_harness::release_port(pa4.port);
 

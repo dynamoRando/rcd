@@ -102,8 +102,8 @@ pub mod grpc {
     
         assert!(write_and_read_is_successful);
 
-        m_keep_alive.send(false);
-        p_keep_alive.send(false);
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(main_addr_client_port);
         test_harness::release_port(main_addr_db_port);
@@ -429,6 +429,9 @@ pub mod http {
         let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
     
         assert!(write_and_read_is_successful);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma2.port);
         test_harness::release_port(pa2.port);

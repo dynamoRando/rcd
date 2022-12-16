@@ -82,6 +82,8 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
         value = item.unwrap_or_default();
     }
 
+    drop(statement);
+
     return value;
 }
 
@@ -96,6 +98,8 @@ pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
     for item in rows {
         value = item.unwrap();
     }
+
+    drop(statement);
 
     return value;
 }
@@ -205,6 +209,8 @@ pub fn execute_read_on_connection_for_row(
         hash: hash,
     };
 
+    drop(statement);
+
     return Ok(result);
 }
 
@@ -272,6 +278,9 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
         table.add_row(data_row);
     }
 
+    drop(rows);
+    drop(statement);
+
     return Ok(table);
 }
 
@@ -336,6 +345,9 @@ pub fn execute_read_at_participant(
 
         table.add_row(data_row);
     }
+
+    drop(rows);
+    drop(statement);
 
     return Ok(table);
 }
@@ -402,6 +414,9 @@ pub fn execute_read_at_host(
         table.add_row(data_row);
     }
 
+    drop(rows);
+    drop(statement);
+
     return Ok(table);
 }
 
@@ -415,6 +430,8 @@ fn get_scalar_as_string(cmd: String, conn: &Connection) -> String {
     for item in rows {
         value = item.unwrap();
     }
+
+    drop(statement);
 
     return value;
 }
@@ -450,6 +467,7 @@ pub fn execute_write_on_connection_at_host(
 
     let result = conn.execute(&cmd, []);
 
+    let _ = conn.close();
     if result.is_ok() {
         return Ok(result.unwrap());
     } else {
@@ -464,7 +482,9 @@ pub fn execute_write_on_connection_at_participant(
     config: &DbiConfigSqlite,
 ) -> usize {
     let conn = get_partial_db_connection(&db_name, &config.root_folder);
-    return conn.execute(&cmd, []).unwrap();
+    let result = conn.execute(&cmd, []).unwrap();
+    let _ = conn.close();
+    return result;
 }
 
 pub fn get_table_col_names_with_data_type_as_string(
@@ -524,6 +544,8 @@ pub fn get_table_col_names(table_name: String, conn: &Connection) -> Vec<String>
     for name in names {
         result.push(name.unwrap());
     }
+
+    drop(statement);
 
     return result;
 }

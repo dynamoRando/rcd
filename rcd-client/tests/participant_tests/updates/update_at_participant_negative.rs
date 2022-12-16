@@ -65,6 +65,7 @@ pub mod grpc {
         let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
     
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
+        let m_keep_alive = main_addrs.6;
     
         let main_addr_client_port = main_addrs.2;
         let main_addr_db_port = main_addrs.3;
@@ -73,6 +74,7 @@ pub mod grpc {
         let main_db_shutdown_triger = main_addrs.5;
     
         let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
+        let p_keep_alive = participant_addrs.6;
     
         let part_addr_client_port = participant_addrs.2;
         let part_addr_db_port = participant_addrs.3;
@@ -206,6 +208,9 @@ pub mod grpc {
         let h_data_hash = rx_h_data_hash.try_recv().unwrap();
     
         assert_ne!(p_data_hash, h_data_hash);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(main_addr_client_port);
         test_harness::release_port(main_addr_db_port);
@@ -783,6 +788,9 @@ pub mod http {
         let h_data_hash = rx_h_data_hash.try_recv().unwrap();
     
         assert_ne!(p_data_hash, h_data_hash);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma4.port);
         test_harness::release_port(pa6.port);

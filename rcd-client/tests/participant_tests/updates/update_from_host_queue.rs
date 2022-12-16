@@ -686,6 +686,9 @@ pub mod http {
     
         let can_read_rows = rx_h_can_read_success.try_recv().unwrap();
         assert!(can_read_rows);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma3.port);
         test_harness::release_port(pa6.port);

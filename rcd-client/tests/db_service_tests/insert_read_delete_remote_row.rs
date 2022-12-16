@@ -396,8 +396,8 @@ pub mod http {
 
         assert!(write_and_read_is_successful);
 
-        m_keep_alive.send(false);
-        p_keep_alive.send(false);
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
 
         test_harness::release_port(main_addrs2.port);
         test_harness::release_port(participant_addrs2.port);

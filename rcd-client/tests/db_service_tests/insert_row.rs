@@ -361,6 +361,9 @@ pub mod http {
 
         assert!(write_is_successful);
 
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
+
         test_harness::release_port(ma2.port);
         test_harness::release_port(pa2.port);
         test_harness::shutdown_http(ma2.ip4_addr, ma2.port);

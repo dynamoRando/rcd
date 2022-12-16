@@ -22,13 +22,15 @@ use rcdproto::rcdp::{
     EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
     ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
-    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest, GetDataHashReply,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
-    GetLogicalStoragePolicyRequest, GetPendingActionsReply, GetPendingActionsRequest,
-    GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply, HasTableRequest,
-    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
-    SetLogicalStoragePolicyRequest, TestReply, TestRequest, TryAuthAtParticipantRequest,
-    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest, GetParticipantsRequest, GetParticipantsReply, GetActiveContractRequest, GetActiveContractReply,
+    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
+    GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
+    HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
+    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -181,6 +183,8 @@ impl Rcd {
     pub fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
+        println!("is_online, requested echo: {}", item);
+
         let response = TestReply {
             reply_time_utc: String::from(Utc::now().to_rfc2822()),
             reply_echo_message: String::from(item),
@@ -215,7 +219,10 @@ impl Rcd {
         return db::get_participants(self, request).await;
     }
 
-    pub async fn get_active_contact(&self, request: GetActiveContractRequest) -> GetActiveContractReply {
+    pub async fn get_active_contact(
+        &self,
+        request: GetActiveContractRequest,
+    ) -> GetActiveContractReply {
         return db::get_active_contract(self, request).await;
     }
 

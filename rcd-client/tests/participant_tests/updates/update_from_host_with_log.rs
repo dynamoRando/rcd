@@ -849,6 +849,9 @@ pub mod http {
         let p_read_data_log_is_correct = rx_p_read_data_log.try_recv().unwrap();
     
         assert!(p_read_data_log_is_correct);
+
+        let _ = m_keep_alive.send(false);
+        let _ = p_keep_alive.send(false);
     
         test_harness::release_port(ma3.port);
         test_harness::release_port(pa6.port);
