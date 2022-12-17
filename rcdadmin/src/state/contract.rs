@@ -1,22 +1,67 @@
+use yew::NodeRef;
+
 pub struct RcdContractGenerate {
     pub ui: RcdContractGenerateUi,
     pub data: RcdContractGenerateData,
+    pub result: RcdContractGenerateResult
 }
 
 impl RcdContractGenerate {
     pub fn new() -> RcdContractGenerate {
         return RcdContractGenerate { 
             ui: RcdContractGenerateUi::new(), 
-            data: RcdContractGenerateData::new()
+            data: RcdContractGenerateData::new(),
+            result: RcdContractGenerateResult::new()
         }
     }
 }
 
-pub struct RcdContractGenerateUi {}
+pub struct RcdContractGenerateResult {
+    pub ui: RcdContractGenerateResultUi,
+    pub data: RcdContractGenerateResultData,
+}
+
+impl RcdContractGenerateResult {
+    pub fn new() -> RcdContractGenerateResult {
+        return RcdContractGenerateResult {
+            ui: RcdContractGenerateResultUi::new(),
+            data: RcdContractGenerateResultData::new(),
+        }
+    }
+}
+
+pub struct RcdContractGenerateResultUi {
+}
+
+impl RcdContractGenerateResultUi {
+    pub fn new() -> RcdContractGenerateResultUi {
+        return RcdContractGenerateResultUi {};
+    }
+}
+
+pub struct RcdContractGenerateResultData {
+    pub is_successful: bool,
+}
+
+impl RcdContractGenerateResultData {
+    pub fn new() -> RcdContractGenerateResultData{
+        return RcdContractGenerateResultData{
+            is_successful: false
+        }
+    }
+}
+
+pub struct RcdContractGenerateUi {
+    pub host_name: NodeRef,
+    pub description: NodeRef
+}
 
 impl RcdContractGenerateUi {
     pub fn new() -> RcdContractGenerateUi {
-        return RcdContractGenerateUi {};
+        return RcdContractGenerateUi {
+            host_name: NodeRef::default(),
+            description: NodeRef::default(),
+        };
     }
 }
 
@@ -30,11 +75,54 @@ impl RcdContractGenerateData {
     }
 }
 
-pub struct RcdContractDataActive {}
+pub struct RcdContractDataActive {
+    pub markdown: String,
+}
 
 impl RcdContractDataActive {
     pub fn new() -> RcdContractDataActive {
-        return RcdContractDataActive {};
+        return RcdContractDataActive {
+            markdown: "".to_string(),
+        };
+    }
+}
+
+pub struct RcdContractPendingData {
+    pub markdown: String,
+}
+
+impl RcdContractPendingData {
+    pub fn new() -> RcdContractPendingData {
+        return RcdContractPendingData {
+            markdown: "".to_string(),
+        };
+    }
+}
+
+pub struct RcdContractPendingUi {
+    pub details: NodeRef,
+}
+
+impl RcdContractPendingUi {
+    pub fn new() -> RcdContractPendingUi{
+        return RcdContractPendingUi {
+            details: NodeRef::default()
+        }
+    }
+}
+
+
+pub struct RcdContractPending{
+    pub data: RcdContractPendingData,
+    pub ui: RcdContractPendingUi,
+}
+
+impl RcdContractPending {
+    pub fn new() -> RcdContractPending{
+        return RcdContractPending {
+            data: RcdContractPendingData::new(),
+            ui: RcdContractPendingUi::new(),
+        }
     }
 }
 
@@ -50,11 +138,68 @@ impl RcdContractData {
     }
 }
 
-pub struct RcdContractUi {}
+pub struct RcdContractUi {
+    pub details: NodeRef
+}
 
 impl RcdContractUi {
     pub fn new() -> RcdContractUi {
-        return RcdContractUi {};
+        return RcdContractUi {
+            details: NodeRef::default()
+        };
+    }
+}
+
+pub struct RcdContractSendUi{
+    alias: NodeRef
+}
+
+impl RcdContractSendUi {
+    pub fn new() -> RcdContractSendUi{
+        return RcdContractSendUi{
+            alias: NodeRef::default()
+        }
+    }
+}
+
+pub struct RcdContractSendData {
+    pub alias: String,
+}
+
+impl RcdContractSendData {
+    pub fn new() -> RcdContractSendData{
+        return RcdContractSendData{
+            alias: "".to_string(),
+        }
+    }
+}
+
+pub struct RcdContractSendResult {
+    pub is_successful: bool,
+}
+
+impl RcdContractSendResult {
+    pub fn new() -> RcdContractSendResult{
+        return RcdContractSendResult{
+            is_successful: false
+        }
+    }
+}
+
+
+pub struct RcdContractSend {
+    pub ui: RcdContractSendUi,
+    pub data: RcdContractSendData,
+    pub result: RcdContractSendResult,
+}
+
+impl RcdContractSend {
+    pub fn new() -> RcdContractSend{
+        return RcdContractSend{
+            ui: RcdContractSendUi::new(),
+            data: RcdContractSendData::new(),
+            result: RcdContractSendResult::new(),
+        }
     }
 }
 
@@ -62,6 +207,8 @@ pub struct RcdContract {
     pub ui: RcdContractUi,
     pub data: RcdContractData,
     pub generate: RcdContractGenerate,
+    pub pending: RcdContractPending,
+    pub send: RcdContractSend,
 }
 
 impl RcdContract {
@@ -70,6 +217,8 @@ impl RcdContract {
             ui: RcdContractUi::new(),
             data: RcdContractData::new(),
             generate: RcdContractGenerate::new(),
+            pending: RcdContractPending::new(),
+            send: RcdContractSend::new(),
         };
     }
 }

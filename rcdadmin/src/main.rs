@@ -246,6 +246,7 @@ impl Component for RcdAdminApp {
             AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
             AppMessage::GetTablesForDatabase(db_name) => {
                 self.state.instance.databases.data.active.database_name = db_name;
+                self.state.instance.tables.data.active.database_name = db_name;
                 db::handle_get_tables_for_database(self, ctx)
             }
             AppMessage::GetColumnsForTable(db_name, table_name) => {
