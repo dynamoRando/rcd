@@ -1,6 +1,7 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
+use rcd_common::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;
@@ -113,9 +114,16 @@ async fn main() {
 
 fn process_cmd_args(args: Vec<String>) {
     if args.len() >= 2 {
-        let cmd = &args[1];
-        if cmd == "default_settings" {
-            set_default_config();
+        let cmd = args[1].as_str();
+
+        match cmd {
+            "default_settings" => {
+                set_default_config();
+            },
+            "make_test_db" => {
+                make_test_db();
+            },
+            _ => {}
         }
     }
 }
@@ -191,6 +199,52 @@ root:
         write!(output, "{}", default_logging_content).unwrap();
     } else {
         println!("logging_config.yaml was found, skipping default settings");
+    }
+}
+
+fn make_test_db(){
+    let test_db_name = "test.db";
+    let cwd = get_current_directory();
+    let default_src_path = Path::new(&cwd).join(test_db_name);
+    if !Path::exists(&default_src_path) {
+        println!(
+            "creating test_db at: {}",
+            &default_src_path.to_str().unwrap()
+        );
+
+        let mut service = get_service_from_config_file();
+        service.start();
+        let dbi = service.get_dbi();
+
+        let _ = dbi.create_database(test_db_name);
+        let _ = dbi.enable_coooperative_features(test_db_name);
+
+        let drop_table = "DROP TABLE IF EXISTS Example";
+
+        let _ = dbi.execute_write_at_host(test_db_name, &drop_table);
+
+        let create_table_statement =
+        "CREATE TABLE IF NOT EXISTS Example (Id INT, Name TEXT);";
+
+        let _ = dbi.execute_write_at_host(test_db_name, &create_table_statement);
+
+        let policy = LogicalStoragePolicy::HostOnly;
+
+        let _ = dbi.set_logical_storage_policy(test_db_name, "Example", policy);
+
+        let behavior = RemoteDeleteBehavior::Ignore;
+
+        let _ = dbi.generate_contract(test_db_name, "test", "test", behavior);
+
+        let add_example_record = "INSERT INTO Example (Id, Name) VALUES (1, 'Test_Record')";
+
+        let _ = dbi.execute_write_at_host(test_db_name, add_example_record);
+    }
+    else {
+        println!(
+            "test_db already exists at: {}",
+            &default_src_path.to_str().unwrap()
+        );
     }
 }
 

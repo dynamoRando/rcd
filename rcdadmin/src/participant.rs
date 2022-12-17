@@ -124,7 +124,7 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           <input type="button" id="add_participant" value="Add Participant" onclick={link.callback(|_|
             {
                 console::log_1(&"clicked".into());
-                AppMessage::HandleViewParticipants
+                AppMessage::HandleAddParticipant
             })}/>
             <p><label for="last_add_result">{ "Last Add Participant Result: "}</label>{last_add_result.to_string()}</p>
 
