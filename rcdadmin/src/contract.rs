@@ -332,6 +332,7 @@ pub fn handle_send_contract_to_participant_response(app: &mut RcdAdminApp, json_
 
     if reply.authentication_result.unwrap().is_authenticated {
         app.state.instance.contract.send.result.is_successful = reply.is_sent;
+        app.state.instance.participants.data.result.send_contract = reply.is_sent;
     }
 }
 

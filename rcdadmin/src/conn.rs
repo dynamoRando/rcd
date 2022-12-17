@@ -20,7 +20,13 @@ pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>
     let _port_val = port.cast::<HtmlInputElement>().unwrap().value();
     let http_port_val = http_port.cast::<HtmlInputElement>().unwrap().value();
 
-    let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", http_port_val);
+    let base_address = format!(
+        "{}{}{}{}",
+        "http://",
+        ip_val.to_string(),
+        ":",
+        http_port_val
+    );
 
     let auth_request = AuthRequest {
         user_name: un_val.to_string(),
@@ -40,13 +46,15 @@ pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>
 
     let auth_request_json = serde_json::to_string(&auth_request).unwrap();
 
-    connection.data.active.url = auth_request_json.clone();
-    connection.data.active.authentication_json = base_address.clone();
-
+    connection.data.active.url = base_address.clone();
+    connection.data.active.authentication_json = auth_request_json.clone();
 }
 
-pub fn view_input_for_connection(page: &PageUi, link: &Scope<RcdAdminApp>, connection: &RcdConnection) -> Html {
-
+pub fn view_input_for_connection(
+    page: &PageUi,
+    link: &Scope<RcdAdminApp>,
+    connection: &RcdConnection,
+) -> Html {
     let is_visible = !page.conn_is_visible;
 
     html! {

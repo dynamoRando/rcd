@@ -6,7 +6,7 @@ use yew::Html;
 
 pub fn view_columns_for_table(page: &PageUi, databases: &RcdDatabases, tables: &RcdTables) -> Html {
     let is_visible = !page.databases_is_visible;
-    let db_name = databases.data.active.database_name.clone();
+    let db_name = tables.data.active.database_name.clone();
     let table_name = tables.data.active.table_name.clone();
 
     if db_name == "" || table_name == "" {

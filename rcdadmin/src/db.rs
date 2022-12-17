@@ -38,8 +38,8 @@ pub fn handle_get_columns_for_table(
     table_name: String,
     ctx: &Context<RcdAdminApp>,
 ) {
-    app.state.instance.tables.data.active.database_name = db_name;
-    app.state.instance.tables.data.active.table_name = table_name;
+    app.state.instance.tables.data.active.database_name = db_name.clone();
+    app.state.instance.tables.data.active.table_name = table_name.clone();
     app.view_columns_for_table(ctx.link());
 }
 
