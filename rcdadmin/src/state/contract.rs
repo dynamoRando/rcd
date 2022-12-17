@@ -150,6 +150,7 @@ impl RcdContractUi {
     }
 }
 
+#[allow(dead_code)]
 pub struct RcdContractSendUi{
     alias: NodeRef
 }

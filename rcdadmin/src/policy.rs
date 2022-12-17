@@ -33,7 +33,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let base_address = app.state.instance.connection.data.active.url;
+            let base_address = app.state.instance.connection.data.active.url.clone();
             let url = format!(
                 "{}{}",
                 base_address.clone(),
@@ -47,8 +47,8 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             let policy_node = &app.state.instance.tables.ui.new_policy;
             let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
 
-            let db = app.state.instance.tables.data.active.database_name;
-            let table = app.state.instance.tables.data.active.table_name;
+            let db = app.state.instance.tables.data.active.database_name.clone();
+            let table = app.state.instance.tables.data.active.table_name.clone();
             let policy_num: u32 = policy_val.parse().unwrap();
 
             let auth_json = &app

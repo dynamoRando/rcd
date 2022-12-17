@@ -245,8 +245,8 @@ impl Component for RcdAdminApp {
             AppMessage::Connect() => conn::handle_connect(&mut self.state.instance.connection, ctx),
             AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
             AppMessage::GetTablesForDatabase(db_name) => {
-                self.state.instance.databases.data.active.database_name = db_name;
-                self.state.instance.tables.data.active.database_name = db_name;
+                self.state.instance.databases.data.active.database_name = db_name.clone();
+                self.state.instance.tables.data.active.database_name = db_name.clone();
                 db::handle_get_tables_for_database(self, ctx)
             }
             AppMessage::GetColumnsForTable(db_name, table_name) => {
@@ -341,11 +341,11 @@ fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
     }
 }
 
-pub fn get_base_address(connection: RcdConnectionData) -> String {
-    return connection.active.url;
+pub fn get_base_address(connection: &RcdConnectionData) -> String {
+    return connection.active.url.clone();
 }
 
-pub fn get_auth_request(connection: RcdConnectionData) -> AuthRequest {
+pub fn get_auth_request(connection: &RcdConnectionData) -> AuthRequest {
     let auth_json = &connection.active.authentication_json;
     let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
     return auth;
@@ -418,7 +418,7 @@ fn init_state() -> ApplicationState {
         last_send_result: false,
     };
 
-    let conn_ui = RcdUi {
+    let _conn_ui = RcdUi {
         conn,
         un: NodeRef::default(),
         pw: NodeRef::default(),

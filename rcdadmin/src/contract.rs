@@ -14,8 +14,8 @@ use yew::{html::Scope, Html};
 
 pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let is_visible = !app.state.page.contract_is_visible;
-    let text = app.state.instance.contract.pending.data.markdown;
-    let active_contract = app.state.instance.contract.data.active.markdown;
+    let text = app.state.instance.contract.pending.data.markdown.clone();
+    let active_contract = app.state.instance.contract.data.active.markdown.clone();
 
     let mut db_names: Vec<String> = Vec::new();
 
@@ -180,9 +180,9 @@ pub fn handle_contract_intent(
     match intent {
         ContractIntent::Unknown => todo!(),
         ContractIntent::GetPending => {
-            let base_address = get_base_address(app.state.instance.connection.data);
+            let base_address = get_base_address(&app.state.instance.connection.data);
             let url = format!("{}{}", base_address.clone(), GENERATE_CONTRACT);
-            let auth = get_auth_request(app.state.instance.connection.data);
+            let auth = get_auth_request(&app.state.instance.connection.data);
             let db_name = &app.state.instance.databases.data.active.database_name;
 
             let host_name_ui = &app.state.instance.contract.generate.ui.host_name;
@@ -218,9 +218,9 @@ pub fn handle_contract_intent(
         ContractIntent::GetRejected => todo!(),
         ContractIntent::AcceptContract(_) => todo!(),
         ContractIntent::GenerateContract => {
-            let base_address = get_base_address(app.state.instance.connection.data);
+            let base_address = get_base_address(&app.state.instance.connection.data);
             let url = format!("{}{}", base_address.clone(), GENERATE_CONTRACT);
-            let auth = get_auth_request(app.state.instance.connection.data);
+            let auth = get_auth_request(&app.state.instance.connection.data);
             let db_name = &app.state.instance.databases.data.active.database_name;
 
             let host_name_ui = &app.state.instance.contract.generate.ui.host_name;
@@ -251,11 +251,11 @@ pub fn handle_contract_intent(
             request::get_data(url, request_json, callback);
         }
         ContractIntent::SendContractToParticipant => {
-            let base_address = get_base_address(app.state.instance.connection.data);
+            let base_address = get_base_address(&app.state.instance.connection.data);
             let url = format!("{}{}", base_address.clone(), SEND_CONTRACT_TO_PARTICIPANT);
-            let auth = get_auth_request(app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
-            let participant_alias = app.state.instance.contract.send.data.alias;
+            let auth = get_auth_request(&app.state.instance.connection.data);
+            let db_name = &app.state.instance.databases.data.active.database_name.clone();
+            let participant_alias = app.state.instance.contract.send.data.alias.clone();
 
             let request = SendParticipantContractRequest {
                 authentication: Some(auth),
@@ -271,9 +271,9 @@ pub fn handle_contract_intent(
         }
         ContractIntent::RejectContract(_) => todo!(),
         ContractIntent::ViewCurrentContract => {
-            let base_address = get_base_address(app.state.instance.connection.data);
+            let base_address = get_base_address(&app.state.instance.connection.data);
             let url = format!("{}{}", base_address.clone(), GET_ACTIVE_CONTRACT);
-            let auth = get_auth_request(app.state.instance.connection.data);
+            let auth = get_auth_request(&app.state.instance.connection.data);
             let db_name = &app.state.instance.databases.data.active.database_name;
 
             let request = GetActiveContractRequest {

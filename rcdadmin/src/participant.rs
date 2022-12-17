@@ -161,20 +161,23 @@ pub fn view_participants(
 }
 
 pub fn handle_add_participant(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
-    let base_address = get_base_address(app);
+
+    let ui = &app.state.instance.participants.ui.add;
+
+    let base_address = get_base_address(&app.state.instance.connection.data);
     let url = format!("{}{}", base_address.clone(), ADD_PARTICIPANT);
-    let auth = get_auth_request(app);
-    let db_name = &app.state.ui.sql.selected_db_name;
+    let auth = get_auth_request(&app.state.instance.connection.data);
+    let db_name = &app.state.instance.databases.data.active.database_name;
 
     console::log_1(&"selected db".into());
     console::log_1(&db_name.into());
 
-    let alias_ui = &app.state.ui.add_participant_ui.alias_ui;
-    let ip4_ui = &app.state.ui.add_participant_ui.ip4_address_ui;
-    let port_ui = &app.state.ui.add_participant_ui.port_num_ui;
+    let alias_ui = &ui.alias;
+    let ip4_ui = &ui.addr;
+    let port_ui = &ui.port;
 
-    let http_addr_ui = &app.state.ui.add_participant_ui.participant_http_addr_ui;
-    let http_port_ui = &app.state.ui.add_participant_ui.participant_http_port_num_ui;
+    let http_addr_ui = &ui.http_addr;
+    let http_port_ui = &ui.http_port;
 
     let alias_val = alias_ui.cast::<HtmlInputElement>().unwrap().value();
     let ip_val = ip4_ui.cast::<HtmlInputElement>().unwrap().value();
@@ -222,15 +225,15 @@ pub fn handle_add_participant_response(
     let reply: AddParticipantReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        app.state.ui.add_participant_ui.last_add_result = reply.is_successful
+        app.state.instance.participants.data.result.add_participant = reply.is_successful
     }
 }
 
 pub fn handle_view_participants(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
-    let base_address = get_base_address(app);
+    let base_address = get_base_address(&app.state.instance.connection.data);
     let url = format!("{}{}", base_address.clone(), GET_PARTICIPANTS);
-    let auth = get_auth_request(app);
-    let db_name = &app.state.ui.sql.selected_db_name;
+    let auth = get_auth_request(&app.state.instance.connection.data);
+    let db_name = &app.state.instance.databases.data.active.database_name;
 
     let request = GetParticipantsRequest {
         authentication: Some(auth),
@@ -255,7 +258,7 @@ pub fn handle_view_participant_response(
     let reply: GetParticipantsReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        app.state.ui.add_participant_ui.current_participants = reply.participants.clone();
+        app.state.instance.participants.data.active.participants = reply.participants.clone();
     }
 }
 
