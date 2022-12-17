@@ -1,14 +1,14 @@
 use guid_create::GUID;
 use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    db::DbiConfigSqlite,
+    db::{DbiConfigSqlite, get_metadata_table_name},
     defaults,
     rcd_enum::ContractStatus,
 };
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
-use crate::sqlite::{get_db_conn, has_any_rows};
+use crate::sqlite::{get_db_conn, has_any_rows, has_table, sql_text, execute_write};
 
 /// Creates the COOP_PARTICIPANT table if it does not exist. This holds
 /// the participant information that are cooperating with this database.
@@ -428,7 +428,18 @@ pub fn get_participants_for_table(
     config: DbiConfigSqlite,
 ) -> Vec<CoopDatabaseParticipantData> {
     // note - we will need another table to track the remote row id
-    let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+    // let metadata_table_name = format!("{}{}", table_name, defaults::METADATA_TABLE_SUFFIX);
+
+    let conn = get_db_conn(&config, db_name);
+    let metadata_table_name = get_metadata_table_name(table_name);
+
+    if !has_table(metadata_table_name.clone(), &conn) {
+        //  need to create table
+        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        execute_write(&conn, &cmd);
+    }
+
     let conn = get_db_conn(&config, db_name);
 
     let mut result: Vec<CoopDatabaseParticipantData> = Vec::new();

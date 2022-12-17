@@ -38,6 +38,7 @@ pub enum ExecuteSQLIntent {
     ReadAtPart,
     WriteAtHost,
     WriteAtPart,
+    CoopWriteAtHost,
 }
 
 pub enum ContractIntent {
@@ -69,7 +70,9 @@ pub enum AppMessage {
     ExecuteSQL(ExecuteSQLIntent),
     SQLReadResult(AttrValue),
     SQLWriteResult(AttrValue),
+    SQLCooperativeWriteResult(AttrValue),
     SetExecuteSQLDatabase(String),
+    SetExecuteSQLForParticipant(String),
     SetRemoteDeleteBehavior(u32),
     HandleContract(ContractIntent),
     HandleContractResponse(AttrValue),
@@ -203,6 +206,8 @@ impl Component for RcdAdminApp {
             selected_db_name: "".to_string(),
             current_policy: policy,
             current_contract: ci,
+            current_participant_ui: NodeRef::default(),
+            current_participant_alias: "".to_string()
         };
 
         let participant_ui = RcdAddParticipantUi {
@@ -351,6 +356,12 @@ impl Component for RcdAdminApp {
             }
             AppMessage::HandleContractSendToParticipant(json_response) => {
                 contract::handle_send_contract_to_participant_response(self, json_response.to_string())
+            },
+            AppMessage::SetExecuteSQLForParticipant(participant_alias) => {
+                sql::handle_set_sql_participant(&participant_alias, self, ctx);
+            },
+            AppMessage::SQLCooperativeWriteResult(json_response) => {
+                sql::handle_cooperative_write_result(self, ctx, json_response);
             },
         }
         true

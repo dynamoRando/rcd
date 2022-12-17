@@ -1,11 +1,14 @@
 use crate::{
-    request,
-    AppMessage, ExecuteSQLIntent, RcdAdminApp, get_base_address, get_auth_request,
+    get_auth_request, get_base_address, request, AppMessage, ExecuteSQLIntent, RcdAdminApp,
 };
-use rcd_http_common::url::client::{READ_SQL_AT_HOST, WRITE_SQL_AT_HOST};
+use rcd_http_common::url::client::{
+    COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
+    WRITE_SQL_AT_PARTICIPANT,
+};
 use rcd_messages::{
     client::{
-        ExecuteReadReply, ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
+        ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
+        ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest,
     },
     formatter,
 };
@@ -48,7 +51,38 @@ pub fn handle_execute_sql(
 
             request::get_data(url, read_request_json, sql_callback);
         }
-        ExecuteSQLIntent::ReadAtPart => todo!(),
+        ExecuteSQLIntent::ReadAtPart => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), READ_SQL_AT_PARTICIPANT);
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let participant_alias = &app.state.conn_ui.sql.current_participant_alias.clone();
+
+            console::log_1(&"selected db".into());
+            console::log_1(&db_name.into());
+            console::log_1(&participant_alias.into());
+
+            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
+
+            console::log_1(&"sql_text".into());
+            console::log_1(&sql_text.clone().into());
+
+            let request = ExecuteReadRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+                sql_statement: sql_text.clone(),
+                database_type: 1,
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let sql_callback = ctx.link().callback(AppMessage::SQLReadResult);
+
+            request::get_data(url, request_json, sql_callback);
+
+            todo!()
+        }
         ExecuteSQLIntent::WriteAtHost => {
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_HOST);
@@ -78,7 +112,67 @@ pub fn handle_execute_sql(
 
             request::get_data(url, request_json, sql_callback);
         }
-        ExecuteSQLIntent::WriteAtPart => todo!(),
+        ExecuteSQLIntent::WriteAtPart => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_PARTICIPANT);
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+
+            console::log_1(&"selected db".into());
+            console::log_1(&db_name.into());
+
+            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
+
+            console::log_1(&"sql_text".into());
+            console::log_1(&sql_text.clone().into());
+
+            let request = ExecuteWriteRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+                sql_statement: sql_text,
+                database_type: 1,
+                where_clause: "".to_string(),
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let sql_callback = ctx.link().callback(AppMessage::SQLWriteResult);
+
+            request::get_data(url, request_json, sql_callback);
+        }
+        ExecuteSQLIntent::CoopWriteAtHost => {
+            let base_address = get_base_address(app);
+            let url = format!("{}{}", base_address.clone(), COOPERATIVE_WRITE_SQL_AT_HOST);
+            let auth = get_auth_request(app);
+            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let participant_alias = &app.state.conn_ui.sql.current_participant_alias.clone();
+
+            console::log_1(&"selected db".into());
+            console::log_1(&db_name.into());
+
+            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
+
+            console::log_1(&"sql_text".into());
+            console::log_1(&sql_text.clone().into());
+
+            let request = ExecuteCooperativeWriteRequest {
+                authentication: Some(auth),
+                database_name: db_name.clone(),
+                sql_statement: sql_text,
+                database_type: 1,
+                where_clause: "".to_string(),
+                alias: participant_alias.to_string(),
+                participant_id: "".to_string(),
+            };
+
+            let request_json = serde_json::to_string(&request).unwrap();
+
+            let sql_callback = ctx.link().callback(AppMessage::SQLCooperativeWriteResult);
+
+            request::get_data(url, request_json, sql_callback);
+        }
     }
 }
 
@@ -103,6 +197,41 @@ pub fn handle_sql_read_result(
             app.state.conn_ui.sql_text_result = message;
         }
     }
+}
+
+pub fn handle_cooperative_write_result(
+    app: &mut RcdAdminApp,
+    _ctx: &Context<RcdAdminApp>,
+    json_response: AttrValue,
+) {
+    console::log_1(&json_response.to_string().clone().into());
+    let write_reply: ExecuteCooperativeWriteReply =
+        serde_json::from_str(&&json_response.to_string()).unwrap();
+
+    if write_reply.authentication_result.unwrap().is_authenticated {
+        let mut result_message = String::new();
+
+        result_message = result_message
+            + &format!(
+                "Is result successful: {}",
+                write_reply.is_successful.to_string()
+            );
+
+        result_message = result_message + &"\n";
+        result_message = result_message
+            + &format!(
+                "Total rows affected: {}",
+                write_reply.total_rows_affected.to_string()
+            );
+        result_message = result_message + &"\n";
+
+        // result_message =
+        //     result_message + &format!("Error Message: {}", write_reply.error_message.clone());
+
+        let sql_table_text = result_message.clone();
+        app.state.conn_ui.sql_text_result = sql_table_text;
+    }
+    todo!()
 }
 
 pub fn handle_sql_write_result(
@@ -145,6 +274,19 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
         db_names.push(db.database_name.clone());
     }
 
+    let participants = app
+        .state
+        .conn_ui
+        .add_participant_ui
+        .current_participants
+        .clone();
+
+    let mut participant_aliases: Vec<String> = Vec::new();
+
+    for p in &participants {
+        participant_aliases.push(p.participant.as_ref().unwrap().alias.clone());
+    }
+
     // console::log_1(&"view_input_for_sql".into());
     // console::log_1(&db_names.len().to_string().into());
 
@@ -179,22 +321,53 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
         <p>
         <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&app.state.conn_ui.sql.execute_sql}/>
         </p>
-        <input type="button" id="read_at_host" value="Execute Read At Host" onclick={link.callback(|_|
+        <h3> {"Choose Participant"} </h3>
+        <p>{"Select the participant to execute on, if applicable."}</p>
+        <p>
+        <label for="select_participant_for_execute">{ "Select Participant " }</label>
+        <select name="select_participant_for_execute" id="select_participant_for_execute"
+
+        onchange={link.batch_callback(|e: Event| {
+            if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
+                // console::log_1(&"some onchange".into());
+                Some(AppMessage::SetExecuteSQLForParticipant(input.value()))
+            } else {
+                // console::log_1(&"none onchange".into());
+                None
+            }
+        })}
+        >
+        <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
+        {
+            participant_aliases.clone().into_iter().map(|name| {
+                // console::log_1(&name.clone().into());
+                html!{
+                <option value={name.clone()}>{name.clone()}</option>}
+            }).collect::<Html>()
+        }
+        </select>
+        <p>{"The following commands denote if you wish to execute your SQL action (read or write) against the specified type of database (host or partial). To write data to a participant, use Cooperative Write."}</p>
+        </p>
+        <input type="button" id="read_at_host" value="Execute Read On Host Db" onclick={link.callback(|_|
             {
                 AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtHost)
             })}/>
-            <input type="button" id="read_at_part" value="Execute Read At Part" onclick={link.callback(|_|
+            <input type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={link.callback(|_|
             {
                 AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtPart)
             })}/>
-            <input type="button" id="write_at_host" value="Execute Write At Host" onclick={link.callback(|_|
+            <input type="button" id="write_at_host" value="Execute Write On Host Db" onclick={link.callback(|_|
             {
                 AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtHost)
             })}/>
-            <input type="button" id="write_at_part" value="Execute Write At Part" onclick={link.callback(|_|
+            <input type="button" id="write_at_part" value="Execute Write On Part Db" onclick={link.callback(|_|
             {
                 AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtPart)
             })}/>
+            <input type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={link.callback(|_|
+                {
+                    AppMessage::ExecuteSQL(ExecuteSQLIntent::CoopWriteAtHost)
+                })}/>
         </div>
     }
 }
@@ -215,3 +388,18 @@ pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
     )
 }
 
+pub fn handle_set_sql_participant(
+    participant_alias: &str,
+    app: &mut RcdAdminApp,
+    _link: &Context<RcdAdminApp>,
+) {
+    app.state.conn_ui.sql.current_participant_alias = participant_alias.to_string().clone();
+    console::log_1(
+        &app.state
+            .conn_ui
+            .sql
+            .current_participant_alias
+            .clone()
+            .into(),
+    );
+}

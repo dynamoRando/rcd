@@ -69,6 +69,8 @@ pub struct RcdInputOutputUi {
     pub selected_db_name: String,
     pub current_policy: RcdTablePolicy,
     pub current_contract: RcdContractInfo,
+    pub current_participant_ui: NodeRef,
+    pub current_participant_alias: String,
 }
 
 pub struct RcdTablePolicy {

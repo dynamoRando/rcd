@@ -119,10 +119,10 @@ fn process_cmd_args(args: Vec<String>) {
         match cmd {
             "default_settings" => {
                 set_default_config();
-            },
+            }
             "make_test_db" => {
                 make_test_db();
-            },
+            }
             _ => {}
         }
     }
@@ -202,7 +202,7 @@ root:
     }
 }
 
-fn make_test_db(){
+fn make_test_db() {
     let test_db_name = "test.db";
     let cwd = get_current_directory();
     let default_src_path = Path::new(&cwd).join(test_db_name);
@@ -223,8 +223,7 @@ fn make_test_db(){
 
         let _ = dbi.execute_write_at_host(test_db_name, &drop_table);
 
-        let create_table_statement =
-        "CREATE TABLE IF NOT EXISTS Example (Id INT, Name TEXT);";
+        let create_table_statement = "CREATE TABLE IF NOT EXISTS Example (Id INT, Name TEXT);";
 
         let _ = dbi.execute_write_at_host(test_db_name, &create_table_statement);
 
@@ -239,15 +238,13 @@ fn make_test_db(){
         let add_example_record = "INSERT INTO Example (Id, Name) VALUES (1, 'Test_Record')";
 
         let _ = dbi.execute_write_at_host(test_db_name, add_example_record);
-    }
-    else {
+    } else {
         println!(
             "test_db already exists at: {}",
             &default_src_path.to_str().unwrap()
         );
     }
 }
-
 
 /*
 #[allow(dead_code)]
