@@ -1,7 +1,6 @@
 use rcd_messages::client::AuthRequest;
 use rcd_ui::{
-    PageUi, RcdAddParticipantUi, RcdConn, RcdContractGenUi, RcdContractInfo,
-    RcdSendParticipantContractUi, RcdSqlUi, RcdTablePolicy, RcdUi,
+    PageUi,
 };
 use serde::Deserialize;
 use state::{
@@ -352,87 +351,7 @@ pub fn get_auth_request(connection: &RcdConnectionData) -> AuthRequest {
 }
 
 fn init_state() -> ApplicationState {
-    let conn = RcdConn {
-        un: "tester".to_string(),
-        pw: "123456".to_string(),
-        ip: "localhost".to_string(),
-        port: 8000,
-        databases: Vec::new(),
-        current_db_name: "".to_string(),
-        current_table_name: "".to_string(),
-        sql_input: "".to_string(),
-        sql_output: "".to_string(),
-        url: "".to_string(),
-        auth_request_json: "".to_string(),
-    };
-
-    let policy = RcdTablePolicy {
-        db_name: "".to_string(),
-        table_name: "".to_string(),
-        policy: 0,
-        policy_text: "".to_string(),
-        policy_node: NodeRef::default(),
-        new_policy: NodeRef::default(),
-    };
-
-    let con_gen = RcdContractGenUi {
-        host_name_ui: NodeRef::default(),
-        contract_desc_ui: NodeRef::default(),
-        contract_gen_remote_delete_behavior: 0,
-        last_gen_result: false,
-    };
-
-    let ci = RcdContractInfo {
-        contract_detail_ui: NodeRef::default(),
-        contract_markdown: "".to_string(),
-        pending_contracts: Vec::new(),
-        accepted_contracts: Vec::new(),
-        contract_gen_ui: con_gen,
-        contract_detail_db_ui: NodeRef::default(),
-        active_contract_markdown: "".to_string(),
-    };
-
-    let input_output = RcdSqlUi {
-        execute_sql: NodeRef::default(),
-        sql_result: NodeRef::default(),
-        db_name: NodeRef::default(),
-        selected_db_name: "".to_string(),
-        current_policy: policy,
-        current_contract: ci,
-        current_participant_ui: NodeRef::default(),
-        current_participant_alias: "".to_string(),
-    };
-
-    let participant_ui = RcdAddParticipantUi {
-        alias_ui: NodeRef::default(),
-        ip4_address_ui: NodeRef::default(),
-        port_num_ui: NodeRef::default(),
-        last_add_result: false,
-        current_participants: Vec::new(),
-        participant_http_addr_ui: NodeRef::default(),
-        participant_http_port_num_ui: NodeRef::default(),
-    };
-
-    let send_participant_contract_ui = RcdSendParticipantContractUi {
-        participant_alias: "".to_string(),
-        last_send_result: false,
-    };
-
-    let _conn_ui = RcdUi {
-        conn,
-        un: NodeRef::default(),
-        pw: NodeRef::default(),
-        ip: NodeRef::default(),
-        port: NodeRef::default(),
-        http_port: NodeRef::default(),
-        databases: NodeRef::default(),
-        sql: input_output,
-        sql_text_result: "".to_string(),
-        current_selected_table: NodeRef::default(),
-        add_participant_ui: participant_ui,
-        send_participant_contract_ui: send_participant_contract_ui,
-    };
-
+   
     let page_ui = PageUi {
         conn_is_visible: true,
         contract_is_visible: true,
@@ -447,7 +366,6 @@ fn init_state() -> ApplicationState {
     let instance = init_admin();
 
     let state = ApplicationState {
-        // ui: conn_ui,
         page: page_ui,
         instance: instance,
     };
