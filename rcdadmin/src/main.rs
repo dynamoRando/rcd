@@ -1,9 +1,18 @@
 use rcd_messages::client::AuthRequest;
 use rcd_ui::{
-    RcdAddParticipantUi, RcdConn, RcdConnUi, RcdContractGenUi, RcdContractInfo, RcdInputOutputUi,
-    RcdPageUi, RcdTablePolicy, RcdSendParticipantContractUi,
+    PageUi, RcdAddParticipantUi, RcdConn, RcdContractGenUi, RcdContractInfo,
+    RcdSendParticipantContractUi, RcdSqlUi, RcdTablePolicy, RcdUi,
 };
 use serde::Deserialize;
+use state::{
+    connection::{RcdConnection, RcdConnectionData},
+    contract::RcdContract,
+    databases::RcdDatabases,
+    participant::RcdParticipants,
+    sql::RcdSql,
+    tables::RcdTables,
+    AdminUi,
+};
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
 mod behaviors;
@@ -16,6 +25,7 @@ mod policy;
 mod rcd_ui;
 mod request;
 mod sql;
+mod state;
 mod ui;
 
 #[derive(Debug, Copy, Clone)]
@@ -78,6 +88,7 @@ pub enum AppMessage {
     HandleContractResponse(AttrValue),
     HandleContractSendToParticipant(AttrValue),
     HandleGetActiveContractResponse(AttrValue),
+    HandleGetPendingContractResponse(AttrValue),
     HandleTablePolicy(TableIntent),
     HandleTablePolicyResponse(AttrValue),
     HandleTablePolicyUpdateResponse(AttrValue),
@@ -89,8 +100,8 @@ pub enum AppMessage {
 }
 
 struct ApplicationState {
-    conn_ui: RcdConnUi,
-    page_ui: RcdPageUi,
+    page: PageUi,
+    instance: AdminUi,
 }
 
 impl ApplicationState {}
@@ -110,23 +121,38 @@ impl RcdAdminApp {
     }
 
     pub fn view_input_for_connection(&self, link: &Scope<Self>) -> Html {
-        conn::view_input_for_connection(self, link)
+        conn::view_input_for_connection(&self.state.page, link, &self.state.instance.connection)
     }
 
     pub fn view_databases(&self, link: &Scope<Self>) -> Html {
-        db::view_databases(self, link)
+        db::view_databases(&self.state.page, link, &self.state.instance.databases)
     }
 
     pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
-        db::view_tables::view_tables_for_database(self, link)
+        db::view_tables::view_tables_for_database(
+            &self.state.page,
+            link,
+            &self.state.instance.databases,
+            &self.state.instance.tables,
+        )
     }
 
     pub fn view_columns_for_table(&self, _link: &Scope<Self>) -> Html {
-        db::view_columns::view_columns_for_table(self, _link)
+        db::view_columns::view_columns_for_table(
+            &self.state.page,
+            &self.state.instance.databases,
+            &self.state.instance.tables,
+        )
     }
 
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
-        sql::view_input_for_sql(self, link)
+        sql::view_input_for_sql(
+            &self.state.page,
+            link,
+            &self.state.instance.databases,
+            &self.state.instance.participants,
+            &self.state.instance.sql,
+        )
     }
 
     pub fn view_sql_result(&self, _link: &Scope<Self>) -> Html {
@@ -141,8 +167,13 @@ impl RcdAdminApp {
         host::view_host_info(self, _link)
     }
 
-    pub fn view_participants(&self, _link: &Scope<Self>) -> Html {
-        participant::view_participants(self, _link)
+    pub fn view_participants(&self, link: &Scope<Self>) -> Html {
+        participant::view_participants(
+            &self.state.page,
+            link,
+            &self.state.instance.databases,
+            &self.state.instance.participants,
+        )
     }
 
     pub fn view_write_behaviors(&self, _link: &Scope<Self>) -> Html {
@@ -159,100 +190,7 @@ impl Component for RcdAdminApp {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let conn = RcdConn {
-            un: "tester".to_string(),
-            pw: "123456".to_string(),
-            ip: "localhost".to_string(),
-            port: 8000,
-            databases: Vec::new(),
-            current_db_name: "".to_string(),
-            current_table_name: "".to_string(),
-            sql_input: "".to_string(),
-            sql_output: "".to_string(),
-            url: "".to_string(),
-            auth_request_json: "".to_string(),
-        };
-
-        let policy = RcdTablePolicy {
-            db_name: "".to_string(),
-            table_name: "".to_string(),
-            policy: 0,
-            policy_text: "".to_string(),
-            policy_node: NodeRef::default(),
-            new_policy: NodeRef::default(),
-        };
-
-        let con_gen = RcdContractGenUi {
-            host_name_ui: NodeRef::default(),
-            contract_desc_ui: NodeRef::default(),
-            contract_gen_remote_delete_behavior: 0,
-            last_gen_result: false,
-        };
-
-        let ci = RcdContractInfo {
-            contract_detail_ui: NodeRef::default(),
-            contract_markdown: "".to_string(),
-            pending_contracts: Vec::new(),
-            accepted_contracts: Vec::new(),
-            contract_gen_ui: con_gen,
-            contract_detail_db_ui: NodeRef::default(),
-            active_contract_markdown: "".to_string(),
-        };
-
-        let input_output = RcdInputOutputUi {
-            execute_sql: NodeRef::default(),
-            sql_result: NodeRef::default(),
-            db_name: NodeRef::default(),
-            selected_db_name: "".to_string(),
-            current_policy: policy,
-            current_contract: ci,
-            current_participant_ui: NodeRef::default(),
-            current_participant_alias: "".to_string()
-        };
-
-        let participant_ui = RcdAddParticipantUi {
-            alias_ui: NodeRef::default(),
-            ip4_address_ui: NodeRef::default(),
-            port_num_ui: NodeRef::default(),
-            last_add_result: false,
-            current_participants: Vec::new(),
-            participant_http_addr_ui: NodeRef::default(),
-            participant_http_port_num_ui: NodeRef::default(),
-        };
-
-        let send_participant_contract_ui = RcdSendParticipantContractUi {
-            participant_alias: "".to_string(),
-            last_send_result: false,
-        };
-
-        let conn_ui = RcdConnUi {
-            conn,
-            un: NodeRef::default(),
-            pw: NodeRef::default(),
-            ip: NodeRef::default(),
-            port: NodeRef::default(),
-            http_port: NodeRef::default(),
-            databases: NodeRef::default(),
-            sql: input_output,
-            sql_text_result: "".to_string(),
-            current_selected_table: NodeRef::default(),
-            add_participant_ui: participant_ui,
-            send_participant_contract_ui: send_participant_contract_ui,
-        };
-
-        let page_ui = RcdPageUi {
-            conn_is_visible: true,
-            contract_is_visible: true,
-            host_is_visible: true,
-            databases_is_visible: true,
-            sql_is_visible: true,
-            participants_is_visible: true,
-            behaviors_is_visible: true,
-            coop_hosts_is_visible: true,
-        };
-
-        let app_state = ApplicationState { conn_ui, page_ui };
-
+        let app_state = init_state();
         Self { state: app_state }
     }
 
@@ -303,12 +241,12 @@ impl Component for RcdAdminApp {
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        // console::log_1(&"update".into());
         match msg {
-            AppMessage::Connect() => conn::handle_connect(self, ctx),
+            AppMessage::Connect() => conn::handle_connect(&mut self.state.instance.connection, ctx),
             AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
             AppMessage::GetTablesForDatabase(db_name) => {
-                db::handle_get_tables_for_database(self, db_name, ctx)
+                self.state.instance.databases.data.active.database_name = db_name;
+                db::handle_get_tables_for_database(self, ctx)
             }
             AppMessage::GetColumnsForTable(db_name, table_name) => {
                 db::handle_get_columns_for_table(self, db_name, table_name, ctx)
@@ -323,7 +261,7 @@ impl Component for RcdAdminApp {
             }
             AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
-                policy::handle_table_response(json_response, self)
+                policy::handle_table_response(json_response, &mut self.state.instance.tables)
             }
             AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
                 policy::handle_table_update_response(json_response, self)
@@ -336,12 +274,7 @@ impl Component for RcdAdminApp {
                 contract::handle_contract_response(self, json_response.to_string())
             }
             AppMessage::SetRemoteDeleteBehavior(behavior) => {
-                self.state
-                    .conn_ui
-                    .sql
-                    .current_contract
-                    .contract_gen_ui
-                    .contract_gen_remote_delete_behavior = behavior;
+                self.state.instance.contract.generate.data.delete_behavior = behavior;
             }
             AppMessage::HandleAddParticipant => participant::handle_add_participant(self, ctx),
             AppMessage::HandleAddParticipantResponse(json_response) => {
@@ -355,14 +288,20 @@ impl Component for RcdAdminApp {
                 contract::handle_view_active_contract(self, json_response.to_string())
             }
             AppMessage::HandleContractSendToParticipant(json_response) => {
-                contract::handle_send_contract_to_participant_response(self, json_response.to_string())
-            },
+                contract::handle_send_contract_to_participant_response(
+                    self,
+                    json_response.to_string(),
+                )
+            }
             AppMessage::SetExecuteSQLForParticipant(participant_alias) => {
                 sql::handle_set_sql_participant(&participant_alias, self, ctx);
-            },
+            }
             AppMessage::SQLCooperativeWriteResult(json_response) => {
                 sql::handle_cooperative_write_result(self, ctx, json_response);
-            },
+            }
+            AppMessage::HandleGetPendingContractResponse(json_response) => {
+                contract::handle_get_pending_contract_response(json_response.to_string());
+            }
         }
         true
     }
@@ -375,38 +314,155 @@ fn main() {
 fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
     match item {
         UiVisibility::Connection(is_visible) => {
-            app.state.page_ui.conn_is_visible = is_visible;
+            app.state.page.conn_is_visible = is_visible;
         }
         UiVisibility::SQL(is_visible) => {
-            app.state.page_ui.sql_is_visible = is_visible;
+            app.state.page.sql_is_visible = is_visible;
         }
         UiVisibility::Databases(is_visible) => {
-            app.state.page_ui.databases_is_visible = is_visible;
+            app.state.page.databases_is_visible = is_visible;
         }
         UiVisibility::Contract(is_visible) => {
-            app.state.page_ui.contract_is_visible = is_visible;
+            app.state.page.contract_is_visible = is_visible;
         }
         UiVisibility::Host(is_visible) => {
-            app.state.page_ui.host_is_visible = is_visible;
+            app.state.page.host_is_visible = is_visible;
         }
         UiVisibility::Participant(is_visible) => {
-            app.state.page_ui.participants_is_visible = is_visible;
+            app.state.page.participants_is_visible = is_visible;
         }
         UiVisibility::Behaviors(is_visible) => {
-            app.state.page_ui.behaviors_is_visible = is_visible;
+            app.state.page.behaviors_is_visible = is_visible;
         }
         UiVisibility::CoopHosts(is_visible) => {
-            app.state.page_ui.coop_hosts_is_visible = is_visible;
+            app.state.page.coop_hosts_is_visible = is_visible;
         }
     }
 }
 
-pub fn get_base_address(app: &RcdAdminApp) -> String {
-    return app.state.conn_ui.conn.url.clone();
+pub fn get_base_address(connection: RcdConnectionData) -> String {
+    return connection.active.url;
 }
 
-pub fn get_auth_request(app: &RcdAdminApp) -> AuthRequest {
-    let auth_json = &app.state.conn_ui.conn.auth_request_json;
+pub fn get_auth_request(connection: RcdConnectionData) -> AuthRequest {
+    let auth_json = &connection.active.authentication_json;
     let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
     return auth;
+}
+
+fn init_state() -> ApplicationState {
+    let conn = RcdConn {
+        un: "tester".to_string(),
+        pw: "123456".to_string(),
+        ip: "localhost".to_string(),
+        port: 8000,
+        databases: Vec::new(),
+        current_db_name: "".to_string(),
+        current_table_name: "".to_string(),
+        sql_input: "".to_string(),
+        sql_output: "".to_string(),
+        url: "".to_string(),
+        auth_request_json: "".to_string(),
+    };
+
+    let policy = RcdTablePolicy {
+        db_name: "".to_string(),
+        table_name: "".to_string(),
+        policy: 0,
+        policy_text: "".to_string(),
+        policy_node: NodeRef::default(),
+        new_policy: NodeRef::default(),
+    };
+
+    let con_gen = RcdContractGenUi {
+        host_name_ui: NodeRef::default(),
+        contract_desc_ui: NodeRef::default(),
+        contract_gen_remote_delete_behavior: 0,
+        last_gen_result: false,
+    };
+
+    let ci = RcdContractInfo {
+        contract_detail_ui: NodeRef::default(),
+        contract_markdown: "".to_string(),
+        pending_contracts: Vec::new(),
+        accepted_contracts: Vec::new(),
+        contract_gen_ui: con_gen,
+        contract_detail_db_ui: NodeRef::default(),
+        active_contract_markdown: "".to_string(),
+    };
+
+    let input_output = RcdSqlUi {
+        execute_sql: NodeRef::default(),
+        sql_result: NodeRef::default(),
+        db_name: NodeRef::default(),
+        selected_db_name: "".to_string(),
+        current_policy: policy,
+        current_contract: ci,
+        current_participant_ui: NodeRef::default(),
+        current_participant_alias: "".to_string(),
+    };
+
+    let participant_ui = RcdAddParticipantUi {
+        alias_ui: NodeRef::default(),
+        ip4_address_ui: NodeRef::default(),
+        port_num_ui: NodeRef::default(),
+        last_add_result: false,
+        current_participants: Vec::new(),
+        participant_http_addr_ui: NodeRef::default(),
+        participant_http_port_num_ui: NodeRef::default(),
+    };
+
+    let send_participant_contract_ui = RcdSendParticipantContractUi {
+        participant_alias: "".to_string(),
+        last_send_result: false,
+    };
+
+    let conn_ui = RcdUi {
+        conn,
+        un: NodeRef::default(),
+        pw: NodeRef::default(),
+        ip: NodeRef::default(),
+        port: NodeRef::default(),
+        http_port: NodeRef::default(),
+        databases: NodeRef::default(),
+        sql: input_output,
+        sql_text_result: "".to_string(),
+        current_selected_table: NodeRef::default(),
+        add_participant_ui: participant_ui,
+        send_participant_contract_ui: send_participant_contract_ui,
+    };
+
+    let page_ui = PageUi {
+        conn_is_visible: true,
+        contract_is_visible: true,
+        host_is_visible: true,
+        databases_is_visible: true,
+        sql_is_visible: true,
+        participants_is_visible: true,
+        behaviors_is_visible: true,
+        coop_hosts_is_visible: true,
+    };
+
+    let instance = init_admin();
+
+    let state = ApplicationState {
+        // ui: conn_ui,
+        page: page_ui,
+        instance: instance,
+    };
+
+    return state;
+}
+
+pub fn init_admin() -> AdminUi {
+    let instance = AdminUi {
+        connection: RcdConnection::new(),
+        databases: RcdDatabases::new(),
+        sql: RcdSql::new(),
+        tables: RcdTables::new(),
+        participants: RcdParticipants::new(),
+        contract: RcdContract::new(),
+    };
+
+    return instance;
 }

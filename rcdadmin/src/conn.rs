@@ -3,27 +3,22 @@ use web_sys::{console, HtmlInputElement};
 use yew::html;
 use yew::{html::Scope, Context, Html};
 
+use crate::rcd_ui::PageUi;
+use crate::state::connection::RcdConnection;
 use crate::{request, AppMessage, RcdAdminApp};
 
-pub fn handle_connect(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
-    let un = &app.state.conn_ui.un;
-    let pw = &app.state.conn_ui.pw;
-    let ip = &app.state.conn_ui.ip;
-    let port = &app.state.conn_ui.port;
-    let http_port = &app.state.conn_ui.http_port;
+pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>) {
+    let un = &connection.ui.username;
+    let pw = &connection.ui.password;
+    let ip = &connection.ui.ip;
+    let port = &connection.ui.port;
+    let http_port = &connection.ui.http_port;
 
     let un_val = un.cast::<HtmlInputElement>().unwrap().value();
     let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
     let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
     let _port_val = port.cast::<HtmlInputElement>().unwrap().value();
     let http_port_val = http_port.cast::<HtmlInputElement>().unwrap().value();
-
-    /*
-       console::log_1(&un_val.clone().into());
-       console::log_1(&pw_val.clone().into());
-       console::log_1(&ip_val.clone().into());
-       console::log_1(&port_val.clone().into());
-    */
 
     let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", http_port_val);
 
@@ -45,28 +40,28 @@ pub fn handle_connect(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
 
     let auth_request_json = serde_json::to_string(&auth_request).unwrap();
 
-    app.state.conn_ui.conn.auth_request_json = auth_request_json.clone();
-    app.state.conn_ui.conn.url = base_address.clone();
+    connection.data.active.url = auth_request_json.clone();
+    connection.data.active.authentication_json = base_address.clone();
+
 }
 
-pub fn view_input_for_connection(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
+pub fn view_input_for_connection(page: &PageUi, link: &Scope<RcdAdminApp>, connection: &RcdConnection) -> Html {
 
-    let is_visible = !app.state.page_ui.conn_is_visible;
-
+    let is_visible = !page.conn_is_visible;
 
     html! {
        <div hidden={is_visible}>
        <h1> {"Connect to rcd"} </h1>
        <label for="ip_address">{ "IP Address" }</label>
-        <input type="text" id ="ip_address" placeholder="localhost" ref={&app.state.conn_ui.ip}/>
+        <input type="text" id ="ip_address" placeholder="localhost" ref={&connection.ui.ip}/>
         <label for="port">{ "Port Number" }</label>
-        <input type="text" id="port" placeholder="50051" ref={&app.state.conn_ui.port} />
+        <input type="text" id="port" placeholder="50051" ref={&connection.ui.port} />
         <label for="http_port">{ "HTTP Port Number" }</label>
-        <input type="text" id="http_port" placeholder="50055" ref={&app.state.conn_ui.http_port} />
+        <input type="text" id="http_port" placeholder="50055" ref={&connection.ui.http_port} />
         <label for="un">{ "User Name" }</label>
-        <input type="text" id="un" placeholder="tester" ref={&app.state.conn_ui.un} />
+        <input type="text" id="un" placeholder="tester" ref={&connection.ui.username} />
         <label for="pw">{ "Pw" }</label>
-        <input type="text" id="pw" placeholder="123456" ref={&app.state.conn_ui.pw} />
+        <input type="text" id="pw" placeholder="123456" ref={&connection.ui.password} />
         <input type="button" id="submit" value="Connect" onclick={link.callback(|_|
             {
                 console::log_1(&"clicked".into());

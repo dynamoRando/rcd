@@ -1,21 +1,21 @@
-use crate::RcdAdminApp;
+use crate::rcd_ui::PageUi;
+use crate::state::databases::RcdDatabases;
+use crate::state::tables::RcdTables;
 use yew::html;
-use yew::{html::Scope, Html};
+use yew::Html;
 
-pub fn view_columns_for_table(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page_ui.databases_is_visible;
-    let db_name = app.state.conn_ui.conn.current_db_name.clone();
-    let table_name = app.state.conn_ui.conn.current_table_name.clone();
+pub fn view_columns_for_table(page: &PageUi, databases: &RcdDatabases, tables: &RcdTables) -> Html {
+    let is_visible = !page.databases_is_visible;
+    let db_name = databases.data.active.database_name.clone();
+    let table_name = tables.data.active.table_name.clone();
 
     if db_name == "" || table_name == "" {
         html! {
             <div/>
         }
     } else {
-        let table = app
-            .state
-            .conn_ui
-            .conn
+        let table = databases
+            .data
             .databases
             .iter()
             .find(|x| x.database_name.as_str() == db_name)

@@ -1,5 +1,9 @@
 use crate::{
-    get_auth_request, get_base_address, request, AppMessage, ExecuteSQLIntent, RcdAdminApp,
+    get_auth_request, get_base_address,
+    rcd_ui::PageUi,
+    request,
+    state::{databases::RcdDatabases, participant::RcdParticipants, sql::RcdSql},
+    AppMessage, ExecuteSQLIntent, RcdAdminApp,
 };
 use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
@@ -27,12 +31,12 @@ pub fn handle_execute_sql(
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), READ_SQL_AT_HOST);
             let auth = get_auth_request(app);
-            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let db_name = &app.state.ui.sql.selected_db_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text_node = &app.state.ui.sql.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -55,14 +59,14 @@ pub fn handle_execute_sql(
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), READ_SQL_AT_PARTICIPANT);
             let auth = get_auth_request(app);
-            let db_name = &app.state.conn_ui.sql.selected_db_name;
-            let participant_alias = &app.state.conn_ui.sql.current_participant_alias.clone();
+            let db_name = &app.state.ui.sql.selected_db_name;
+            let participant_alias = &app.state.ui.sql.current_participant_alias.clone();
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
             console::log_1(&participant_alias.into());
 
-            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text_node = &app.state.ui.sql.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -87,12 +91,12 @@ pub fn handle_execute_sql(
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_HOST);
             let auth = get_auth_request(app);
-            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let db_name = &app.state.ui.sql.selected_db_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text_node = &app.state.ui.sql.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -116,12 +120,12 @@ pub fn handle_execute_sql(
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_PARTICIPANT);
             let auth = get_auth_request(app);
-            let db_name = &app.state.conn_ui.sql.selected_db_name;
+            let db_name = &app.state.ui.sql.selected_db_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text_node = &app.state.ui.sql.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -145,13 +149,13 @@ pub fn handle_execute_sql(
             let base_address = get_base_address(app);
             let url = format!("{}{}", base_address.clone(), COOPERATIVE_WRITE_SQL_AT_HOST);
             let auth = get_auth_request(app);
-            let db_name = &app.state.conn_ui.sql.selected_db_name;
-            let participant_alias = &app.state.conn_ui.sql.current_participant_alias.clone();
+            let db_name = &app.state.ui.sql.selected_db_name;
+            let participant_alias = &app.state.ui.sql.current_participant_alias.clone();
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.conn_ui.sql.execute_sql;
+            let sql_text_node = &app.state.ui.sql.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -189,12 +193,12 @@ pub fn handle_sql_read_result(
         if !result.is_error {
             let rows = result.clone().rows;
             let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
-            app.state.conn_ui.sql_text_result = sql_table_text;
+            app.state.ui.sql_text_result = sql_table_text;
         } else {
             let mut message = String::new();
             message = message + &"ERROR: ";
             message = message + &result.execution_error_message.clone();
-            app.state.conn_ui.sql_text_result = message;
+            app.state.instance.sql.result.data.text = message;
         }
     }
 }
@@ -229,7 +233,7 @@ pub fn handle_cooperative_write_result(
         //     result_message + &format!("Error Message: {}", write_reply.error_message.clone());
 
         let sql_table_text = result_message.clone();
-        app.state.conn_ui.sql_text_result = sql_table_text;
+        app.state.instance.sql.result.data.text = sql_table_text;
     }
     todo!()
 }
@@ -262,33 +266,31 @@ pub fn handle_sql_write_result(
             result_message + &format!("Error Message: {}", write_reply.error_message.clone());
 
         let sql_table_text = result_message.clone();
-        app.state.conn_ui.sql_text_result = sql_table_text;
+        app.state.instance.sql.result.data.text = sql_table_text;
     }
 }
 
-pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page_ui.sql_is_visible;
+pub fn view_input_for_sql(
+    page: &PageUi,
+    link: &Scope<RcdAdminApp>,
+    databases: &RcdDatabases,
+    participants: &RcdParticipants,
+    sql_ui: &RcdSql,
+) -> Html {
+    let is_visible = !page.sql_is_visible;
     let mut db_names: Vec<String> = Vec::new();
 
-    for db in &app.state.conn_ui.conn.databases {
+    for db in &databases.data.databases {
         db_names.push(db.database_name.clone());
     }
 
-    let participants = app
-        .state
-        .conn_ui
-        .add_participant_ui
-        .current_participants
-        .clone();
+    let participants = &participants.data.active.participants;
 
     let mut participant_aliases: Vec<String> = Vec::new();
 
-    for p in &participants {
+    for p in participants {
         participant_aliases.push(p.participant.as_ref().unwrap().alias.clone());
     }
-
-    // console::log_1(&"view_input_for_sql".into());
-    // console::log_1(&db_names.len().to_string().into());
 
     html! {
         <div hidden={is_visible}>
@@ -319,7 +321,7 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
         </select>
         </p>
         <p>
-        <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&app.state.conn_ui.sql.execute_sql}/>
+        <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&sql_ui.ui.execute_sql}/>
         </p>
         <h3> {"Choose Participant"} </h3>
         <p>{"Select the participant to execute on, if applicable."}</p>
@@ -373,8 +375,8 @@ pub fn view_input_for_sql(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html 
 }
 
 pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page_ui.sql_is_visible;
-    let text = app.state.conn_ui.sql_text_result.clone();
+    let is_visible = !app.state.page.sql_is_visible;
+    let text = app.state.instance.sql.result.data.text;
 
     html!(
       <div hidden={is_visible}>
@@ -382,7 +384,7 @@ pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
           <label for="sql_result">{ "Results" }</label>
           <p>
           <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here As Markdown Table"
-          ref={&app.state.conn_ui.sql.sql_result} value={text}/>
+          ref={&app.state.instance.sql.result.ui.text} value={text}/>
           </p>
           </div>
     )
@@ -393,12 +395,14 @@ pub fn handle_set_sql_participant(
     app: &mut RcdAdminApp,
     _link: &Context<RcdAdminApp>,
 ) {
-    app.state.conn_ui.sql.current_participant_alias = participant_alias.to_string().clone();
+    app.state.instance.participants.data.active.alias = participant_alias.to_string().clone();
     console::log_1(
         &app.state
-            .conn_ui
-            .sql
-            .current_participant_alias
+            .instance
+            .participants
+            .data
+            .active
+            .alias
             .clone()
             .into(),
     );

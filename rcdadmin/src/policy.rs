@@ -1,7 +1,7 @@
-use crate::{request, AppMessage, RcdAdminApp, TableIntent};
+use crate::{request, state::tables::RcdTables, AppMessage, RcdAdminApp, TableIntent};
 use rcd_messages::client::{
     AuthRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
-    SetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
 use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
@@ -10,14 +10,20 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
     match intent {
         TableIntent::Unknown => todo!(),
         TableIntent::GetTablePolicy(data) => {
-            app.state.conn_ui.sql.current_policy.db_name = data.0.clone();
-            app.state.conn_ui.sql.current_policy.table_name = data.1.clone();
+            app.state.instance.tables.data.active.database_name = data.0.clone();
+            app.state.instance.tables.data.active.table_name = data.1.clone();
 
             if data.1 == "SELECT TABLE" {
                 return;
             }
 
-            let auth_json = &app.state.conn_ui.conn.auth_request_json;
+            let auth_json = &app
+                .state
+                .instance
+                .connection
+                .data
+                .active
+                .authentication_json;
             let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
 
             let request = GetLogicalStoragePolicyRequest {
@@ -27,7 +33,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let base_address = app.state.conn_ui.conn.url.clone();
+            let base_address = app.state.instance.connection.data.active.url;
             let url = format!(
                 "{}{}",
                 base_address.clone(),
@@ -38,14 +44,20 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             request::get_data(url, request_json, callback);
         }
         TableIntent::SetTablePolicy => {
-            let policy_node = &app.state.conn_ui.sql.current_policy.new_policy;
+            let policy_node = &app.state.instance.tables.ui.new_policy;
             let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
 
-            let db = app.state.conn_ui.sql.current_policy.db_name.clone();
-            let table = app.state.conn_ui.sql.current_policy.table_name.clone();
+            let db = app.state.instance.tables.data.active.database_name;
+            let table = app.state.instance.tables.data.active.table_name;
             let policy_num: u32 = policy_val.parse().unwrap();
 
-            let auth_json = &app.state.conn_ui.conn.auth_request_json;
+            let auth_json = &app
+                .state
+                .instance
+                .connection
+                .data
+                .active
+                .authentication_json;
             let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
 
             let request = SetLogicalStoragePolicyRequest {
@@ -56,7 +68,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let base_address = app.state.conn_ui.conn.url.clone();
+            let base_address = &app.state.instance.connection.data.active.url;
             let url = format!(
                 "{}{}",
                 base_address.clone(),
@@ -71,14 +83,14 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
     }
 }
 
-pub fn handle_table_response(json_response: AttrValue, app: &mut RcdAdminApp) {
+pub fn handle_table_response(json_response: AttrValue, tables: &mut RcdTables) {
     console::log_1(&json_response.to_string().clone().into());
     let reply: GetLogicalStoragePolicyReply =
         serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
         let policy_value = reply.policy_mode;
-        app.state.conn_ui.sql.current_policy.policy = policy_value;
+        tables.data.active.policy_value = policy_value;
 
         /*
           None = 0,
@@ -97,12 +109,11 @@ pub fn handle_table_response(json_response: AttrValue, app: &mut RcdAdminApp) {
             _ => "Unknown",
         };
 
-        app.state.conn_ui.sql.current_policy.policy_text = policy_name.to_string();
+        tables.data.active.policy_name = policy_name.to_string();
     }
 }
 
-
-pub fn handle_table_update_response(json_response: AttrValue, _app: &mut RcdAdminApp) { 
+pub fn handle_table_update_response(json_response: AttrValue, _app: &mut RcdAdminApp) {
     console::log_1(&json_response.to_string().clone().into());
     let reply: SetLogicalStoragePolicyReply =
         serde_json::from_str(&&json_response.to_string()).unwrap();

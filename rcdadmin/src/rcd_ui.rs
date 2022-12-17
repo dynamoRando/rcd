@@ -4,8 +4,9 @@ use yew::{Component, Html, NodeRef};
 
 use crate::AppMessage;
 
+
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RcdPageUi {
+pub struct PageUi {
     pub conn_is_visible: bool,
     pub databases_is_visible: bool,
     pub sql_is_visible: bool,
@@ -31,7 +32,7 @@ pub struct RcdConn {
     pub auth_request_json: String,
 }
 
-pub struct RcdConnUi {
+pub struct RcdUi {
     pub conn: RcdConn,
     pub un: NodeRef,
     pub pw: NodeRef,
@@ -39,16 +40,16 @@ pub struct RcdConnUi {
     pub port: NodeRef,
     pub http_port: NodeRef,
     pub databases: NodeRef,
-    pub sql: RcdInputOutputUi,
+    pub sql: RcdSqlUi,
     pub sql_text_result: String,
     pub current_selected_table: NodeRef,
     pub add_participant_ui: RcdAddParticipantUi,
     pub send_participant_contract_ui: RcdSendParticipantContractUi,
 }
 
-impl RcdConnUi {}
+impl RcdUi {}
 
-impl Component for RcdConnUi {
+impl Component for RcdUi {
     type Message = AppMessage;
     type Properties = ();
 
@@ -62,7 +63,7 @@ impl Component for RcdConnUi {
 }
 
 #[allow(dead_code)]
-pub struct RcdInputOutputUi {
+pub struct RcdSqlUi {
     pub execute_sql: NodeRef,
     pub sql_result: NodeRef,
     pub db_name: NodeRef,

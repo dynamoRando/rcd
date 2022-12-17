@@ -5,22 +5,30 @@ use yew::{html::Scope, Html};
 use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 
+use crate::rcd_ui::PageUi;
+use crate::state::databases::RcdDatabases;
+use crate::state::tables::RcdTables;
 use crate::{AppMessage, RcdAdminApp, TableIntent};
 
-pub fn view_tables_for_database(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page_ui.databases_is_visible;
-    let db_name = app.state.conn_ui.conn.current_db_name.clone();
-    let current_table_policy = app.state.conn_ui.sql.current_policy.policy_text.clone();
+pub fn view_tables_for_database(
+    page: &PageUi,
+    link: &Scope<RcdAdminApp>,
+    databases: &RcdDatabases,
+    tables_ui: &RcdTables,
+) -> Html {
+    let is_visible = !page.databases_is_visible;
+
+    let db_name = databases.data.active.database_name.clone();
+
+    let current_table_policy = tables_ui.data.active.policy_name.clone();
 
     if db_name == "" {
         html! {
             <div/>
         }
     } else {
-        let tables = app
-            .state
-            .conn_ui
-            .conn
+        let tables = databases
+            .data
             .databases
             .iter()
             .find(|x| x.database_name.as_str() == db_name)
@@ -75,10 +83,10 @@ pub fn view_tables_for_database(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) ->
         }
         </select>
         <label for="selected_table_policy">{"Current Policy:"}</label>
-        <input type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&app.state.conn_ui.sql.current_policy.policy_node}
+        <input type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&tables_ui.ui.current_policy}
          value={current_table_policy}/>
         <label for="table_policy_value">{ "Set Policy" }</label>
-        <select name="set_policy_for_table" id="set_policy_for_table" ref={&app.state.conn_ui.sql.current_policy.new_policy}>
+        <select name="set_policy_for_table" id="set_policy_for_table" ref={&tables_ui.ui.new_policy}>
         /*
             None = 0,
             HostOnly = 1,

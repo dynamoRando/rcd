@@ -1,3 +1,6 @@
+use crate::rcd_ui::PageUi;
+use crate::state::databases::RcdDatabases;
+use crate::state::participant::RcdParticipants;
 use crate::{get_auth_request, get_base_address, request, AppMessage, ContractIntent, RcdAdminApp};
 use rcd_http_common::url::client::{ADD_PARTICIPANT, GET_PARTICIPANTS};
 use rcd_messages::client::{
@@ -7,29 +10,25 @@ use web_sys::{console, HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
 
-pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page_ui.participants_is_visible;
+pub fn view_participants(
+    page: &PageUi,
+    link: &Scope<RcdAdminApp>,
+    databases: &RcdDatabases,
+    participants_ui: &RcdParticipants,
+) -> Html {
+    let is_visible = !page.participants_is_visible;
 
     let mut db_names: Vec<String> = Vec::new();
 
-    let last_add_result = app.state.conn_ui.add_participant_ui.last_add_result;
+    let last_add_result = participants_ui.data.result.add_participant;
 
-    let last_send_result = app
-        .state
-        .conn_ui
-        .send_participant_contract_ui
-        .last_send_result;
+    let last_send_result = participants_ui.data.result.send_contract;
 
-    for db in &app.state.conn_ui.conn.databases {
+    for db in &databases.data.databases {
         db_names.push(db.database_name.clone());
     }
 
-    let participants = app
-        .state
-        .conn_ui
-        .add_participant_ui
-        .current_participants
-        .clone();
+    let participants = &participants_ui.data.active.participants;
 
     html!(
       <div hidden={is_visible}>
@@ -41,10 +40,8 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
           onchange={link.batch_callback(|e: Event| {
               if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
-                  // console::log_1(&"some onchange".into());
                   Some(AppMessage::SetExecuteSQLDatabase(input.value()))
               } else {
-                  // console::log_1(&"none onchange".into());
                   None
               }
           })}
@@ -52,7 +49,6 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
           {
               db_names.clone().into_iter().map(|name| {
-                  // console::log_1(&name.clone().into());
                   html!{
                   <option value={name.clone()}>{name.clone()}</option>}
               }).collect::<Html>()
@@ -111,15 +107,15 @@ pub fn view_participants(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           }
           </select>
           <p><label for="participant_alias">{ "Participant Alias" }</label>
-          <input type="text" id ="participant_alias" placeholder="Alias" ref={&app.state.conn_ui.add_participant_ui.alias_ui}/></p>
+          <input type="text" id ="participant_alias" placeholder="Alias" ref={&participants_ui.ui.add.alias}/></p>
           <p><label for="participant_ip_address">{ "Participant IP Address" }</label>
-          <input type="text" id="participant_ip_address" placeholder="127.0.0.1" ref={&app.state.conn_ui.add_participant_ui.ip4_address_ui} /></p>
+          <input type="text" id="participant_ip_address" placeholder="127.0.0.1" ref={&participants_ui.ui.add.addr} /></p>
           <p><label for="participant_db_port">{ "Participant Data Port Number" }</label>
-          <input type="text" id="participant_db_port" placeholder="50052" ref={&app.state.conn_ui.add_participant_ui.port_num_ui} /></p>
+          <input type="text" id="participant_db_port" placeholder="50052" ref={&participants_ui.ui.add.port} /></p>
           <p><label for="participant_http_addr">{ "Participant HTTP Addr" }</label>
-          <input type="text" id="participant_http_addr" placeholder="localhost" ref={&app.state.conn_ui.add_participant_ui.participant_http_addr_ui} /></p>
+          <input type="text" id="participant_http_addr" placeholder="localhost" ref={&participants_ui.ui.add.http_addr} /></p>
           <p><label for="participant_http_port">{ "Participant HTTP Port Number" }</label>
-          <input type="text" id="participant_http_port" placeholder="50055" ref={&app.state.conn_ui.add_participant_ui.participant_http_port_num_ui} /></p>
+          <input type="text" id="participant_http_port" placeholder="50055" ref={&participants_ui.ui.add.http_port} /></p>
           </p>
           <input type="button" id="add_participant" value="Add Participant" onclick={link.callback(|_|
             {
@@ -168,25 +164,17 @@ pub fn handle_add_participant(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>)
     let base_address = get_base_address(app);
     let url = format!("{}{}", base_address.clone(), ADD_PARTICIPANT);
     let auth = get_auth_request(app);
-    let db_name = &app.state.conn_ui.sql.selected_db_name;
+    let db_name = &app.state.ui.sql.selected_db_name;
 
     console::log_1(&"selected db".into());
     console::log_1(&db_name.into());
 
-    let alias_ui = &app.state.conn_ui.add_participant_ui.alias_ui;
-    let ip4_ui = &app.state.conn_ui.add_participant_ui.ip4_address_ui;
-    let port_ui = &app.state.conn_ui.add_participant_ui.port_num_ui;
+    let alias_ui = &app.state.ui.add_participant_ui.alias_ui;
+    let ip4_ui = &app.state.ui.add_participant_ui.ip4_address_ui;
+    let port_ui = &app.state.ui.add_participant_ui.port_num_ui;
 
-    let http_addr_ui = &app
-        .state
-        .conn_ui
-        .add_participant_ui
-        .participant_http_addr_ui;
-    let http_port_ui = &app
-        .state
-        .conn_ui
-        .add_participant_ui
-        .participant_http_port_num_ui;
+    let http_addr_ui = &app.state.ui.add_participant_ui.participant_http_addr_ui;
+    let http_port_ui = &app.state.ui.add_participant_ui.participant_http_port_num_ui;
 
     let alias_val = alias_ui.cast::<HtmlInputElement>().unwrap().value();
     let ip_val = ip4_ui.cast::<HtmlInputElement>().unwrap().value();
@@ -234,7 +222,7 @@ pub fn handle_add_participant_response(
     let reply: AddParticipantReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        app.state.conn_ui.add_participant_ui.last_add_result = reply.is_successful
+        app.state.ui.add_participant_ui.last_add_result = reply.is_successful
     }
 }
 
@@ -242,7 +230,7 @@ pub fn handle_view_participants(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp
     let base_address = get_base_address(app);
     let url = format!("{}{}", base_address.clone(), GET_PARTICIPANTS);
     let auth = get_auth_request(app);
-    let db_name = &app.state.conn_ui.sql.selected_db_name;
+    let db_name = &app.state.ui.sql.selected_db_name;
 
     let request = GetParticipantsRequest {
         authentication: Some(auth),
@@ -267,7 +255,7 @@ pub fn handle_view_participant_response(
     let reply: GetParticipantsReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        app.state.conn_ui.add_participant_ui.current_participants = reply.participants.clone();
+        app.state.ui.add_participant_ui.current_participants = reply.participants.clone();
     }
 }
 

@@ -5,28 +5,28 @@ use crate::{AppMessage, RcdAdminApp, UiVisibility};
 
 #[allow(dead_code, unused_variables)]
 pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let conn_is_visible = !app.state.page_ui.conn_is_visible;
+    let conn_is_visible = !app.state.page.conn_is_visible;
     let conn_ui = UiVisibility::Connection(conn_is_visible);
 
-    let db_is_visible = !app.state.page_ui.databases_is_visible;
+    let db_is_visible = !app.state.page.databases_is_visible;
     let db_ui = UiVisibility::Databases(db_is_visible);
 
-    let sql_is_visible = !app.state.page_ui.sql_is_visible;
+    let sql_is_visible = !app.state.page.sql_is_visible;
     let sql_ui = UiVisibility::SQL(sql_is_visible);
 
-    let contracts_is_visible = !app.state.page_ui.contract_is_visible;
+    let contracts_is_visible = !app.state.page.contract_is_visible;
     let contracts_ui = UiVisibility::Contract(contracts_is_visible);
 
-    let hosts_is_visible = !app.state.page_ui.host_is_visible;
+    let hosts_is_visible = !app.state.page.host_is_visible;
     let hosts_ui = UiVisibility::Host(hosts_is_visible);
 
-    let participants_is_visible = !app.state.page_ui.participants_is_visible;
+    let participants_is_visible = !app.state.page.participants_is_visible;
     let participants_ui = UiVisibility::Participant(participants_is_visible);
 
-    let behaviors_is_visible = !app.state.page_ui.behaviors_is_visible;
+    let behaviors_is_visible = !app.state.page.behaviors_is_visible;
     let behaviors_ui = UiVisibility::Behaviors(behaviors_is_visible);
 
-    let coop_hosts_is_visible = !app.state.page_ui.coop_hosts_is_visible;
+    let coop_hosts_is_visible = !app.state.page.coop_hosts_is_visible;
     let coop_hosts_ui = UiVisibility::CoopHosts(coop_hosts_is_visible);
 
     html! {
