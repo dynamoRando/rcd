@@ -111,7 +111,6 @@ impl RcdContractPendingUi {
     }
 }
 
-
 pub struct RcdContractPending{
     pub data: RcdContractPendingData,
     pub ui: RcdContractPendingUi,
@@ -150,66 +149,12 @@ impl RcdContractUi {
     }
 }
 
-#[allow(dead_code)]
-pub struct RcdContractSendUi{
-    alias: NodeRef
-}
-
-impl RcdContractSendUi {
-    pub fn new() -> RcdContractSendUi{
-        return RcdContractSendUi{
-            alias: NodeRef::default()
-        }
-    }
-}
-
-pub struct RcdContractSendData {
-    pub alias: String,
-}
-
-impl RcdContractSendData {
-    pub fn new() -> RcdContractSendData{
-        return RcdContractSendData{
-            alias: "".to_string(),
-        }
-    }
-}
-
-pub struct RcdContractSendResult {
-    pub is_successful: bool,
-}
-
-impl RcdContractSendResult {
-    pub fn new() -> RcdContractSendResult{
-        return RcdContractSendResult{
-            is_successful: false
-        }
-    }
-}
-
-
-pub struct RcdContractSend {
-    pub ui: RcdContractSendUi,
-    pub data: RcdContractSendData,
-    pub result: RcdContractSendResult,
-}
-
-impl RcdContractSend {
-    pub fn new() -> RcdContractSend{
-        return RcdContractSend{
-            ui: RcdContractSendUi::new(),
-            data: RcdContractSendData::new(),
-            result: RcdContractSendResult::new(),
-        }
-    }
-}
 
 pub struct RcdContract {
     pub ui: RcdContractUi,
     pub data: RcdContractData,
     pub generate: RcdContractGenerate,
     pub pending: RcdContractPending,
-    pub send: RcdContractSend,
 }
 
 impl RcdContract {
@@ -219,7 +164,6 @@ impl RcdContract {
             data: RcdContractData::new(),
             generate: RcdContractGenerate::new(),
             pending: RcdContractPending::new(),
-            send: RcdContractSend::new(),
         };
     }
 }
