@@ -6,7 +6,7 @@ use crate::{AppMessage, RcdAdminApp, ContractIntent};
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
-    let databases = &app.state.instance.databases.data.databases;
+    let databases = &app.databases.data.databases;
 
     let mut db_names: Vec<String> = Vec::new();
 
@@ -14,7 +14,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         db_names.push(db.database_name.clone());
     }
 
-    let active_contract = app.state.instance.contract.data.active.markdown.clone();
+    let active_contract = app.contract.data.active.markdown.clone();
 
     html!(
         <div>
@@ -51,7 +51,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           </p>
           <p>
           <textarea rows="5" cols="60" id="current_contract_details" placeholder="Active Contract Details Will Be Here As Markdown Table"
-          ref={&app.state.instance.contract.ui.details} value={active_contract}/>
+          ref={&app.contract.ui.details} value={active_contract}/>
           </p>
         </div>
     )

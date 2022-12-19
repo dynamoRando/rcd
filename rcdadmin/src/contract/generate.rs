@@ -6,8 +6,8 @@ use crate::{AppMessage, RcdAdminApp, ContractIntent};
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
-    let generate = &app.state.instance.contract.generate;
-    let databases = &app.state.instance.databases.data.databases;
+    let generate = &app.contract.generate;
+    let databases = &app.databases.data.databases;
 
     let mut db_names: Vec<String> = Vec::new();
 

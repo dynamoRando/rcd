@@ -10,16 +10,15 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
     match intent {
         TableIntent::Unknown => todo!(),
         TableIntent::GetTablePolicy(data) => {
-            app.state.instance.tables.data.active.database_name = data.0.clone();
-            app.state.instance.tables.data.active.table_name = data.1.clone();
+            app.tables.data.active.database_name = data.0.clone();
+            app.tables.data.active.table_name = data.1.clone();
 
             if data.1 == "SELECT TABLE" {
                 return;
             }
 
             let auth_json = &app
-                .state
-                .instance
+                
                 .connection
                 .data
                 .active
@@ -33,7 +32,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let base_address = app.state.instance.connection.data.active.url.clone();
+            let base_address = app.connection.data.active.url.clone();
             let url = format!(
                 "{}{}",
                 base_address.clone(),
@@ -44,16 +43,14 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             request::get_data(url, request_json, callback);
         }
         TableIntent::SetTablePolicy => {
-            let policy_node = &app.state.instance.tables.ui.new_policy;
+            let policy_node = &app.tables.ui.new_policy;
             let policy_val = policy_node.cast::<HtmlInputElement>().unwrap().value();
 
-            let db = app.state.instance.tables.data.active.database_name.clone();
-            let table = app.state.instance.tables.data.active.table_name.clone();
+            let db = app.tables.data.active.database_name.clone();
+            let table = app.tables.data.active.table_name.clone();
             let policy_num: u32 = policy_val.parse().unwrap();
 
             let auth_json = &app
-                .state
-                .instance
                 .connection
                 .data
                 .active
@@ -68,7 +65,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let base_address = &app.state.instance.connection.data.active.url;
+            let base_address = &app.connection.data.active.url;
             let url = format!(
                 "{}{}",
                 base_address.clone(),

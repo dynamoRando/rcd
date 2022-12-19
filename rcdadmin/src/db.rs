@@ -13,15 +13,15 @@ pub mod view_tables;
 
 pub fn handle_execute_sql_db(app: &mut RcdAdminApp, db_name: String) {
     // console::log_1(&db_name.into());
-    app.state.instance.databases.data.active.database_name = db_name.clone();
-    console::log_1(&app.state.instance.databases.data.active.database_name.clone().into());
+    app.databases.data.active.database_name = db_name.clone();
+    console::log_1(&app.databases.data.active.database_name.clone().into());
 }
 
 pub fn handle_get_databases(app: &mut RcdAdminApp, db_response: AttrValue) {
     console::log_1(&db_response.to_string().clone().into());
     let db_response: GetDatabasesReply = serde_json::from_str(&db_response.to_string()).unwrap();
     if db_response.authentication_result.unwrap().is_authenticated {
-        app.state.instance.databases.data.databases = db_response.databases.clone();
+        app.databases.data.databases = db_response.databases.clone();
     }
 }
 
@@ -38,8 +38,8 @@ pub fn handle_get_columns_for_table(
     table_name: String,
     ctx: &Context<RcdAdminApp>,
 ) {
-    app.state.instance.tables.data.active.database_name = db_name.clone();
-    app.state.instance.tables.data.active.table_name = table_name.clone();
+    app.tables.data.active.database_name = db_name.clone();
+    app.tables.data.active.table_name = table_name.clone();
     app.view_columns_for_table(ctx.link());
 }
 

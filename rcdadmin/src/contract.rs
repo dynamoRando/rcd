@@ -17,7 +17,7 @@ pub mod generate;
 pub mod pending;
 
 pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page.contract_is_visible;
+    let is_visible = !app.page.contract_is_visible;
 
     html!(
       <div hidden={is_visible}>
@@ -40,20 +40,20 @@ pub fn handle_contract_intent(
     match intent {
         ContractIntent::Unknown => todo!(),
         ContractIntent::GetPending => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), GENERATE_CONTRACT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
-            let host_name_ui = &app.state.instance.contract.generate.ui.host_name;
+            let host_name_ui = &app.contract.generate.ui.host_name;
 
             let host_name = host_name_ui.cast::<HtmlInputElement>().unwrap().value();
 
-            let desc_ui = &app.state.instance.contract.generate.ui.description;
+            let desc_ui = &app.contract.generate.ui.description;
 
             let description = desc_ui.cast::<HtmlInputElement>().unwrap().value();
 
-            let behavior = app.state.instance.contract.generate.data.delete_behavior;
+            let behavior = app.contract.generate.data.delete_behavior;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
@@ -78,20 +78,20 @@ pub fn handle_contract_intent(
         ContractIntent::GetRejected => todo!(),
         ContractIntent::AcceptContract(_) => todo!(),
         ContractIntent::GenerateContract => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), GENERATE_CONTRACT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
-            let host_name_ui = &app.state.instance.contract.generate.ui.host_name;
+            let host_name_ui = &app.contract.generate.ui.host_name;
 
             let host_name = host_name_ui.cast::<HtmlInputElement>().unwrap().value();
 
-            let desc_ui = &app.state.instance.contract.generate.ui.description;
+            let desc_ui = &app.contract.generate.ui.description;
 
             let description = desc_ui.cast::<HtmlInputElement>().unwrap().value();
 
-            let behavior = app.state.instance.contract.generate.data.delete_behavior;
+            let behavior = app.contract.generate.data.delete_behavior;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
@@ -111,18 +111,17 @@ pub fn handle_contract_intent(
             request::get_data(url, request_json, callback);
         }
         ContractIntent::SendContractToParticipant => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), SEND_CONTRACT_TO_PARTICIPANT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
+            let auth = get_auth_request(&app.connection.data);
             let db_name = &app
-                .state
-                .instance
+                
                 .databases
                 .data
                 .active
                 .database_name
                 .clone();
-            let participant_alias = app.state.instance.participants.send_contract.data.alias.clone();
+            let participant_alias = app.participants.send_contract.data.alias.clone();
 
             let request = SendParticipantContractRequest {
                 authentication: Some(auth),
@@ -138,10 +137,10 @@ pub fn handle_contract_intent(
         }
         ContractIntent::RejectContract(_) => todo!(),
         ContractIntent::ViewCurrentContract => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), GET_ACTIVE_CONTRACT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
             let request = GetActiveContractRequest {
                 authentication: Some(auth),
@@ -155,7 +154,7 @@ pub fn handle_contract_intent(
             request::get_data(url, request_json, callback);
         }
         ContractIntent::SetParticipantForPendingContractSend(participant_alias) => {
-            app.state.instance.participants.send_contract.data.alias = participant_alias.clone();
+            app.participants.send_contract.data.alias = participant_alias.clone();
         }
     }
 }
@@ -171,8 +170,8 @@ pub fn handle_contract_response(app: &mut RcdAdminApp, json_response: String) {
             result_message + &format!("Is result successful: {}", reply.is_successful.to_string());
 
         console::log_1(&result_message.to_string().clone().into());
-        app.state
-            .instance
+        app
+            
             .contract
             .generate
             .result
@@ -188,7 +187,7 @@ pub fn handle_view_active_contract(app: &mut RcdAdminApp, json_response: String)
     if reply.authentication_result.unwrap().is_authenticated {
         let contract_markdown =
             formatter::markdown::contract::contract_to_markdown_table(&reply.contract.unwrap());
-        app.state.instance.contract.data.active.markdown = contract_markdown;
+        app.contract.data.active.markdown = contract_markdown;
     }
 }
 
@@ -198,8 +197,8 @@ pub fn handle_send_contract_to_participant_response(app: &mut RcdAdminApp, json_
         serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        // app.state.instance.contract.send.result.is_successful = reply.is_sent;
-        app.state.instance.participants.data.result.send_contract = reply.is_sent;
+        // app.contract.send.result.is_successful = reply.is_sent;
+        app.participants.data.result.send_contract = reply.is_sent;
     }
 }
 

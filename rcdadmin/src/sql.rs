@@ -28,15 +28,15 @@ pub fn handle_execute_sql(
     match intent {
         ExecuteSQLIntent::Unknown => todo!(),
         ExecuteSQLIntent::ReadAtHost => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), READ_SQL_AT_HOST);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.instance.sql.ui.execute_sql;
+            let sql_text_node = &app.sql.ui.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -56,17 +56,17 @@ pub fn handle_execute_sql(
             request::get_data(url, read_request_json, sql_callback);
         }
         ExecuteSQLIntent::ReadAtPart => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), READ_SQL_AT_PARTICIPANT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
-            let participant_alias = &app.state.instance.participants.data.active.alias;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
+            let participant_alias = &app.participants.data.active.alias;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
             console::log_1(&participant_alias.into());
 
-            let sql_text_node = &app.state.instance.sql.ui.execute_sql;
+            let sql_text_node = &app.sql.ui.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -88,15 +88,15 @@ pub fn handle_execute_sql(
             todo!()
         }
         ExecuteSQLIntent::WriteAtHost => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_HOST);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.instance.sql.ui.execute_sql;
+            let sql_text_node = &app.sql.ui.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -117,15 +117,15 @@ pub fn handle_execute_sql(
             request::get_data(url, request_json, sql_callback);
         }
         ExecuteSQLIntent::WriteAtPart => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), WRITE_SQL_AT_PARTICIPANT);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.instance.sql.ui.execute_sql;
+            let sql_text_node = &app.sql.ui.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -146,16 +146,16 @@ pub fn handle_execute_sql(
             request::get_data(url, request_json, sql_callback);
         }
         ExecuteSQLIntent::CoopWriteAtHost => {
-            let base_address = get_base_address(&app.state.instance.connection.data);
+            let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), COOPERATIVE_WRITE_SQL_AT_HOST);
-            let auth = get_auth_request(&app.state.instance.connection.data);
-            let db_name = &app.state.instance.databases.data.active.database_name;
-            let participant_alias = &app.state.instance.participants.data.active.alias;
+            let auth = get_auth_request(&app.connection.data);
+            let db_name = &app.databases.data.active.database_name;
+            let participant_alias = &app.participants.data.active.alias;
 
             console::log_1(&"selected db".into());
             console::log_1(&db_name.into());
 
-            let sql_text_node = &app.state.instance.sql.ui.execute_sql;
+            let sql_text_node = &app.sql.ui.execute_sql;
             let sql_text = sql_text_node.cast::<HtmlInputElement>().unwrap().value();
 
             console::log_1(&"sql_text".into());
@@ -193,12 +193,12 @@ pub fn handle_sql_read_result(
         if !result.is_error {
             let rows = result.clone().rows;
             let sql_table_text = formatter::rows_to_string_markdown_table(&rows);
-            app.state.instance.sql.result.data.text = sql_table_text;
+            app.sql.result.data.text = sql_table_text;
         } else {
             let mut message = String::new();
             message = message + &"ERROR: ";
             message = message + &result.execution_error_message.clone();
-            app.state.instance.sql.result.data.text = message;
+            app.sql.result.data.text = message;
         }
     }
 }
@@ -233,7 +233,7 @@ pub fn handle_cooperative_write_result(
         //     result_message + &format!("Error Message: {}", write_reply.error_message.clone());
 
         let sql_table_text = result_message.clone();
-        app.state.instance.sql.result.data.text = sql_table_text;
+        app.sql.result.data.text = sql_table_text;
     }
     todo!()
 }
@@ -266,7 +266,7 @@ pub fn handle_sql_write_result(
             result_message + &format!("Error Message: {}", write_reply.error_message.clone());
 
         let sql_table_text = result_message.clone();
-        app.state.instance.sql.result.data.text = sql_table_text;
+        app.sql.result.data.text = sql_table_text;
     }
 }
 
@@ -375,8 +375,8 @@ pub fn view_input_for_sql(
 }
 
 pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
-    let is_visible = !app.state.page.sql_is_visible;
-    let text = app.state.instance.sql.result.data.text.clone();
+    let is_visible = !app.page.sql_is_visible;
+    let text = app.sql.result.data.text.clone();
 
     html!(
       <div hidden={is_visible}>
@@ -384,7 +384,7 @@ pub fn view_sql_result(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
           <label for="sql_result">{ "Results" }</label>
           <p>
           <textarea rows="5" cols="60"  id ="sql_Result" placeholder="SQL Results Will Be Displayed Here As Markdown Table"
-          ref={&app.state.instance.sql.result.ui.text} value={text}/>
+          ref={&app.sql.result.ui.text} value={text}/>
           </p>
           </div>
     )
@@ -395,10 +395,9 @@ pub fn handle_set_sql_participant(
     app: &mut RcdAdminApp,
     _link: &Context<RcdAdminApp>,
 ) {
-    app.state.instance.participants.data.active.alias = participant_alias.to_string().clone();
+    app.participants.data.active.alias = participant_alias.to_string().clone();
     console::log_1(
-        &app.state
-            .instance
+        &app
             .participants
             .data
             .active

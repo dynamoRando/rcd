@@ -77,10 +77,10 @@ pub fn view(
 }
 
 pub fn request(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
-    let base_address = get_base_address(&app.state.instance.connection.data);
+    let base_address = get_base_address(&app.connection.data);
     let url = format!("{}{}", base_address.clone(), GET_PARTICIPANTS);
-    let auth = get_auth_request(&app.state.instance.connection.data);
-    let db_name = &app.state.instance.databases.data.active.database_name;
+    let auth = get_auth_request(&app.connection.data);
+    let db_name = &app.databases.data.active.database_name;
 
     let request = GetParticipantsRequest {
         authentication: Some(auth),
@@ -101,6 +101,6 @@ pub fn response(app: &mut RcdAdminApp, _ctx: &Context<RcdAdminApp>, json_respons
     let reply: GetParticipantsReply = serde_json::from_str(&&json_response.to_string()).unwrap();
 
     if reply.authentication_result.unwrap().is_authenticated {
-        app.state.instance.participants.data.active.participants = reply.participants.clone();
+        app.participants.data.active.participants = reply.participants.clone();
     }
 }

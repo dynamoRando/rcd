@@ -10,7 +10,6 @@ use state::{
     participant::RcdParticipants,
     sql::RcdSql,
     tables::RcdTables,
-    AdminUi,
 };
 use yew::{html::Scope, prelude::*, virtual_dom::AttrValue};
 
@@ -71,8 +70,15 @@ pub enum TableIntent {
     SetTablePolicy,
 }
 
+pub enum DatabaseMessage {
+    Response(AttrValue),
+    GetTablesForDatabase(String),
+    GetColumnsForTable(String, String),
+}
+
 pub enum AppMessage {
     Connect(),
+    DatabaseMessage(DatabaseMessage),
     GetDatabases(AttrValue),
     GetTablesForDatabase(String),
     GetColumnsForTable(String, String),
@@ -98,15 +104,14 @@ pub enum AppMessage {
     HandleViewParticipantsResponse(AttrValue),
 }
 
-struct ApplicationState {
-    page: PageUi,
-    instance: AdminUi,
-}
-
-impl ApplicationState {}
-
 pub struct RcdAdminApp {
-    state: ApplicationState,
+    pub page: PageUi,
+    pub connection: RcdConnection,
+    pub databases: RcdDatabases,
+    pub tables: RcdTables,
+    pub sql: RcdSql,
+    pub participants: RcdParticipants,
+    pub contract: RcdContract,
 }
 
 #[derive(Clone, PartialEq, Deserialize)]
@@ -120,37 +125,37 @@ impl RcdAdminApp {
     }
 
     pub fn view_input_for_connection(&self, link: &Scope<Self>) -> Html {
-        conn::view_input_for_connection(&self.state.page, link, &self.state.instance.connection)
+        conn::view_input_for_connection(&self.page, link, &self.connection)
     }
 
     pub fn view_databases(&self, link: &Scope<Self>) -> Html {
-        db::view_databases(&self.state.page, link, &self.state.instance.databases)
+        db::view_databases(&self.page, link, &self.databases)
     }
 
     pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
         db::view_tables::view_tables_for_database(
-            &self.state.page,
+            &self.page,
             link,
-            &self.state.instance.databases,
-            &self.state.instance.tables,
+            &self.databases,
+            &self.tables,
         )
     }
 
     pub fn view_columns_for_table(&self, _link: &Scope<Self>) -> Html {
         db::view_columns::view_columns_for_table(
-            &self.state.page,
-            &self.state.instance.databases,
-            &self.state.instance.tables,
+            &self.page,
+            &self.databases,
+            &self.tables,
         )
     }
 
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
         sql::view_input_for_sql(
-            &self.state.page,
+            &self.page,
             link,
-            &self.state.instance.databases,
-            &self.state.instance.participants,
-            &self.state.instance.sql,
+            &self.databases,
+            &self.participants,
+            &self.sql,
         )
     }
 
@@ -168,10 +173,10 @@ impl RcdAdminApp {
 
     pub fn view_participants(&self, link: &Scope<Self>) -> Html {
         participant::view_participants(
-            &self.state.page,
+            &self.page,
             link,
-            &self.state.instance.databases,
-            &self.state.instance.participants,
+            &self.databases,
+            &self.participants,
         )
     }
 
@@ -189,8 +194,7 @@ impl Component for RcdAdminApp {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let app_state = init_state();
-        Self { state: app_state }
+        return init_app()
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -241,11 +245,11 @@ impl Component for RcdAdminApp {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            AppMessage::Connect() => conn::handle_connect(&mut self.state.instance.connection, ctx),
+            AppMessage::Connect() => conn::handle_connect(&mut self.connection, ctx),
             AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
             AppMessage::GetTablesForDatabase(db_name) => {
-                self.state.instance.databases.data.active.database_name = db_name.clone();
-                self.state.instance.tables.data.active.database_name = db_name.clone();
+                self.databases.data.active.database_name = db_name.clone();
+                self.tables.data.active.database_name = db_name.clone();
                 db::handle_get_tables_for_database(self, ctx)
             }
             AppMessage::GetColumnsForTable(db_name, table_name) => {
@@ -261,7 +265,7 @@ impl Component for RcdAdminApp {
             }
             AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
             AppMessage::HandleTablePolicyResponse(json_response) => {
-                policy::handle_table_response(json_response, &mut self.state.instance.tables)
+                policy::handle_table_response(json_response, &mut self.tables)
             }
             AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
                 policy::handle_table_update_response(json_response, self)
@@ -274,7 +278,7 @@ impl Component for RcdAdminApp {
                 contract::handle_contract_response(self, json_response.to_string())
             }
             AppMessage::SetRemoteDeleteBehavior(behavior) => {
-                self.state.instance.contract.generate.data.delete_behavior = behavior;
+                self.contract.generate.data.delete_behavior = behavior;
             }
             AppMessage::HandleAddParticipant => participant::handle_add_participant(self, ctx),
             AppMessage::HandleAddParticipantResponse(json_response) => {
@@ -302,6 +306,13 @@ impl Component for RcdAdminApp {
             AppMessage::HandleGetPendingContractResponse(json_response) => {
                 contract::handle_get_pending_contract_response(json_response.to_string());
             }
+            AppMessage::DatabaseMessage(database_message) => {
+                match database_message {
+                    DatabaseMessage::Response(_) => todo!(),
+                    DatabaseMessage::GetTablesForDatabase(_) => todo!(),
+                    DatabaseMessage::GetColumnsForTable(_, _) => todo!(),
+                };
+            },
         }
         true
     }
@@ -314,28 +325,28 @@ fn main() {
 fn handle_ui_visibility(item: UiVisibility, app: &mut RcdAdminApp) {
     match item {
         UiVisibility::Connection(is_visible) => {
-            app.state.page.conn_is_visible = is_visible;
+            app.page.conn_is_visible = is_visible;
         }
         UiVisibility::SQL(is_visible) => {
-            app.state.page.sql_is_visible = is_visible;
+            app.page.sql_is_visible = is_visible;
         }
         UiVisibility::Databases(is_visible) => {
-            app.state.page.databases_is_visible = is_visible;
+            app.page.databases_is_visible = is_visible;
         }
         UiVisibility::Contract(is_visible) => {
-            app.state.page.contract_is_visible = is_visible;
+            app.page.contract_is_visible = is_visible;
         }
         UiVisibility::Host(is_visible) => {
-            app.state.page.host_is_visible = is_visible;
+            app.page.host_is_visible = is_visible;
         }
         UiVisibility::Participant(is_visible) => {
-            app.state.page.participants_is_visible = is_visible;
+            app.page.participants_is_visible = is_visible;
         }
         UiVisibility::Behaviors(is_visible) => {
-            app.state.page.behaviors_is_visible = is_visible;
+            app.page.behaviors_is_visible = is_visible;
         }
         UiVisibility::CoopHosts(is_visible) => {
-            app.state.page.coop_hosts_is_visible = is_visible;
+            app.page.coop_hosts_is_visible = is_visible;
         }
     }
 }
@@ -350,7 +361,7 @@ pub fn get_auth_request(connection: &RcdConnectionData) -> AuthRequest {
     return auth;
 }
 
-fn init_state() -> ApplicationState {
+fn init_app() -> RcdAdminApp {
    
     let page_ui = PageUi {
         conn_is_visible: true,
@@ -363,25 +374,15 @@ fn init_state() -> ApplicationState {
         coop_hosts_is_visible: true,
     };
 
-    let instance = init_admin();
-
-    let state = ApplicationState {
+    let app = RcdAdminApp {
         page: page_ui,
-        instance: instance,
-    };
-
-    return state;
-}
-
-pub fn init_admin() -> AdminUi {
-    let instance = AdminUi {
         connection: RcdConnection::new(),
         databases: RcdDatabases::new(),
-        sql: RcdSql::new(),
         tables: RcdTables::new(),
+        sql: RcdSql::new(),
         participants: RcdParticipants::new(),
         contract: RcdContract::new(),
     };
 
-    return instance;
+    return app;
 }

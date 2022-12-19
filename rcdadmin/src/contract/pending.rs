@@ -3,7 +3,7 @@ use yew::{html::Scope, Html};
 use crate::{AppMessage, RcdAdminApp, ContractIntent};
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-    let text = app.state.instance.contract.pending.data.markdown.clone();
+    let text = app.contract.pending.data.markdown.clone();
     html!(
         <div>
         <p>
@@ -26,7 +26,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           </p>
           <p>
           <textarea rows="5" cols="60"  id ="contract_details" placeholder="Contract Details Will Be Here As Markdown Table"
-          ref={&app.state.instance.contract.pending.ui.details} value={text}/>
+          ref={&app.contract.pending.ui.details} value={text}/>
           </p>
           </div>
     )
