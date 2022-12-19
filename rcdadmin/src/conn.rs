@@ -5,7 +5,7 @@ use yew::{html::Scope, Context, Html};
 
 use crate::rcd_ui::PageUi;
 use crate::state::connection::RcdConnection;
-use crate::{request, AppMessage, RcdAdminApp, DatabaseMessage};
+use crate::{request, AppMessage, RcdAdminApp};
 
 pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>) {
     let un = &connection.ui.username;

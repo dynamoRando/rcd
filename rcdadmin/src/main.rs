@@ -70,15 +70,8 @@ pub enum TableIntent {
     SetTablePolicy,
 }
 
-pub enum DatabaseMessage {
-    Response(AttrValue),
-    GetTablesForDatabase(String),
-    GetColumnsForTable(String, String),
-}
-
 pub enum AppMessage {
     Connect(),
-    DatabaseMessage(DatabaseMessage),
     GetDatabases(AttrValue),
     GetTablesForDatabase(String),
     GetColumnsForTable(String, String),
@@ -306,13 +299,6 @@ impl Component for RcdAdminApp {
             AppMessage::HandleGetPendingContractResponse(json_response) => {
                 contract::handle_get_pending_contract_response(json_response.to_string());
             }
-            AppMessage::DatabaseMessage(database_message) => {
-                match database_message {
-                    DatabaseMessage::Response(_) => todo!(),
-                    DatabaseMessage::GetTablesForDatabase(_) => todo!(),
-                    DatabaseMessage::GetColumnsForTable(_, _) => todo!(),
-                };
-            },
         }
         true
     }
