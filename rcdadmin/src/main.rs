@@ -1,7 +1,5 @@
 use rcd_messages::client::AuthRequest;
-use rcd_ui::{
-    PageUi,
-};
+use rcd_ui::PageUi;
 use serde::Deserialize;
 use state::{
     connection::{RcdConnection, RcdConnectionData},
@@ -70,10 +68,10 @@ pub enum TableIntent {
     SetTablePolicy,
 }
 
-pub enum ParticipantIntent{
+pub enum ParticipantIntent {
     Unknown,
     Add,
-    View
+    View,
 }
 
 /// Format: State (Module) - Sub Action If Applicable - Set or Http (Request/Resonse) - Detail
@@ -133,20 +131,11 @@ impl RcdAdminApp {
     }
 
     pub fn view_tables_for_database(&self, link: &Scope<Self>) -> Html {
-        db::view_tables::view_tables_for_database(
-            &self.page,
-            link,
-            &self.databases,
-            &self.tables,
-        )
+        db::view_tables::view_tables_for_database(&self.page, link, &self.databases, &self.tables)
     }
 
     pub fn view_columns_for_table(&self, _link: &Scope<Self>) -> Html {
-        db::view_columns::view_columns_for_table(
-            &self.page,
-            &self.databases,
-            &self.tables,
-        )
+        db::view_columns::view_columns_for_table(&self.page, &self.databases, &self.tables)
     }
 
     pub fn view_input_for_sql(&self, link: &Scope<Self>) -> Html {
@@ -172,12 +161,7 @@ impl RcdAdminApp {
     }
 
     pub fn view_participants(&self, link: &Scope<Self>) -> Html {
-        participant::view_participants(
-            &self.page,
-            link,
-            &self.databases,
-            &self.participants,
-        )
+        participant::view_participants(&self.page, link, &self.databases, &self.participants)
     }
 
     pub fn view_write_behaviors(&self, _link: &Scope<Self>) -> Html {
@@ -194,7 +178,7 @@ impl Component for RcdAdminApp {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        return init_app()
+        return init_app();
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -246,7 +230,9 @@ impl Component for RcdAdminApp {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             AppMessage::Connect() => conn::handle_connect(&mut self.connection, ctx),
-            AppMessage::Db_HttpResponse_GetDatabases(db_response) => db::handle_get_databases(self, db_response),
+            AppMessage::Db_HttpResponse_GetDatabases(db_response) => {
+                db::handle_get_databases(self, db_response)
+            }
             AppMessage::Db_SetAndView_Tables(db_name) => {
                 self.databases.data.active.database_name = db_name.clone();
                 self.tables.data.active.database_name = db_name.clone();
@@ -263,7 +249,9 @@ impl Component for RcdAdminApp {
             AppMessage::Contract_HttpRequest(intent) => {
                 contract::handle_contract_intent(self, intent, ctx.link())
             }
-            AppMessage::Policy_HttpRequest(intent) => policy::handle_table_policy(intent, self, ctx),
+            AppMessage::Policy_HttpRequest(intent) => {
+                policy::handle_table_policy(intent, self, ctx)
+            }
             AppMessage::Policy_HttpResponse_GetPolicy(json_response) => {
                 policy::handle_table_response(json_response, &mut self.tables)
             }
@@ -304,12 +292,10 @@ impl Component for RcdAdminApp {
             AppMessage::Contract_HttpResponse_GetPendingContracts(json_response) => {
                 contract::handle_get_pending_contract_response(json_response.to_string());
             }
-            AppMessage::Participant_HttpRequest(intent) => {
-                match intent {
-                    ParticipantIntent::Unknown => todo!(),
-                    ParticipantIntent::Add => participant::handle_add_participant(self, ctx),
-                    ParticipantIntent::View => participant::handle_view_participants(self, ctx),
-                }
+            AppMessage::Participant_HttpRequest(intent) => match intent {
+                ParticipantIntent::Unknown => todo!(),
+                ParticipantIntent::Add => participant::handle_add_participant(self, ctx),
+                ParticipantIntent::View => participant::handle_view_participants(self, ctx),
             },
         }
         true
@@ -360,7 +346,6 @@ pub fn get_auth_request(connection: &RcdConnectionData) -> AuthRequest {
 }
 
 fn init_app() -> RcdAdminApp {
-   
     let page_ui = PageUi {
         conn_is_visible: true,
         contract_is_visible: true,
