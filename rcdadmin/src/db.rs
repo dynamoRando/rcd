@@ -61,7 +61,7 @@ pub fn view_databases(page: &PageUi, link: &Scope<RcdAdminApp>, databases: &RcdD
         db_names.into_iter().map(|name| {
             let db_name = name.clone();
             html!{<div key={db_name.clone()}>
-            <li onclick={link.callback(move |_| AppMessage::GetTablesForDatabase(name.clone()))}>{db_name.clone()}</li></div>}
+            <li onclick={link.callback(move |_| AppMessage::Db_SetAndView_Tables(name.clone()))}>{db_name.clone()}</li></div>}
         }).collect::<Html>()
     }</ul>
        </div>

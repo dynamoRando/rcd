@@ -51,7 +51,7 @@ pub fn handle_execute_sql(
 
             let read_request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::SQLReadResult);
+            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_ReadResult);
 
             request::get_data(url, read_request_json, sql_callback);
         }
@@ -81,7 +81,7 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::SQLReadResult);
+            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_ReadResult);
 
             request::get_data(url, request_json, sql_callback);
 
@@ -112,7 +112,7 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::SQLWriteResult);
+            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_WriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -141,7 +141,7 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::SQLWriteResult);
+            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_WriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -173,7 +173,7 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::SQLCooperativeWriteResult);
+            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_CooperativeWriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -303,7 +303,7 @@ pub fn view_input_for_sql(
         onchange={link.batch_callback(|e: Event| {
             if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                 // console::log_1(&"some onchange".into());
-                Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+                Some(AppMessage::Db_Set_ActiveDatabase(input.value()))
             } else {
                 // console::log_1(&"none onchange".into());
                 None
@@ -332,7 +332,7 @@ pub fn view_input_for_sql(
         onchange={link.batch_callback(|e: Event| {
             if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                 // console::log_1(&"some onchange".into());
-                Some(AppMessage::SetExecuteSQLForParticipant(input.value()))
+                Some(AppMessage::Sql_Set_ActiveParticipant(input.value()))
             } else {
                 // console::log_1(&"none onchange".into());
                 None
@@ -352,23 +352,23 @@ pub fn view_input_for_sql(
         </p>
         <input type="button" id="read_at_host" value="Execute Read On Host Db" onclick={link.callback(|_|
             {
-                AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtHost)
+                AppMessage::Sql_HttpRequest(ExecuteSQLIntent::ReadAtHost)
             })}/>
             <input type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={link.callback(|_|
             {
-                AppMessage::ExecuteSQL(ExecuteSQLIntent::ReadAtPart)
+                AppMessage::Sql_HttpRequest(ExecuteSQLIntent::ReadAtPart)
             })}/>
             <input type="button" id="write_at_host" value="Execute Write On Host Db" onclick={link.callback(|_|
             {
-                AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtHost)
+                AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtHost)
             })}/>
             <input type="button" id="write_at_part" value="Execute Write On Part Db" onclick={link.callback(|_|
             {
-                AppMessage::ExecuteSQL(ExecuteSQLIntent::WriteAtPart)
+                AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtPart)
             })}/>
             <input type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={link.callback(|_|
                 {
-                    AppMessage::ExecuteSQL(ExecuteSQLIntent::CoopWriteAtHost)
+                    AppMessage::Sql_HttpRequest(ExecuteSQLIntent::CoopWriteAtHost)
                 })}/>
         </div>
     }

@@ -1,6 +1,8 @@
 use crate::state::databases::RcdDatabases;
 use crate::state::participant::RcdParticipants;
-use crate::{get_auth_request, get_base_address, request, AppMessage, RcdAdminApp};
+use crate::{
+    get_auth_request, get_base_address, request, AppMessage, ParticipantIntent, RcdAdminApp,
+};
 use rcd_http_common::url::client::GET_PARTICIPANTS;
 use rcd_messages::client::{GetParticipantsReply, GetParticipantsRequest};
 use web_sys::{console, HtmlSelectElement};
@@ -30,7 +32,7 @@ pub fn view(
 
           onchange={link.batch_callback(|e: Event| {
               if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
-                  Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+                  Some(AppMessage::Db_Set_ActiveDatabase(input.value()))
               } else {
                   None
               }
@@ -47,7 +49,8 @@ pub fn view(
           <input type="button" id="view_participants" value="View Participants" onclick={link.callback(|_|
             {
                 console::log_1(&"clicked".into());
-                AppMessage::HandleViewParticipants
+                let intent = ParticipantIntent::View;
+                AppMessage::Participant_HttpRequest(intent)
             })}/>
           </p>
           <p>
@@ -91,7 +94,7 @@ pub fn request(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
 
     let callback = ctx
         .link()
-        .callback(AppMessage::HandleViewParticipantsResponse);
+        .callback(AppMessage::Participant_HttpResponse_view);
 
     request::get_data(url, request_json, callback);
 }

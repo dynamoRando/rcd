@@ -68,7 +68,7 @@ pub fn handle_contract_intent(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let callback = link.callback(AppMessage::HandleContractResponse);
+            let callback = link.callback(AppMessage::Contract_HttpResponse_GenerateContract);
 
             request::get_data(url, request_json, callback);
 
@@ -106,7 +106,7 @@ pub fn handle_contract_intent(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let callback = link.callback(AppMessage::HandleContractResponse);
+            let callback = link.callback(AppMessage::Contract_HttpResponse_GenerateContract);
 
             request::get_data(url, request_json, callback);
         }
@@ -131,7 +131,7 @@ pub fn handle_contract_intent(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let callback = link.callback(AppMessage::HandleContractSendToParticipant);
+            let callback = link.callback(AppMessage::Contract_HttpResponse_SendToParticipant);
 
             request::get_data(url, request_json, callback);
         }
@@ -149,7 +149,7 @@ pub fn handle_contract_intent(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let callback = link.callback(AppMessage::HandleGetActiveContractResponse);
+            let callback = link.callback(AppMessage::Contract_HttpResponse_GetActiveContract);
 
             request::get_data(url, request_json, callback);
         }

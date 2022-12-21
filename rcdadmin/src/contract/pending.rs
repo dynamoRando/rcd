@@ -9,19 +9,19 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         <p>
           <input type="button" id="view_pending_contracts" value="View Pending Contracts" onclick={link.callback(|_|
               {
-                  AppMessage::HandleContract(ContractIntent::GetPending)
+                  AppMessage::Contract_HttpRequest(ContractIntent::GetPending)
               })}/>
           <input type="button" id="view_accepted_contracts" value="View Accepted Contracts" onclick={link.callback(|_|
               {
-                  AppMessage::HandleContract(ContractIntent::GetAccepted)
+                  AppMessage::Contract_HttpRequest(ContractIntent::GetAccepted)
               })}/>
           <input type="button" id="accepted_contracts" value="Accept Contract" onclick={link.callback(|_|
               {
-                  AppMessage::HandleContract(ContractIntent::AcceptContract("".to_string()))
+                  AppMessage::Contract_HttpRequest(ContractIntent::AcceptContract("".to_string()))
               })}/>
               <input type="button" id="reject_contracts" value="Reject Contract" onclick={link.callback(|_|
                 {
-                    AppMessage::HandleContract(ContractIntent::RejectContract("".to_string()))
+                    AppMessage::Contract_HttpRequest(ContractIntent::RejectContract("".to_string()))
                 })}/>
           </p>
           <p>

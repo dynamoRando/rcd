@@ -53,7 +53,7 @@ pub fn view_tables_for_database(
                 let table_name = name.clone();
                 let d_name = db_name.clone();
                 html!{<div key={table_name.clone()}>
-                <li onclick={link.callback(move |_| AppMessage::GetColumnsForTable(d_name.clone(), table_name.clone()))}>{name.clone()}</li></div>}
+                <li onclick={link.callback(move |_| AppMessage::Db_SetAndView_Columns(d_name.clone(), table_name.clone()))}>{name.clone()}</li></div>}
             }).collect::<Html>()
         }</ul>
         <p>
@@ -66,7 +66,7 @@ pub fn view_tables_for_database(
                 // console::log_1(&"some onchange".into());
                 let table_name = input.value();
                 let d_name = db_name.clone();
-                Some(AppMessage::HandleTablePolicy(TableIntent::GetTablePolicy((d_name.clone(), table_name))))
+                Some(AppMessage::Policy_HttpRequest(TableIntent::GetTablePolicy((d_name.clone(), table_name))))
             } else {
                 // console::log_1(&"none onchange".into());
                 None
@@ -104,7 +104,7 @@ pub fn view_tables_for_database(
             {
                 console::log_1(&"submit_new_table_policy".into());
 
-                AppMessage::HandleTablePolicy(TableIntent::SetTablePolicy)
+                AppMessage::Policy_HttpRequest(TableIntent::SetTablePolicy)
             })}/>
         </p>
            </div>

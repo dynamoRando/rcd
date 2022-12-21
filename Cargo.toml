@@ -4,9 +4,13 @@ members = [
     "rcdproto",
     # binary - not implemented. a terminal client for interacting with an rcd instance
     "rcdt",
-    # binary - not implemented. this will be a web assembly admin tool for rcd in yew. 
+    # binary - not implemented. a cli utility
+    "rcd-cli",
+    # in progress. this will be a web assembly admin tool for rcd in yew. 
     # makes http calls instead of grpc.
     "rcdadmin",
+    # not implemented. this will be a re-write to function components in yew instead of struct components
+    "rcd-admin",
     # lib - a thin business layer abstraction for rcd
     "rcd-core",
     # lib - all functionality for a sqlite db

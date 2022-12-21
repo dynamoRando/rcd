@@ -70,31 +70,38 @@ pub enum TableIntent {
     SetTablePolicy,
 }
 
+pub enum ParticipantIntent{
+    Unknown,
+    Add,
+    View
+}
+
+/// Format: State (Module) - Sub Action If Applicable - Set or Http (Request/Resonse) - Detail
+#[allow(non_camel_case_types)]
 pub enum AppMessage {
     Connect(),
-    GetDatabases(AttrValue),
-    GetTablesForDatabase(String),
-    GetColumnsForTable(String, String),
-    ExecuteSQL(ExecuteSQLIntent),
-    SQLReadResult(AttrValue),
-    SQLWriteResult(AttrValue),
-    SQLCooperativeWriteResult(AttrValue),
-    SetExecuteSQLDatabase(String),
-    SetExecuteSQLForParticipant(String),
-    SetRemoteDeleteBehavior(u32),
-    HandleContract(ContractIntent),
-    HandleContractResponse(AttrValue),
-    HandleContractSendToParticipant(AttrValue),
-    HandleGetActiveContractResponse(AttrValue),
-    HandleGetPendingContractResponse(AttrValue),
-    HandleTablePolicy(TableIntent),
-    HandleTablePolicyResponse(AttrValue),
-    HandleTablePolicyUpdateResponse(AttrValue),
-    HandleToggleVisiblity(UiVisibility),
-    HandleAddParticipant,
-    HandleAddParticipantResponse(AttrValue),
-    HandleViewParticipants,
-    HandleViewParticipantsResponse(AttrValue),
+    Db_HttpResponse_GetDatabases(AttrValue),
+    Db_SetAndView_Tables(String),
+    Db_SetAndView_Columns(String, String),
+    Db_Set_ActiveDatabase(String),
+    Sql_HttpRequest(ExecuteSQLIntent),
+    Sql_HttpResponse_ReadResult(AttrValue),
+    Sql_HttpResponse_WriteResult(AttrValue),
+    Sql_HttpResponse_CooperativeWriteResult(AttrValue),
+    Sql_Set_ActiveParticipant(String),
+    Contract_Generate_Set_RemoteDeleteBehavior(u32),
+    Contract_HttpRequest(ContractIntent),
+    Contract_HttpResponse_GenerateContract(AttrValue),
+    Contract_HttpResponse_SendToParticipant(AttrValue),
+    Contract_HttpResponse_GetActiveContract(AttrValue),
+    Contract_HttpResponse_GetPendingContracts(AttrValue),
+    Policy_HttpRequest(TableIntent),
+    Policy_HttpResponse_GetPolicy(AttrValue),
+    Policy_HttpResponse_SetPolicy(AttrValue),
+    Page_Set_Visibility(UiVisibility),
+    Participant_HttpRequest(ParticipantIntent),
+    Participant_HttpResponse_Add(AttrValue),
+    Participant_HttpResponse_view(AttrValue),
 }
 
 pub struct RcdAdminApp {
@@ -239,66 +246,71 @@ impl Component for RcdAdminApp {
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             AppMessage::Connect() => conn::handle_connect(&mut self.connection, ctx),
-            AppMessage::GetDatabases(db_response) => db::handle_get_databases(self, db_response),
-            AppMessage::GetTablesForDatabase(db_name) => {
+            AppMessage::Db_HttpResponse_GetDatabases(db_response) => db::handle_get_databases(self, db_response),
+            AppMessage::Db_SetAndView_Tables(db_name) => {
                 self.databases.data.active.database_name = db_name.clone();
                 self.tables.data.active.database_name = db_name.clone();
                 db::handle_get_tables_for_database(self, ctx)
             }
-            AppMessage::GetColumnsForTable(db_name, table_name) => {
+            AppMessage::Db_SetAndView_Columns(db_name, table_name) => {
                 db::handle_get_columns_for_table(self, db_name, table_name, ctx)
             }
-            AppMessage::ExecuteSQL(intent) => sql::handle_execute_sql(self, ctx, intent),
-            AppMessage::SQLReadResult(json_response) => {
+            AppMessage::Sql_HttpRequest(intent) => sql::handle_execute_sql(self, ctx, intent),
+            AppMessage::Sql_HttpResponse_ReadResult(json_response) => {
                 sql::handle_sql_read_result(self, ctx, json_response)
             }
-            AppMessage::SetExecuteSQLDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
-            AppMessage::HandleContract(intent) => {
+            AppMessage::Db_Set_ActiveDatabase(db_name) => db::handle_execute_sql_db(self, db_name),
+            AppMessage::Contract_HttpRequest(intent) => {
                 contract::handle_contract_intent(self, intent, ctx.link())
             }
-            AppMessage::HandleTablePolicy(intent) => policy::handle_table_policy(intent, self, ctx),
-            AppMessage::HandleTablePolicyResponse(json_response) => {
+            AppMessage::Policy_HttpRequest(intent) => policy::handle_table_policy(intent, self, ctx),
+            AppMessage::Policy_HttpResponse_GetPolicy(json_response) => {
                 policy::handle_table_response(json_response, &mut self.tables)
             }
-            AppMessage::HandleTablePolicyUpdateResponse(json_response) => {
+            AppMessage::Policy_HttpResponse_SetPolicy(json_response) => {
                 policy::handle_table_update_response(json_response, self)
             }
-            AppMessage::HandleToggleVisiblity(ui) => handle_ui_visibility(ui, self),
-            AppMessage::SQLWriteResult(json_response) => {
+            AppMessage::Page_Set_Visibility(ui) => handle_ui_visibility(ui, self),
+            AppMessage::Sql_HttpResponse_WriteResult(json_response) => {
                 sql::handle_sql_write_result(self, ctx, json_response)
             }
-            AppMessage::HandleContractResponse(json_response) => {
+            AppMessage::Contract_HttpResponse_GenerateContract(json_response) => {
                 contract::handle_contract_response(self, json_response.to_string())
             }
-            AppMessage::SetRemoteDeleteBehavior(behavior) => {
+            AppMessage::Contract_Generate_Set_RemoteDeleteBehavior(behavior) => {
                 self.contract.generate.data.delete_behavior = behavior;
             }
-            AppMessage::HandleAddParticipant => participant::handle_add_participant(self, ctx),
-            AppMessage::HandleAddParticipantResponse(json_response) => {
+            AppMessage::Participant_HttpResponse_Add(json_response) => {
                 participant::handle_add_participant_response(self, ctx, json_response)
             }
-            AppMessage::HandleViewParticipants => participant::handle_view_participants(self, ctx),
-            AppMessage::HandleViewParticipantsResponse(json_response) => {
+            AppMessage::Participant_HttpResponse_view(json_response) => {
                 participant::handle_view_participant_response(self, ctx, json_response)
             }
-            AppMessage::HandleGetActiveContractResponse(json_response) => {
+            AppMessage::Contract_HttpResponse_GetActiveContract(json_response) => {
                 contract::handle_view_active_contract(self, json_response.to_string())
             }
-            AppMessage::HandleContractSendToParticipant(json_response) => {
+            AppMessage::Contract_HttpResponse_SendToParticipant(json_response) => {
                 contract::handle_send_contract_to_participant_response(
                     self,
                     json_response.to_string(),
                 )
             }
-            AppMessage::SetExecuteSQLForParticipant(participant_alias) => {
+            AppMessage::Sql_Set_ActiveParticipant(participant_alias) => {
                 sql::handle_set_sql_participant(&participant_alias, self, ctx);
             }
-            AppMessage::SQLCooperativeWriteResult(json_response) => {
+            AppMessage::Sql_HttpResponse_CooperativeWriteResult(json_response) => {
                 sql::handle_cooperative_write_result(self, ctx, json_response);
             }
-            AppMessage::HandleGetPendingContractResponse(json_response) => {
+            AppMessage::Contract_HttpResponse_GetPendingContracts(json_response) => {
                 contract::handle_get_pending_contract_response(json_response.to_string());
             }
+            AppMessage::Participant_HttpRequest(intent) => {
+                match intent {
+                    ParticipantIntent::Unknown => todo!(),
+                    ParticipantIntent::Add => participant::handle_add_participant(self, ctx),
+                    ParticipantIntent::View => participant::handle_view_participants(self, ctx),
+                }
+            },
         }
         true
     }

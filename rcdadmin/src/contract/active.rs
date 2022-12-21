@@ -26,7 +26,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           onchange={link.batch_callback(|e: Event| {
               if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                   // console::log_1(&"some onchange".into());
-                  Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+                  Some(AppMessage::Db_Set_ActiveDatabase(input.value()))
               } else {
                   // console::log_1(&"none onchange".into());
                   None
@@ -46,7 +46,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
             {
                 console::log_1(&"view_active_contract".into());
                 let intent = ContractIntent::ViewCurrentContract;
-                AppMessage::HandleContract(intent)
+                AppMessage::Contract_HttpRequest(intent)
             })}/>
           </p>
           <p>

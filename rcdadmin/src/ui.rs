@@ -38,7 +38,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(conn_ui)
+                AppMessage::Page_Set_Visibility(conn_ui)
             })}
         />
         </p><p>
@@ -47,7 +47,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(db_ui)
+                AppMessage::Page_Set_Visibility(db_ui)
             })}
         /></p><p>
         <label for="show_sql">{ "Hide Sql" }</label>
@@ -55,7 +55,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(sql_ui)
+                AppMessage::Page_Set_Visibility(sql_ui)
             })}
         /></p><p>
         <label for="show_contract">{ "Hide Contracts" }</label>
@@ -63,7 +63,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(contracts_ui)
+                AppMessage::Page_Set_Visibility(contracts_ui)
             })}
         /></p><p>
         <label for="show_hosts">{ "Hide Hosts" }</label>
@@ -71,7 +71,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(hosts_ui)
+                AppMessage::Page_Set_Visibility(hosts_ui)
             })}
         /></p><p>
         <label for="participants">{ "Hide Participants" }</label>
@@ -79,7 +79,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(participants_ui)
+                AppMessage::Page_Set_Visibility(participants_ui)
             })}
         /></p><p>
         <label for="show_behaviors">{ "Hide Behaviors" }</label>
@@ -87,7 +87,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(behaviors_ui)
+                AppMessage::Page_Set_Visibility(behaviors_ui)
             })}
         /></p><p>
         <label for="show_contract">{ "Hide Cooperative Hosts" }</label>
@@ -95,7 +95,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         type="checkbox"
         onclick={link.callback(move |_|
             {
-                AppMessage::HandleToggleVisiblity(coop_hosts_ui)
+                AppMessage::Page_Set_Visibility(coop_hosts_ui)
             })}
         /></p>
         </div>

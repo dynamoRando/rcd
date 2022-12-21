@@ -32,7 +32,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         onchange={link.batch_callback(|e: Event| {
             if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                 // console::log_1(&"some onchange".into());
-                Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+                Some(AppMessage::Db_Set_ActiveDatabase(input.value()))
             } else {
                 // console::log_1(&"none onchange".into());
                 None
@@ -67,7 +67,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
               // console::log_1(&"some onchange".into());
               let val = input.value();
-              Some(AppMessage::SetRemoteDeleteBehavior(val.parse::<u32>().unwrap()))
+              Some(AppMessage::Contract_Generate_Set_RemoteDeleteBehavior(val.parse::<u32>().unwrap()))
           } else {
               // console::log_1(&"none onchange".into());
               None
@@ -95,7 +95,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
               console::log_1(&"generate_new_contract".into());
 
               let intent = ContractIntent::GenerateContract;
-              AppMessage::HandleContract(intent)
+              AppMessage::Contract_HttpRequest(intent)
           })}/>
           <p><label for="last_gen_result">{ "Last Gen Result: "}</label>{last_gen_result.to_string()}</p>
         </div>

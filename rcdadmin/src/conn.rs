@@ -40,7 +40,7 @@ pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>
     };
 
     let db_request_json = serde_json::to_string(&db_request).unwrap();
-    let db_callback = ctx.link().callback(AppMessage::GetDatabases);
+    let db_callback = ctx.link().callback(AppMessage::Db_HttpResponse_GetDatabases);
     let url = format!("{}{}", base_address.clone(), "/client/databases");
     request::get_data(url, db_request_json, db_callback);
 

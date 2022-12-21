@@ -1,6 +1,8 @@
 use crate::state::databases::RcdDatabases;
 use crate::state::participant::RcdParticipants;
-use crate::{get_auth_request, get_base_address, request, AppMessage, RcdAdminApp};
+use crate::{
+    get_auth_request, get_base_address, request, AppMessage, ParticipantIntent, RcdAdminApp,
+};
 use rcd_http_common::url::client::ADD_PARTICIPANT;
 use rcd_messages::client::{AddParticipantReply, AddParticipantRequest};
 use web_sys::{console, HtmlInputElement, HtmlSelectElement};
@@ -29,7 +31,7 @@ pub fn view(
         onchange={link.batch_callback(|e: Event| {
             if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                 // console::log_1(&"some onchange".into());
-                Some(AppMessage::SetExecuteSQLDatabase(input.value()))
+                Some(AppMessage::Db_Set_ActiveDatabase(input.value()))
             } else {
                 // console::log_1(&"none onchange".into());
                 None
@@ -59,7 +61,8 @@ pub fn view(
         <input type="button" id="add_participant" value="Add Participant" onclick={link.callback(|_|
           {
               console::log_1(&"clicked".into());
-              AppMessage::HandleAddParticipant
+              let intent = ParticipantIntent::Add;
+              AppMessage::Participant_HttpRequest(intent)
           })}/>
           <p><label for="last_add_result">{ "Last Add Participant Result: "}</label>{last_add_result.to_string()}</p>
 
@@ -117,7 +120,7 @@ pub fn request(app: &mut RcdAdminApp, ctx: &Context<RcdAdminApp>) {
 
     let callback = ctx
         .link()
-        .callback(AppMessage::HandleAddParticipantResponse);
+        .callback(AppMessage::Participant_HttpResponse_Add);
 
     request::get_data(url, request_json, callback);
 }

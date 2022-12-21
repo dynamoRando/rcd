@@ -38,7 +38,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
                 base_address.clone(),
                 "/client/databases/table/policy/get"
             );
-            let callback = ctx.link().callback(AppMessage::HandleTablePolicyResponse);
+            let callback = ctx.link().callback(AppMessage::Policy_HttpResponse_GetPolicy);
 
             request::get_data(url, request_json, callback);
         }
@@ -73,7 +73,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             );
             let callback = ctx
                 .link()
-                .callback(AppMessage::HandleTablePolicyUpdateResponse);
+                .callback(AppMessage::Policy_HttpResponse_SetPolicy);
 
             request::get_data(url, request_json, callback);
         }

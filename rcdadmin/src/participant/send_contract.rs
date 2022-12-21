@@ -30,7 +30,7 @@ pub fn view(
               if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
                   // console::log_1(&"some onchange".into());
                   let intent = ContractIntent::SetParticipantForPendingContractSend(input.value());
-                  Some(AppMessage::HandleContract(intent))
+                  Some(AppMessage::Contract_HttpRequest(intent))
               } else {
                   // console::log_1(&"none onchange".into());
                   None
@@ -49,7 +49,7 @@ pub fn view(
           <input type="button" id="send_contract_to_part" value="Send Contract" onclick={link.callback(|_|
             {
                 let intent = ContractIntent::SendContractToParticipant;
-                AppMessage::HandleContract(intent)
+                AppMessage::Contract_HttpRequest(intent)
             })}/>
             <p><label for="last_send_result">{ "Last Send Participant Contract Result: "}</label>{last_send_result.to_string()}</p>
             </p>
