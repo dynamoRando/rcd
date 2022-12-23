@@ -1,3 +1,7 @@
+mod app;
+mod pages;
+mod components;
+
 fn main() {
     println!("Hello, world!");
 }
