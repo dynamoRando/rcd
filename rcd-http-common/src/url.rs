@@ -29,7 +29,7 @@ pub mod client {
     pub const CHANGE_UPDATES_FROM_HOST_BEHAVIOR: &str = "/client/databases/behavior/change-updates-from-host";
     pub const CHANGE_HOST_STATUS_ID: &str = "/client/change-host-status-id";
     pub const CHANGE_HOST_STATUS_NAME: &str = "/client/change-host-status-name";
-    pub const GET_DATABSES: &str = "/client/databases";
+    pub const GET_DATABASES: &str = "/client/databases";
     pub const HAS_TABLE: &str = "/client/databases/has_table";
 }
 

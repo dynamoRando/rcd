@@ -4,7 +4,7 @@ use rcd_http_common::url::client::{
     CHANGE_DELETES_FROM_HOST_BEHAVIOR, CHANGE_DELETES_TO_HOST_BEHAVIOR, CHANGE_HOST_STATUS_ID,
     CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
-    GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABSES, GET_DATA_HASH_AT_HOST,
+    GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABASES, GET_DATA_HASH_AT_HOST,
     GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
     GET_ROW_AT_PARTICIPANT, HAS_TABLE, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST,
     READ_SQL_AT_PARTICIPANT, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT,
@@ -840,7 +840,7 @@ impl RcdClient {
                 return Ok(response);
             }
             RcdClientType::Http => {
-                let url = self.get_http_url(GET_DATABSES);
+                let url = self.get_http_url(GET_DATABASES);
                 let request_json = serde_json::to_string(&request).unwrap();
                 let result_json = self.send_http_message(request_json, url).await;
                 let result: GetDatabasesReply = serde_json::from_str(&result_json).unwrap();
