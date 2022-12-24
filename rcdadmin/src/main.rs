@@ -183,49 +183,66 @@ impl Component for RcdAdminApp {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
-        <div>
-            <h1>{ "Rcd Admin" }</h1>
-                <section class="ui">
-                    <header>
-                        { self.view_ui_options(ctx.link()) }
-                    </header>
-                </section>
-                <section class="rcdadmin">
-                    <header class="header">
-                        { self.view_input_for_connection(ctx.link()) }
-                    </header>
-                </section>
-                <section class="databases">
-                    {self.view_databases(ctx.link())}
-                </section>
-                <section class="tables">
-                    {self.view_tables_for_database(ctx.link())}
-                </section>
-                <section class="columns">
-                    {self.view_columns_for_table(ctx.link())}
-                </section>
-                <section class="input_sql">
-                    {self.view_input_for_sql(ctx.link())}
-                </section>
-                <section class="sql_result">
-                    {self.view_sql_result(ctx.link())}
-                </section>
-                <section class="contracts">
-                    {self.view_contracts(ctx.link())}
-                </section>
-                <section class="host_info">
-                    {self.view_host_info(ctx.link())}
-                </section>
-                <section class="participants">
-                    {self.view_participants(ctx.link())}
-                </section>
-                <section class="behaviors">
-                    {self.view_write_behaviors(ctx.link())}
-                </section>
-                <section class="coop_hosts">
-                    {self.view_coop_hosts(ctx.link())}
-                </section>
-        </div>}
+            <div>
+                <div class="container">
+
+                    <h1 class="title">{ "Rcd Admin" }</h1>
+
+                        <section class="ui">
+                            <header>
+                                { self.view_ui_options(ctx.link()) }
+                            </header>
+                        </section>
+
+                        <section class="rcdadmin">
+                            <header class="header">
+                                { self.view_input_for_connection(ctx.link()) }
+                            </header>
+                        </section>
+
+                        <section class="databases">
+                            { self.view_databases(ctx.link()) }
+                        </section>
+
+                        <section class="tables">
+                            { self.view_tables_for_database(ctx.link()) }
+                        </section>
+
+                        <section class="columns">
+                            { self.view_columns_for_table(ctx.link()) }
+                        </section>
+
+                        <section class="input_sql">
+                            { self.view_input_for_sql(ctx.link()) }
+                        </section>
+
+                        <section class="sql_result">
+                            { self.view_sql_result(ctx.link()) }
+                        </section>
+
+                        <section class="contracts">
+                            { self.view_contracts(ctx.link()) }
+                        </section>
+
+                        <section class="host_info">
+                            { self.view_host_info(ctx.link()) }
+                        </section>
+
+                        <section class="participants">
+                            { self.view_participants(ctx.link()) }
+                        </section>
+
+                        <section class="behaviors">
+                            { self.view_write_behaviors(ctx.link()) }
+                        </section>
+
+                        <section class="coop_hosts">
+                            { self.view_coop_hosts(ctx.link()) }
+                        </section>
+
+                </div>
+            </div>
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {

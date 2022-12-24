@@ -40,7 +40,9 @@ pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>
     };
 
     let db_request_json = serde_json::to_string(&db_request).unwrap();
-    let db_callback = ctx.link().callback(AppMessage::Db_HttpResponse_GetDatabases);
+    let db_callback = ctx
+        .link()
+        .callback(AppMessage::Db_HttpResponse_GetDatabases);
     let url = format!("{}{}", base_address.clone(), "/client/databases");
     request::get_data(url, db_request_json, db_callback);
 
@@ -59,22 +61,24 @@ pub fn view_input_for_connection(
 
     html! {
        <div hidden={is_visible}>
-       <h1> {"Connect to rcd"} </h1>
+       <div class="box">
+       <h1 class="subtitle"> {"Connect to rcd"} </h1>
        <label for="ip_address">{ "IP Address" }</label>
-        <input type="text" id ="ip_address" placeholder="localhost" ref={&connection.ui.ip}/>
+        <input type="text" class="input" id ="ip_address" placeholder="localhost" ref={&connection.ui.ip}/>
         <label for="port">{ "Port Number" }</label>
-        <input type="text" id="port" placeholder="50051" ref={&connection.ui.port} />
+        <input type="text" class="input"  id="port" placeholder="50051" ref={&connection.ui.port} />
         <label for="http_port">{ "HTTP Port Number" }</label>
-        <input type="text" id="http_port" placeholder="50055" ref={&connection.ui.http_port} />
+        <input type="text" class="input"  id="http_port" placeholder="50055" ref={&connection.ui.http_port} />
         <label for="un">{ "User Name" }</label>
-        <input type="text" id="un" placeholder="tester" ref={&connection.ui.username} />
+        <input type="text" class="input"  id="un" placeholder="tester" ref={&connection.ui.username} />
         <label for="pw">{ "Pw" }</label>
-        <input type="text" id="pw" placeholder="123456" ref={&connection.ui.password} />
-        <input type="button" id="submit" value="Connect" onclick={link.callback(|_|
+        <input type="text" class="input"  id="pw" placeholder="123456" ref={&connection.ui.password} />
+        <input type="button" class="button is-primary" id="submit" value="Connect" onclick={link.callback(|_|
             {
                 console::log_1(&"clicked".into());
                 AppMessage::Connect()
             })}/>
+            </div>
        </div>
     }
 }

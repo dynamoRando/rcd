@@ -112,7 +112,9 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_WriteResult);
+            let sql_callback = ctx
+                .link()
+                .callback(AppMessage::Sql_HttpResponse_WriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -141,7 +143,9 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_WriteResult);
+            let sql_callback = ctx
+                .link()
+                .callback(AppMessage::Sql_HttpResponse_WriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -173,7 +177,9 @@ pub fn handle_execute_sql(
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let sql_callback = ctx.link().callback(AppMessage::Sql_HttpResponse_CooperativeWriteResult);
+            let sql_callback = ctx
+                .link()
+                .callback(AppMessage::Sql_HttpResponse_CooperativeWriteResult);
 
             request::get_data(url, request_json, sql_callback);
         }
@@ -294,11 +300,15 @@ pub fn view_input_for_sql(
 
     html! {
         <div hidden={is_visible}>
-        <h1> {"Execute SQL"} </h1>
+        <h1 class="subtitle is-5"> {"Execute SQL"} </h1>
+
+        <div class="section">
         <label for="execute_sql">{ "Enter SQL" }</label>
         <p>
         <label for="execute_sql_dbs">{ "Select Database " }</label>
-        <select name="execute_sql_dbs" id="execute_sql_dbs"
+
+        <div class="select is-multiple">
+        <select  name="execute_sql_dbs" id="execute_sql_dbs"
 
         onchange={link.batch_callback(|e: Event| {
             if let Some(input) = e.target_dyn_into::<HtmlSelectElement>() {
@@ -319,14 +329,18 @@ pub fn view_input_for_sql(
             }).collect::<Html>()
         }
         </select>
+        </div>
+
         </p>
         <p>
-        <textarea rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&sql_ui.ui.execute_sql}/>
+        <textarea class="textarea" rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&sql_ui.ui.execute_sql}/>
         </p>
         <h3> {"Choose Participant"} </h3>
         <p>{"Select the participant to execute on, if applicable."}</p>
         <p>
         <label for="select_participant_for_execute">{ "Select Participant " }</label>
+
+        <div class="select is-multiple">
         <select name="select_participant_for_execute" id="select_participant_for_execute"
 
         onchange={link.batch_callback(|e: Event| {
@@ -348,28 +362,31 @@ pub fn view_input_for_sql(
             }).collect::<Html>()
         }
         </select>
+        </div>
+
         <p>{"The following commands denote if you wish to execute your SQL action (read or write) against the specified type of database (host or partial). To write data to a participant, use Cooperative Write."}</p>
         </p>
-        <input type="button" id="read_at_host" value="Execute Read On Host Db" onclick={link.callback(|_|
+        <input class="button" type="button" id="read_at_host" value="Execute Read On Host Db" onclick={link.callback(|_|
             {
                 AppMessage::Sql_HttpRequest(ExecuteSQLIntent::ReadAtHost)
             })}/>
-            <input type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={link.callback(|_|
+            <input class="button" type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={link.callback(|_|
             {
                 AppMessage::Sql_HttpRequest(ExecuteSQLIntent::ReadAtPart)
             })}/>
-            <input type="button" id="write_at_host" value="Execute Write On Host Db" onclick={link.callback(|_|
+            <input  class="button"  type="button" id="write_at_host" value="Execute Write On Host Db" onclick={link.callback(|_|
             {
                 AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtHost)
             })}/>
-            <input type="button" id="write_at_part" value="Execute Write On Part Db" onclick={link.callback(|_|
+            <input class="button" type="button" id="write_at_part" value="Execute Write On Part Db" onclick={link.callback(|_|
             {
                 AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtPart)
             })}/>
-            <input type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={link.callback(|_|
+            <input class="button"  type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={link.callback(|_|
                 {
                     AppMessage::Sql_HttpRequest(ExecuteSQLIntent::CoopWriteAtHost)
                 })}/>
+            </div>
         </div>
     }
 }
@@ -396,13 +413,5 @@ pub fn handle_set_sql_participant(
     _link: &Context<RcdAdminApp>,
 ) {
     app.participants.data.active.alias = participant_alias.to_string().clone();
-    console::log_1(
-        &app
-            .participants
-            .data
-            .active
-            .alias
-            .clone()
-            .into(),
-    );
+    console::log_1(&app.participants.data.active.alias.clone().into());
 }

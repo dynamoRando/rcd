@@ -25,10 +25,7 @@ pub fn handle_get_databases(app: &mut RcdAdminApp, db_response: AttrValue) {
     }
 }
 
-pub fn handle_get_tables_for_database(
-    app: &RcdAdminApp,
-    ctx: &Context<RcdAdminApp>
-) {
+pub fn handle_get_tables_for_database(app: &RcdAdminApp, ctx: &Context<RcdAdminApp>) {
     app.view_tables_for_database(ctx.link());
 }
 
@@ -54,7 +51,7 @@ pub fn view_databases(page: &PageUi, link: &Scope<RcdAdminApp>, databases: &RcdD
 
     html! {
        <div hidden={is_visible}>
-       <h1> {"Databases"} </h1>
+       <h1 class="subtitle"> {"Databases"} </h1>
        <p>{"After connecting, the list of databases on the rcd instance will appear here. Click on one to view schema details."}</p>
        <ul>
        {

@@ -31,73 +31,102 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
 
     html! {
         <div>
-        <h1> {"Configure UI"} </h1>
-       <p>
-        <label for="show_conn_options">{ "Hide Connection Options" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(conn_ui)
-            })}
-        />
-        </p><p>
-        <label for="show_db">{ "Hide Databases" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(db_ui)
-            })}
-        /></p><p>
-        <label for="show_sql">{ "Hide Sql" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(sql_ui)
-            })}
-        /></p><p>
-        <label for="show_contract">{ "Hide Contracts" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(contracts_ui)
-            })}
-        /></p><p>
-        <label for="show_hosts">{ "Hide Hosts" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(hosts_ui)
-            })}
-        /></p><p>
-        <label for="participants">{ "Hide Participants" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(participants_ui)
-            })}
-        /></p><p>
-        <label for="show_behaviors">{ "Hide Behaviors" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(behaviors_ui)
-            })}
-        /></p><p>
-        <label for="show_contract">{ "Hide Cooperative Hosts" }</label>
-        <input
-        type="checkbox"
-        onclick={link.callback(move |_|
-            {
-                AppMessage::Page_Set_Visibility(coop_hosts_ui)
-            })}
-        /></p>
+            <div class="container">
+                <h1 class="subtitle"> {"Configure UI"} </h1>
+        
+                <p>{"Hide any of the following:"}</p>
+
+                <div class="columns">
+
+                    <div class="column">
+                        <label class="checkbox" for="show_conn_options">
+                            <input type="checkbox" id="show_conn_options" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(conn_ui)
+                                })}
+                            />
+                        { " Connection Options " }
+                        </label>
+                    </div>
+
+                    <div class="column">
+                        <label class="checkbox" for="show_db">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(db_ui)
+                                })}
+                            />
+                        { " Databases " }
+                        </label>
+                    </div>
+
+                    <div class="column">
+                        <label class="checkbox" for="show_sql">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(sql_ui)
+                                })}
+                            />
+                        { " Sql " }
+                        </label>
+                    </div>
+
+                    <div class="column">
+                        <label class="checkbox" for="show_contract">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(contracts_ui)
+                                })}
+                            />
+                        { " Contracts " }
+                        </label>
+                    </div>
+            
+                    <div class="column">
+                        <label class="checkbox" for="show_hosts">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(hosts_ui)
+                                })}
+                            />
+                        { " Hosts " }
+                        </label>
+                    </div>
+            
+                    <div class="column">
+                        <label class="checkbox" for="participants">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(participants_ui)
+                                })}
+                            />
+                        { " Participants " }
+                        </label>
+                    </div>
+            
+                    <div class="column">
+                        <label class="checkbox" for="show_behaviors">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(behaviors_ui)
+                                })}
+                            />
+                        { " Behaviors " }
+                        </label>
+                    </div>
+            
+                    <div class="column">
+                        <label class="checkbox" for="show_contract">
+                            <input type="checkbox" onclick={link.callback(move |_|
+                                {
+                                    AppMessage::Page_Set_Visibility(coop_hosts_ui)
+                                })}
+                            />
+                        { " Cooperative Hosts " }
+                        </label>
+                    </div>
+                </div>
+            </div>
         </div>
     }
 }
