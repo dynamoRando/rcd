@@ -42,15 +42,21 @@ pub fn view_columns_for_table(page: &PageUi, databases: &RcdDatabases, tables: &
 
         html! {
            <div hidden={is_visible}>
-           <h1> {"Columns for table "}{&table_name} {" in database "}{&db_name}</h1>
-           <ul>
-           {
-            col_names.into_iter().map(|name| {
-                let col_name = name.clone();
-                html!{<div key={col_name.clone()}>
-                <li>{col_name.clone()}</li></div>}
-            }).collect::<Html>()
-        }</ul>
+                <div class="conatiner">
+                    <div class="box">
+                        <h1 class="subtitle"> {"Columns for table "}{&table_name} {" in database "}{&db_name}</h1>
+                            <div class="content">
+                                <ul>
+                                {
+                                    col_names.into_iter().map(|name| {
+                                        let col_name = name.clone();
+                                        html!{<div key={col_name.clone()}>
+                                        <li>{col_name.clone()}</li></div>}
+                                    }).collect::<Html>()
+                                }</ul>
+                            </div>
+                    </div>
+               </div>
            </div>
         }
     }

@@ -51,16 +51,24 @@ pub fn view_databases(page: &PageUi, link: &Scope<RcdAdminApp>, databases: &RcdD
 
     html! {
        <div hidden={is_visible}>
-       <h1 class="subtitle"> {"Databases"} </h1>
-       <p>{"After connecting, the list of databases on the rcd instance will appear here. Click on one to view schema details."}</p>
-       <ul>
-       {
-        db_names.into_iter().map(|name| {
-            let db_name = name.clone();
-            html!{<div key={db_name.clone()}>
-            <li onclick={link.callback(move |_| AppMessage::Db_SetAndView_Tables(name.clone()))}>{db_name.clone()}</li></div>}
-        }).collect::<Html>()
-    }</ul>
+            <div class="container">
+                <div class="box">
+                    <h1 class="subtitle"> {"Databases"} </h1>
+
+                    <p>{"After connecting, the list of databases on the rcd instance will appear here. Click on one to view schema details."}</p>
+                    <div class="content">
+                        <ul>
+                            {
+                                db_names.into_iter().map(|name| {
+                                    let db_name = name.clone();
+                                    html!{<div key={db_name.clone()}>
+                                    <li onclick={link.callback(move |_| AppMessage::Db_SetAndView_Tables(name.clone()))}>{db_name.clone()}</li></div>}
+                                }).collect::<Html>()
+                            }
+                        </ul>
+                    </div>
+            </div>
+            </div>
        </div>
     }
 }
