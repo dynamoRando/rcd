@@ -9,6 +9,8 @@ members = [
     # in progress. this will be a web assembly admin tool for rcd in yew. 
     # makes http calls instead of grpc.
     "rcdadmin",
+    # not implemented - an attempt to do rcd-admin, but in yew with functional components
+    "rcd-admin",
     # lib - a thin business layer abstraction for rcd
     "rcd-core",
     # lib - all functionality for a sqlite db
