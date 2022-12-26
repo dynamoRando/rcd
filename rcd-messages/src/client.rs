@@ -856,7 +856,7 @@ pub struct RowRemoteMetadata {
 }
 /// a message for describing schema information of a column in a database table
 /// see Drummersoft.DrummerDB.Core.Structures.Version.SystemSchemaConstants100 for more information
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct ColumnSchema {
     /// the name of the column. Max length of 50 characters
     pub column_name: String,
@@ -926,7 +926,7 @@ pub struct Host {
     pub token: Vec<u8>,
 }
 /// a message for describing the schema of a database
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct DatabaseSchema {
     pub database_name: String,
 
@@ -939,7 +939,7 @@ pub struct DatabaseSchema {
     pub rcd_database_type: u32,
 }
 /// a message for describing the schema information of a table in a database
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct TableSchema {
     pub table_name: String,
 

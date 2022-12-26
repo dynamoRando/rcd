@@ -1,14 +1,17 @@
 use rcd_messages::client::{AuthRequest, DatabaseSchema};
-use yew::Reducible;
+use std::fmt;
+use std::str::FromStr;
+use yew::{Properties, Reducible};
 
 pub enum InstanceAction {
+    Init,
     /// addr, port, un, pw
     SetAuth(String, u32, String, String),
     SetDatabases(Vec<DatabaseSchema>),
 }
 
 /// An instance of RCD
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Properties, serde::Serialize, serde::Deserialize)]
 pub struct Instance {
     pub auth: Auth,
     pub databases: Vec<DatabaseSchema>,
@@ -33,6 +36,27 @@ impl Instance {
     }
 }
 
+impl fmt::Display for Instance {
+    // This trait requires `fmt` with this exact signature.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let item = self.clone();
+        write!(f, "{}", item)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseInstanceError;
+
+impl FromStr for Instance {
+    type Err = ParseInstanceError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let instance: Instance = serde_json::from_str(s).unwrap();
+
+        return Ok(instance);
+    }
+}
+
 impl Reducible for Instance {
     type Action = InstanceAction;
 
@@ -53,13 +77,18 @@ impl Reducible for Instance {
 
                 next_self
             }
+            InstanceAction::Init => {
+                let next_self = Instance::new();
+
+                next_self
+            }
         };
 
         next_self.into()
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Eq, PartialEq, Properties, serde::Serialize, serde::Deserialize)]
 pub struct Auth {
     pub addr: String,
     pub port: u32,
