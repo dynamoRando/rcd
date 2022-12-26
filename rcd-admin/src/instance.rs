@@ -1,20 +1,22 @@
 use rcd_messages::client::{AuthRequest, DatabaseSchema};
 use yew::Reducible;
 
-pub enum StateAction {
+pub enum InstanceAction {
+    /// addr, port, un, pw
     SetAuth(String, u32, String, String),
     SetDatabases(Vec<DatabaseSchema>),
 }
 
+/// An instance of RCD
 #[derive(Clone, Debug)]
-pub struct State {
+pub struct Instance {
     pub auth: Auth,
     pub databases: Vec<DatabaseSchema>,
 }
 
-impl State {
-    pub fn new() -> State {
-        return State {
+impl Instance {
+    pub fn new() -> Instance {
+        return Instance {
             auth: Auth::new(),
             databases: Vec::new(),
         };
@@ -31,20 +33,20 @@ impl State {
     }
 }
 
-impl Reducible for State {
-    type Action = StateAction;
+impl Reducible for Instance {
+    type Action = InstanceAction;
 
     fn reduce(self: std::rc::Rc<Self>, action: Self::Action) -> std::rc::Rc<Self> {
         let next_self = match action {
-            StateAction::SetDatabases(databases) => {
-                let mut next_self = State::new();
+            InstanceAction::SetDatabases(databases) => {
+                let mut next_self = Instance::new();
                 next_self.auth = self.auth.clone();
                 next_self.databases = databases;
 
                 next_self
             }
-            StateAction::SetAuth(addr, port, un, pw) => {
-                let mut next_self = State::new();
+            InstanceAction::SetAuth(addr, port, un, pw) => {
+                let mut next_self = Instance::new();
                 let auth = Auth { addr, port, un, pw };
                 next_self.auth = auth;
                 next_self.databases = self.databases.clone();
@@ -84,5 +86,9 @@ impl Auth {
         };
 
         return serde_json::to_string(&request).unwrap();
+    }
+
+    pub fn addr(&self) -> String {
+        return format!("{}{}{}{}", "http://", self.addr, ":", self.port);
     }
 }
