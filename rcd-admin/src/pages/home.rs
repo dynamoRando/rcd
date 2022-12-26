@@ -23,6 +23,12 @@ pub fn Home() -> Html {
 
 #[function_component]
 pub fn Connect() -> Html {
+
+    /*
+        https://docs.rs/yew/latest/yew/functional/fn.use_reducer.html
+        https://docs.rs/yew/latest/yew/functional/fn.use_node_ref.html
+    */
+
     let ui = ConnectUi::new();
 
     let database_names = use_state(|| {
