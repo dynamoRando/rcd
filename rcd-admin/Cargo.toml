@@ -19,6 +19,7 @@ serde_json = "1"
 wasm-bindgen-futures = "0.4"
 reqwasm = "0.5"
 yew-router = "0.17"
+serde_path_to_error = "0.1"
 
 
 [dependencies.web-sys]

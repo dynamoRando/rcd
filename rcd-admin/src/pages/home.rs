@@ -2,13 +2,11 @@ use rcd_messages::client::{AuthRequest, DatabaseSchema, GetDatabasesReply, GetDa
 use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{instance::Instance, request};
+use crate::{login::Login, request};
 
 #[function_component]
-pub fn Home(instance: &Instance) -> Html {
-
+pub fn Home(login: &Login) -> Html {
     console::log_1(&"Home".into());
-    console::log_1(&instance.to_string().into());
 
     html! {
         <div class="tile is-ancestor is-vertical">
@@ -19,14 +17,14 @@ pub fn Home(instance: &Instance) -> Html {
             </div>
 
             <div class="tile is-parent container">
-                <Connect auth={instance.auth.clone()} databases={instance.databases.clone()}/>
+                <Connect addr={login.addr.clone()} port={login.port} un={login.un.clone()} pw={login.pw.clone()} />
             </div>
         </div>
     }
 }
 
 #[function_component]
-pub fn Connect(instance: &Instance) -> Html {
+pub fn Connect(login: &Login) -> Html {
     /*
         https://docs.rs/yew/latest/yew/functional/fn.use_reducer.html
         https://docs.rs/yew/latest/yew/functional/fn.use_node_ref.html
@@ -34,22 +32,22 @@ pub fn Connect(instance: &Instance) -> Html {
 
     let ui = ConnectUi::new();
 
-    // let database_names = use_state(|| {
-    //     let databases: Vec<String> = Vec::new();
-    //     return databases;
-    // });
+    let database_names = use_state(|| {
+        let databases: Vec<String> = Vec::new();
+        return databases;
+    });
 
-    let instance = instance.clone();
+    let login = login.clone();
 
     let onclick = {
         let ui = ui.clone();
 
-        // let database_names = database_names.clone();
-        let instance = instance.clone();
+        let database_names = database_names.clone();
+        let login = login.clone();
 
         Callback::from(move |_| {
-            // let database_names = database_names.clone();
-            let instance = instance.clone();
+            let database_names = database_names.clone();
+            let mut login = login.clone();
 
             let ui = ui.clone();
             let un = &ui.un;
@@ -62,7 +60,12 @@ pub fn Connect(instance: &Instance) -> Html {
             let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
             let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-            let base_address = format!("{}{}{}{}", "http://", ip_val.to_string(), ":", port_val);
+            let base_address = format!("{}{}{}{}", "http://", ip_val.clone().to_string(), ":", port_val);
+
+            login.addr = ip_val;
+            login.port = port_val.parse::<u32>().unwrap();
+            login.un = un_val.clone();
+            login.pw = pw_val.clone();
 
             let auth_request = AuthRequest {
                 user_name: un_val.to_string(),
@@ -80,8 +83,8 @@ pub fn Connect(instance: &Instance) -> Html {
             let db_callback = Callback::from(move |response: AttrValue| {
                 console::log_1(&response.to_string().into());
 
-                // let database_names = database_names.clone();
-                let mut instance = instance.clone();
+                let database_names = database_names.clone();
+                let login = login.clone();
 
                 let db_response: GetDatabasesReply =
                     serde_json::from_str(&response.to_string()).unwrap();
@@ -93,9 +96,7 @@ pub fn Connect(instance: &Instance) -> Html {
                     for db in &databases {
                         db_names.push(db.database_name.clone());
                     }
-                    // database_names.set(db_names);
-
-                    instance.databases = databases;
+                    database_names.set(db_names);
                 }
             });
 
@@ -133,14 +134,8 @@ pub fn Connect(instance: &Instance) -> Html {
                     <p>{"After connecting, the list of databases on the rcd instance will appear here."}</p>
                     <div class="content">
                         <ul>
-                            // {
-                            //     (*database_names).clone().into_iter().map(|name| {
-                            //         let db_name = name.clone();
-                            //         html!{<div key={db_name.clone()}>
-                            //         <li>{db_name.clone()}</li></div>
-                            // }
                             {
-                                instance.database_names().clone().into_iter().map(|name| {
+                                (*database_names).clone().into_iter().map(|name| {
                                     let db_name = name.clone();
                                     html!{<div key={db_name.clone()}>
                                     <li>{db_name.clone()}</li></div>

@@ -39,8 +39,8 @@ impl Instance {
 impl fmt::Display for Instance {
     // This trait requires `fmt` with this exact signature.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let item = self.clone();
-        write!(f, "{}", item)
+        let data = serde_json::to_string(&self).unwrap();
+        write!(f, "{}", data)
     }
 }
 
