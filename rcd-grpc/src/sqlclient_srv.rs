@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn auth_for_token(
+        &self,
+        request: Request<AuthRequest>,
+    ) -> Result<Response<TokenReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let result = self.core().auth_for_token(request.into_inner()).await;
+        Ok(Response::new(result))
+    }
+
     async fn get_active_contract(
         &self,
         request: Request<GetActiveContractRequest>,

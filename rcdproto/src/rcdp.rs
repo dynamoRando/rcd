@@ -1,5 +1,15 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct TokenReply {
+    #[prost(bool, tag="1")]
+    pub is_successful: bool,
+    #[prost(string, tag="2")]
+    pub expiration_utc: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub jwt: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetActiveContractRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -952,6 +962,8 @@ pub struct AuthRequest {
     pub pw_hash: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes="vec", tag="4")]
     pub token: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag="5")]
+    pub jwt: ::prost::alloc::string::String,
 }
 /// A message describing the results of an authentication attempt
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -1936,6 +1948,25 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn auth_for_token(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AuthRequest>,
+        ) -> Result<tonic::Response<super::TokenReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/AuthForToken",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -2407,6 +2438,10 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GetActiveContractRequest>,
         ) -> Result<tonic::Response<super::GetActiveContractReply>, tonic::Status>;
+        async fn auth_for_token(
+            &self,
+            request: tonic::Request<super::AuthRequest>,
+        ) -> Result<tonic::Response<super::TokenReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -3842,6 +3877,44 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetActiveContractSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/AuthForToken" => {
+                    #[allow(non_camel_case_types)]
+                    struct AuthForTokenSvc<T: SqlClient>(pub Arc<T>);
+                    impl<T: SqlClient> tonic::server::UnaryService<super::AuthRequest>
+                    for AuthForTokenSvc<T> {
+                        type Response = super::TokenReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::AuthRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).auth_for_token(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = AuthForTokenSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

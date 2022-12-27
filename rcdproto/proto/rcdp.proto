@@ -38,6 +38,13 @@ service SQLClient {
 	rpc GetDatabases (GetDatabasesRequest) returns (GetDatabasesReply);
 	rpc GetParticipants(GetParticipantsRequest) returns (GetParticipantsReply);
 	rpc GetActiveContract(GetActiveContractRequest) returns (GetActiveContractReply);
+	rpc AuthForToken (AuthRequest) returns (TokenReply);
+}
+
+message TokenReply {
+	bool isSuccessful = 1;
+	string expirationUtc = 2;
+	string jwt = 3;
 }
 
 message GetActiveContractRequest {
@@ -626,6 +633,7 @@ message AuthRequest{
   string pw = 2;
   bytes pwHash = 3;
   bytes token = 4;
+  string jwt = 5;
 }
 
 // A message describing the results of an authentication attempt

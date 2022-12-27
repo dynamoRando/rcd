@@ -33,6 +33,7 @@ pub fn handle_connect(connection: &mut RcdConnection, ctx: &Context<RcdAdminApp>
         pw: pw_val.to_string(),
         pw_hash: Vec::new(),
         token: Vec::new(),
+        jwt: String::from("")
     };
 
     let db_request = GetDatabasesRequest {

@@ -396,6 +396,7 @@ fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
         pw: String::from(""),
         pw_hash: Vec::new(),
         token: own_host_info.token.clone(),
+        jwt: String::from("")
     };
 
     return auth;

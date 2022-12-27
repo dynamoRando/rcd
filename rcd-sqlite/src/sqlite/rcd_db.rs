@@ -42,6 +42,10 @@ pub fn get_rcd_db_type(db_name: &str, config: &DbiConfigSqlite) -> RcdDatabaseTy
     return RcdDatabaseType::Unknown;
 }
 
+pub fn delete_expired_tokens(config: &DbiConfigSqlite) {
+    todo!()
+}
+
 pub fn get_updates_to_host_behavior(
     db_name: &str,
     table_name: &str,
@@ -459,6 +463,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
         create_cds_hosts_table(&db_conn);
         create_contracts_table_table(&db_conn);
         create_contracts_table_table_schemas(&db_conn);
+        create_user_tokens_table(&db_conn);
 
         let db_has_role = role::has_role_name(&String::from("SysAdmin"), config).unwrap();
 
@@ -557,6 +562,10 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
     } else {
         return None;
     }
+}
+
+fn create_user_tokens_table(conn: &Connection) {
+    conn.execute(&CDS::text_create_user_tokens_table(), []).unwrap();
 }
 
 fn create_user_table(conn: &Connection) {

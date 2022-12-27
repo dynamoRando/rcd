@@ -72,6 +72,7 @@ pub fn Connect(login: &Login) -> Html {
                 pw: pw_val.to_string(),
                 pw_hash: Vec::new(),
                 token: Vec::new(),
+                jwt: String::from("")
             };
 
             let db_request = GetDatabasesRequest {

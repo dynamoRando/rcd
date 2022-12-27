@@ -28,6 +28,7 @@ impl Login {
             pw: self.pw.to_string(),
             pw_hash: Vec::new(),
             token: Vec::new(),
+            jwt: String::from(""),
         };
 
         return serde_json::to_string(&request).unwrap();

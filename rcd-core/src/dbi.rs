@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
@@ -13,6 +14,7 @@ use rcd_common::{
 use rcd_sqlite::sqlite::{self};
 use rcdproto::rcdp::{
     ColumnSchema, Contract, DatabaseSchema, Participant, ParticipantStatus, PendingStatement, Row,
+    TokenReply,
 };
 use rusqlite::{Connection, Error};
 
@@ -30,6 +32,66 @@ pub struct Dbi {
 }
 
 impl Dbi {
+    pub fn auth_for_token(self: &Self, login: &str, pw: &str) -> TokenReply {
+        let mut is_authorized = false;
+        let mut jwt = String::from("");
+        let mut expiration_utc = String::from("");
+
+        if self.verify_login(login, pw) {
+            is_authorized = true;
+
+            if !self.login_has_token(login) {
+                let token_data = self.create_token_for_login(login);
+                jwt = token_data.0;
+                expiration_utc = token_data.1.to_string();
+            }
+        }
+
+        let reply = TokenReply {
+            is_successful: is_authorized,
+            expiration_utc,
+            jwt,
+        };
+
+        return reply;
+    }
+
+    pub fn login_has_token(&self, login: &str) -> bool {
+
+        // first, delete any tokens that are already expired, regardless of who the token is for
+        // then, check if any rows exist for the given login
+
+        todo!()
+    }
+
+    pub fn create_token_for_login(&self, login: &str) -> (String, DateTime<Utc>) {
+
+        // create a new jwt token for the login specified
+
+        todo!()
+    }
+
+    pub fn verify_token(&self, token: String) -> bool {
+
+        // first, delete any tokens that are expired, regardless of who the token is for
+        // then, verify the token against the CDS_USER_TOKENS table
+
+        todo!()
+    }
+
+    pub fn delete_expired_tokens(&self) {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                rcd_sqlite::sqlite::rcd_db::delete_expired_tokens(&settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn accept_pending_action_at_participant(
         self: &Self,
         db_name: &str,
@@ -1050,7 +1112,7 @@ impl Dbi {
             ContractStatus::Unknown,
             db_schema,
             "",
-            0
+            0,
         );
     }
 

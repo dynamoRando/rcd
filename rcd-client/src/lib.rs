@@ -1519,6 +1519,7 @@ impl RcdClient {
             pw: self.pw.clone(),
             pw_hash: Vec::new(),
             token: Vec::new(),
+            jwt: String::from("")
         };
 
         return auth;

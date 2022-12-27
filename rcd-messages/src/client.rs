@@ -771,12 +771,10 @@ pub struct MessageInfo {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AuthRequest {
     pub user_name: String,
-
     pub pw: String,
-
     pub pw_hash: Vec<u8>,
-
     pub token: Vec<u8>,
+    pub jwt: String,
 }
 /// A message describing the results of an authentication attempt
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
