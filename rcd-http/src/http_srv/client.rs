@@ -1,6 +1,6 @@
 use crate::http_srv::Core;
 use rcd_common::defaults;
-use rcdproto::rcdp::{ChangeHostStatusReply, ChangeHostStatusRequest, TestReply, TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply};
+use rcdproto::rcdp::{ChangeHostStatusReply, ChangeHostStatusRequest, TestReply, TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, AuthRequest, TokenReply};
 use rocket::{get, http::Status, post, serde::json::Json, State};
 
 pub mod contract;
@@ -69,6 +69,23 @@ pub async fn try_auth_at_participant(
     let core = state.get_core();
 
     let response = core.try_auth_at_participant(request.into_inner()).await;
+
+    (Status::Ok, Json(response))
+}
+
+
+#[post(
+    "/client/token",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn auth_for_token(
+    request: Json<AuthRequest>,
+    state: &State<Core>,
+) -> (Status, Json<TokenReply>) {
+    let core = state.get_core();
+
+    let response = core.auth_for_token(request.into_inner()).await;
 
     (Status::Ok, Json(response))
 }

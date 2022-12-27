@@ -29,19 +29,19 @@ use rcdproto::rcdp::{
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
-    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest, TokenReply,
+    TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
 use crate::dbi::Dbi;
 
+mod auth;
 mod contract;
 mod db;
 mod io;
 mod logical_storage_policy;
 mod participant;
-mod auth;
 
 #[derive(Debug, Clone)]
 pub struct Rcd {
@@ -50,7 +50,6 @@ pub struct Rcd {
 }
 
 impl Rcd {
-
     pub async fn auth_for_token(&self, request: AuthRequest) -> TokenReply {
         return auth::auth_for_token(self, request).await;
     }
@@ -261,7 +260,13 @@ impl Rcd {
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
-        let is_authenticated = self.dbi().verify_login(&request.user_name, &request.pw);
+        let is_authenticated: bool;
+
+        if request.jwt.len() > 0 {
+            is_authenticated = self.dbi().verify_token(request.jwt);
+        } else {
+            is_authenticated = self.dbi().verify_login(&request.user_name, &request.pw);
+        }
 
         let auth_response = AuthResult {
             is_authenticated: is_authenticated,

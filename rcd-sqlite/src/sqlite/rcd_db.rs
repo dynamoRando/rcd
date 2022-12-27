@@ -1,4 +1,6 @@
 use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
+use chrono::DateTime;
+use chrono::Utc;
 use guid_create::GUID;
 use log::info;
 use rcd_common::crypt;
@@ -42,8 +44,64 @@ pub fn get_rcd_db_type(db_name: &str, config: &DbiConfigSqlite) -> RcdDatabaseTy
     return RcdDatabaseType::Unknown;
 }
 
+pub fn login_has_token(login: &str, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from("SELECT COUNT(*) FROM CDS_USER_TOKENS WHERE USERNAME = ':login'");
+    cmd = cmd.replace(":login", login);
+    return has_any_rows(cmd, &conn);
+}
+
+pub fn verify_token(token: &str, config: &DbiConfigSqlite) -> bool {
+    let conn = get_rcd_conn(config);
+    let mut cmd = String::from("SELECT COUNT(*) FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");
+    cmd = cmd.replace(":token", token);
+    return has_any_rows(cmd, &conn);
+}
+
 pub fn delete_expired_tokens(config: &DbiConfigSqlite) {
-    todo!()
+    let conn = get_rcd_conn(config);
+    let now = Utc::now().to_rfc3339();
+
+    let mut cmd = String::from("DELETE FROM CDS_USER_TOKENS WHERE EXPIRATION_UTC < ':now'");
+    cmd = cmd.replace(":now", &now);
+
+    let _ = conn.execute(&cmd, []);
+    let _ = conn.close();
+}
+
+pub fn save_token(login: &str, token: &str, expiration: DateTime<Utc>, config: &DbiConfigSqlite) {
+    let conn = get_rcd_conn(config);
+
+    let cmd = String::from(
+        "
+            INSERT INTO CDS_USER_TOKENS
+            (
+                USERNAME,
+                TOKEN,
+                ISSUED_UTC,
+                EXPIRATION_UTC
+            )
+            VALUES
+            (
+                :un,
+                :token,
+                :issued,
+                :expiration
+            );",
+    );
+
+    let issued = Utc::now().to_rfc3339();
+    let expiration = expiration.to_rfc3339();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! {
+            ":un" : login.to_string(),
+            ":token" : token,
+            ":issued" : issued,
+            ":expiration" : expiration,
+        })
+        .unwrap();
 }
 
 pub fn get_updates_to_host_behavior(
@@ -565,7 +623,8 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
 }
 
 fn create_user_tokens_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_tokens_table(), []).unwrap();
+    conn.execute(&CDS::text_create_user_tokens_table(), [])
+        .unwrap();
 }
 
 fn create_user_table(conn: &Connection) {

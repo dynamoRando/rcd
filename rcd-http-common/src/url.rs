@@ -14,6 +14,7 @@ pub mod client {
     pub const GET_DATA_HASH_AT_PARTICIPANT: &str = "/client/databases/participant/io/get-hash";
     pub const GET_DATA_HASH_AT_HOST: &str = "/client/databases/host/io/get-hash";
     pub const IS_ONLINE: &str = "/client/version";
+    pub const AUTH_FOR_TOKEN: &str = "/client/token";
     pub const NEW_DATABASE: &str = "/client/databases/new/";
     pub const ENABLE_COOPERATIVE_FEATURES: &str = "/client/databases/enable-cooperative-features";
     pub const GET_POLICY: &str = "/client/databases/table/policy/get";

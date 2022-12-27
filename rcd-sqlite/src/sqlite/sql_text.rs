@@ -13,8 +13,8 @@ impl CDS {
         (
             USERNAME VARCHAR(25) NOT NULL,
             TOKEN TEXT NOT NULL,
-            ISSUED_UTC TEXT,
-            EXPIRATION_UTC TEXT
+            ISSUED_UTC DATETIME,
+            EXPIRATION_UTC DATETIME
         );")
     }
 

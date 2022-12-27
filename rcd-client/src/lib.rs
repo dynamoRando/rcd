@@ -1,6 +1,6 @@
 use client_type::RcdClientType;
 use rcd_http_common::url::client::{
-    ACCEPT_PENDING_ACTION, ACCEPT_PENDING_CONTRACT, ADD_PARTICIPANT,
+    ACCEPT_PENDING_ACTION, ACCEPT_PENDING_CONTRACT, ADD_PARTICIPANT, AUTH_FOR_TOKEN,
     CHANGE_DELETES_FROM_HOST_BEHAVIOR, CHANGE_DELETES_TO_HOST_BEHAVIOR, CHANGE_HOST_STATUS_ID,
     CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
@@ -29,8 +29,8 @@ use rcdproto::rcdp::{
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
-    TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest,
+    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+    ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -57,12 +57,14 @@ pub struct RcdClient {
     /// The user name you will identify yourself to the `rcd` instance
     user_name: String,
     pw: String,
+    jwt: String,
     timeout_in_seconds: u32,
     http_addr: String,
     http_port: u32,
     client_type: RcdClientType,
     grpc_client: Option<SqlClientClient<Channel>>,
     http_client: Option<Client>,
+    send_jwt_if_available: bool,
 }
 
 impl RcdClient {
@@ -103,7 +105,13 @@ impl RcdClient {
             client_type,
             grpc_client: Some(grpc_client),
             http_client: Some(http_client),
+            jwt: String::from(""),
+            send_jwt_if_available: false,
         };
+    }
+
+    pub fn send_jwt_if_available(&mut self, send_jwt: bool ){
+        self.send_jwt_if_available = send_jwt;
     }
 
     pub async fn new_grpc_client(
@@ -125,6 +133,8 @@ impl RcdClient {
             client_type: RcdClientType::Grpc,
             grpc_client: Some(grpc_client),
             http_client: None,
+            jwt: String::from(""),
+            send_jwt_if_available: false,
         };
     }
 
@@ -147,6 +157,8 @@ impl RcdClient {
             client_type: RcdClientType::Http,
             grpc_client: None,
             http_client: Some(http_client),
+            jwt: String::from(""),
+            send_jwt_if_available: false,
         };
     }
 
@@ -162,7 +174,13 @@ impl RcdClient {
                     request_echo_message: message.clone().to_string(),
                 };
 
-                let result = self.grpc_client.as_mut().unwrap().is_online(request).await.unwrap();
+                let result = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .is_online(request)
+                    .await
+                    .unwrap();
 
                 return result.into_inner();
             }
@@ -189,7 +207,6 @@ impl RcdClient {
     pub async fn is_online(self: &mut Self) -> bool {
         match self.client_type {
             RcdClientType::Grpc => {
-                
                 let test_string = "is_online";
 
                 let request = TestRequest {
@@ -201,7 +218,13 @@ impl RcdClient {
                     request_echo_message: test_string.clone().to_string(),
                 };
 
-                let result = self.grpc_client.as_mut().unwrap().is_online(request).await.unwrap();
+                let result = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .is_online(request)
+                    .await
+                    .unwrap();
 
                 return result.into_inner().reply_echo_message == test_string;
             }
@@ -243,7 +266,10 @@ impl RcdClient {
                     database_name: db_name.to_string(),
                 };
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .get_active_contract(request)
                     .await
                     .unwrap()
@@ -272,6 +298,53 @@ impl RcdClient {
         }
     }
 
+    pub async fn auth_for_token(self: &mut Self) -> Result<TokenReply, Box<dyn Error>> {
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .auth_for_token(auth)
+                    .await
+                    .unwrap()
+                    .into_inner();
+
+                if response.is_successful {
+                    let x = response.clone();
+                    self.jwt = x.jwt;
+                } else {
+                    self.jwt = "".to_string();
+                }
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let url = self.get_http_url(AUTH_FOR_TOKEN);
+                let request_json = serde_json::to_string(&auth).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: TokenReply = serde_json::from_str(&result_json).unwrap();
+
+                if result.is_successful {
+                    let x = result.clone();
+                    self.jwt = x.jwt;
+                } else {
+                    self.jwt = "".to_string();
+                }
+
+                return Ok(result);
+            }
+        }
+    }
+
     pub async fn accept_pending_action_at_participant(
         self: &mut Self,
         db_name: &str,
@@ -290,7 +363,10 @@ impl RcdClient {
                     row_id,
                 };
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .accept_pending_action_at_participant(request)
                     .await
                     .unwrap()
@@ -336,7 +412,14 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap().get_participants(request).await.unwrap().into_inner();
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_participants(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
                 println!("RESPONSE={:?}", response);
                 info!("response back");
 
@@ -374,7 +457,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .get_pending_actions_at_participant(request)
                     .await
                     .unwrap()
@@ -416,7 +502,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .read_row_id_at_participant(request)
                     .await
                     .unwrap()
@@ -458,7 +547,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .get_data_hash_at_participant(request)
                     .await
                     .unwrap()
@@ -500,8 +592,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .get_data_hash_at_host(request)
                     .await
                     .unwrap()
@@ -543,7 +637,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .change_deletes_to_host_behavior(request)
                     .await
                     .unwrap()
@@ -586,7 +683,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .change_updates_to_host_behavior(request)
                     .await
                     .unwrap()
@@ -629,7 +729,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .change_deletes_from_host_behavior(request)
                     .await
                     .unwrap()
@@ -1487,7 +1590,10 @@ impl RcdClient {
             RcdClientType::Grpc => {
                 info!("sending request");
 
-                let response = self.grpc_client.as_mut().unwrap()
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
                     .create_user_database(request)
                     .await
                     .unwrap()
@@ -1514,13 +1620,33 @@ impl RcdClient {
     }
 
     fn gen_auth_request(&self) -> AuthRequest {
-        let auth = AuthRequest {
+        let auth: AuthRequest;
+
+        if self.send_jwt_if_available {
+            if self.jwt.len() > 0 {
+                auth = AuthRequest {
+                    user_name: String::from(""),
+                    pw: String::from(""),
+                    pw_hash: Vec::new(),
+                    token: Vec::new(),
+                    jwt: self.jwt.clone(),
+                };
+
+                println!("{:?}", auth);
+
+                return auth;
+            }
+        }
+
+        auth = AuthRequest {
             user_name: self.user_name.clone(),
             pw: self.pw.clone(),
             pw_hash: Vec::new(),
             token: Vec::new(),
-            jwt: String::from("")
+            jwt: String::from(""),
         };
+
+        println!("{:?}", auth);
 
         return auth;
     }

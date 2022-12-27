@@ -18,6 +18,8 @@ use rcdproto::rcdp::{
 };
 use rusqlite::{Connection, Error};
 
+use crate::auth;
+
 #[derive(Debug, Clone)]
 /// Database Interface: an abstraction over the underlying database layer. Supports:
 /// - Sqlite
@@ -57,26 +59,38 @@ impl Dbi {
     }
 
     pub fn login_has_token(&self, login: &str) -> bool {
-
-        // first, delete any tokens that are already expired, regardless of who the token is for
-        // then, check if any rows exist for the given login
-
-        todo!()
+        self.delete_expired_tokens();
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return rcd_sqlite::sqlite::rcd_db::login_has_token(login, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn create_token_for_login(&self, login: &str) -> (String, DateTime<Utc>) {
-
-        // create a new jwt token for the login specified
-
-        todo!()
+        let host_info = self.rcd_get_host_info();
+        let token_data = auth::create_jwt(&host_info.name, login);
+        self.save_token(login, &token_data.0.clone(), token_data.1);
+        return token_data;
     }
 
     pub fn verify_token(&self, token: String) -> bool {
-
-        // first, delete any tokens that are expired, regardless of who the token is for
-        // then, verify the token against the CDS_USER_TOKENS table
-
-        todo!()
+        self.delete_expired_tokens();
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return rcd_sqlite::sqlite::rcd_db::verify_token(&token, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
     }
 
     pub fn delete_expired_tokens(&self) {
@@ -84,6 +98,19 @@ impl Dbi {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 rcd_sqlite::sqlite::rcd_db::delete_expired_tokens(&settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn save_token(&self, login: &str, token: &str, expiration: DateTime<Utc>) {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                rcd_sqlite::sqlite::rcd_db::save_token(&login, &token, expiration, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

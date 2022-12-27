@@ -33,3 +33,5 @@ antlr-rust = "0.3.0-beta"
 log = "0.4"
 reqwest = { version = "0.11", features = ["json"] }
 jwt = "0.16"
+hmac = "0.12"
+sha2 = "0.10"
