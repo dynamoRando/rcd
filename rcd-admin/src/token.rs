@@ -9,7 +9,7 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn auth_with_jwt(&self) -> String {
+    pub fn auth_json(&self) -> String {
         let request = AuthRequest {
             user_name: "".to_string(),
             pw: "".to_string(),
