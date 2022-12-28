@@ -1,4 +1,11 @@
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct TokenReply {
+    pub is_successful: bool,
+    pub expiration_utc: String,
+    pub jwt: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetActiveContractRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
     pub database_name: String,

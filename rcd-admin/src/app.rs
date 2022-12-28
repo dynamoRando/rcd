@@ -5,20 +5,16 @@ use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
-use crate::login::Login;
 use crate::pages::home::Home;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
-    #[at("/:login")]
-    Home{ login: Login },
+    #[at("/")]
+    Home,
 }
 
 #[function_component]
 pub fn App() -> Html {
-
-    let login = use_state_eq(|| Login::new() );
-
     html! {
         <BrowserRouter>
             <Nav />
@@ -74,8 +70,8 @@ pub fn ServerApp(props: &ServerAppProps) -> Html {
 
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home { login }=> {
-            html! { <Home addr={login.addr} port={login.port} un={login.un} pw={login.pw}  /> }
+        Route::Home => {
+            html! { <Home /> }
         }
     }
 }

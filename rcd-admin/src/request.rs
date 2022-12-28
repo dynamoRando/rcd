@@ -2,8 +2,9 @@ use gloo::{
     net::http::{Method, Request},
     storage::{SessionStorage, Storage},
 };
-use rcd_messages::client::AuthRequest;
 use yew::{platform::spawn_local, AttrValue, Callback};
+
+use crate::token::Token;
 
 const KEY: &str = "rcdadmin.key.instance";
 
@@ -24,22 +25,13 @@ pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
     });
 }
 
-pub fn get_auth() -> Option<AuthRequest> {
-    let jwt = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
-
-    if jwt == "" {
-        return None;
-    } else {
-        return Some(AuthRequest {
-            user_name: "".to_string(),
-            pw: "".to_string(),
-            pw_hash: Vec::new(),
-            token: Vec::new(),
-            jwt,
-        });
-    }
+pub fn set_token(token: Token) {
+    let token = serde_json::to_string(&token).unwrap();
+    SessionStorage::set(KEY, token).expect("failed to set");
 }
 
-pub fn set_auth(jwt: String) {
-    SessionStorage::set(KEY, jwt).expect("failed to set");
+pub fn get_token() -> Token {
+    let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
+    let token: Token = serde_json::from_str(&token.to_string()).unwrap();
+    return token;
 }

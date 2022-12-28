@@ -1,13 +1,17 @@
-use rcd_messages::client::{AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest};
+use rcd_http_common::url::client::AUTH_FOR_TOKEN;
+use rcd_messages::client::{
+    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TokenReply,
+};
 use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
-use crate::{login::Login, request};
+use crate::{
+    request::{self, get_token, set_token},
+    token::Token,
+};
 
 #[function_component]
-pub fn Home(login: &Login) -> Html {
-    console::log_1(&"Home".into());
-
+pub fn Home() -> Html {
     html! {
         <div class="tile is-ancestor is-vertical">
             <div class="tile is-child hero">
@@ -17,14 +21,14 @@ pub fn Home(login: &Login) -> Html {
             </div>
 
             <div class="tile is-parent container">
-                <Connect addr={login.addr.clone()} port={login.port} un={login.un.clone()} pw={login.pw.clone()} />
+                <Connect />
             </div>
         </div>
     }
 }
 
 #[function_component]
-pub fn Connect(login: &Login) -> Html {
+pub fn Connect() -> Html {
     /*
         https://docs.rs/yew/latest/yew/functional/fn.use_reducer.html
         https://docs.rs/yew/latest/yew/functional/fn.use_node_ref.html
@@ -37,17 +41,13 @@ pub fn Connect(login: &Login) -> Html {
         return databases;
     });
 
-    let login = login.clone();
-
     let onclick = {
         let ui = ui.clone();
 
         let database_names = database_names.clone();
-        let login = login.clone();
 
         Callback::from(move |_| {
             let database_names = database_names.clone();
-            let mut login = login.clone();
 
             let ui = ui.clone();
             let un = &ui.un;
@@ -60,49 +60,25 @@ pub fn Connect(login: &Login) -> Html {
             let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
             let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-            let base_address = format!("{}{}{}{}", "http://", ip_val.clone().to_string(), ":", port_val);
-
-            login.addr = ip_val;
-            login.port = port_val.parse::<u32>().unwrap();
-            login.un = un_val.clone();
-            login.pw = pw_val.clone();
+            let base_address = format!(
+                "{}{}{}{}",
+                "http://",
+                ip_val.clone().to_string(),
+                ":",
+                port_val
+            );
 
             let auth_request = AuthRequest {
                 user_name: un_val.to_string(),
                 pw: pw_val.to_string(),
                 pw_hash: Vec::new(),
                 token: Vec::new(),
-                jwt: String::from("")
+                jwt: String::from(""),
             };
 
-            let db_request = GetDatabasesRequest {
-                authentication: Some(auth_request.clone()),
-            };
-
-            let db_request_json = serde_json::to_string(&db_request).unwrap();
-
-            let db_callback = Callback::from(move |response: AttrValue| {
-                console::log_1(&response.to_string().into());
-
-                let database_names = database_names.clone();
-                let login = login.clone();
-
-                let db_response: GetDatabasesReply =
-                    serde_json::from_str(&response.to_string()).unwrap();
-                if db_response.authentication_result.unwrap().is_authenticated {
-                    let databases = db_response.databases.clone();
-
-                    let mut db_names: Vec<String> = Vec::new();
-
-                    for db in &databases {
-                        db_names.push(db.database_name.clone());
-                    }
-                    database_names.set(db_names);
-                }
-            });
-
-            let url = format!("{}{}", base_address.clone(), "/client/databases");
-            request::get_data(url, db_request_json, db_callback);
+            let auth_json = serde_json::to_string(&auth_request).unwrap();
+            save_token(base_address, auth_json);
+            databases(database_names);
         })
     };
 
@@ -149,6 +125,63 @@ pub fn Connect(login: &Login) -> Html {
             </div>
         </div>
     }
+}
+
+fn save_token(addr: String, auth_json: String) {
+    let addr = addr.clone();
+    let address = addr.clone();
+
+    let callback = Callback::from(move |response: AttrValue| {
+        console::log_1(&response.to_string().into());
+
+        let response: TokenReply = serde_json::from_str(&response.to_string()).unwrap();
+        if response.is_successful {
+            let jwt = response.jwt;
+
+            let token = Token {
+                jwt: jwt,
+                jwt_exp: response.expiration_utc.clone(),
+                addr: addr.clone(),
+            };
+
+            set_token(token);
+        }
+    });
+
+    let url = format!("{}{}", address, AUTH_FOR_TOKEN);
+    request::get_data(url, auth_json, callback);
+}
+
+fn databases(database_names: UseStateHandle<Vec<String>>) {
+    let token = get_token();
+    let auth_request = token.auth();
+
+    let db_request = GetDatabasesRequest {
+        authentication: Some(auth_request.clone()),
+    };
+
+    let db_request_json = serde_json::to_string(&db_request).unwrap();
+
+    let db_callback = Callback::from(move |response: AttrValue| {
+        console::log_1(&response.to_string().into());
+
+        let database_names = database_names.clone();
+
+        let db_response: GetDatabasesReply = serde_json::from_str(&response.to_string()).unwrap();
+        if db_response.authentication_result.unwrap().is_authenticated {
+            let databases = db_response.databases.clone();
+
+            let mut db_names: Vec<String> = Vec::new();
+
+            for db in &databases {
+                db_names.push(db.database_name.clone());
+            }
+            database_names.set(db_names);
+        }
+    });
+
+    let url = format!("{}{}", token.addr.clone(), "/client/databases");
+    request::get_data(url, db_request_json, db_callback);
 }
 
 #[derive(Properties, PartialEq, Clone, Debug)]

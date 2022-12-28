@@ -1,14 +1,11 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{app::Route, login::Login};
+use crate::{app::Route};
 
 
 #[function_component]
 pub fn Nav() -> Html {
-
-    let val = Login::new();
-
     let navbar_active = use_state_eq(|| false);
 
     let toggle_navbar = {
@@ -37,7 +34,7 @@ pub fn Nav() -> Html {
             </div>
             <div class={classes!("navbar-menu", active_class)}>
                 <div class="navbar-start">
-                    <Link<Route> classes={classes!("navbar-item")} to={Route::Home { login: val }}>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Home}>
                         { "Home" }
                     </Link<Route>>
                
