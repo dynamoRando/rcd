@@ -1,8 +1,7 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{app::Route};
-
+use crate::app::Route;
 
 #[function_component]
 pub fn Nav() -> Html {
@@ -21,7 +20,7 @@ pub fn Nav() -> Html {
     html! {
         <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
             <div class="navbar-brand">
-                <h1 class="navbar-item is-size-3">{ "Yew Blog" }</h1>
+                <h1 class="navbar-item is-size-3">{ "RCD Admin" }</h1>
 
                 <button class={classes!("navbar-burger", "burger", active_class)}
                     aria-label="menu" aria-expanded="false"
@@ -37,7 +36,12 @@ pub fn Nav() -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Home}>
                         { "Home" }
                     </Link<Route>>
-               
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Databases}>
+                    { "Databases" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Sql}>
+                    { "Sql" }
+                    </Link<Route>>
                 </div>
             </div>
         </nav>

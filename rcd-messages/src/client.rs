@@ -787,11 +787,8 @@ pub struct AuthRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct AuthResult {
     pub user_name: String,
-
     pub token: String,
-
     pub is_authenticated: bool,
-
     pub authentication_message: String,
 }
 /// A message for creating a user database

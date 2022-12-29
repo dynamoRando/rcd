@@ -6,6 +6,7 @@ use sha2::Sha384;
 use std::collections::BTreeMap;
 
 pub fn create_jwt(host_name: &str, login: &str) -> (String, DateTime<Utc>) {
+    // this duration should be a config item
     let expiration = Utc::now() + Duration::minutes(20);
     let exp_string = expiration.to_rfc3339();
 

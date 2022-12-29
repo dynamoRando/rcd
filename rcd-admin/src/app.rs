@@ -5,12 +5,22 @@ use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
+use crate::pages::databases::Databases;
 use crate::pages::home::Home;
+use crate::pages::page_not_found::PageNotFound;
+use crate::pages::sql::Sql;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/")]
     Home,
+    #[at("/databases")]
+    Databases,
+    #[at("/sql")]
+    Sql,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
 #[function_component]
@@ -28,8 +38,6 @@ pub fn App() -> Html {
                     <a href="https://yew.rs">{ "Yew" }</a>
                     { " using " }
                     <a href="https://bulma.io">{ "Bulma" }</a>
-                    { " and images from " }
-                    <a href="https://unsplash.com">{ "Unsplash" }</a>
                 </div>
             </footer>
         </BrowserRouter>
@@ -73,5 +81,14 @@ fn switch(routes: Route) -> Html {
         Route::Home => {
             html! { <Home /> }
         }
+        Route::Databases => {
+            html! { <Databases /> }
+        },
+        Route::Sql => {
+            html! { <Sql /> }
+        },
+        Route::NotFound => {
+            html! { <PageNotFound /> }
+        },
     }
 }

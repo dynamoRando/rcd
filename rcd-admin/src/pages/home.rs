@@ -6,7 +6,7 @@ use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::{
-    request::{self, get_token, set_token},
+    request::{self, get_token, set_databases, set_token},
     token::Token,
 };
 
@@ -109,6 +109,8 @@ pub fn Connect() -> Html {
                     <h1 class="subtitle"> {"Databases"} </h1>
 
                     <p>{"After connecting, the list of databases on the rcd instance will appear here."}</p>
+                    <p>{"Note that connecting gives a token authorization for 20 minutes by default. If there are errors
+                    or data is outdated, you may need to re-auth against the instance."}</p>
                     <div class="content">
                         <ul>
                             {
@@ -170,6 +172,8 @@ fn databases(database_names: UseStateHandle<Vec<String>>) {
         let db_response: GetDatabasesReply = serde_json::from_str(&response.to_string()).unwrap();
         if db_response.authentication_result.unwrap().is_authenticated {
             let databases = db_response.databases.clone();
+
+            set_databases(databases.clone());
 
             let mut db_names: Vec<String> = Vec::new();
 
