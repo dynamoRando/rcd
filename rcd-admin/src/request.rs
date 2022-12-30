@@ -5,13 +5,16 @@ use gloo::{
 use rcd_messages::client::DatabaseSchema;
 use yew::{platform::spawn_local, AttrValue, Callback};
 
-use crate::token::Token;
+use crate::{token::Token, log::log_to_console};
 
 const KEY: &str = "rcdadmin.key.instance";
 const DATABASES: &str = "rcdadmin.key.databases";
 
 /// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON
 pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
+    let message = format!("{}{}", "outgoing message: ", body);
+    log_to_console(message);
+
     spawn_local(async move {
         let http_response = Request::new(&url)
             .method(Method::POST)

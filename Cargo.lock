@@ -2311,6 +2311,7 @@ name = "rcd-admin"
 version = "0.1.0"
 dependencies = [
  "gloo",
+ "js-sys",
  "rcd-http-common",
  "rcd-messages",
  "reqwasm",

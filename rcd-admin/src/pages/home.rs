@@ -34,26 +34,37 @@ pub fn Connect() -> Html {
         https://docs.rs/yew/latest/yew/functional/fn.use_node_ref.html
     */
 
-    let ui = ConnectUi::new();
-
+    let ui_addr = use_node_ref();
+    let ui_port = use_node_ref();
+    let ui_un = use_node_ref();
+    let ui_pw =  use_node_ref();
+    
     let database_names = use_state(|| {
         let databases: Vec<String> = Vec::new();
         return databases;
     });
 
     let onclick = {
-        let ui = ui.clone();
+        
+        let ui_addr = ui_addr.clone();
+        let ui_port = ui_port.clone();
+        let ui_un = ui_un.clone();
+        let ui_pw =  ui_pw.clone();
 
         let database_names = database_names.clone();
 
         Callback::from(move |_| {
             let database_names = database_names.clone();
 
-            let ui = ui.clone();
-            let un = &ui.un;
-            let pw = &ui.pw;
-            let ip = &ui.addr;
-            let port = &ui.port;
+            let ui_addr = ui_addr.clone();
+            let ui_port = ui_port.clone();
+            let ui_un = ui_un.clone();
+            let ui_pw =  ui_pw.clone();
+            
+            let un = &ui_un;
+            let pw = &ui_pw;
+            let ip = &ui_addr;
+            let port = &ui_port;
 
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
@@ -89,16 +100,16 @@ pub fn Connect() -> Html {
                     <h2 class="subtitle">{"Connect To RCD"}</h2>
 
                     <label for="ip_address">{ "IP Address" }</label>
-                    <input type="text" class="input" id ="ip_address" placeholder="localhost" ref={&ui.addr}/>
+                    <input type="text" class="input" id ="ip_address" placeholder="localhost" ref={&ui_addr}/>
 
                     <label for="port">{ "Port Number" }</label>
-                    <input type="text" class="input"  id="port" placeholder="50055" ref={&ui.port} />
+                    <input type="text" class="input"  id="port" placeholder="50055" ref={&ui_port} />
 
                     <label for="un">{ "User Name" }</label>
-                    <input type="text" class="input"  id="un" placeholder="tester" ref={&ui.un} />
+                    <input type="text" class="input"  id="un" placeholder="tester" ref={&ui_un} />
 
                     <label for="pw">{ "Pw" }</label>
-                    <input type="text" class="input"  id="pw" placeholder="123456" ref={&ui.pw} />
+                    <input type="text" class="input"  id="pw" placeholder="123456" ref={&ui_pw} />
 
                     <input type="button" class="button is-primary" id="submit" value="Connect" {onclick}/>
                 </div>
@@ -196,24 +207,5 @@ pub struct DatabaseDetails {
 impl DatabaseDetails {
     pub fn new() -> DatabaseDetails {
         return DatabaseDetails { dbs: Vec::new() };
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct ConnectUi {
-    pub addr: NodeRef,
-    pub port: NodeRef,
-    pub un: NodeRef,
-    pub pw: NodeRef,
-}
-
-impl ConnectUi {
-    pub fn new() -> ConnectUi {
-        return ConnectUi {
-            addr: NodeRef::default(),
-            port: NodeRef::default(),
-            un: NodeRef::default(),
-            pw: NodeRef::default(),
-        };
     }
 }
