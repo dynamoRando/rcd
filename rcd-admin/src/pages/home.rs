@@ -1,4 +1,4 @@
-use rcd_http_common::url::client::AUTH_FOR_TOKEN;
+use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_DATABASES};
 use rcd_messages::client::{
     AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TokenReply,
 };
@@ -140,6 +140,9 @@ pub fn Connect() -> Html {
     }
 }
 
+/// Takes the http address of an RCD instance and a AuthRequest seralized to JSON 
+/// and attempts to get a JWT from the RCD instance. If successfully authenticated, 
+/// it will save the JWT to Session Storage
 fn save_token(addr: String, auth_json: String) {
     let addr = addr.clone();
     let address = addr.clone();
@@ -195,7 +198,7 @@ fn databases(database_names: UseStateHandle<Vec<String>>) {
         }
     });
 
-    let url = format!("{}{}", token.addr.clone(), "/client/databases");
+    let url = format!("{}{}", token.addr.clone(), GET_DATABASES);
     request::get_data(url, db_request_json, db_callback);
 }
 

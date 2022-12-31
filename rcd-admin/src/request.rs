@@ -30,22 +30,26 @@ pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
     });
 }
 
+/// Saves the JWT to Session Storage
 pub fn set_token(token: Token) {
     let token = serde_json::to_string(&token).unwrap();
     SessionStorage::set(KEY, token).expect("failed to set");
 }
 
+/// Gets the JWT from Session Storage
 pub fn get_token() -> Token {
     let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
     let token: Token = serde_json::from_str(&token.to_string()).unwrap();
     return token;
 }
 
+/// Saves the RCD instance's Database Schemas to Session Storage
 pub fn set_databases(dbs: Vec<DatabaseSchema>) {
     let dbs_json = serde_json::to_string(&dbs).unwrap();
     SessionStorage::set(DATABASES, dbs_json).expect("failed to set");
 }
 
+/// Gets the RCD instance's Database Schemas from Session Storage
 pub fn get_databases() -> Vec<DatabaseSchema> {
     let databases = SessionStorage::get(DATABASES).unwrap_or_else(|_| String::from(""));
     let databases: Vec<DatabaseSchema> = serde_json::from_str(&databases).unwrap();

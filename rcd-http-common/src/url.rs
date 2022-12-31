@@ -1,3 +1,4 @@
+/// Represents endpoints for an RCD Client Service
 pub mod client {
     pub const READ_SQL_AT_HOST: &str = "/client/sql/host/read/";
     pub const SEND_CONTRACT_TO_PARTICIPANT: &str = "/client/databases/participant/send-contract/";
@@ -34,6 +35,7 @@ pub mod client {
     pub const HAS_TABLE: &str = "/client/databases/has_table";
 }
 
+/// Represents endpoints for an RCD Data Service
 pub mod data {
     pub const SAVE_CONTRACT: &str = "/data/contract/save/";
     pub const PARTICIPANT_ACCEPTS_CONTRACT: &str = "/data/contract/accepted-by-participant";

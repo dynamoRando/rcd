@@ -42,6 +42,21 @@ pub fn Nav() -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Sql}>
                     { "Sql" }
                     </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Contracts}>
+                    { "Contracts" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Hosts}>
+                    { "Hosts" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Participants}>
+                    { "Participants" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Behaviors}>
+                    { "Behaviors" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::CooperativeHosts}>
+                    { "Cooperative Hosts" }
+                    </Link<Route>>
                 </div>
             </div>
         </nav>
