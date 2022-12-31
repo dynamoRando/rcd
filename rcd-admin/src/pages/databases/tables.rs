@@ -78,7 +78,7 @@ pub fn Tables(TableProps { db }: &TableProps) -> Html {
 
                                                                 selected_table.set(Some(table.clone()));
                                                         }
-                                                    }>{name.clone()}</li>
+                                                    }><span class="mdi mdi-table"></span>{" "}{name.clone()}</li>
                                             </div>}
                                     }).collect::<Html>()
                                 }

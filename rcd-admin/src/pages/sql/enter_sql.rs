@@ -176,67 +176,75 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
 
     html! {
         <div>
-            <h1 class="subtitle is-5"> {"Execute SQL"} </h1>
-
-            <div class="section">
-                <label for="execute_sql">{ "Enter SQL" }</label>
+            <h1 class="subtitle"> {"Execute SQL"} </h1>
                 <p>
-                    <label for="execute_sql_dbs">{ "Select Database " }</label>
-
-                    <div class="select is-multiple">
-                        <select
-                            name="execute_sql_dbs"
-                            id="execute_sql_dbs"
-                            ref={&ui_active_database}
-                            onchange={onchange_db}
-                        >
-
-                        <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
-                        {
-                            database_names.into_iter().map(|name| {
-                                // console::log_1(&name.clone().into());
-                                html!{
-                                <option value={name.clone()}>{name.clone()}</option>}
-                            }).collect::<Html>()
-                        }
-                        </select>
-                    </div>
+                    <p><label for="execute_sql_dbs">{ "Select Database " }</label></p>
+                    <p>
+                        <div class="select is-multiple">
+                            <select
+                                name="execute_sql_dbs"
+                                id="execute_sql_dbs"
+                                ref={&ui_active_database}
+                                onchange={onchange_db}
+                            >
+                            <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
+                            {
+                                database_names.into_iter().map(|name| {
+                                    // console::log_1(&name.clone().into());
+                                    html!{
+                                    <option value={name.clone()}>{name.clone()}</option>}
+                                }).collect::<Html>()
+                            }
+                            </select>
+                        </div>
+                    </p>
                 </p>
-
+            <p><label for="execute_sql">{ "Enter SQL" }</label></p>
             <p>
                 <textarea class="textarea" rows="5" cols="60"  id ="execute_sql" placeholder="SELECT * FROM TABLE_NAME" ref={&ui_enter_sql_text}/>
             </p>
 
-            <h3> {"Choose Participant"} </h3>
+            <p><h3> {"Choose Participant"} </h3></p>
             <p>{"Select the participant to execute on, if applicable."}</p>
             <p>
                 <label for="select_participant_for_execute">{ "Select Participant " }</label>
 
                 <div class="select is-multiple">
-                <select
-                    name="select_participant_for_execute"
-                    id="select_participant_for_execute"
-                    ref={&ui_active_participant}
-                    onchange={&onchange_participant}
-                >
-                <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
-                {
-                    participant_aliases.clone().into_iter().map(|name| {
-                        // console::log_1(&name.clone().into());
-                        html!{
-                        <option value={name.clone()}>{name.clone()}</option>}
-                    }).collect::<Html>()
-                }
-                </select>
+                    <select
+                        name="select_participant_for_execute"
+                        id="select_participant_for_execute"
+                        ref={&ui_active_participant}
+                        onchange={&onchange_participant}
+                    >
+                    <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
+                    {
+                        participant_aliases.clone().into_iter().map(|name| {
+                            // console::log_1(&name.clone().into());
+                            html!{
+                            <option value={name.clone()}>{name.clone()}</option>}
+                        }).collect::<Html>()
+                    }
+                    </select>
                 </div>
 
-            <p>{"The following commands denote if you wish to execute your SQL action (read or write) against the specified type of database (host or partial). To write data to a participant, use Cooperative Write."}</p>
+                <p>{"The following commands denote if you wish to execute your SQL action (read or write) against the specified type of database (host or partial). To write data to a participant, use Cooperative Write."}</p>
             </p>
-            <input class="button" type="button" id="read_at_host" value="Execute Read On Host Db" onclick={&onclick_read_at_host}/>
-            <input class="button" type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={&onclick_read_at_part}/>
-            <input  class="button"  type="button" id="write_at_host" value="Execute Write On Host Db" onclick={&onclick_write_at_host}/>
-            <input class="button" type="button" id="write_at_part" value="Execute Write On Part Db" onclick={&onclick_write_at_part}/>
-            <input class="button"  type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={&onclick_coop_write_at_host}/>
+            <div class="buttons">
+                <button class="button is-primary" type="button" id="read_at_host" value="Read On Host Db" onclick={&onclick_read_at_host}>
+                    <span class="mdi mdi-database">{" Read At Host"}</span>
+                </button>
+                <button class="button is-primary" type="button" id="read_at_part" value="Read On Partial Db" onclick={&onclick_read_at_part}>
+                    <span class="mdi mdi-database-outline">{" Read At Partial"}</span>
+                </button>
+                <button class="button is-warning" type="button" id="write_at_host" value="Write On Host Db" onclick={&onclick_write_at_host}>
+                    <span class="mdi mdi-database">{" Write At Host"}</span>
+                </button>
+                <button class="button is-warning" type="button" id="write_at_part" value="Write On Part Db" onclick={&onclick_write_at_part}>
+                    <span class="mdi mdi-database-outline">{" Write At Partial"}</span>
+                </button>
+                <button class="button is-warning" type="button" id="coop_write_at_part" value="Cooperative Write On Host Db" onclick={&onclick_coop_write_at_host}>
+                    <span class="mdi mdi-database-export"></span><span class="mdi mdi-database-import-outline"></span>{" Cooperative Write At Host"}
+                </button>
             </div>
         </div>
     }

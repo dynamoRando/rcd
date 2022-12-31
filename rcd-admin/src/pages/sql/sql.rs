@@ -11,8 +11,12 @@ pub fn Sql() -> Html {
     let result_state = use_state_eq(move || None);
     html! {
         <div>
-        < EnterSql state={result_state.clone()}/>
-        < SqlResult state={result_state.clone()}/>
+            <div class="container">
+                <div class="box">
+                    < EnterSql state={result_state.clone()}/>
+                    < SqlResult state={result_state.clone()}/>
+                </div>
+            </div>
         </div>
     }
 }

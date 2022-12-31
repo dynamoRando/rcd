@@ -111,7 +111,9 @@ pub fn Connect() -> Html {
                     <label for="pw">{ "Pw" }</label>
                     <input type="text" class="input"  id="pw" placeholder="123456" ref={&ui_pw} />
 
-                    <input type="button" class="button is-primary" id="submit" value="Connect" {onclick}/>
+                    <button type="button" class="button is-primary" id="submit" value="Connect" {onclick}>
+                        <span class="mdi mdi-connection">{" Connect"}</span>
+                    </button>
                 </div>
             </div>
 

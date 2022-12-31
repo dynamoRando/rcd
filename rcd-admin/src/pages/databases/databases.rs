@@ -52,7 +52,7 @@ pub fn Databases() -> Html {
 
                                                 selected_database.set(Some(database));
                                             }
-                                        }>{db.clone()}</li></div>
+                                        }><span class="mdi mdi-database"></span>{" "}{db.clone()}</li></div>
                                 }
                                     }).collect::<Html>()
                                 }

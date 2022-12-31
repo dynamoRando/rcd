@@ -27,7 +27,7 @@ pub fn Columns(ColumnProps { table }: &ColumnProps) -> Html {
                                 col_names.into_iter().map(|name| {
                                     let col_name = name.clone();
                                     html!{<div key={col_name.clone()}>
-                                    <li>{col_name.clone()}</li></div>}
+                                    <li><span class="mdi mdi-table-column"></span>{" "}{col_name.clone()}</li></div>}
                                 }).collect::<Html>()
                             }</ul>
                         </div>
