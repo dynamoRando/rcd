@@ -1,8 +1,11 @@
 use crate::{
-    pages::sql::{read::read, sql::SqlProps},
+    pages::sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
     request::get_databases,
 };
-use rcd_http_common::url::client::READ_SQL_AT_HOST;
+use rcd_http_common::url::client::{
+    COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
+    WRITE_SQL_AT_PARTICIPANT,
+};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
 
@@ -69,7 +72,9 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
     };
 
     let onclick_read_at_host = {
+        let state = state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
+        let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
             if active_database.is_some() {
@@ -79,6 +84,92 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
                     .unwrap()
                     .value();
                 read(db_name.to_string(), text, state.clone(), READ_SQL_AT_HOST)
+            }
+        })
+    };
+
+    let onclick_read_at_part = {
+        let state = state.clone();
+        let ui_enter_sql_text = ui_enter_sql_text.clone();
+        let active_database = active_database.clone();
+        Callback::from(move |_| {
+            let active_database = active_database.clone();
+            if active_database.is_some() {
+                let db_name = active_database.as_ref().unwrap().clone();
+                let text = ui_enter_sql_text
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .value();
+                read(
+                    db_name.to_string(),
+                    text,
+                    state.clone(),
+                    READ_SQL_AT_PARTICIPANT,
+                )
+            }
+        })
+    };
+
+    let onclick_write_at_host = {
+        let state = state.clone();
+        let ui_enter_sql_text = ui_enter_sql_text.clone();
+        let active_database = active_database.clone();
+        Callback::from(move |_| {
+            let active_database = active_database.clone();
+            if active_database.is_some() {
+                let db_name = active_database.as_ref().unwrap().clone();
+                let text = ui_enter_sql_text
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .value();
+                write(db_name.to_string(), text, state.clone(), WRITE_SQL_AT_HOST)
+            }
+        })
+    };
+
+    let onclick_write_at_part = {
+        let state = state.clone();
+        let ui_enter_sql_text = ui_enter_sql_text.clone();
+        let active_database = active_database.clone();
+        Callback::from(move |_| {
+            let active_database = active_database.clone();
+            if active_database.is_some() {
+                let db_name = active_database.as_ref().unwrap().clone();
+                let text = ui_enter_sql_text
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .value();
+                write(
+                    db_name.to_string(),
+                    text,
+                    state.clone(),
+                    WRITE_SQL_AT_PARTICIPANT,
+                )
+            }
+        })
+    };
+
+    let onclick_coop_write_at_host = {
+        let state = state.clone();
+        let ui_enter_sql_text = ui_enter_sql_text.clone();
+        let active_database = active_database.clone();
+        Callback::from(move |_| {
+            let active_database = active_database.clone();
+            if active_database.is_some() {
+                let alias = active_participant.as_ref().unwrap().clone();
+
+                let db_name = active_database.as_ref().unwrap().clone();
+                let text = ui_enter_sql_text
+                    .cast::<HtmlInputElement>()
+                    .unwrap()
+                    .value();
+                cooperative_write(
+                    db_name.to_string(),
+                    text,
+                    alias,
+                    state.clone(),
+                    COOPERATIVE_WRITE_SQL_AT_HOST,
+                )
             }
         })
     };
@@ -142,22 +233,10 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
             <p>{"The following commands denote if you wish to execute your SQL action (read or write) against the specified type of database (host or partial). To write data to a participant, use Cooperative Write."}</p>
             </p>
             <input class="button" type="button" id="read_at_host" value="Execute Read On Host Db" onclick={&onclick_read_at_host}/>
-                // <input class="button" type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={link.callback(|_|
-                // {
-                //     AppMessage::Sql_HttpRequest(ExecuteSQLIntent::ReadAtPart)
-                // })}/>
-                // <input  class="button"  type="button" id="write_at_host" value="Execute Write On Host Db" onclick={link.callback(|_|
-                // {
-                //     AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtHost)
-                // })}/>
-                // <input class="button" type="button" id="write_at_part" value="Execute Write On Part Db" onclick={link.callback(|_|
-                // {
-                //     AppMessage::Sql_HttpRequest(ExecuteSQLIntent::WriteAtPart)
-                // })}/>
-                // <input class="button"  type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={link.callback(|_|
-                //     {
-                //         AppMessage::Sql_HttpRequest(ExecuteSQLIntent::CoopWriteAtHost)
-                //     })}/>
+            <input class="button" type="button" id="read_at_part" value="Execute Read On Partial Db" onclick={&onclick_read_at_part}/>
+            <input  class="button"  type="button" id="write_at_host" value="Execute Write On Host Db" onclick={&onclick_write_at_host}/>
+            <input class="button" type="button" id="write_at_part" value="Execute Write On Part Db" onclick={&onclick_write_at_part}/>
+            <input class="button"  type="button" id="coop_write_at_part" value="Execute Coop Write On Host Db" onclick={&onclick_coop_write_at_host}/>
             </div>
         </div>
     }
