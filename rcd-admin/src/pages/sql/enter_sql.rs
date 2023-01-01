@@ -243,7 +243,7 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
                     <span class="mdi mdi-database-outline">{" Write At Partial"}</span>
                 </button>
                 <button class="button is-warning" type="button" id="coop_write_at_part" value="Cooperative Write On Host Db" onclick={&onclick_coop_write_at_host}>
-                    <span class="mdi mdi-database-export"></span><span class="mdi mdi-database-import-outline"></span>{" Cooperative Write At Host"}
+                    <span class="mdi mdi-database-export-outline"></span><span class="mdi mdi-database-import"></span>{" Cooperative Write At Host"}
                 </button>
             </div>
         </div>
