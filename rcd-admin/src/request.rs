@@ -2,13 +2,14 @@ use gloo::{
     net::http::{Method, Request},
     storage::{SessionStorage, Storage},
 };
-use rcd_messages::client::DatabaseSchema;
+use rcd_messages::client::{DatabaseSchema, ParticipantStatus};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
 use crate::{token::Token, log::log_to_console};
 
 const KEY: &str = "rcdadmin.key.instance";
 const DATABASES: &str = "rcdadmin.key.databases";
+const PARTICIPANTS: &str = "rcdadmin.key.participants";
 
 /// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON
 pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
@@ -54,4 +55,17 @@ pub fn get_databases() -> Vec<DatabaseSchema> {
     let databases = SessionStorage::get(DATABASES).unwrap_or_else(|_| String::from(""));
     let databases: Vec<DatabaseSchema> = serde_json::from_str(&databases).unwrap();
     return databases;
+}
+
+/// Saves the RCD databases Participants to Session Storage
+pub fn set_participants(participants: Vec<ParticipantStatus>) {
+    let participants_json = serde_json::to_string(&participants).unwrap();
+    SessionStorage::set(PARTICIPANTS, participants_json).expect("failed to set");
+}
+
+/// Gets the RCD databases Participants to Session Storage
+pub fn get_participants() -> Vec<ParticipantStatus> {
+    let participants = SessionStorage::get(PARTICIPANTS).unwrap_or_else(|_| String::from(""));
+    let participants: Vec<ParticipantStatus> = serde_json::from_str(&participants).unwrap();
+    return participants;
 }

@@ -1,13 +1,14 @@
 use crate::{
     pages::sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
-    request::get_databases,
+    request::{self, get_databases, get_token},
 };
 use rcd_http_common::url::client::{
-    COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
-    WRITE_SQL_AT_PARTICIPANT,
+    COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
+    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
+use rcd_messages::client::{GetParticipantsReply, GetParticipantsRequest};
 use web_sys::HtmlInputElement;
-use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
+use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
 pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
@@ -15,7 +16,11 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
     let databases = get_databases();
 
     let mut database_names: Vec<String> = Vec::new();
-    let participant_aliases: Vec<String> = Vec::new();
+
+    let participant_aliases = use_state_eq(move || {
+        let list: Vec<String> = Vec::new();
+        Some(list)
+    });
 
     for database in &databases {
         database_names.push(database.database_name.clone());
@@ -36,19 +41,53 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
     let onchange_db = {
         let active_database = active_database.clone();
         let ui_active_database = ui_active_database.clone();
+        let participant_aliases = participant_aliases.clone();
 
         Callback::from(move |_| {
+            let participant_aliases = participant_aliases.clone();
             let active_database = active_database.clone();
             let ui_active_database = ui_active_database.clone();
 
             let selected_db = ui_active_database.cast::<HtmlInputElement>();
 
             if selected_db.is_some() {
+                let participant_aliases = participant_aliases.clone();
+
                 let selected_db_val = ui_active_database
                     .cast::<HtmlInputElement>()
                     .unwrap()
                     .value();
-                active_database.set(Some(selected_db_val));
+                active_database.set(Some(selected_db_val.clone()));
+
+                let token = get_token();
+                let auth = token.auth().clone();
+
+                let get_participants_request = GetParticipantsRequest {
+                    authentication: Some(auth),
+                    database_name: selected_db_val.clone(),
+                };
+
+                let request_json = serde_json::to_string(&get_participants_request).unwrap();
+                let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
+
+                let cb = Callback::from(move |response: AttrValue| {
+                    let participant_aliases = participant_aliases.clone();
+                    let reply: GetParticipantsReply =
+                        serde_json::from_str(&&response.to_string()).unwrap();
+
+                    if reply.authentication_result.unwrap().is_authenticated {
+                        let participants = reply.participants.clone();
+
+                        let mut aliases: Vec<String> = Vec::new();
+                        for p in &participants {
+                            aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                        }
+
+                        participant_aliases.set(Some(aliases));
+                    }
+                });
+
+                request::get_data(url, request_json, cb);
             }
         })
     };
@@ -218,7 +257,7 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
                     >
                     <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
                     {
-                        participant_aliases.clone().into_iter().map(|name| {
+                        (*participant_aliases).as_ref().unwrap().clone().into_iter().map(|name| {
                             // console::log_1(&name.clone().into());
                             html!{
                             <option value={name.clone()}>{name.clone()}</option>}
