@@ -1,5 +1,9 @@
 use crate::{
-    pages::sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
+    log::log_to_console,
+    pages::{
+        common::select_database::SelectDatabase,
+        sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
+    },
     request::{self, get_databases, get_token},
 };
 use rcd_http_common::url::client::{
@@ -11,10 +15,9 @@ use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
-pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
-    let state = state.clone();
+pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
+    let sql_result_state = sql_result_state.clone();
     let databases = get_databases();
-
     let mut database_names: Vec<String> = Vec::new();
 
     let participant_aliases = use_state_eq(move || {
@@ -26,11 +29,8 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
         database_names.push(database.database_name.clone());
     }
 
-    let active_database = use_state_eq(move || None);
+    let active_database = use_state_eq(move || String::from(""));
     let active_participant = use_state_eq(move || None);
-
-    // drop-down
-    let ui_active_database = use_node_ref();
 
     // text-box
     let ui_enter_sql_text = use_node_ref();
@@ -38,39 +38,26 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
     // drop-down
     let ui_active_participant = use_node_ref();
 
-    let onchange_db = {
-        let active_database = active_database.clone();
-        let ui_active_database = ui_active_database.clone();
+    let onclick_db = {
         let participant_aliases = participant_aliases.clone();
-
-        Callback::from(move |_| {
-            let participant_aliases = participant_aliases.clone();
-            let active_database = active_database.clone();
-            let ui_active_database = ui_active_database.clone();
-
-            let selected_db = ui_active_database.cast::<HtmlInputElement>();
-
-            if selected_db.is_some() {
+        Callback::from(move |db_name: String| {
+            if db_name.to_string() == "" || db_name.to_string() == "SELECT DATABASE" {
+                ()
+            } else {
                 let participant_aliases = participant_aliases.clone();
-
-                let selected_db_val = ui_active_database
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                active_database.set(Some(selected_db_val.clone()));
-
                 let token = get_token();
                 let auth = token.auth().clone();
 
                 let get_participants_request = GetParticipantsRequest {
                     authentication: Some(auth),
-                    database_name: selected_db_val.clone(),
+                    database_name: db_name.clone().to_string(),
                 };
 
                 let request_json = serde_json::to_string(&get_participants_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
                 let cb = Callback::from(move |response: AttrValue| {
+                    log_to_console(response.clone().to_string());
                     let participant_aliases = participant_aliases.clone();
                     let reply: GetParticipantsReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
@@ -86,6 +73,9 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
                         participant_aliases.set(Some(aliases));
                     }
                 });
+
+                let message = format!("{}{}", "sending participant request for: ", db_name.clone());
+                log_to_console(message);
 
                 request::get_data(url, request_json, cb);
             }
@@ -111,105 +101,104 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
     };
 
     let onclick_read_at_host = {
-        let state = state.clone();
+        let sql_result_state = sql_result_state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            if active_database.is_some() {
-                let db_name = active_database.as_ref().unwrap().clone();
-                let text = ui_enter_sql_text
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                read(db_name.to_string(), text, state.clone(), READ_SQL_AT_HOST)
-            }
+            let db_name = active_database.clone();
+            let text = ui_enter_sql_text
+                .cast::<HtmlInputElement>()
+                .unwrap()
+                .value();
+            read(
+                db_name.to_string(),
+                text,
+                sql_result_state.clone(),
+                READ_SQL_AT_HOST,
+            )
         })
     };
 
     let onclick_read_at_part = {
-        let state = state.clone();
+        let sql_result_state = sql_result_state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            if active_database.is_some() {
-                let db_name = active_database.as_ref().unwrap().clone();
-                let text = ui_enter_sql_text
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                read(
-                    db_name.to_string(),
-                    text,
-                    state.clone(),
-                    READ_SQL_AT_PARTICIPANT,
-                )
-            }
+            let db_name = active_database.clone();
+            let text = ui_enter_sql_text
+                .cast::<HtmlInputElement>()
+                .unwrap()
+                .value();
+            read(
+                db_name.to_string(),
+                text,
+                sql_result_state.clone(),
+                READ_SQL_AT_PARTICIPANT,
+            )
         })
     };
 
     let onclick_write_at_host = {
-        let state = state.clone();
+        let sql_result_state = sql_result_state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            if active_database.is_some() {
-                let db_name = active_database.as_ref().unwrap().clone();
-                let text = ui_enter_sql_text
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                write(db_name.to_string(), text, state.clone(), WRITE_SQL_AT_HOST)
-            }
+            let text = ui_enter_sql_text
+                .cast::<HtmlInputElement>()
+                .unwrap()
+                .value();
+            write(
+                active_database.to_string(),
+                text,
+                sql_result_state.clone(),
+                WRITE_SQL_AT_HOST,
+            )
         })
     };
 
     let onclick_write_at_part = {
-        let state = state.clone();
+        let sql_result_state = sql_result_state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            if active_database.is_some() {
-                let db_name = active_database.as_ref().unwrap().clone();
-                let text = ui_enter_sql_text
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                write(
-                    db_name.to_string(),
-                    text,
-                    state.clone(),
-                    WRITE_SQL_AT_PARTICIPANT,
-                )
-            }
+            let text = ui_enter_sql_text
+                .cast::<HtmlInputElement>()
+                .unwrap()
+                .value();
+            write(
+                active_database.to_string(),
+                text,
+                sql_result_state.clone(),
+                WRITE_SQL_AT_PARTICIPANT,
+            )
         })
     };
 
     let onclick_coop_write_at_host = {
-        let state = state.clone();
+        let sql_result_state = sql_result_state.clone();
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            if active_database.is_some() {
-                let alias = active_participant.as_ref().unwrap().clone();
 
-                let db_name = active_database.as_ref().unwrap().clone();
-                let text = ui_enter_sql_text
-                    .cast::<HtmlInputElement>()
-                    .unwrap()
-                    .value();
-                cooperative_write(
-                    db_name.to_string(),
-                    text,
-                    alias,
-                    state.clone(),
-                    COOPERATIVE_WRITE_SQL_AT_HOST,
-                )
-            }
+            let alias = active_participant.as_ref().unwrap().clone();
+
+            let db_name = active_database.clone();
+            let text = ui_enter_sql_text
+                .cast::<HtmlInputElement>()
+                .unwrap()
+                .value();
+            cooperative_write(
+                db_name.to_string(),
+                text,
+                alias,
+                sql_result_state.clone(),
+                COOPERATIVE_WRITE_SQL_AT_HOST,
+            )
         })
     };
 
@@ -218,25 +207,7 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
             <h1 class="subtitle"> {"Execute SQL"} </h1>
                 <p>
                     <p><label for="execute_sql_dbs">{ "Select Database " }</label></p>
-                    <p>
-                        <div class="select is-multiple">
-                            <select
-                                name="execute_sql_dbs"
-                                id="execute_sql_dbs"
-                                ref={&ui_active_database}
-                                onchange={onchange_db}
-                            >
-                            <option value="SELECT DATABASE">{"SELECT DATABASE"}</option>
-                            {
-                                database_names.into_iter().map(|name| {
-                                    // console::log_1(&name.clone().into());
-                                    html!{
-                                    <option value={name.clone()}>{name.clone()}</option>}
-                                }).collect::<Html>()
-                            }
-                            </select>
-                        </div>
-                    </p>
+                    <p>< SelectDatabase active_db_name={active_database} onclick_db={onclick_db}/></p>
                 </p>
             <p><label for="execute_sql">{ "Enter SQL" }</label></p>
             <p>
@@ -282,7 +253,7 @@ pub fn EnterSql(SqlProps { state }: &SqlProps) -> Html {
                     <span class="mdi mdi-database-outline">{" Write At Partial"}</span>
                 </button>
                 <button class="button is-warning" type="button" id="coop_write_at_part" value="Cooperative Write On Host Db" onclick={&onclick_coop_write_at_host}>
-                    <span class="mdi mdi-database-export-outline"></span><span class="mdi mdi-database-import"></span>{" Cooperative Write At Host"}
+                    <span class="mdi mdi-database-export"></span><span class="mdi mdi-database-import-outline"></span>{" Cooperative Write At Host"}
                 </button>
             </div>
         </div>

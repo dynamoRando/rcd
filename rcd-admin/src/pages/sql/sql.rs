@@ -3,7 +3,7 @@ use yew::{function_component, html, use_state_eq, Html, Properties, UseStateHand
 
 #[derive(Properties, PartialEq)]
 pub struct SqlProps {
-    pub state: UseStateHandle<Option<String>>,
+    pub sql_result_state: UseStateHandle<Option<String>>,
 }
 
 #[function_component]
@@ -13,8 +13,8 @@ pub fn Sql() -> Html {
         <div>
             <div class="container">
                 <div class="box">
-                    < EnterSql state={result_state.clone()}/>
-                    < SqlResult state={result_state.clone()}/>
+                    < EnterSql sql_result_state={result_state.clone()}/>
+                    < SqlResult sql_result_state={result_state.clone()}/>
                 </div>
             </div>
         </div>

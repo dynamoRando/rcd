@@ -7,3 +7,4 @@ pub mod hosts;
 pub mod participants;
 pub mod behaviors; 
 pub mod coop_hosts;
+pub mod common;

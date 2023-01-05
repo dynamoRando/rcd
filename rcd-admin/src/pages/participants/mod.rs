@@ -1,17 +1,25 @@
-use yew::{function_component, Html, html};
+use yew::{function_component, html, use_state_eq, Html, Properties, UseStateHandle};
 
-use crate::pages::participants::view::ViewParticipants;
+use crate::pages::participants::{add::AddParticipant, view::ViewParticipants};
 
-pub mod view; 
 pub mod add;
+pub mod view;
+
+#[derive(Properties, PartialEq)]
+pub struct ActiveDbProps {
+    pub active_db: UseStateHandle<String>,
+}
 
 #[function_component]
 pub fn Participants() -> Html {
+    let active_db = use_state_eq(move || String::from(""));
+
     html! {
         <div>
             <div class="container">
                 <div class="box">
-                    < ViewParticipants />
+                    < ViewParticipants active_db={active_db.clone()}/>
+                    < AddParticipant active_db={active_db.clone()}/>
                 </div>
             </div>
         </div>

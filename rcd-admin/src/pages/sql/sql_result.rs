@@ -3,12 +3,12 @@ use yew::{function_component, html, Html};
 
 #[allow(unused_variables)]
 #[function_component]
-pub fn SqlResult(SqlProps { state }: &SqlProps) -> Html {
+pub fn SqlResult(SqlProps { sql_result_state }: &SqlProps) -> Html {
     let mut text = String::from("");
 
-    if state.is_some() {
-        let state = state.as_ref().clone();
-        text = state.unwrap().clone();
+    if sql_result_state.is_some() {
+        let sql_result_state = sql_result_state.as_ref().clone();
+        text = sql_result_state.unwrap().clone();
     }
 
     html! {
