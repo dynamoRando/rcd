@@ -1,7 +1,6 @@
 use crate::pages::sql::sql::SqlProps;
 use yew::{function_component, html, Html};
 
-#[allow(unused_variables)]
 #[function_component]
 pub fn SqlResult(SqlProps { sql_result_state }: &SqlProps) -> Html {
     let mut text = String::from("");
