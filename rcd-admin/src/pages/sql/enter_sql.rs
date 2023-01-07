@@ -4,7 +4,7 @@ use crate::{
         common::select_database::SelectDatabase,
         sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
     },
-    request::{self, get_databases, get_token},
+    request::{self, get_databases, get_token, update_token_login_status},
 };
 use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
@@ -62,7 +62,10 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                     let reply: GetParticipantsReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
 
-                    if reply.authentication_result.unwrap().is_authenticated {
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         let participants = reply.participants.clone();
 
                         let mut aliases: Vec<String> = Vec::new();

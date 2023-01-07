@@ -1,7 +1,7 @@
 use crate::{
     log::log_to_console,
     pages::databases::columns::ColumnProps,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 use rcd_http_common::url::client::SET_POLICY;
 use rcd_messages::client::{SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};
@@ -60,7 +60,10 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                     let reply: SetLogicalStoragePolicyReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
 
-                    if reply.authentication_result.unwrap().is_authenticated {
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         set_policy_result.set(Some(reply.is_successful));
                     }
                 });

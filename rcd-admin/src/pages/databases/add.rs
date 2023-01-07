@@ -7,7 +7,7 @@ use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callb
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 #[function_component]
@@ -40,7 +40,11 @@ pub fn Create() -> Html {
 
                     let reply: CreateUserDatabaseReply =
                         serde_json::from_str(&response.to_string()).unwrap();
-                    if reply.authentication_result.unwrap().is_authenticated {
+
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         last_created_result.set(reply.is_created.to_string());
                     }
                 })

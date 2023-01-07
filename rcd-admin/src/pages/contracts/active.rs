@@ -8,7 +8,7 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 #[function_component]
@@ -41,7 +41,10 @@ pub fn Active() -> Html {
                     let reply: GetActiveContractReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
 
-                    if reply.authentication_result.unwrap().is_authenticated {
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         let contract = reply.contract.unwrap();
                         let contract_text =
                             formatter::markdown::contract::contract_to_markdown_table(&contract);

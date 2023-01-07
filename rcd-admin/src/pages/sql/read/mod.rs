@@ -6,7 +6,7 @@ use yew::{AttrValue, Callback, UseStateHandle};
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>, endpoint: &str) {
@@ -29,7 +29,10 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
 
         let read_reply: ExecuteReadReply = serde_json::from_str(&response.to_string()).unwrap();
 
-        if read_reply.authentication_result.unwrap().is_authenticated {
+        let is_authenticated = read_reply.authentication_result.as_ref().unwrap().is_authenticated;
+        update_token_login_status(is_authenticated);
+
+        if is_authenticated {
             let result = read_reply.results.first().unwrap();
             if !result.is_error {
                 let rows = result.clone().rows;

@@ -6,7 +6,7 @@ use yew::{AttrValue, Callback, UseStateHandle};
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>>, endpoint: &str) {
@@ -30,7 +30,10 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
 
         let write_reply: ExecuteWriteReply = serde_json::from_str(&response.to_string()).unwrap();
 
-        if write_reply.authentication_result.unwrap().is_authenticated {
+        let is_authenticated = write_reply.authentication_result.as_ref().unwrap().is_authenticated;
+        update_token_login_status(is_authenticated);
+
+        if is_authenticated {
             let mut result_message = String::new();
 
             result_message = result_message

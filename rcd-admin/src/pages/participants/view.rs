@@ -8,7 +8,7 @@ use yew::{
 use crate::{
     log::log_to_console,
     pages::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -50,7 +50,10 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                     let reply: GetParticipantsReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
 
-                    if reply.authentication_result.unwrap().is_authenticated {
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         participant_details.set(reply.participants.clone());
                     }
                 });

@@ -6,7 +6,7 @@ use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::{
-    request::{self, get_token, set_databases, set_token},
+    request::{self, get_token, set_databases, set_token, update_token_login_status},
     token::Token,
 };
 
@@ -192,9 +192,12 @@ fn databases(database_names: UseStateHandle<Vec<String>>) {
         let database_names = database_names.clone();
 
         let db_response: GetDatabasesReply = serde_json::from_str(&response.to_string()).unwrap();
-        if db_response.authentication_result.unwrap().is_authenticated {
-            let databases = db_response.databases.clone();
 
+        let is_authenticated = db_response.authentication_result.as_ref().unwrap().is_authenticated;
+        update_token_login_status(is_authenticated);
+
+        if is_authenticated {
+            let databases = db_response.databases.clone();
             set_databases(databases.clone());
 
             let mut db_names: Vec<String> = Vec::new();

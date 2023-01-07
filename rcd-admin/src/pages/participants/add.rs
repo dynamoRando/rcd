@@ -4,7 +4,7 @@ use rcd_messages::client::{AddParticipantRequest, AddParticipantReply};
 use web_sys::HtmlInputElement;
 use yew::{function_component, Html, html, use_node_ref, Callback, use_state_eq, AttrValue};
 
-use crate::{pages::participants::ActiveDbProps, request::{get_token, self}, log::log_to_console};
+use crate::{pages::participants::ActiveDbProps, request::{get_token, self, update_token_login_status}, log::log_to_console};
 
 
 #[function_component]
@@ -60,7 +60,10 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
                 let reply: AddParticipantReply = serde_json::from_str(&&response.to_string()).unwrap();
 
-                if reply.authentication_result.unwrap().is_authenticated {
+                let is_authenticated =  reply.authentication_result.as_ref().unwrap().is_authenticated;
+                update_token_login_status(is_authenticated);
+
+                if is_authenticated {
                     let now = Date::new(&Date::new_0());
                     let now = Date::to_iso_string(&now);
 

@@ -6,7 +6,7 @@ use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callb
 use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
-    request::{self, get_token},
+    request::{self, get_token, update_token_login_status},
 };
 
 #[function_component]
@@ -56,7 +56,10 @@ pub fn Generate() -> Html {
 
                     let reply: GenerateContractReply = serde_json::from_str(&response).unwrap();
 
-                    if reply.authentication_result.unwrap().is_authenticated {
+                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
                         let is_successful = reply.is_successful;
                         last_generate_result.set(is_successful.to_string());
                     }
