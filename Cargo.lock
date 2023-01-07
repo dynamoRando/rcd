@@ -2310,6 +2310,7 @@ dependencies = [
 name = "rcd-admin"
 version = "0.1.0"
 dependencies = [
+ "futures-util",
  "gloo",
  "js-sys",
  "rcd-http-common",

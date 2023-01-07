@@ -111,9 +111,14 @@ pub fn Connect() -> Html {
                     <label for="pw">{ "Pw" }</label>
                     <input type="text" class="input"  id="pw" placeholder="123456" ref={&ui_pw} />
 
-                    <button type="button" class="button is-primary" id="submit" value="Connect" {onclick}>
-                        <span class="mdi mdi-connection">{" Connect"}</span>
-                    </button>
+                    <div class="buttons">
+                        <button type="button" class="button is-primary" id="submit" value="Connect" {onclick}>
+                            <span class="mdi mdi-lan-connect">{" Connect"}</span>
+                        </button>
+                        <button type="button" class="button is-danger" id="disconnect" value="Disconnect">
+                            <span class="mdi mdi-lan-disconnect">{" Disconnect"}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -160,6 +165,7 @@ fn save_token(addr: String, auth_json: String) {
                 jwt: jwt,
                 jwt_exp: response.expiration_utc.clone(),
                 addr: addr.clone(),
+                is_logged_in: true
             };
 
             set_token(token);

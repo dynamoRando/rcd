@@ -10,6 +10,8 @@ pub struct Token {
     pub jwt_exp: String,
     /// The HTTP addr of the RCD instance the token is for
     pub addr: String,
+    /// if we are logged in or not
+    pub is_logged_in: bool,
 }
 
 impl Token {
@@ -17,7 +19,8 @@ impl Token {
         return Token {
             jwt: "".to_string(),
             jwt_exp: "".to_string(),
-            addr: "".to_string()
+            addr: "".to_string(),
+            is_logged_in: false,
         }
     }
 

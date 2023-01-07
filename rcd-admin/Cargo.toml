@@ -21,6 +21,7 @@ reqwasm = "0.5"
 yew-router = "0.17"
 serde_path_to_error = "0.1"
 js-sys = "0.3"
+futures-util = "0.3"
 
 
 [dependencies.web-sys]

@@ -5,7 +5,7 @@ use gloo::{
 use rcd_messages::client::{DatabaseSchema, ParticipantStatus};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
-use crate::{token::Token, log::log_to_console};
+use crate::{log::log_to_console, token::Token};
 
 const KEY: &str = "rcdadmin.key.instance";
 const DATABASES: &str = "rcdadmin.key.databases";
@@ -40,8 +40,13 @@ pub fn set_token(token: Token) {
 /// Gets the JWT from Session Storage
 pub fn get_token() -> Token {
     let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
-    let token: Token = serde_json::from_str(&token.to_string()).unwrap();
-    return token;
+    if token == "" {
+        let token = Token::new();
+        return token;
+    } else {
+        let token: Token = serde_json::from_str(&token.to_string()).unwrap();
+        return token;
+    }
 }
 
 /// Saves the RCD instance's Database Schemas to Session Storage
@@ -68,4 +73,11 @@ pub fn get_participants() -> Vec<ParticipantStatus> {
     let participants = SessionStorage::get(PARTICIPANTS).unwrap_or_else(|_| String::from(""));
     let participants: Vec<ParticipantStatus> = serde_json::from_str(&participants).unwrap();
     return participants;
+}
+
+/// updates our status on if we're logged in or not
+pub fn update_token_login_status(is_logged_in: bool) {
+    let mut token = get_token();
+    token.is_logged_in = is_logged_in;
+    set_token(token);
 }

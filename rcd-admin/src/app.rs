@@ -1,10 +1,14 @@
 use std::collections::HashMap;
 
+use futures_util::{future::ready, stream::StreamExt};
+use gloo::timers::future::IntervalStream;
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
 use crate::components::nav::Nav;
+use crate::components::status::Status;
 use crate::pages::behaviors::Behaviors;
 use crate::pages::contracts::Contracts;
 use crate::pages::coop_hosts::CooperativeHosts;
@@ -14,6 +18,7 @@ use crate::pages::hosts::Hosts;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::participants::Participants;
 use crate::pages::sql::sql::Sql;
+use crate::request::get_token;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -38,12 +43,29 @@ pub enum Route {
     NotFound,
 }
 
+fn check_and_set_login_status(is_logged_in_state: UseStateHandle<bool>) {
+    let is_logged_in = get_token().is_logged_in;
+    is_logged_in_state.set(is_logged_in);
+}
+
 #[function_component]
 pub fn App() -> Html {
+    let is_logged_in_state = use_state(move || false);
+    let login_state = is_logged_in_state.clone();
+
+    spawn_local(async move {
+        IntervalStream::new(1_000)
+            .for_each(|_| {
+                check_and_set_login_status(login_state.clone());
+                ready(())
+            })
+            .await;
+    });
+
     html! {
         <BrowserRouter>
             <Nav />
-
+            <Status is_logged_in={is_logged_in_state}/>
             <main>
                 <Switch<Route> render={switch} />
             </main>
@@ -98,27 +120,27 @@ fn switch(routes: Route) -> Html {
         }
         Route::Databases => {
             html! { <Databases /> }
-        },
+        }
         Route::Sql => {
             html! { <Sql /> }
-        },
+        }
         Route::NotFound => {
             html! { <PageNotFound /> }
-        },
+        }
         Route::Contracts => {
             html! { <Contracts /> }
-        },
+        }
         Route::Hosts => {
             html! { <Hosts /> }
-        },
+        }
         Route::Participants => {
             html! { <Participants /> }
-        },
+        }
         Route::Behaviors => {
             html! { <Behaviors /> }
-        },
+        }
         Route::CooperativeHosts => {
             html! { <CooperativeHosts /> }
-        },
+        }
     }
 }
