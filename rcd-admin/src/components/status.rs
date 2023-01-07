@@ -20,7 +20,7 @@ pub fn Status(props: &StatusProps) -> Html {
                         {
                             if *is_logged_in_state {
                                 html! {
-                                    <button class="button is-info">
+                                    <button class="button is-success">
                                         <span class="mdi mdi-account-check">{" Logged In"}</span>
                                     </button>
                                 }
