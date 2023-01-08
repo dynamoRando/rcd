@@ -1,13 +1,13 @@
-use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_DATABASES};
+use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_DATABASES, REVOKE_TOKEN};
 use rcd_messages::client::{
-    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TokenReply,
+    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, TokenReply, RevokeReply,
 };
 use web_sys::{console, HtmlInputElement};
 use yew::prelude::*;
 
 use crate::{
-    request::{self, get_token, set_databases, set_token, update_token_login_status},
-    token::Token,
+    request::{self, get_token, set_databases, set_token, update_token_login_status, set_participants},
+    token::Token, log::log_to_console,
 };
 
 #[function_component]
@@ -43,6 +43,27 @@ pub fn Connect() -> Html {
         let databases: Vec<String> = Vec::new();
         return databases;
     });
+
+    let onclick_logout = {
+        Callback::from(move |_| {
+            let token = get_token();
+            let request = serde_json::to_string(&token.auth()).unwrap();
+            let url = format!("{}{}", token.addr, REVOKE_TOKEN);
+
+            let cb = Callback::from(move |response: AttrValue| {
+                log_to_console(response.clone().to_string());
+                let reply: RevokeReply = serde_json::from_str(&response.to_string()).unwrap();
+                if reply.is_successful {
+                    let token = Token::new();
+                    set_token(token);
+                    set_databases(Vec::new());
+                    set_participants(Vec::new());
+                }
+            });
+
+            request::get_data(url, request, cb)
+        })
+    };
 
     let onclick = {
         
@@ -115,7 +136,7 @@ pub fn Connect() -> Html {
                         <button type="button" class="button is-primary" id="submit" value="Connect" {onclick}>
                             <span class="mdi mdi-lan-connect">{" Connect"}</span>
                         </button>
-                        <button type="button" class="button is-danger" id="disconnect" value="Disconnect">
+                        <button type="button" class="button is-danger" id="disconnect" value="Disconnect" onclick={onclick_logout}>
                             <span class="mdi mdi-lan-disconnect">{" Disconnect"}</span>
                         </button>
                     </div>
