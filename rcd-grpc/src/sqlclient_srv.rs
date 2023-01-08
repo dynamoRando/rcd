@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn revoke_token(
+        &self,
+        request: Request<AuthRequest>,
+    ) -> Result<Response<RevokeReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self.core().revoke_token(request.into_inner()).await;
+        Ok(Response::new(response))
+    }
+
     async fn auth_for_token(
         &self,
         request: Request<AuthRequest>,

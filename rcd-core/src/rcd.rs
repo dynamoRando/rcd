@@ -30,7 +30,7 @@ use rcdproto::rcdp::{
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
     TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest,
+    ViewPendingContractsRequest, RevokeReply,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -50,6 +50,10 @@ pub struct Rcd {
 }
 
 impl Rcd {
+    pub async fn revoke_token(&self, request: AuthRequest) -> RevokeReply {
+        return auth::revoke_token(self, request).await;
+    }
+
     pub async fn auth_for_token(&self, request: AuthRequest) -> TokenReply {
         return auth::auth_for_token(self, request).await;
     }

@@ -8,7 +8,7 @@ use rcd_http_common::url::client::{
     GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
     GET_ROW_AT_PARTICIPANT, HAS_TABLE, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST,
     READ_SQL_AT_PARTICIPANT, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT,
-    VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
+    VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT, REVOKE_TOKEN,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
@@ -30,7 +30,7 @@ use rcdproto::rcdp::{
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
     TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
-    ViewPendingContractsReply, ViewPendingContractsRequest,
+    ViewPendingContractsReply, ViewPendingContractsRequest, RevokeReply,
 };
 
 use rcd_common::rcd_enum::{
@@ -297,6 +297,40 @@ impl RcdClient {
             }
         }
     }
+
+    pub async fn revoke_token(self: &mut Self) -> Result<RevokeReply, Box<dyn Error>> {
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .revoke_token(auth)
+                    .await
+                    .unwrap()
+                    .into_inner();
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let url = self.get_http_url(REVOKE_TOKEN);
+                let request_json = serde_json::to_string(&auth).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: RevokeReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
+    }
+
 
     pub async fn auth_for_token(self: &mut Self) -> Result<TokenReply, Box<dyn Error>> {
         match self.client_type {

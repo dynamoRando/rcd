@@ -39,6 +39,11 @@ service SQLClient {
 	rpc GetParticipants(GetParticipantsRequest) returns (GetParticipantsReply);
 	rpc GetActiveContract(GetActiveContractRequest) returns (GetActiveContractReply);
 	rpc AuthForToken (AuthRequest) returns (TokenReply);
+	rpc RevokeToken (AuthRequest) returns (RevokeReply);
+}
+
+message RevokeReply {
+	bool isSuccessful = 1;
 }
 
 message TokenReply {

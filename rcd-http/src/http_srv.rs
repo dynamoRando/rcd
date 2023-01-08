@@ -128,6 +128,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::change_host_status_name,
                 client::try_auth_at_participant,
                 client::auth_for_token,
+                client::revoke_token,
                 client::database::new_database,
                 client::database::has_table,
                 client::database::post_get_databases,

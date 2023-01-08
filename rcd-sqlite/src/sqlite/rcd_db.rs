@@ -51,6 +51,12 @@ pub fn login_has_token(login: &str, config: &DbiConfigSqlite) -> bool {
     return has_any_rows(cmd, &conn);
 }
 
+pub fn revoke_token(token: &str, config: &DbiConfigSqlite) -> bool {
+    let mut cmd = String::from("DELETE FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");
+    cmd = cmd.replace(":token", token);
+    return execute_write_on_connection(&config.rcd_db_name, &cmd, config) > 0
+}
+
 pub fn verify_token(token: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
     let mut cmd = String::from("SELECT COUNT(*) FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");

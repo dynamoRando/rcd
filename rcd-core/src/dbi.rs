@@ -72,6 +72,19 @@ impl Dbi {
         }
     }
 
+    pub fn revoke_token(&self, jwt: &str) -> bool {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return rcd_sqlite::sqlite::rcd_db::revoke_token(&jwt, &settings);
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn create_token_for_login(&self, login: &str) -> (String, DateTime<Utc>) {
         let host_info = self.rcd_get_host_info();
         let token_data = auth::create_jwt(&host_info.name, login);

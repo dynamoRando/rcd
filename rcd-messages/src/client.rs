@@ -1,4 +1,9 @@
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct RevokeReply {
+    pub is_successful: bool,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TokenReply {
     pub is_successful: bool,
     pub expiration_utc: String,
