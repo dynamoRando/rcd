@@ -1,6 +1,6 @@
 use yew::{function_component, Html, html};
 
-use crate::pages::contracts::{active::Active, generate::Generate, pending::Pending, accepted::Accepted};
+use crate::pages::contracts::{active::Active, generate::Generate, pending::Pending, accepted::Accepted, send::Send};
 
 /// view the active contract on a database
 pub mod active;
@@ -10,6 +10,8 @@ pub mod accepted;
 pub mod generate;
 /// view contracts that have been sent to you to approve or reject
 pub mod pending;
+/// send contract to a participant
+pub mod send; 
 
 #[function_component]
 pub fn Contracts() -> Html {
@@ -21,6 +23,7 @@ pub fn Contracts() -> Html {
                 < Accepted />
                 < Generate />
                 < Pending />
+                < Send />
                 </div>
             </div>
         </div>
