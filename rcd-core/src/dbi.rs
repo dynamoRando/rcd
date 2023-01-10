@@ -755,11 +755,12 @@ impl Dbi {
         }
     }
 
-    pub fn save_contract(self: &Self, contract: Contract) -> bool {
+    pub fn save_contract(self: &Self, contract: Contract) -> (bool, String) {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return sqlite::rcd_db::contract::save_contract(contract, &settings);
+                let result = sqlite::rcd_db::contract::save_contract(contract, &settings);
+                return result;
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

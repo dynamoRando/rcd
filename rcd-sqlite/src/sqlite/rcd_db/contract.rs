@@ -409,7 +409,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
 /// this means that we'll create a partial database with the contract's schema
 /// and also notify the host that we are willing to be a participant of the database.
 #[allow(dead_code, unused_variables)]
-pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
+pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, String) {
     let conn = get_rcd_conn(config);
 
     // println!("save_contract called with {:?}", contract);
@@ -419,10 +419,10 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> bool {
         save_contract_table_data(&contract, &conn);
         save_contract_table_schema_data(&contract, &conn);
         save_contract_host_data(&contract, &conn);
-        return true;
+        return (true, "".to_string());
     }
 
-    return false;
+    return (false, "Contract already exists".to_string());
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES

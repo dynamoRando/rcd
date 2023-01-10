@@ -1,5 +1,8 @@
-use rcd_http_common::url::client::GET_PARTICIPANTS;
-use rcd_messages::client::{GetParticipantsReply, GetParticipantsRequest, ParticipantStatus};
+use rcd_http_common::url::client::{GET_PARTICIPANTS, SEND_CONTRACT_TO_PARTICIPANT};
+use rcd_messages::client::{
+    GetParticipantsReply, GetParticipantsRequest, ParticipantStatus, SendParticipantContractReply,
+    SendParticipantContractRequest,
+};
 
 use yew::{
     function_component, html, use_state_eq, AttrValue, Callback, Html, Properties, UseStateHandle,
@@ -14,6 +17,7 @@ use crate::{
 #[derive(Properties, PartialEq)]
 pub struct ParticipantProps {
     pub participants: UseStateHandle<Vec<ParticipantStatus>>,
+    pub db_name: UseStateHandle<String>,
 }
 
 #[function_component]
@@ -50,7 +54,11 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                     let reply: GetParticipantsReply =
                         serde_json::from_str(&&response.to_string()).unwrap();
 
-                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                    let is_authenticated = reply
+                        .authentication_result
+                        .as_ref()
+                        .unwrap()
+                        .is_authenticated;
                     update_token_login_status(is_authenticated);
 
                     if is_authenticated {
@@ -68,16 +76,23 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
         <h1 class="subtitle"> {"View Participants"} </h1>
             <p>
                 <p><label for="execute_sql_dbs">{ "Select Database " }</label></p>
-                <p>< SelectDatabase active_db_name={active_db} onclick_db={onclick_db}/></p>
+                <p>< SelectDatabase active_db_name={active_db.clone()} onclick_db={onclick_db}/></p>
             </p>
-            < ViewParticipantsForDb participants={participant_details} />
+            < ViewParticipantsForDb participants={participant_details} db_name={active_db.clone()} />
         </div>
     }
 }
 
 #[function_component]
-pub fn ViewParticipantsForDb(ParticipantProps { participants }: &ParticipantProps) -> Html {
+pub fn ViewParticipantsForDb(
+    ParticipantProps {
+        participants,
+        db_name,
+    }: &ParticipantProps,
+) -> Html {
     let participants = participants.clone();
+    let database_name = (*db_name).clone().to_string();
+    let participant_send_contract_result = use_state_eq(move || String::from(""));
 
     html!(
         <div>
@@ -97,12 +112,14 @@ pub fn ViewParticipantsForDb(ParticipantProps { participants }: &ParticipantProp
                                 <th>{"HTTP Addr"}</th>
                                 <th>{"HTTP Port"}</th>
                                 <th>{"Contract Status"}</th>
+                                <th>{"Send Contract?"}</th>
                             </tr>
                         </thead>
                         {
                             (*participants).clone().into_iter().map(|p|{
                                 let participant = p.participant.as_ref().unwrap().clone();
                                 let status = get_contract_status_string(p.contract_status);
+                                let participant_send_contract_result = participant_send_contract_result.clone();
                                 html!{
                                     <tr>
                                         <td>{participant.participant_guid.clone()}</td>
@@ -114,12 +131,66 @@ pub fn ViewParticipantsForDb(ParticipantProps { participants }: &ParticipantProp
                                         <td>{participant.http_addr.clone()}</td>
                                         <td>{participant.http_port.to_string()}</td>
                                         <td>{status}</td>
+                                        <td><button class="button" onclick=
+                                        {
+                                            let database_name = database_name.clone();
+                                            let participant_send_contract_result = participant_send_contract_result.clone();
+                                            move |_| {
+                                                let participant_send_contract_result = participant_send_contract_result.clone();
+                                                let alias = participant.alias.clone();
+                                                let token = get_token().clone();
+
+                                                let request = SendParticipantContractRequest {
+                                                    authentication: Some(token.auth().clone()),
+                                                    database_name: database_name.clone(),
+                                                    participant_alias: alias.clone()
+                                                };
+
+                                                let json_request = serde_json::to_string(&request).unwrap();
+
+                                                log_to_console(json_request.clone());
+
+                                                let url = format!("{}{}", token.addr, SEND_CONTRACT_TO_PARTICIPANT);
+
+                                                log_to_console(url.clone());
+
+                                                let cb = Callback::from(move |response: AttrValue| {
+                                                    let participant_send_contract_result = participant_send_contract_result.clone();
+                                                    log_to_console(response.to_string());
+
+                                                    let reply: SendParticipantContractReply =
+                                                    serde_json::from_str(&&response.clone().to_string()).unwrap();
+
+                                                    let is_authenticated = reply.authentication_result.unwrap().is_authenticated;
+                                                    update_token_login_status(is_authenticated);
+
+                                                    if is_authenticated {
+                                                        if reply.is_sent {
+                                                            let message = format!("{}{}{}","Contract sent to
+                                                            participant ", alias.clone(), " is successful.");
+                                                            participant_send_contract_result.set(message);
+                                                        }
+                                                        else 
+                                                        {
+                                                            let message = format!("{}{}{}{}","Contract sent to
+                                                            participant ", alias.clone(), " is NOT successful. Reason: ", reply.message);
+                                                            participant_send_contract_result.set(message);
+                                                        }
+                                                    }
+                                                });
+
+                                                request::get_data(url, json_request.clone(), cb.clone())
+                                            }
+                                        }>{"Send Active Contract"}</button></td>
                                     </tr>
                                 }
                             }).collect::<Html>()
                         }
                     </table>
                     </div>
+                    <p><h1 class="subtitle">{"Send Participant Result"}</h1></p>
+                    <p>{(*participant_send_contract_result).clone()} </p>
+                    <p>{"Note: If you have already sent the same contract to a participant, by default the client will not re-save a contract for the same database with the same version id."}</p>
                 </p>
             </div>
         </div>

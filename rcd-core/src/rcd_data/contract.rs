@@ -44,8 +44,8 @@ pub async fn save_contract(core: &RcdData, request: SaveContractRequest) -> Save
     let save_is_successful = core.dbi().save_contract(contract);
 
     let result = SaveContractResult {
-        is_saved: save_is_successful,
-        error_message: String::from(""),
+        is_saved: save_is_successful.0,
+        error_message: save_is_successful.1.to_string(),
     };
 
     return result;

@@ -74,7 +74,7 @@ impl RcdRemoteDbClient {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> bool {
+    ) -> (bool, String) {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
             RcdCommunication::Grpc => {

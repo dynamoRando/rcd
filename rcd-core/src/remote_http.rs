@@ -394,7 +394,7 @@ impl RemoteHttp {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> bool {
+    ) -> (bool, String) {
         let message_info = get_message_info(&host_info, "".to_string());
 
         let contract = contract.to_cdata_contract(
@@ -439,7 +439,7 @@ impl RemoteHttp {
             .unwrap();
             */
 
-        return reply.is_saved;
+        return (reply.is_saved, reply.error_message.clone());
     }
 }
 
@@ -497,7 +497,7 @@ fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
         pw: String::from(""),
         pw_hash: Vec::new(),
         token: own_host_info.token.clone(),
-        jwt: String::from("")
+        jwt: String::from(""),
     };
 
     return auth;

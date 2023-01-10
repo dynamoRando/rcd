@@ -72,8 +72,8 @@ pub async fn send_participant_contract(
     let db_name = request.database_name;
     let participant_alias = request.participant_alias;
 
-    let reply_message = String::from("");
     let mut is_successful = false;
+    let mut error_message = String::from("");
 
     if auth_result.0 {
         if core.dbi().has_participant(&db_name, &participant_alias) {
@@ -84,17 +84,20 @@ pub async fn send_participant_contract(
             let active_contract = core.dbi().get_active_contract(&db_name);
             let db_schema = core.dbi().get_database_schema(&db_name);
             let host_info = core.dbi().rcd_get_host_info();
-            is_successful = core
+            let result = core
                 .remote()
                 .send_participant_contract(participant, host_info, active_contract, db_schema)
                 .await;
+
+            is_successful = result.0;
+            error_message = result.1;
         }
     };
 
     let send_participant_contract_reply = SendParticipantContractReply {
         authentication_result: Some(auth_result.1),
         is_sent: is_successful,
-        message: reply_message,
+        message: error_message,
     };
 
     return send_participant_contract_reply;

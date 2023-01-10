@@ -15,20 +15,21 @@ const PARTICIPANTS: &str = "rcdadmin.key.participants";
 pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
     let message = format!("{}{}", "outgoing message: ", body);
     log_to_console(message);
-
-    spawn_local(async move {
-        let http_response = Request::new(&url)
-            .method(Method::POST)
-            .header("Content-Type", "application/json")
-            .body(body)
-            .send()
-            .await
-            .unwrap()
-            .text()
-            .await
-            .unwrap();
-        callback.emit(AttrValue::from(http_response));
-    });
+    if body != "" {
+        spawn_local(async move {
+            let http_response = Request::new(&url)
+                .method(Method::POST)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .send()
+                .await
+                .unwrap()
+                .text()
+                .await
+                .unwrap();
+            callback.emit(AttrValue::from(http_response));
+        });
+    } 
 }
 
 /// Saves the JWT to Session Storage

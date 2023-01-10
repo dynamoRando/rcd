@@ -57,7 +57,7 @@ impl RemoteGrpc {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> bool {
+    ) -> (bool, String) {
         let message_info = get_message_info(&host_info, self.db_addr_port.clone());
 
         let contract = contract.to_cdata_contract(
@@ -83,7 +83,10 @@ impl RemoteGrpc {
         let client = get_client(participant, self.timeout_in_seconds);
         let response = client.await.save_contract(request).await.unwrap();
 
-        return response.into_inner().is_saved;
+        let is_saved = response.get_ref().is_saved;
+        let error_message = response.get_ref().error_message.clone();
+
+        return (is_saved, error_message);
     }
 
     pub async fn notify_host_of_removed_row(
