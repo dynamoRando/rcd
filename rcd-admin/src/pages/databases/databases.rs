@@ -1,7 +1,13 @@
-use crate::{pages::databases::{tables::Tables, add::Create, enable_coop::EnableCoop}, request::get_databases};
+use crate::{
+    pages::{
+        databases::{add::Create, enable_coop::EnableCoop, tables::Tables},
+        home,
+    },
+    request::get_databases,
+};
 use rcd_messages::client::DatabaseSchema;
 
-use yew::{function_component, html, use_state_eq, Html};
+use yew::{function_component, html, use_state_eq, Callback, Html};
 
 /// Represents viewing and configuring schema data for tables in an RCD instance
 #[function_component]
@@ -13,12 +19,21 @@ pub fn Databases() -> Html {
         database_names.push(db.database_name.clone());
     }
 
+    let x = use_state_eq(move || {
+        let x: Vec<String> = Vec::new();
+        return x;
+    });
+
     let selected_database = use_state_eq(|| None);
 
     let tables = selected_database.as_ref().map(|db: &DatabaseSchema| {
         html! {
             <Tables db={db.clone()} />
         }
+    });
+
+    let reload_db_onclick = Callback::from(move |_| {
+        home::databases(x.clone());
     });
 
     html! {
@@ -28,6 +43,10 @@ pub fn Databases() -> Html {
                         <h1 class="subtitle"> {"Databases"} </h1>
 
                         <p>{"After loading, click on a database to view details."}</p>
+                        <button type="button" class="button is-primary" id="get_databases" value="Reload databases"
+                        onclick={reload_db_onclick}>
+                        <span class="mdi mdi-database-refresh">{" Reload"}</span>
+                        </button>
                         <div class="content">
                             <ul>
                                 {

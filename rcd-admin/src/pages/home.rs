@@ -215,7 +215,7 @@ fn save_token(addr: String, auth_json: String, database_names: UseStateHandle<Ve
     request::post(url, auth_json, callback);
 }
 
-fn databases(database_names: UseStateHandle<Vec<String>>) {
+pub fn databases(database_names: UseStateHandle<Vec<String>>) {
     let token = get_token();
     let auth_request = token.auth();
 

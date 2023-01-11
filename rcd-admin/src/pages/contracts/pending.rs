@@ -1,10 +1,13 @@
-use rcd_http_common::url::client::VIEW_PENDING_CONTRACTS;
-use rcd_messages::client::{Contract, ViewPendingContractsReply, ViewPendingContractsRequest};
+use rcd_http_common::url::client::{VIEW_PENDING_CONTRACTS, ACCEPT_PENDING_CONTRACT};
+use rcd_messages::{
+    client::{Contract, ViewPendingContractsReply, ViewPendingContractsRequest, AcceptPendingContractRequest, AcceptPendingContractReply},
+    formatter,
+};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token, set_status, update_token_login_status, clear_status},
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 
 #[function_component]
@@ -15,6 +18,7 @@ pub fn Pending() -> Html {
     });
 
     let view_pending_contract_details = use_state_eq(move || String::from(""));
+    let last_accept_reject_result = use_state_eq(move || String::from(""));
 
     let onclick = {
         let pending_contracts = pending_contracts.clone();
@@ -77,16 +81,77 @@ pub fn Pending() -> Html {
                 </thead>
                 {
                     (*pending_contracts).clone().into_iter().map(|c|{
+                        let contract = c.clone();
                         let host_name = c.host_info.unwrap().host_name.clone();
                         let database_name = c.schema.unwrap().database_name.clone();
                         let description = c.description.clone();
+                        let last_accept_reject_result = last_accept_reject_result.clone();
 
                         html!{
                             <tr>
-                                <td>{host_name}</td>
+                                <td>{host_name.clone()}</td>
                                 <td>{database_name}</td>
                                 <td>{description}</td>
-                                <td>{"placeholder for button"}</td>
+                                <td>
+                                    <div class="buttons">
+                                    <button type="button" class="button is-primary" id="get_databases" value="View Contract"
+                                    onclick=
+                                    {
+                                        let view_pending_contract_details = view_pending_contract_details.clone();
+                                        Callback::from(move |_| {
+                                            let text = formatter::markdown::contract::contract_to_markdown_table(&contract);
+                                            view_pending_contract_details.set(text);
+                                        })
+                                    }>
+                                    <span class="mdi mdi-file-eye">{" View"}</span>
+                                    </button>
+                                    <button type="button" class="button is-success" id="get_databases" value="View Contract"
+                                    onclick=
+                                    {
+                                        let host_name = host_name.clone();
+                                        let last_accept_reject_result = last_accept_reject_result.clone();
+                                        Callback::from(move |_| {
+                                            let token = get_token().clone();
+                                            let request = AcceptPendingContractRequest{
+                                                authentication: Some(token.auth()),
+                                                host_alias: host_name.clone(),
+                                            };
+
+                                            let json_request = serde_json::to_string(&request).unwrap();
+                                            let url = format!("{}{}", token.addr, ACCEPT_PENDING_CONTRACT);
+                                            let last_accept_reject_result = last_accept_reject_result.clone();
+                                            
+                                            let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                                                if response.is_ok() {
+                                                    clear_status();
+                                                    let response = response.unwrap();
+                                                    log_to_console(response.clone().to_string());
+
+                                                    let reply: AcceptPendingContractReply = serde_json::from_str(&response).unwrap();
+                                                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                                                    update_token_login_status(is_authenticated);
+
+                                                    if is_authenticated {
+                                                        let message = format!("{}{}", "Last accept/reject status was: ", reply.is_successful.to_string());
+                                                        last_accept_reject_result.set(message);
+                                                    }
+                                                } else {
+                                                    let error_message = response.err().unwrap();
+                                                    set_status(error_message);
+                                                }
+                                            });
+
+                                            request::post(url, json_request, cb)
+                                        }
+                                    )}>
+                                    <span class="mdi mdi-file-document-check">{" Accept"}</span>
+                                    </button>
+                                    <button type="button" class="button is-danger" id="get_databases" value="View Contract"
+                                    onclick={Callback::from(move |_|{})}>
+                                    <span class="mdi mdi-file-document-remove">{" Reject"}</span>
+                                    </button>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     }).collect::<Html>()
@@ -97,6 +162,8 @@ pub fn Pending() -> Html {
             <p><textarea class="textarea" rows="5" cols="60" id ="sql_Result"
             placeholder="Contract Details Will Be Displayed Here"
             value={(*view_pending_contract_details).clone()} readonly=true/></p>
+            <p><h2 class="subittle">{"Last Accept/Reject Result"}</h2></p>
+            <p>{last_accept_reject_result.to_string()}</p>
         </div>
     }
 }
