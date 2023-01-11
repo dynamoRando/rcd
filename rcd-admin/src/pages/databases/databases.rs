@@ -1,4 +1,4 @@
-use crate::{pages::databases::{tables::Tables, add::Create}, request::get_databases};
+use crate::{pages::databases::{tables::Tables, add::Create, enable_coop::EnableCoop}, request::get_databases};
 use rcd_messages::client::DatabaseSchema;
 
 use yew::{function_component, html, use_state_eq, Html};
@@ -62,6 +62,7 @@ pub fn Databases() -> Html {
             </div>
             { tables }
             < Create />
+            < EnableCoop />
         </div>
     }
 }

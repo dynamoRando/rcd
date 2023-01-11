@@ -11,7 +11,7 @@ use yew::{
 use crate::{
     log::log_to_console,
     pages::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::{self, get_token, update_token_login_status},
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -47,26 +47,32 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                 let request_json = serde_json::to_string(&get_participants_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
-                let cb = Callback::from(move |response: AttrValue| {
-                    log_to_console(response.to_string());
+                let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        let response = response.unwrap();
+                        log_to_console(response.to_string());
+                        clear_status();
 
-                    let participant_details = participant_details.clone();
-                    let reply: GetParticipantsReply =
-                        serde_json::from_str(&&response.to_string()).unwrap();
+                        let participant_details = participant_details.clone();
+                        let reply: GetParticipantsReply =
+                            serde_json::from_str(&&response.to_string()).unwrap();
 
-                    let is_authenticated = reply
-                        .authentication_result
-                        .as_ref()
-                        .unwrap()
-                        .is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                    if is_authenticated {
-                        participant_details.set(reply.participants.clone());
+                        if is_authenticated {
+                            participant_details.set(reply.participants.clone());
+                        }
+                    } else {
+                        set_status(response.err().unwrap());
                     }
                 });
 
-                request::get_data(url, request_json, cb);
+                request::post(url, request_json, cb);
             }
         })
     };
@@ -154,32 +160,35 @@ pub fn ViewParticipantsForDb(
 
                                                 log_to_console(url.clone());
 
-                                                let cb = Callback::from(move |response: AttrValue| {
-                                                    let participant_send_contract_result = participant_send_contract_result.clone();
-                                                    log_to_console(response.to_string());
+                                                let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                                                    if response.is_ok() {
+                                                        let response = response.unwrap();
+                                                        let participant_send_contract_result = participant_send_contract_result.clone();
+                                                        log_to_console(response.to_string());
 
-                                                    let reply: SendParticipantContractReply =
-                                                    serde_json::from_str(&&response.clone().to_string()).unwrap();
+                                                        let reply: SendParticipantContractReply =
+                                                        serde_json::from_str(&&response.clone().to_string()).unwrap();
 
-                                                    let is_authenticated = reply.authentication_result.unwrap().is_authenticated;
-                                                    update_token_login_status(is_authenticated);
+                                                        let is_authenticated = reply.authentication_result.unwrap().is_authenticated;
+                                                        update_token_login_status(is_authenticated);
 
-                                                    if is_authenticated {
-                                                        if reply.is_sent {
-                                                            let message = format!("{}{}{}","Contract sent to
-                                                            participant ", alias.clone(), " is successful.");
-                                                            participant_send_contract_result.set(message);
+                                                        if is_authenticated {
+                                                            if reply.is_sent {
+                                                                let message = format!("{}{}{}","Contract sent to
+                                                                participant ", alias.clone(), " is successful.");
+                                                                participant_send_contract_result.set(message);
+                                                            } else {
+                                                                let message = format!("{}{}{}{}","Contract sent to
+                                                                participant ", alias.clone(), " is NOT successful. Reason: ", reply.message);
+                                                                participant_send_contract_result.set(message);
+                                                            }
                                                         }
-                                                        else 
-                                                        {
-                                                            let message = format!("{}{}{}{}","Contract sent to
-                                                            participant ", alias.clone(), " is NOT successful. Reason: ", reply.message);
-                                                            participant_send_contract_result.set(message);
-                                                        }
+                                                    } else {
+                                                        set_status(response.err().unwrap());
                                                     }
                                                 });
 
-                                                request::get_data(url, json_request.clone(), cb.clone())
+                                                request::post(url, json_request.clone(), cb.clone())
                                             }
                                         }>{"Send Active Contract"}</button></td>
                                     </tr>

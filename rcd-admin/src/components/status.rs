@@ -2,13 +2,14 @@ use yew::prelude::*;
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct StatusProps {
-    pub is_logged_in: UseStateHandle<bool>
+    pub is_logged_in: UseStateHandle<bool>,
+    pub status_message: UseStateHandle<String>
 }
 
 #[function_component]
 pub fn Status(props: &StatusProps) -> Html {
-    let ui_status_message = use_node_ref();
     let is_logged_in_state = props.is_logged_in.clone();
+    let text = &*props.status_message.clone();
 
     html!(
         <div>
@@ -39,7 +40,7 @@ pub fn Status(props: &StatusProps) -> Html {
                         <div class="field">
                         <input type="text" class="input" size=95
                         id ="status_message" placeholder="RCD Status Messages Will Appear Here"
-                        ref={&ui_status_message} readonly=true />
+                        value={text.clone()} readonly=true />
                         </div>
                     </div>
 

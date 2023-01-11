@@ -4,7 +4,7 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token, update_token_login_status},
+    request::{self, get_token, set_status, update_token_login_status, clear_status},
 };
 
 #[function_component]
@@ -28,25 +28,31 @@ pub fn Pending() -> Html {
 
             let request_json = serde_json::to_string(&request).unwrap();
             let url = format!("{}{}", token.addr, VIEW_PENDING_CONTRACTS);
-            let cb = Callback::from(move |response: AttrValue| {
-                log_to_console(response.to_string());
+            let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                if response.is_ok() {
+                    let response = response.unwrap();
+                    log_to_console(response.to_string());
+                    clear_status();
 
-                let reply: ViewPendingContractsReply =
-                    serde_json::from_str(&response.to_string()).unwrap();
-                let is_authenticated = reply
-                    .authentication_result
-                    .as_ref()
-                    .unwrap()
-                    .is_authenticated;
-                update_token_login_status(is_authenticated);
+                    let reply: ViewPendingContractsReply =
+                        serde_json::from_str(&response.to_string()).unwrap();
+                    let is_authenticated = reply
+                        .authentication_result
+                        .as_ref()
+                        .unwrap()
+                        .is_authenticated;
+                    update_token_login_status(is_authenticated);
 
-                if is_authenticated {
-                    let contracts = reply.contracts.clone();
-                    pending_contracts.set(contracts);
+                    if is_authenticated {
+                        let contracts = reply.contracts.clone();
+                        pending_contracts.set(contracts);
+                    }
+                } else {
+                    set_status(response.err().unwrap());
                 }
             });
 
-            request::get_data(url, request_json, cb);
+            request::post(url, request_json, cb);
         })
     };
 

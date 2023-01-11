@@ -10,26 +10,34 @@ use crate::{log::log_to_console, token::Token};
 const KEY: &str = "rcdadmin.key.instance";
 const DATABASES: &str = "rcdadmin.key.databases";
 const PARTICIPANTS: &str = "rcdadmin.key.participants";
+const STATUS: &str = "rcdadmin.key.status";
 
-/// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON
-pub fn get_data(url: String, body: String, callback: Callback<AttrValue>) {
+/// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON if successful,
+/// otherwise a string describing the error that occurred
+pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, String>>) {
     let message = format!("{}{}", "outgoing message: ", body);
     log_to_console(message);
     if body != "" {
         spawn_local(async move {
-            let http_response = Request::new(&url)
+            let result = Request::new(&url)
                 .method(Method::POST)
                 .header("Content-Type", "application/json")
                 .body(body)
                 .send()
-                .await
-                .unwrap()
-                .text()
-                .await
-                .unwrap();
-            callback.emit(AttrValue::from(http_response));
+                .await;
+
+            if result.is_ok() {
+                let response = result.unwrap().text().await;
+                if response.is_ok() {
+                    let data = response.unwrap();
+                    callback.emit(Ok(AttrValue::from(data)));
+                }
+            } else {
+                let err = result.err().unwrap().to_string();
+                callback.emit(Err(err))
+            }
         });
-    } 
+    }
 }
 
 /// Saves the JWT to Session Storage
@@ -82,3 +90,20 @@ pub fn update_token_login_status(is_logged_in: bool) {
     token.is_logged_in = is_logged_in;
     set_token(token);
 }
+
+pub fn set_status(status: String) {
+    let date = js_sys::Date::new_0();
+    let now = String::from(date.to_locale_time_string("en-US"));
+    let message = format!("{}: {}", now, &status.to_string());
+    SessionStorage::set(STATUS, message).expect("failed to set");
+}
+
+/// Gets the JWT from Session Storage
+pub fn get_status() -> String {
+    return SessionStorage::get(STATUS).unwrap_or_else(|_| String::from(""));
+}
+
+pub fn clear_status() {
+    SessionStorage::set(STATUS, "".to_string()).expect("failed to set");
+}
+

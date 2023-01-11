@@ -8,7 +8,7 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
-    request::{self, get_token, update_token_login_status},
+    request::{self, get_token, update_token_login_status, set_status, clear_status},
 };
 
 #[function_component]
@@ -35,20 +35,32 @@ pub fn Active() -> Html {
                 let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_ACTIVE_CONTRACT);
 
-                let cb = Callback::from(move |response: AttrValue| {
-                    log_to_console(response.clone().to_string());
+                let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        let response = response.unwrap();
+                        log_to_console(response.clone().to_string());
+                        clear_status();
 
-                    let reply: GetActiveContractReply =
-                        serde_json::from_str(&&response.to_string()).unwrap();
+                        let reply: GetActiveContractReply =
+                            serde_json::from_str(&&response.to_string()).unwrap();
 
-                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                    if is_authenticated {
-                        let contract = reply.contract.unwrap();
-                        let contract_text =
-                            formatter::markdown::contract::contract_to_markdown_table(&contract);
-                        active_contract_text.set(contract_text);
+                        if is_authenticated {
+                            let contract = reply.contract.unwrap();
+                            let contract_text =
+                                formatter::markdown::contract::contract_to_markdown_table(
+                                    &contract,
+                                );
+                            active_contract_text.set(contract_text);
+                        }
+                    } else {
+                        set_status(response.err().unwrap());
                     }
                 });
 
@@ -59,7 +71,7 @@ pub fn Active() -> Html {
                 );
                 log_to_console(message);
 
-                request::get_data(url, request_json, cb);
+                request::post(url, request_json, cb);
             }
         })
     };

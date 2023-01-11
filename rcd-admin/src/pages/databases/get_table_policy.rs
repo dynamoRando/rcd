@@ -1,7 +1,7 @@
 use crate::{
     log::log_to_console,
     pages::databases::columns::ColumnProps,
-    request::{self, get_token, update_token_login_status},
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 use rcd_http_common::url::client::GET_POLICY;
 use rcd_messages::client::{GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest};
@@ -18,30 +18,40 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     let table_policy = use_state_eq(|| None);
     let policy = table_policy.clone();
 
-    let get_policy_response_cb = Callback::from(move |response: AttrValue| {
-        log_to_console(response.to_string());
+    let get_policy_response_cb = Callback::from(move |response: Result<AttrValue, String>| {
+        if response.is_ok() {
+            let response = response.unwrap();
+            log_to_console(response.to_string());
+            clear_status();
 
-        let table_policy = table_policy.clone();
+            let table_policy = table_policy.clone();
 
-        let reply: GetLogicalStoragePolicyReply =
-            serde_json::from_str(&&response.to_string()).unwrap();
+            let reply: GetLogicalStoragePolicyReply =
+                serde_json::from_str(&&response.to_string()).unwrap();
 
-        let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
-        update_token_login_status(is_authenticated);
+            let is_authenticated = reply
+                .authentication_result
+                .as_ref()
+                .unwrap()
+                .is_authenticated;
+            update_token_login_status(is_authenticated);
 
-        if is_authenticated {
-            let policy_value = reply.policy_mode;
+            if is_authenticated {
+                let policy_value = reply.policy_mode;
 
-            let policy_name = match policy_value {
-                0 => "None",
-                1 => "Host Only",
-                2 => "Participant Owned",
-                3 => "Shared",
-                4 => "Mirror",
-                _ => "Unknown",
-            };
+                let policy_name = match policy_value {
+                    0 => "None",
+                    1 => "Host Only",
+                    2 => "Participant Owned",
+                    3 => "Shared",
+                    4 => "Mirror",
+                    _ => "Unknown",
+                };
 
-            table_policy.set(Some(policy_name));
+                table_policy.set(Some(policy_name));
+            }
+        } else {
+            set_status(response.err().unwrap());
         }
     });
 
@@ -55,7 +65,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
     let request_json = serde_json::to_string(&request).unwrap();
     let url = format!("{}{}", token.addr, GET_POLICY);
-    request::get_data(url, request_json, get_policy_response_cb);
+    request::post(url, request_json, get_policy_response_cb);
 
     html!(
         <div class="container">

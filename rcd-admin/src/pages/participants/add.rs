@@ -1,11 +1,14 @@
 use js_sys::Date;
 use rcd_http_common::url::client::ADD_PARTICIPANT;
-use rcd_messages::client::{AddParticipantRequest, AddParticipantReply};
+use rcd_messages::client::{AddParticipantReply, AddParticipantRequest};
 use web_sys::HtmlInputElement;
-use yew::{function_component, Html, html, use_node_ref, Callback, use_state_eq, AttrValue};
+use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
-use crate::{pages::participants::ActiveDbProps, request::{get_token, self, update_token_login_status}, log::log_to_console};
-
+use crate::{
+    log::log_to_console,
+    pages::participants::ActiveDbProps,
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
+};
 
 #[function_component]
 pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
@@ -20,7 +23,6 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
     let ui_http_port = use_node_ref();
 
     let onclick = {
-        
         let add_participant_result = add_participant_result.clone();
 
         let ui_alias = ui_alias.clone();
@@ -55,24 +57,40 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let callback = Callback::from(move |response: AttrValue| {
-                log_to_console(response.to_string());
+            let callback = Callback::from(move |response: Result<AttrValue, String>| {
+                if response.is_ok() {
+                    let response = response.unwrap();
+                    log_to_console(response.to_string());
+                    clear_status();
 
-                let reply: AddParticipantReply = serde_json::from_str(&&response.to_string()).unwrap();
+                    let reply: AddParticipantReply =
+                        serde_json::from_str(&&response.to_string()).unwrap();
 
-                let is_authenticated =  reply.authentication_result.as_ref().unwrap().is_authenticated;
-                update_token_login_status(is_authenticated);
+                    let is_authenticated = reply
+                        .authentication_result
+                        .as_ref()
+                        .unwrap()
+                        .is_authenticated;
+                    update_token_login_status(is_authenticated);
 
-                if is_authenticated {
-                    let now = Date::new(&Date::new_0());
-                    let now = Date::to_iso_string(&now);
+                    if is_authenticated {
+                        let now = Date::new(&Date::new_0());
+                        let now = Date::to_iso_string(&now);
 
-                    let message = format!("Alias: {} Is Successful: {} At Time: {}", alias, reply.is_successful.to_string(), now);
-                    add_participant_result.set(message);
+                        let message = format!(
+                            "Alias: {} Is Successful: {} At Time: {}",
+                            alias,
+                            reply.is_successful.to_string(),
+                            now
+                        );
+                        add_participant_result.set(message);
+                    }
+                } else {
+                    set_status(response.err().unwrap());
                 }
             });
 
-            request::get_data(url, request_json, callback);
+            request::post(url, request_json, callback);
         })
     };
 
@@ -95,11 +113,11 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
                 <p><label for="participant_http_port">{ "Participant HTTP Port Number" }</label>
                 <input type="text" class="input" id="participant_http_port" placeholder="50055" ref={&ui_http_port} /></p>
-                
+
                 <button type="button" class="button is-primary" id="add_participant" {onclick}><span class="mdi mdi-account-plus-outline">{" Add Participant"}</span></button>
 
                 <p><label for="last_add_result">{ "Last Result: "}</label>{(*add_participant_result).to_string()}</p>
-        
+
             </div>
         </div>
     )

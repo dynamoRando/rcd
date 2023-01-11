@@ -6,7 +6,7 @@ use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callb
 use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
-    request::{self, get_token, update_token_login_status},
+    request::{self, get_token, update_token_login_status, set_status, clear_status},
 };
 
 #[function_component]
@@ -51,22 +51,32 @@ pub fn Generate() -> Html {
             let url = format!("{}{}", token.addr, GENERATE_CONTRACT);
 
             let cb = {
-                Callback::from(move |response: AttrValue| {
-                    log_to_console(response.to_string());
+                Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        let response = response.unwrap();
+                        log_to_console(response.to_string());
+                        clear_status();
 
-                    let reply: GenerateContractReply = serde_json::from_str(&response).unwrap();
+                        let reply: GenerateContractReply = serde_json::from_str(&response).unwrap();
 
-                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                    if is_authenticated {
-                        let is_successful = reply.is_successful;
-                        last_generate_result.set(is_successful.to_string());
-                    }
+                        if is_authenticated {
+                            let is_successful = reply.is_successful;
+                            last_generate_result.set(is_successful.to_string());
+                        }
+                    } else {
+                        set_status(response.err().unwrap());
+                    } 
                 })
             };
 
-            request::get_data(url, request_json, cb);
+            request::post(url, request_json, cb);
         })
     };
 

@@ -18,7 +18,7 @@ use crate::pages::hosts::Hosts;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::participants::Participants;
 use crate::pages::sql::sql::Sql;
-use crate::request::get_token;
+use crate::request::{get_status, get_token};
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -48,10 +48,18 @@ fn check_and_set_login_status(is_logged_in_state: UseStateHandle<bool>) {
     is_logged_in_state.set(is_logged_in);
 }
 
+fn check_and_set_status(status: UseStateHandle<String>) {
+    let status_string = get_status();
+    status.set(status_string);
+}
+
 #[function_component]
 pub fn App() -> Html {
     let is_logged_in_state = use_state(move || false);
     let login_state = is_logged_in_state.clone();
+
+    let status_state = use_state(move || String::from(""));
+    let status = status_state.clone();
 
     spawn_local(async move {
         IntervalStream::new(1_000)
@@ -62,10 +70,19 @@ pub fn App() -> Html {
             .await;
     });
 
+    spawn_local(async move {
+        IntervalStream::new(1_000)
+            .for_each(|_| {
+                check_and_set_status(status.clone());
+                ready(())
+            })
+            .await;
+    });
+
     html! {
         <BrowserRouter>
             <Nav />
-            <Status is_logged_in={is_logged_in_state}/>
+            <Status is_logged_in={is_logged_in_state} status_message={status_state.clone()}/>
             <main>
                 <Switch<Route> render={switch} />
             </main>

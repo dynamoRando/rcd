@@ -54,7 +54,7 @@ pub fn login_has_token(login: &str, config: &DbiConfigSqlite) -> bool {
 pub fn revoke_token(token: &str, config: &DbiConfigSqlite) -> bool {
     let mut cmd = String::from("DELETE FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");
     cmd = cmd.replace(":token", token);
-    return execute_write_on_connection(&config.rcd_db_name, &cmd, config) > 0
+    return execute_write_on_connection(&config.rcd_db_name, &cmd, config) > 0;
 }
 
 pub fn verify_token(token: &str, config: &DbiConfigSqlite) -> bool {
@@ -711,7 +711,17 @@ pub fn get_host_info(config: DbiConfigSqlite) -> HostInfo {
         results.push(hi.unwrap());
     }
 
-    return results.first().unwrap().clone();
+    if results.len() == 0 {
+        let host = HostInfo {
+            id: "host-info-not-set".to_string(),
+            name: "host-info-not-set".to_string(),
+            token: Vec::new(),
+        };
+
+        return host;
+    } else {
+        return results.first().unwrap().clone();
+    }
 }
 
 pub fn generate_host_info(host_name: &str, config: DbiConfigSqlite) {

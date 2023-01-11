@@ -4,7 +4,7 @@ use crate::{
         common::select_database::SelectDatabase,
         sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
     },
-    request::{self, get_databases, get_token, update_token_login_status},
+    request::{self, get_databases, get_token, set_status, update_token_login_status, clear_status},
 };
 use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
@@ -56,31 +56,42 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 let request_json = serde_json::to_string(&get_participants_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
-                let cb = Callback::from(move |response: AttrValue| {
-                    log_to_console(response.clone().to_string());
-                    let participant_aliases = participant_aliases.clone();
-                    let reply: GetParticipantsReply =
-                        serde_json::from_str(&&response.to_string()).unwrap();
+                let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        clear_status();
+                        let response = response.unwrap();
+                        log_to_console(response.clone().to_string());
+                        let participant_aliases = participant_aliases.clone();
+                        let reply: GetParticipantsReply =
+                            serde_json::from_str(&&response.to_string()).unwrap();
 
-                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                    if is_authenticated {
-                        let participants = reply.participants.clone();
+                        if is_authenticated {
+                            let participants = reply.participants.clone();
 
-                        let mut aliases: Vec<String> = Vec::new();
-                        for p in &participants {
-                            aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                            let mut aliases: Vec<String> = Vec::new();
+                            for p in &participants {
+                                aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                            }
+
+                            participant_aliases.set(Some(aliases));
                         }
-
-                        participant_aliases.set(Some(aliases));
+                    } else {
+                        let error_message = response.err().unwrap();
+                        set_status(error_message);
                     }
                 });
 
                 let message = format!("{}{}", "sending participant request for: ", db_name.clone());
                 log_to_console(message);
 
-                request::get_data(url, request_json, cb);
+                request::post(url, request_json, cb);
             }
         })
     };

@@ -1,13 +1,11 @@
 use rcd_http_common::url::client::NEW_DATABASE;
-use rcd_messages::client::{
-    CreateUserDatabaseReply, CreateUserDatabaseRequest,
-};
+use rcd_messages::client::{CreateUserDatabaseReply, CreateUserDatabaseRequest};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token, update_token_login_status},
+    request::{self, get_token, update_token_login_status, set_status, clear_status},
 };
 
 #[function_component]
@@ -35,22 +33,32 @@ pub fn Create() -> Html {
 
             let cb = {
                 let last_created_result = last_created_result.clone();
-                Callback::from(move |response: AttrValue| {
-                    log_to_console(response.to_string());
+                Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        let response = response.unwrap();
+                        log_to_console(response.to_string());
+                        clear_status();
 
-                    let reply: CreateUserDatabaseReply =
-                        serde_json::from_str(&response.to_string()).unwrap();
+                        let reply: CreateUserDatabaseReply =
+                            serde_json::from_str(&response.to_string()).unwrap();
 
-                    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                    if is_authenticated {
-                        last_created_result.set(reply.is_created.to_string());
+                        if is_authenticated {
+                            last_created_result.set(reply.is_created.to_string());
+                        }
+                    } else {
+                        set_status(response.err().unwrap());
                     }
                 })
             };
 
-            request::get_data(url, json_request, cb);
+            request::post(url, json_request, cb);
         })
     };
 
