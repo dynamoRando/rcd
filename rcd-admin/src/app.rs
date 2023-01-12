@@ -14,7 +14,7 @@ use crate::pages::contracts::Contracts;
 use crate::pages::coop_hosts::CooperativeHosts;
 use crate::pages::databases::databases::Databases;
 use crate::pages::home::Home;
-use crate::pages::hosts::Hosts;
+use crate::pages::host_info::HostInfo;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::participants::Participants;
 use crate::pages::sql::sql::Sql;
@@ -30,8 +30,8 @@ pub enum Route {
     Sql,
     #[at("/contracts")]
     Contracts,
-    #[at("/hosts")]
-    Hosts,
+    #[at("/hostinfo")]
+    HostInfo,
     #[at("/participants")]
     Participants,
     #[at("/behaviors")]
@@ -147,8 +147,8 @@ fn switch(routes: Route) -> Html {
         Route::Contracts => {
             html! { <Contracts /> }
         }
-        Route::Hosts => {
-            html! { <Hosts /> }
+        Route::HostInfo => {
+            html! { <HostInfo /> }
         }
         Route::Participants => {
             html! { <Participants /> }

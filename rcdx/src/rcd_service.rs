@@ -227,8 +227,8 @@ impl RcdService {
 }
 
 /// Returns an RcdService from the config file
-pub fn get_service_from_config_file() -> RcdService {
-    let settings = get_config_from_settings_file();
+pub fn get_service_from_config_file(settings_filename: Option<String>) -> RcdService {
+    let settings = get_config_from_settings_file(settings_filename);
     let mut service = RcdService {
         rcd_settings: settings,
         root_dir: String::from(""),
@@ -261,10 +261,19 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
     };
 }
 
-pub fn get_config_from_settings_file() -> RcdSettings {
+pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSettings {
     let wd = env::current_dir().unwrap();
     let cwd = wd.to_str().unwrap();
-    let settings_in_cwd = Path::new(cwd).join("Settings.toml");
+
+    let filename: String;
+
+    if settings_filename.is_none() {
+        filename = String::from("Settings.toml")
+    } else {
+        filename = settings_filename.unwrap();
+    }
+
+    let settings_in_cwd = Path::new(cwd).join(filename.clone());
 
     let settings_location;
 
@@ -275,8 +284,8 @@ pub fn get_config_from_settings_file() -> RcdSettings {
     }
 
     let error_message = format!(
-        "{}{}",
-        "Could not find Settings.toml in current directort or in default ", settings_location
+        "{}{}{}{}",
+        "Could not find ", filename, "in current directory or in default ", settings_location
     );
 
     let settings = Config::builder()
@@ -284,6 +293,8 @@ pub fn get_config_from_settings_file() -> RcdSettings {
         .add_source(config::Environment::with_prefix("APP"))
         .build()
         .expect(&error_message);
+
+    println!("Using settings file: {}", settings_location);
 
     let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
     let database_type = DatabaseType::from_i64(i_database_type);

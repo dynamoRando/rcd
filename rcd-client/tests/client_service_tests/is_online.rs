@@ -47,7 +47,7 @@ pub mod grpc {
         let root_dir = test_harness::get_test_temp_dir(test_message);
         println!("{}", root_dir);
 
-        let mut service = get_service_from_config_file();
+        let mut service = get_service_from_config_file(None);
         let client_address_port = service.rcd_settings.grpc_client_service_addr_port.clone();
         println!("{:?}", &service);
         service.start_at_dir(&root_dir);
@@ -112,7 +112,7 @@ pub mod http {
         let root_dir = test_harness::get_test_temp_dir(test_message);
         println!("{}", root_dir);
 
-        let mut service = get_service_from_config_file();
+        let mut service = get_service_from_config_file(None);
 
         let http_addr = service.rcd_settings.http_addr.clone();
         let http_port = port_num;

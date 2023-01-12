@@ -41,7 +41,7 @@ pub fn Databases() -> Html {
             <div class="container">
                 <div class="box">
                         <h1 class="subtitle"> {"Databases"} </h1>
-
+                        <p>{"View database schema information and configure properties of schema objects from this page."}</p>
                         <p>{"After loading, click on a database to view details."}</p>
                         <button type="button" class="button is-primary" id="get_databases" value="Reload databases"
                         onclick={reload_db_onclick}>

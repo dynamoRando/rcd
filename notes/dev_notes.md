@@ -185,3 +185,16 @@ And so on.
 
 `cargo +nightly udeps` - requires nightly to be installed.
 
+# Running with arguments
+
+Taken from the [book](https://doc.rust-lang.org/cargo/commands/cargo-run.html).
+
+```
+cargo run [options] [-- args]
+```
+
+As an example:
+
+```
+cargo run -- alt-config Test.toml
+```

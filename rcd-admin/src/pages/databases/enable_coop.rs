@@ -63,6 +63,8 @@ pub fn EnableCoop() -> Html {
             <div class="container">
                 <div class="box">
                     <h1 class="subtitle"> {"Enable Cooperative Features"} </h1>
+                    <p>{"Enabling cooperative features on a database creates additional schema objects in that database and is tracked by RCD
+                    for cooperation purposes."}</p>
                     <p><label for="execute_sql_dbs">{ "Select Database " }</label></p>
                     <p>< SelectDatabase active_db_name={active_database} onclick_db={onclick_db}/></p>
                     <p><button class="button is-primary" {onclick}><span class="mdi mdi-handshake">{" Enable Cooperation"}</span></button></p>

@@ -66,7 +66,7 @@ pub fn start_service_with_http(
     root_dir: String,
 ) -> (ServiceAddr, Sender<bool>) {
     let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
-    let mut service = get_service_from_config_file();
+    let mut service = get_service_from_config_file(None);
 
     let http_addr = ServiceAddr {
         ip4_addr: "127.0.0.1".to_string(),
@@ -190,7 +190,7 @@ pub fn start_service_with_grpc(
     let client_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let db_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
 
-    let mut service = get_service_from_config_file();
+    let mut service = get_service_from_config_file(None);
 
     let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
 

@@ -31,9 +31,9 @@ async fn main() {
     let (db_trigger, db_listener) = triggered::trigger();
 
     let args: Vec<String> = env::args().collect();
-    process_cmd_args(args);
+    let alt_settings = process_cmd_args(args);
     set_default_config();
-    let mut service = get_service_from_config_file();
+    let mut service = get_service_from_config_file(alt_settings);
 
     println!("rcd settings found:");
     println!("{:?}", service.rcd_settings);
@@ -112,20 +112,30 @@ async fn main() {
     println!("rcd is exiting. i remain obediently yours.");
 }
 
-fn process_cmd_args(args: Vec<String>) {
+fn process_cmd_args(args: Vec<String>) -> Option<String> {
     if args.len() >= 2 {
         let cmd = args[1].as_str();
 
         match cmd {
             "default_settings" => {
                 set_default_config();
+                return None
             }
             "make_test_db" => {
                 make_test_db();
+                return None
             }
-            _ => {}
+            "alt-config" => {
+                let alt_settings = args[2].to_string();
+                return Some(alt_settings);
+            }
+            _ => {
+                return None
+            }
         }
     }
+
+    return None
 }
 
 fn set_default_config() {
@@ -212,7 +222,7 @@ fn make_test_db() {
             &default_src_path.to_str().unwrap()
         );
 
-        let mut service = get_service_from_config_file();
+        let mut service = get_service_from_config_file(None);
         service.start();
         let dbi = service.get_dbi();
 
@@ -246,47 +256,3 @@ fn make_test_db() {
     }
 }
 
-/*
-#[allow(dead_code)]
-fn configure_rcd_w_http_new(dbi: Dbi) -> Rcd {
-    let http = RemoteHttp {};
-
-    let remote_db = RcdRemoteDbClient {
-        comm_type: RcdCommunication::Http,
-        grpc: None,
-        http: Some(http),
-    };
-
-    let rcd = Rcd {
-        db_interface: Some(dbi.clone()),
-        remote_client: Some(remote_db),
-    };
-
-    return rcd;
-}
-
-#[allow(dead_code)]
-fn configure_rcd_w_grpc_new(
-    dbi: Dbi,
-    db_addr_port: String,
-    data_grpc_timeout_in_seconds: u32,
-) -> Rcd {
-    let grpc = RemoteGrpc {
-        db_addr_port: db_addr_port,
-        timeout_in_seconds: data_grpc_timeout_in_seconds,
-    };
-
-    let remote_db = RcdRemoteDbClient {
-        comm_type: RcdCommunication::Grpc,
-        grpc: Some(grpc),
-        http: None,
-    };
-
-    let rcd = Rcd {
-        db_interface: Some(dbi.clone()),
-        remote_client: Some(remote_db),
-    };
-
-    return rcd;
-}
- */

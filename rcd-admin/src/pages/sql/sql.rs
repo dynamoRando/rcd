@@ -13,6 +13,7 @@ pub fn Sql() -> Html {
         <div>
             <div class="container">
                 <div class="box">
+                    <p>{"Execute and review SQL results from this page."}</p>
                     < EnterSql sql_result_state={result_state.clone()}/>
                     < SqlResult sql_result_state={result_state.clone()}/>
                 </div>

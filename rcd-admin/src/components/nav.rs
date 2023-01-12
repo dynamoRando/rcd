@@ -44,8 +44,8 @@ pub fn Nav() -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Contracts}>
                     { "Contracts" }
                     </Link<Route>>
-                    <Link<Route> classes={classes!("navbar-item")} to={Route::Hosts}>
-                    { "Hosts" }
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::HostInfo}>
+                    { "Host Info" }
                     </Link<Route>>
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Participants}>
                     { "Participants" }

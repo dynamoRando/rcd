@@ -212,7 +212,7 @@ fn hash_negative() {
 /// Attempts to read a value from the Settings.toml file
 fn read_settings_from_file() {
     init();
-    let service = get_service_from_config_file();
+    let service = get_service_from_config_file(None);
     let db_type = service.rcd_settings.database_type;
     assert_eq!(db_type, DatabaseType::Sqlite);
 }
