@@ -1,5 +1,7 @@
 use yew::prelude::*;
 
+use crate::request::get_token;
+
 #[derive(Properties, PartialEq, Debug)]
 pub struct StatusProps {
     pub is_logged_in: UseStateHandle<bool>,
@@ -10,6 +12,7 @@ pub struct StatusProps {
 pub fn Status(props: &StatusProps) -> Html {
     let is_logged_in_state = props.is_logged_in.clone();
     let text = &*props.status_message.clone();
+    let addr = get_token().addr;
 
     html!(
         <div>
@@ -21,9 +24,13 @@ pub fn Status(props: &StatusProps) -> Html {
                         {
                             if *is_logged_in_state {
                                 html! {
+                                    <div>
                                     <button class="button is-success">
                                         <span class="mdi mdi-account-check">{" Logged In"}</span>
                                     </button>
+                                    <button class="button is-info">{ addr }
+                                    </button>
+                                    </div>
                                 }
                             }
                             else {
