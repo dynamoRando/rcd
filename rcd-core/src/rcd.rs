@@ -30,7 +30,7 @@ use rcdproto::rcdp::{
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
     TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest, RevokeReply,
+    ViewPendingContractsRequest, RevokeReply, HostInfoReply,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -162,6 +162,13 @@ impl Rcd {
         request: GenerateHostInfoRequest,
     ) -> GenerateHostInfoReply {
         return db::generate_host_info(self, request).await;
+    }
+
+    pub async fn get_host_info(
+        &self,
+        request: AuthRequest,
+    ) -> HostInfoReply {
+        return db::get_host_info(self, request).await;
     }
 
     pub async fn change_host_status(

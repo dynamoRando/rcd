@@ -1,3 +1,4 @@
+use super::execute_write;
 use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
 use chrono::DateTime;
 use chrono::Utc;
@@ -729,6 +730,8 @@ pub fn generate_host_info(host_name: &str, config: DbiConfigSqlite) {
     let conn = get_rcd_conn(&config);
     let token_gen = GUID::rand();
     let token = crypt::hash(&token_gen.to_string());
+
+    execute_write(&conn, "DELETE FROM CDS_HOST_INFO;");
 
     let cmd = String::from(
         "

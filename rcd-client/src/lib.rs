@@ -5,10 +5,10 @@ use rcd_http_common::url::client::{
     CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
     GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABASES, GET_DATA_HASH_AT_HOST,
-    GET_DATA_HASH_AT_PARTICIPANT, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
+    GET_DATA_HASH_AT_PARTICIPANT, GET_HOST_INFO, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
     GET_ROW_AT_PARTICIPANT, HAS_TABLE, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST,
-    READ_SQL_AT_PARTICIPANT, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT,
-    VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT, REVOKE_TOKEN,
+    READ_SQL_AT_PARTICIPANT, REVOKE_TOKEN, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY,
+    TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
@@ -27,10 +27,10 @@ use rcdproto::rcdp::{
     GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
     GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
-    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
-    ViewPendingContractsReply, ViewPendingContractsRequest, RevokeReply,
+    HasTableReply, HasTableRequest, HostInfoReply, RevokeReply, SendParticipantContractReply,
+    SendParticipantContractRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
+    StatementResultset, TestReply, TestRequest, TokenReply, TryAuthAtParticipantRequest,
+    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -110,7 +110,7 @@ impl RcdClient {
         };
     }
 
-    pub fn send_jwt_if_available(&mut self, send_jwt: bool ){
+    pub fn send_jwt_if_available(&mut self, send_jwt: bool) {
         self.send_jwt_if_available = send_jwt;
     }
 
@@ -252,6 +252,39 @@ impl RcdClient {
         };
     }
 
+    pub async fn get_host_info(self: &mut Self) -> Result<HostInfoReply, Box<dyn Error>> {
+        match self.client_type {
+            RcdClientType::Grpc => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_host_info(auth)
+                    .await
+                    .unwrap()
+                    .into_inner();
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let auth = self.gen_auth_request();
+                info!("sending request");
+
+                let url = self.get_http_url(GET_HOST_INFO);
+                let request_json = serde_json::to_string(&auth).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: HostInfoReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
+    }
+
     pub async fn get_active_contract(
         self: &mut Self,
         db_name: &str,
@@ -330,7 +363,6 @@ impl RcdClient {
             }
         }
     }
-
 
     pub async fn auth_for_token(self: &mut Self) -> Result<TokenReply, Box<dyn Error>> {
         match self.client_type {

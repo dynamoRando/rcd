@@ -1,3 +1,10 @@
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct HostInfoReply {
+    pub authentication_result: Option<AuthResult>,
+    pub host_info: Option<Host>,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RevokeReply {
     pub is_successful: bool,
@@ -921,16 +928,13 @@ pub struct Participant {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct Host {
     pub host_guid: String,
-
     pub host_name: String,
-
     pub ip4_address: String,
-
     pub ip6_address: String,
-
     pub database_port_number: u32,
-
     pub token: Vec<u8>,
+    pub http_addr: String,
+    pub http_port: u32,
 }
 /// a message for describing the schema of a database
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]

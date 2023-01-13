@@ -22,6 +22,7 @@ pub mod client {
     pub const GET_POLICY: &str = "/client/databases/table/policy/get";
     pub const SET_POLICY: &str = "/client/databases/table/policy/set/";
     pub const GENERATE_HOST_INFO: &str = "/client/host/generate";
+    pub const GET_HOST_INFO: &str = "/client/host/get";
     pub const VIEW_PENDING_CONTRACTS: &str = "/client/contract/review";
     pub const ACCEPT_PENDING_CONTRACT: &str = "/client/contract/accept/";
     pub const ACCEPT_PENDING_ACTION: &str = "/client/databases/actions/accept-pending";

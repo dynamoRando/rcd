@@ -12,6 +12,8 @@ pub fn host_to_markdown_table(host: &Host) -> String {
     let ip6_label = "IP 6: ";
     let db_port_label = "Db Port: ";
     let token_label = "Token: ";
+    let http_addr = "HTTP Addr: ";
+    let http_port = "HTTP Port: ";
 
     let token_string = String::from_utf8_lossy(&host.token).to_owned().to_string();
 
@@ -24,6 +26,8 @@ pub fn host_to_markdown_table(host: &Host) -> String {
         host.database_port_number.to_string(),
     );
     kv.insert(token_label.to_string(), token_string);
+    kv.insert(http_addr.to_string(), host.http_addr.clone());
+    kv.insert(http_port.to_string(), host.http_port.to_string());
 
     return build_markdown_key_value_table(kv);
 }

@@ -1,6 +1,6 @@
-use rcd_common::rcd_enum::{
+use rcd_common::{rcd_enum::{
     PartialDataResultAction, RcdGenerateContractError, RemoteDeleteBehavior,
-};
+}, host_info::HostInfo};
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, ChangeDeletesFromHostBehaviorReply,
     ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorReply,
@@ -13,7 +13,7 @@ use rcdproto::rcdp::{
     GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
     GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement,
+    HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement, AuthRequest, HostInfoReply, Host,
 };
 
 use super::Rcd;
@@ -42,6 +42,53 @@ pub async fn create_user_database(
     };
 
     return create_db_result;
+}
+
+pub async fn get_host_info(
+    core: &Rcd,
+    request: AuthRequest,
+) -> HostInfoReply {
+    
+    let auth_result = core.verify_login(request);
+    let mut host_info: Option<HostInfo> = None;
+
+    if auth_result.0 {
+        host_info = Some(core.dbi().rcd_get_host_info().clone());
+    }
+
+    let host: Host;
+
+    if host_info.is_some() {
+        host = Host {
+            host_guid: host_info.as_ref().unwrap().id.clone(),
+            host_name: host_info.as_ref().unwrap().name.clone(),
+            ip4_address: "".to_string(),
+            ip6_address: "".to_string(),
+            database_port_number: 0,
+            token: Vec::new(),
+            http_addr: "".to_string(),
+            http_port: 0,
+        };
+    }
+    else {
+        host = Host {
+            host_guid: "".to_string(),
+            host_name: "".to_string(),
+            ip4_address: "".to_string(),
+            ip6_address: "".to_string(),
+            database_port_number: 0,
+            token: Vec::new(),
+            http_addr: "".to_string(),
+            http_port: 0,
+        }
+    }
+
+    let result = HostInfoReply {
+        authentication_result: Some(auth_result.1),
+        host_info: Some(host),
+    };
+
+    return result;
 }
 
 pub async fn generate_host_info(

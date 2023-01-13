@@ -40,6 +40,12 @@ service SQLClient {
 	rpc GetActiveContract(GetActiveContractRequest) returns (GetActiveContractReply);
 	rpc AuthForToken (AuthRequest) returns (TokenReply);
 	rpc RevokeToken (AuthRequest) returns (RevokeReply);
+	rpc GetHostInfo (AuthRequest) returns (HostInfoReply);
+}
+
+message HostInfoReply {
+	AuthResult authenticationResult = 1;
+	Host hostInfo = 2;
 }
 
 message RevokeReply {

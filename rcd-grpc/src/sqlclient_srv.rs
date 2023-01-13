@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_host_info(
+        &self,
+        request: Request<AuthRequest>,
+    ) -> Result<Response<HostInfoReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self.core().get_host_info(request.into_inner()).await;
+        Ok(Response::new(response))
+    }
+
     async fn revoke_token(
         &self,
         request: Request<AuthRequest>,

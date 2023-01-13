@@ -124,6 +124,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::version,
                 shutdown,
                 client::host::generate_host_info,
+                client::host::get_host_info,
                 client::change_host_status_id,
                 client::change_host_status_name,
                 client::try_auth_at_participant,

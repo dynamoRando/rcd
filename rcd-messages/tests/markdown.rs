@@ -183,6 +183,8 @@ pub fn test_host() {
         ip6_address: "2001:0db8:85a3:0000:0000:8a2e:0370:7334".to_string(),
         database_port_number: 5050,
         token: Vec::new(),
+        http_addr: String::from(""),
+        http_port: 0
     };
 
     let table = formatter::markdown::host::host_to_markdown_table(&host);
@@ -197,6 +199,8 @@ pub fn test_host() {
 | IP 6:        | 2001:0db8:85a3:0000:0000:8a2e:0370:7334  |
 | Db Port:     | 5050                                     |
 | Token:       |                                          |
+| HTTP Addr:   |                                          |
+| HTTP Port:   | 0                                        |
 "#;
 
     assert_eq!(table, md_table)
@@ -405,6 +409,8 @@ pub fn test_contract() {
         ip6_address: "2001:0db8:85a3:0000:0000:8a2e:0370:7334".to_string(),
         database_port_number: 5050,
         token: Vec::new(),
+        http_addr: String::from(""),
+        http_port: 0
     };
 
     let contract = Contract {
@@ -458,6 +464,8 @@ Host:
 | IP 6:        | 2001:0db8:85a3:0000:0000:8a2e:0370:7334  |
 | Db Port:     | 5050                                     |
 | Token:       |                                          |
+| HTTP Addr:   |                                          |
+| HTTP Port:   | 0                                        |
 
 "#;
 
