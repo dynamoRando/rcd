@@ -46,6 +46,16 @@ service SQLClient {
 	rpc GetUpdatesToHostBehavior (GetUpdatesToHostBehaviorRequest) returns (GetUpdatesToHostBehaviorReply);
 	rpc GetDeletesFromHostBehavior (GetDeletesFromHostBehaviorRequest) returns (GetDeletesFromHostBehaviorReply);
 	rpc GetDeletesToHostBehavior (GetDeletesToHostBehaviorRequest) returns (GetDeletesToHostBehaviorReply);
+	rpc GetCooperativeHosts (GetCooperativeHostsRequest) returns (GetCooperativeHostsReply);
+}
+
+message GetCooperativeHostsRequest {
+	AuthRequest authentication = 1;
+}
+
+message GetCooperativeHostsReply {
+	AuthResult authenticationResult = 1;
+	repeated HostInfo hosts = 2;
 }
 
 message GetDeletesToHostBehaviorRequest {
@@ -821,6 +831,12 @@ message Host {
 	bytes token = 6;
 	string http_addr = 7;
 	uint32 http_port = 8;
+}
+
+message HostInfo {
+	Host host = 1;
+	string LastCommuncationUtc = 2;
+	uint32 status = 3;
 }
 
 // a message for describing the schema of a database

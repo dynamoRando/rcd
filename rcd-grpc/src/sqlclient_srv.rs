@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_cooperative_hosts(
+        &self,
+        request: Request<GetCooperativeHostsRequest>,
+    ) -> Result<Response<GetCooperativeHostsReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        // need to write an HTTP version as well
+        todo!()
+    }
+
     async fn get_updates_from_host_behavior(
         &self,
         request: Request<GetUpdatesFromHostBehaviorRequest>,
@@ -43,7 +52,6 @@ impl SqlClient for SqlClientImpl {
             .core()
             .get_updates_from_host_behavior(request.into_inner())
             .await;
-        // need to write an HTTP version as well
         Ok(Response::new(response))
     }
 
@@ -56,7 +64,6 @@ impl SqlClient for SqlClientImpl {
             .core()
             .get_updates_to_host_behavior(request.into_inner())
             .await;
-        // need to write an HTTP version as well
         Ok(Response::new(response))
     }
 
@@ -69,7 +76,6 @@ impl SqlClient for SqlClientImpl {
             .core()
             .get_deletes_from_host_behavior(request.into_inner())
             .await;
-        // need to write an HTTP version as well
         Ok(Response::new(response))
     }
 
@@ -81,7 +87,6 @@ impl SqlClient for SqlClientImpl {
             .core()
             .get_deletes_to_host_behavior(request.into_inner())
             .await;
-        // need to write an HTTP version as well
         Ok(Response::new(response))
     }
 
