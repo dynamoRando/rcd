@@ -55,7 +55,7 @@ message GetCooperativeHostsRequest {
 
 message GetCooperativeHostsReply {
 	AuthResult authenticationResult = 1;
-	repeated HostInfo hosts = 2;
+	repeated HostInfoStatus hosts = 2;
 }
 
 message GetDeletesToHostBehaviorRequest {
@@ -833,7 +833,7 @@ message Host {
 	uint32 http_port = 8;
 }
 
-message HostInfo {
+message HostInfoStatus {
 	Host host = 1;
 	string LastCommuncationUtc = 2;
 	uint32 status = 3;

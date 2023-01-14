@@ -4,7 +4,7 @@ use rcd_http_common::url::client::{
     CHANGE_DELETES_FROM_HOST_BEHAVIOR, CHANGE_DELETES_TO_HOST_BEHAVIOR, CHANGE_HOST_STATUS_ID,
     CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
-    GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABASES, GET_DATA_HASH_AT_HOST,
+    GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_COOP_HOSTS, GET_DATABASES, GET_DATA_HASH_AT_HOST,
     GET_DATA_HASH_AT_PARTICIPANT, GET_DELETES_FROM_HOST_BEHAVIOR, GET_DELETES_TO_HOST_BEHAVIOR,
     GET_HOST_INFO, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY, GET_ROW_AT_PARTICIPANT,
     GET_UPDATES_FROM_HOST_BEHAVIOR, GET_UPDATES_TO_HOST_BEHAVIOR, HAS_TABLE, IS_ONLINE,
@@ -25,18 +25,18 @@ use rcdproto::rcdp::{
     ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetDeletesFromHostBehaviorReply,
-    GetDeletesFromHostBehaviorRequest, GetDeletesToHostBehaviorReply,
-    GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
-    GetParticipantsReply, GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest,
-    GetReadRowIdsReply, GetReadRowIdsRequest, GetUpdatesFromHostBehaviorReply,
-    GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
-    GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest, HostInfoReply, RevokeReply,
-    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
-    SetLogicalStoragePolicyRequest, StatementResultset, TestReply, TestRequest, TokenReply,
-    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetCooperativeHostsReply,
+    GetCooperativeHostsRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest,
+    GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply,
+    GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
+    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
+    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
+    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
+    HostInfoReply, RevokeReply, SendParticipantContractReply, SendParticipantContractRequest,
+    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
+    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+    ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -463,6 +463,45 @@ impl RcdClient {
                 let result_json = self.send_http_message(request_json, url).await;
 
                 let result: AcceptPendingActionReply = serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
+    }
+
+    pub async fn get_cooperative_hosts(
+        self: &mut Self,
+    ) -> Result<GetCooperativeHostsReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetCooperativeHostsRequest {
+            authentication: Some(auth),
+        });
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_cooperative_hosts(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_COOP_HOSTS);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetCooperativeHostsReply = serde_json::from_str(&result_json).unwrap();
 
                 return Ok(result);
             }

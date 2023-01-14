@@ -39,8 +39,11 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetCooperativeHostsRequest>,
     ) -> Result<Response<GetCooperativeHostsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        // need to write an HTTP version as well
-        todo!()
+        let response = self
+            .core()
+            .get_cooperative_hosts(request.into_inner())
+            .await;
+        Ok(Response::new(response))
     }
 
     async fn get_updates_from_host_behavior(

@@ -1,8 +1,9 @@
 use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
-        DeletesToHostBehavior, PartialDataResultAction, RcdGenerateContractError,
-        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior, DeletesFromHostBehavior,
+        DeletesFromHostBehavior, DeletesToHostBehavior, HostStatus, PartialDataResultAction,
+        RcdGenerateContractError, RemoteDeleteBehavior, UpdatesFromHostBehavior,
+        UpdatesToHostBehavior,
     },
 };
 use rcdproto::rcdp::{
@@ -14,13 +15,14 @@ use rcdproto::rcdp::{
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
     DatabaseSchema, EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
     GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetDeletesToHostBehaviorReply,
+    GetActiveContractReply, GetActiveContractRequest, GetCooperativeHostsReply, GetDataHashReply,
+    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetDeletesFromHostBehaviorReply,
+    GetDeletesFromHostBehaviorRequest, GetDeletesToHostBehaviorReply,
     GetDeletesToHostBehaviorRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
     GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    Host, HostInfoReply, ParticipantStatus, PendingStatement, GetDeletesFromHostBehaviorRequest, GetDeletesFromHostBehaviorReply,
+    Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement, GetCooperativeHostsRequest,
 };
 
 use super::Rcd;
@@ -49,6 +51,45 @@ pub async fn create_user_database(
     };
 
     return create_db_result;
+}
+
+pub async fn get_cooperative_hosts(core: &Rcd, request: GetCooperativeHostsRequest) -> GetCooperativeHostsReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let mut hosts: Vec<HostInfoStatus> = Vec::new();
+
+    if auth_result.0 {
+        let result = core.dbi().get_cooperative_hosts();
+
+        if result.len() > 0 {
+            for host in &result {
+                let h = Host {
+                    host_guid: host.host_id.clone(),
+                    host_name: host.host_name.clone(),
+                    ip4_address: host.ip4.clone(),
+                    ip6_address: host.ip6.clone(),
+                    database_port_number: host.port,
+                    token: Vec::new(),
+                    http_addr: host.http_addr.clone(),
+                    http_port: host.port,
+                };
+
+                let i = HostInfoStatus {
+                    host: Some(h),
+                    last_communcation_utc: host.last_comm_utc.clone(),
+                    status: HostStatus::to_u32(host.status),
+                };
+
+                hosts.push(i);
+            }
+        }
+    }
+
+    let result = GetCooperativeHostsReply {
+        authentication_result: Some(auth_result.1),
+        hosts,
+    };
+
+    return result;
 }
 
 pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {

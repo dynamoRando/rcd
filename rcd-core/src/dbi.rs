@@ -92,6 +92,20 @@ impl Dbi {
         return token_data;
     }
 
+    pub fn get_cooperative_hosts(&self) -> Vec<CdsHosts> {
+        self.delete_expired_tokens();
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                return rcd_sqlite::sqlite::rcd_db::get_cooperative_hosts(&settings)
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn verify_token(&self, token: String) -> bool {
         self.delete_expired_tokens();
         match self.db_type {

@@ -256,8 +256,8 @@ impl HostStatus {
         }
     }
 
-    pub fn to_u32(dml_type: HostStatus) -> u32 {
-        match dml_type {
+    pub fn to_u32(value: HostStatus) -> u32 {
+        match value {
             HostStatus::Unknown => 0,
             HostStatus::Allow => 1,
             HostStatus::Deny => 2,

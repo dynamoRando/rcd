@@ -8,8 +8,8 @@ use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
 use rcd_common::rcd_enum::{
-    DeletesFromHostBehavior, DeletesToHostBehavior, RcdDatabaseType, UpdatesFromHostBehavior,
-    UpdatesToHostBehavior,
+    DeletesFromHostBehavior, DeletesToHostBehavior, HostStatus, RcdDatabaseType,
+    UpdatesFromHostBehavior, UpdatesToHostBehavior,
 };
 use rcd_common::user::*;
 use rusqlite::{named_params, Connection, Result};
@@ -539,6 +539,80 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     }
 }
 
+pub fn get_cooperative_hosts(config: &DbiConfigSqlite) -> Vec<CdsHosts> {
+    let mut cds_host_infos: Vec<CdsHosts> = Vec::new();
+
+    let conn = get_rcd_conn(config);
+    let cmd = String::from(
+        "
+    SELECT 
+        HOST_ID,
+        HOST_NAME,
+        TOKEN,
+        IP4ADDRESS,
+        IP6ADDRESS,
+        PORT,
+        LAST_COMMUNICATION_UTC,
+        HTTP_ADDR,
+        HTTP_PORT,
+        HOST_STATUS
+    FROM
+        CDS_HOSTS
+    ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let row_to_host = |host_id: String,
+                       host_name: String,
+                       token: Vec<u8>,
+                       ip4: String,
+                       ip6: String,
+                       port: u32,
+                       last_comm_utc: String,
+                       http_addr: String,
+                       http_port: u32,
+                       status: u32|
+     -> Result<CdsHosts> {
+        let host = CdsHosts {
+            host_id,
+            host_name,
+            token,
+            ip4,
+            ip6,
+            port,
+            last_comm_utc,
+            http_addr,
+            http_port,
+            status: HostStatus::from_u32(status),
+        };
+        Ok(host)
+    };
+
+    let table_hosts = statement
+        .query_and_then([], |row| {
+            row_to_host(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+                row.get(9).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for h in table_hosts {
+        cds_host_infos.push(h.unwrap());
+    }
+
+    return cds_host_infos;
+}
+
 pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Option<CdsHosts> {
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
@@ -568,7 +642,8 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
             PORT,
             LAST_COMMUNICATION_UTC,
             HTTP_ADDR,
-            HTTP_PORT
+            HTTP_PORT,
+            HOST_STATUS
         FROM
             CDS_HOSTS
         WHERE
@@ -586,7 +661,8 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
                        port: u32,
                        last_comm_utc: String,
                        http_addr: String,
-                       http_port: u32|
+                       http_port: u32,
+                       status: u32|
      -> Result<CdsHosts> {
         let host = CdsHosts {
             host_id,
@@ -598,6 +674,7 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
             last_comm_utc,
             http_addr,
             http_port,
+            status: HostStatus::from_u32(status),
         };
         Ok(host)
     };
@@ -614,6 +691,7 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
                 row.get(6).unwrap(),
                 row.get(7).unwrap(),
                 row.get(8).unwrap(),
+                row.get(9).unwrap(),
             )
         })
         .unwrap();

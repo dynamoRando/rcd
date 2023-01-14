@@ -23,14 +23,18 @@ use rcdproto::rcdp::{
     ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
+    GetActiveContractReply, GetActiveContractRequest, GetCooperativeHostsReply,
+    GetCooperativeHostsRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest,
+    GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply,
     GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
+    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
+    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
+    HostInfoReply, RevokeReply, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
     TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest, RevokeReply, HostInfoReply, GetUpdatesFromHostBehaviorRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesToHostBehaviorRequest, GetUpdatesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetDeletesToHostBehaviorReply, GetDeletesFromHostBehaviorRequest, GetDeletesFromHostBehaviorReply,
+    ViewPendingContractsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -150,6 +154,13 @@ impl Rcd {
         return db::change_updates_from_host_behavior(self, request).await;
     }
 
+    pub async fn get_cooperative_hosts(
+        &self,
+        request: GetCooperativeHostsRequest,
+    ) -> GetCooperativeHostsReply {
+        return db::get_cooperative_hosts(self, request).await;
+    }
+
     pub async fn get_updates_from_host_behavior(
         &self,
         request: GetUpdatesFromHostBehaviorRequest,
@@ -178,10 +189,7 @@ impl Rcd {
         return db::generate_host_info(self, request).await;
     }
 
-    pub async fn get_host_info(
-        &self,
-        request: AuthRequest,
-    ) -> HostInfoReply {
+    pub async fn get_host_info(&self, request: AuthRequest) -> HostInfoReply {
         return db::get_host_info(self, request).await;
     }
 

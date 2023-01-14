@@ -6,7 +6,7 @@ use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
 use rcd_common::{
     db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
-    rcd_enum::ContractStatus,
+    rcd_enum::{ContractStatus, HostStatus},
 };
 use rusqlite::{named_params, Connection, Result};
 
@@ -246,7 +246,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             PORT,
             LAST_COMMUNICATION_UTC,
             HTTP_ADDR,
-            HTTP_PORT
+            HTTP_PORT,
+            HOST_STATUS
         FROM
             CDS_HOSTS
         WHERE
@@ -264,7 +265,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                        port: u32,
                        last_comm_utc: String,
                        http_addr: String,
-                       http_port: u32|
+                       http_port: u32,
+                       status: u32|
      -> Result<CdsHosts> {
         let host = CdsHosts {
             host_id,
@@ -276,6 +278,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             last_comm_utc,
             http_addr,
             http_port,
+            status: HostStatus::from_u32(status)
         };
         Ok(host)
     };
@@ -295,6 +298,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                     row.get(6).unwrap(),
                     row.get(7).unwrap(),
                     row.get(8).unwrap(),
+                    row.get(9).unwrap(),
                 )
             })
             .unwrap();

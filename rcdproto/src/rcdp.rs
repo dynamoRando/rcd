@@ -10,7 +10,7 @@ pub struct GetCooperativeHostsReply {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(message, repeated, tag="2")]
-    pub hosts: ::prost::alloc::vec::Vec<HostInfo>,
+    pub hosts: ::prost::alloc::vec::Vec<HostInfoStatus>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1269,7 +1269,7 @@ pub struct Host {
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
-pub struct HostInfo {
+pub struct HostInfoStatus {
     #[prost(message, optional, tag="1")]
     pub host: ::core::option::Option<Host>,
     #[prost(string, tag="2")]
