@@ -30,7 +30,7 @@ use rcdproto::rcdp::{
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
     TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest, RevokeReply, HostInfoReply, GetUpdatesFromHostBehaviorRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesToHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
+    ViewPendingContractsRequest, RevokeReply, HostInfoReply, GetUpdatesFromHostBehaviorRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesToHostBehaviorRequest, GetUpdatesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetDeletesToHostBehaviorReply, GetDeletesFromHostBehaviorRequest, GetDeletesFromHostBehaviorReply,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -282,6 +282,20 @@ impl Rcd {
         request: ChangeDeletesToHostBehaviorRequest,
     ) -> ChangeDeletesToHostBehaviorReply {
         return db::change_deletes_to_host_behavior(self, request).await;
+    }
+
+    pub async fn get_deletes_to_host_behavior(
+        &self,
+        request: GetDeletesToHostBehaviorRequest,
+    ) -> GetDeletesToHostBehaviorReply {
+        return db::get_deletes_to_host_behavior(self, request).await;
+    }
+
+    pub async fn get_deletes_from_host_behavior(
+        &self,
+        request: GetDeletesFromHostBehaviorRequest,
+    ) -> GetDeletesFromHostBehaviorReply {
+        return db::get_deletes_from_host_behavior(self, request).await;
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {

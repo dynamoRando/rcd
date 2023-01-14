@@ -1,8 +1,8 @@
 use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
-        PartialDataResultAction, RcdGenerateContractError, RemoteDeleteBehavior,
-        UpdatesFromHostBehavior, UpdatesToHostBehavior,
+        DeletesToHostBehavior, PartialDataResultAction, RcdGenerateContractError,
+        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior, DeletesFromHostBehavior,
     },
 };
 use rcdproto::rcdp::{
@@ -15,11 +15,12 @@ use rcdproto::rcdp::{
     DatabaseSchema, EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
     GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
     GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply, GetParticipantsRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetDeletesToHostBehaviorReply,
+    GetDeletesToHostBehaviorRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
     GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    Host, HostInfoReply, ParticipantStatus, PendingStatement,
+    Host, HostInfoReply, ParticipantStatus, PendingStatement, GetDeletesFromHostBehaviorRequest, GetDeletesFromHostBehaviorReply,
 };
 
 use super::Rcd;
@@ -505,6 +506,58 @@ pub async fn change_deletes_from_host_behavior(
         authentication_result: Some(auth_result.1),
         is_successful: is_successful,
         message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn get_deletes_from_host_behavior(
+    core: &Rcd,
+    request: GetDeletesFromHostBehaviorRequest,
+) -> GetDeletesFromHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+
+    let mut behavior = 0;
+
+    if auth_result.0 {
+        let x = core
+            .dbi()
+            .get_deletes_from_host_behavior(&db_name, &table_name);
+        behavior = DeletesFromHostBehavior::to_u32(x);
+    }
+
+    let reply = GetDeletesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior: behavior,
+    };
+
+    return reply;
+}
+
+pub async fn get_deletes_to_host_behavior(
+    core: &Rcd,
+    request: GetDeletesToHostBehaviorRequest,
+) -> GetDeletesToHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+
+    let mut behavior = 0;
+
+    if auth_result.0 {
+        let x = core
+            .dbi()
+            .get_deletes_to_host_behavior(&db_name, &table_name);
+        behavior = DeletesToHostBehavior::to_u32(x);
+    }
+
+    let reply = GetDeletesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior: behavior,
     };
 
     return reply;

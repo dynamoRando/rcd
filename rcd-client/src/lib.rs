@@ -5,10 +5,12 @@ use rcd_http_common::url::client::{
     CHANGE_HOST_STATUS_NAME, CHANGE_UPDATES_FROM_HOST_BEHAVIOR, CHANGE_UPDATES_TO_HOST_BEHAVIOR,
     COOPERATIVE_WRITE_SQL_AT_HOST, ENABLE_COOPERATIVE_FEATURES, GENERATE_CONTRACT,
     GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_DATABASES, GET_DATA_HASH_AT_HOST,
-    GET_DATA_HASH_AT_PARTICIPANT, GET_HOST_INFO, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY,
-    GET_ROW_AT_PARTICIPANT, HAS_TABLE, IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST,
-    READ_SQL_AT_PARTICIPANT, REVOKE_TOKEN, SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY,
-    TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
+    GET_DATA_HASH_AT_PARTICIPANT, GET_DELETES_FROM_HOST_BEHAVIOR, GET_DELETES_TO_HOST_BEHAVIOR,
+    GET_HOST_INFO, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY, GET_ROW_AT_PARTICIPANT,
+    GET_UPDATES_FROM_HOST_BEHAVIOR, GET_UPDATES_TO_HOST_BEHAVIOR, HAS_TABLE, IS_ONLINE,
+    NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, REVOKE_TOKEN,
+    SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS,
+    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
 use rcdproto::rcdp::sql_client_client::SqlClientClient;
 use rcdproto::rcdp::{
@@ -24,13 +26,17 @@ use rcdproto::rcdp::{
     ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GenerateContractReply,
     GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
     GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
-    GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
-    GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
-    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    HasTableReply, HasTableRequest, HostInfoReply, RevokeReply, SendParticipantContractReply,
-    SendParticipantContractRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
-    StatementResultset, TestReply, TestRequest, TokenReply, TryAuthAtParticipantRequest,
-    TryAuthAtPartipantReply, ViewPendingContractsReply, ViewPendingContractsRequest,
+    GetDatabasesReply, GetDatabasesRequest, GetDeletesFromHostBehaviorReply,
+    GetDeletesFromHostBehaviorRequest, GetDeletesToHostBehaviorReply,
+    GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest,
+    GetParticipantsReply, GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest,
+    GetReadRowIdsReply, GetReadRowIdsRequest, GetUpdatesFromHostBehaviorReply,
+    GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
+    GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest, HostInfoReply, RevokeReply,
+    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyRequest, StatementResultset, TestReply, TestRequest, TokenReply,
+    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
 };
 
 use rcd_common::rcd_enum::{
@@ -684,6 +690,50 @@ impl RcdClient {
         }
     }
 
+    pub async fn get_deletes_to_host_behavior(
+        self: &mut Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<GetDeletesToHostBehaviorReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetDeletesToHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_deletes_to_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_DELETES_TO_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetDeletesToHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
+    }
+
     pub async fn change_deletes_to_host_behavior(
         self: &mut Self,
         db_name: &str,
@@ -726,6 +776,50 @@ impl RcdClient {
                     serde_json::from_str(&result_json).unwrap();
 
                 return Ok(result.is_successful);
+            }
+        }
+    }
+
+    pub async fn get_updates_to_host_behavior(
+        self: &mut Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<GetUpdatesToHostBehaviorReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetUpdatesToHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_updates_to_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_UPDATES_TO_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetUpdatesToHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
             }
         }
     }
@@ -776,6 +870,50 @@ impl RcdClient {
         }
     }
 
+    pub async fn get_deletes_from_host_behavior(
+        self: &mut Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<GetDeletesFromHostBehaviorReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetDeletesFromHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_deletes_from_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_DELETES_FROM_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetDeletesFromHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
+            }
+        }
+    }
+
     pub async fn change_deletes_from_host_behavior(
         self: &mut Self,
         db_name: &str,
@@ -818,6 +956,49 @@ impl RcdClient {
                     serde_json::from_str(&result_json).unwrap();
 
                 return Ok(result.is_successful);
+            }
+        }
+    }
+
+    pub async fn get_updates_from_host_behavior(
+        self: &mut Self,
+        db_name: &str,
+        table_name: &str,
+    ) -> Result<GetUpdatesFromHostBehaviorReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+
+        let request = tonic::Request::new(GetUpdatesFromHostBehaviorRequest {
+            authentication: Some(auth),
+            database_name: db_name.to_string(),
+            table_name: table_name.to_string(),
+        });
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let client = self.get_client();
+
+                let response = client
+                    .get_updates_from_host_behavior(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+                println!("RESPONSE={:?}", response);
+                info!("response back");
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                let url = self.get_http_url(GET_UPDATES_FROM_HOST_BEHAVIOR);
+                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
+
+                let result_json = self.send_http_message(request_json, url).await;
+
+                let result: GetUpdatesFromHostBehaviorReply =
+                    serde_json::from_str(&result_json).unwrap();
+
+                return Ok(result);
             }
         }
     }

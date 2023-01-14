@@ -415,7 +415,7 @@ impl Dbi {
             DatabaseType::Sqlserver => unimplemented!(),
         }
     }
-
+    
     pub fn change_deletes_to_host_behavior(
         self: &Self,
         db_name: &str,

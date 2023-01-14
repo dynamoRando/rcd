@@ -65,17 +65,24 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetDeletesFromHostBehaviorRequest>,
     ) -> Result<Response<GetDeletesFromHostBehaviorReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
+        let response = self
+            .core()
+            .get_deletes_from_host_behavior(request.into_inner())
+            .await;
         // need to write an HTTP version as well
-        todo!()
+        Ok(Response::new(response))
     }
 
     async fn get_deletes_to_host_behavior(
         &self,
         request: Request<GetDeletesToHostBehaviorRequest>,
     ) -> Result<Response<GetDeletesToHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        let response = self
+            .core()
+            .get_deletes_to_host_behavior(request.into_inner())
+            .await;
         // need to write an HTTP version as well
-        todo!()
+        Ok(Response::new(response))
     }
 
     async fn get_versions(
