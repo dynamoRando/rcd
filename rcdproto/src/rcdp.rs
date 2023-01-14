@@ -1,5 +1,88 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDeletesToHostBehaviorRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDeletesToHostBehaviorReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(uint32, tag="2")]
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDeletesFromHostBehaviorRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetDeletesFromHostBehaviorReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(uint32, tag="2")]
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesToHostBehaviorRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesToHostBehaviorReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(uint32, tag="2")]
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesFromHostBehaviorRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(string, tag="2")]
+    pub database_name: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub table_name: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetUpdatesFromHostBehaviorReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(uint32, tag="2")]
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct VersionReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(string, tag="2")]
+    pub rcdx: ::prost::alloc::string::String,
+    /// ... so on
+    #[prost(string, tag="3")]
+    pub rcd_core: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct HostInfoReply {
     #[prost(message, optional, tag="1")]
     pub authentication_result: ::core::option::Option<AuthResult>,
@@ -2019,6 +2102,113 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn get_versions(
+            &mut self,
+            request: impl tonic::IntoRequest<super::AuthRequest>,
+        ) -> Result<tonic::Response<super::VersionReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetVersions",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn get_updates_from_host_behavior(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetUpdatesFromHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetUpdatesFromHostBehaviorReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetUpdatesFromHostBehavior",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn get_updates_to_host_behavior(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetUpdatesToHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetUpdatesToHostBehaviorReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetUpdatesToHostBehavior",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn get_deletes_from_host_behavior(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDeletesFromHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetDeletesFromHostBehaviorReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetDeletesFromHostBehavior",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
+        pub async fn get_deletes_to_host_behavior(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetDeletesToHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetDeletesToHostBehaviorReply>,
+            tonic::Status,
+        > {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetDeletesToHostBehavior",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -2502,6 +2692,38 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::AuthRequest>,
         ) -> Result<tonic::Response<super::HostInfoReply>, tonic::Status>;
+        async fn get_versions(
+            &self,
+            request: tonic::Request<super::AuthRequest>,
+        ) -> Result<tonic::Response<super::VersionReply>, tonic::Status>;
+        async fn get_updates_from_host_behavior(
+            &self,
+            request: tonic::Request<super::GetUpdatesFromHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetUpdatesFromHostBehaviorReply>,
+            tonic::Status,
+        >;
+        async fn get_updates_to_host_behavior(
+            &self,
+            request: tonic::Request<super::GetUpdatesToHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetUpdatesToHostBehaviorReply>,
+            tonic::Status,
+        >;
+        async fn get_deletes_from_host_behavior(
+            &self,
+            request: tonic::Request<super::GetDeletesFromHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetDeletesFromHostBehaviorReply>,
+            tonic::Status,
+        >;
+        async fn get_deletes_to_host_behavior(
+            &self,
+            request: tonic::Request<super::GetDeletesToHostBehaviorRequest>,
+        ) -> Result<
+            tonic::Response<super::GetDeletesToHostBehaviorReply>,
+            tonic::Status,
+        >;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -4051,6 +4273,214 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetHostInfoSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetVersions" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetVersionsSvc<T: SqlClient>(pub Arc<T>);
+                    impl<T: SqlClient> tonic::server::UnaryService<super::AuthRequest>
+                    for GetVersionsSvc<T> {
+                        type Response = super::VersionReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::AuthRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_versions(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetVersionsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetUpdatesFromHostBehavior" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetUpdatesFromHostBehaviorSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<
+                        super::GetUpdatesFromHostBehaviorRequest,
+                    > for GetUpdatesFromHostBehaviorSvc<T> {
+                        type Response = super::GetUpdatesFromHostBehaviorReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::GetUpdatesFromHostBehaviorRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_updates_from_host_behavior(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetUpdatesFromHostBehaviorSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetUpdatesToHostBehavior" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetUpdatesToHostBehaviorSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetUpdatesToHostBehaviorRequest>
+                    for GetUpdatesToHostBehaviorSvc<T> {
+                        type Response = super::GetUpdatesToHostBehaviorReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::GetUpdatesToHostBehaviorRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_updates_to_host_behavior(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetUpdatesToHostBehaviorSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetDeletesFromHostBehavior" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetDeletesFromHostBehaviorSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<
+                        super::GetDeletesFromHostBehaviorRequest,
+                    > for GetDeletesFromHostBehaviorSvc<T> {
+                        type Response = super::GetDeletesFromHostBehaviorReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::GetDeletesFromHostBehaviorRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_deletes_from_host_behavior(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetDeletesFromHostBehaviorSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetDeletesToHostBehavior" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetDeletesToHostBehaviorSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetDeletesToHostBehaviorRequest>
+                    for GetDeletesToHostBehaviorSvc<T> {
+                        type Response = super::GetDeletesToHostBehaviorReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<
+                                super::GetDeletesToHostBehaviorRequest,
+                            >,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_deletes_to_host_behavior(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetDeletesToHostBehaviorSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

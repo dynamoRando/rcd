@@ -34,6 +34,59 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_updates_from_host_behavior(
+        &self,
+        request: Request<GetUpdatesFromHostBehaviorRequest>,
+    ) -> Result<Response<GetUpdatesFromHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self
+            .core()
+            .get_updates_from_host_behavior(request.into_inner())
+            .await;
+        // need to write an HTTP version as well
+        Ok(Response::new(response))
+    }
+
+    async fn get_updates_to_host_behavior(
+        &self,
+        request: Request<GetUpdatesToHostBehaviorRequest>,
+    ) -> Result<Response<GetUpdatesToHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self
+            .core()
+            .get_updates_to_host_behavior(request.into_inner())
+            .await;
+        // need to write an HTTP version as well
+        Ok(Response::new(response))
+    }
+
+    async fn get_deletes_from_host_behavior(
+        &self,
+        request: Request<GetDeletesFromHostBehaviorRequest>,
+    ) -> Result<Response<GetDeletesFromHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        // need to write an HTTP version as well
+        todo!()
+    }
+
+    async fn get_deletes_to_host_behavior(
+        &self,
+        request: Request<GetDeletesToHostBehaviorRequest>,
+    ) -> Result<Response<GetDeletesToHostBehaviorReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        // need to write an HTTP version as well
+        todo!()
+    }
+
+    async fn get_versions(
+        &self,
+        request: Request<AuthRequest>,
+    ) -> Result<Response<VersionReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        // need to write an HTTP version as well
+        todo!()
+    }
+
     async fn get_host_info(
         &self,
         request: Request<AuthRequest>,

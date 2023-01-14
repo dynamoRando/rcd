@@ -1,19 +1,25 @@
-use rcd_common::{rcd_enum::{
-    PartialDataResultAction, RcdGenerateContractError, RemoteDeleteBehavior,
-}, host_info::HostInfo};
+use rcd_common::{
+    host_info::HostInfo,
+    rcd_enum::{
+        PartialDataResultAction, RcdGenerateContractError, RemoteDeleteBehavior,
+        UpdatesFromHostBehavior, UpdatesToHostBehavior,
+    },
+};
 use rcdproto::rcdp::{
-    AcceptPendingActionReply, AcceptPendingActionRequest, ChangeDeletesFromHostBehaviorReply,
-    ChangeDeletesFromHostBehaviorRequest, ChangeDeletesToHostBehaviorReply,
-    ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply, ChangeHostStatusRequest,
-    ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorReply,
-    ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
-    CreateUserDatabaseReply, CreateUserDatabaseRequest, DatabaseSchema,
-    EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest, GenerateContractReply,
-    GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
+    AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest,
+    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+    ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest, ChangeHostStatusReply,
+    ChangeHostStatusRequest, ChangeUpdatesFromHostBehaviorRequest,
+    ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest,
+    ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
+    DatabaseSchema, EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
+    GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
     GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
     GetDatabasesReply, GetDatabasesRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    HasTableReply, HasTableRequest, ParticipantStatus, PendingStatement, AuthRequest, HostInfoReply, Host,
+    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
+    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
+    Host, HostInfoReply, ParticipantStatus, PendingStatement,
 };
 
 use super::Rcd;
@@ -44,11 +50,7 @@ pub async fn create_user_database(
     return create_db_result;
 }
 
-pub async fn get_host_info(
-    core: &Rcd,
-    request: AuthRequest,
-) -> HostInfoReply {
-    
+pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
     let auth_result = core.verify_login(request);
     let mut host_info: Option<HostInfo> = None;
 
@@ -69,8 +71,7 @@ pub async fn get_host_info(
             http_addr: "".to_string(),
             http_port: 0,
         };
-    }
-    else {
+    } else {
         host = Host {
             host_guid: "".to_string(),
             host_name: "".to_string(),
@@ -347,6 +348,54 @@ pub async fn change_updates_from_host_behavior(
         authentication_result: Some(auth_result.1),
         is_successful: is_successful,
         message: String::from(""),
+    };
+
+    return reply;
+}
+
+pub async fn get_updates_to_host_behavior(
+    core: &Rcd,
+    request: GetUpdatesToHostBehaviorRequest,
+) -> GetUpdatesToHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let mut behavior = 0;
+
+    if auth_result.0 {
+        let x = core
+            .dbi()
+            .get_updates_to_host_behavior(&db_name, &table_name);
+        behavior = UpdatesToHostBehavior::to_u32(x);
+    }
+
+    let reply = GetUpdatesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior: behavior,
+    };
+
+    return reply;
+}
+
+pub async fn get_updates_from_host_behavior(
+    core: &Rcd,
+    request: GetUpdatesFromHostBehaviorRequest,
+) -> GetUpdatesFromHostBehaviorReply {
+    let auth_result = core.verify_login(request.authentication.unwrap());
+    let db_name = request.database_name;
+    let table_name = request.table_name;
+    let mut behavior = 0;
+
+    if auth_result.0 {
+        let x = core
+            .dbi()
+            .get_updates_from_host_behavior(&db_name, &table_name);
+        behavior = UpdatesFromHostBehavior::to_u32(x);
+    }
+
+    let reply = GetUpdatesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior: behavior,
     };
 
     return reply;

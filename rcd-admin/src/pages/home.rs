@@ -16,11 +16,16 @@ use crate::{
 
 #[function_component]
 pub fn Home() -> Html {
+    const VERSION: &str = env!("CARGO_PKG_VERSION");
+
     html! {
         <div class="tile is-ancestor is-vertical">
             <div class="tile is-child hero">
                 <div class="hero-body container pb-0">
-                    <h1 class="title is-1">{ "RCD Admin" }</h1>
+                    <div class="has-text-centered">
+                        <p><h1 class="title is-1">{ "RCD Admin" }</h1></p>
+                        <p><h3 class="subtitle">{"version "}{VERSION}</h3></p>
+                    </div>
                 </div>
             </div>
 

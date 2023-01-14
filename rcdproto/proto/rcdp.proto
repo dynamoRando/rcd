@@ -41,6 +41,62 @@ service SQLClient {
 	rpc AuthForToken (AuthRequest) returns (TokenReply);
 	rpc RevokeToken (AuthRequest) returns (RevokeReply);
 	rpc GetHostInfo (AuthRequest) returns (HostInfoReply);
+	rpc GetVersions (AuthRequest) returns (VersionReply);
+	rpc GetUpdatesFromHostBehavior (GetUpdatesFromHostBehaviorRequest) returns (GetUpdatesFromHostBehaviorReply);
+	rpc GetUpdatesToHostBehavior (GetUpdatesToHostBehaviorRequest) returns (GetUpdatesToHostBehaviorReply);
+	rpc GetDeletesFromHostBehavior (GetDeletesFromHostBehaviorRequest) returns (GetDeletesFromHostBehaviorReply);
+	rpc GetDeletesToHostBehavior (GetDeletesToHostBehaviorRequest) returns (GetDeletesToHostBehaviorReply);
+}
+
+message GetDeletesToHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetDeletesToHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	uint32 behavior = 2;
+}
+
+message GetDeletesFromHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetDeletesFromHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	uint32 behavior = 2;
+}
+
+message GetUpdatesToHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetUpdatesToHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	uint32 behavior = 2;
+}
+
+message GetUpdatesFromHostBehaviorRequest {
+	AuthRequest authentication = 1;
+	string databaseName = 2;
+	string tableName = 3;
+}
+
+message GetUpdatesFromHostBehaviorReply {
+	AuthResult authenticationResult = 1;
+	uint32 behavior = 2;
+}
+
+message VersionReply {
+	AuthResult authenticationResult = 1;
+	string rcdx = 2;
+	string rcd_core = 3;
+	// ... so on
 }
 
 message HostInfoReply {
@@ -756,7 +812,7 @@ message ParticipantStatus {
 	uint32 contractStatus = 2;
 }
 
-message Host{
+message Host {
 	string hostGUID = 1;
 	string hostName = 2;
 	string ip4Address = 3;

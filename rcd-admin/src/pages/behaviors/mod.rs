@@ -1,5 +1,12 @@
 use yew::{function_component, Html, html};
 
+use crate::pages::behaviors::{deletes_from_host::DeletesFromHost, updates_from_host::UpdatesFromHost, deletes_to_host::DeletesToHost, updates_to_host::UpdatesToHost};
+
+mod updates_from_host;
+mod updates_to_host;
+mod deletes_from_host;
+mod deletes_to_host;
+
 #[function_component]
 pub fn Behaviors() -> Html {
     html! {
@@ -11,6 +18,10 @@ pub fn Behaviors() -> Html {
                     requests, such as ignoring them, logging them for later review, and so on."}</p>
                     <p>{"We can also configure what we want to do if we change or delete data, 
                     if we should notify the host or not."}</p>
+                    < UpdatesToHost />
+                    < DeletesToHost />
+                    < UpdatesFromHost />
+                    < DeletesFromHost />
                 </div>
             </div>
         </div>

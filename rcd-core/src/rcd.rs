@@ -30,7 +30,7 @@ use rcdproto::rcdp::{
     HasTableReply, HasTableRequest, SendParticipantContractReply, SendParticipantContractRequest,
     SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
     TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest, RevokeReply, HostInfoReply,
+    ViewPendingContractsRequest, RevokeReply, HostInfoReply, GetUpdatesFromHostBehaviorRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesToHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -148,6 +148,20 @@ impl Rcd {
         request: ChangeUpdatesFromHostBehaviorRequest,
     ) -> ChangesUpdatesFromHostBehaviorReply {
         return db::change_updates_from_host_behavior(self, request).await;
+    }
+
+    pub async fn get_updates_from_host_behavior(
+        &self,
+        request: GetUpdatesFromHostBehaviorRequest,
+    ) -> GetUpdatesFromHostBehaviorReply {
+        return db::get_updates_from_host_behavior(self, request).await;
+    }
+
+    pub async fn get_updates_to_host_behavior(
+        &self,
+        request: GetUpdatesToHostBehaviorRequest,
+    ) -> GetUpdatesToHostBehaviorReply {
+        return db::get_updates_to_host_behavior(self, request).await;
     }
 
     pub async fn create_user_database(
