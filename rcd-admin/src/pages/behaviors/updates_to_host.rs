@@ -95,17 +95,21 @@ pub fn UpdatesToHost() -> Html {
 
     html! {
         <div>
-            <p><h1 class="subtitle">{"Updates To Host"}</h1></p>
-            <p><label for="databases">{ "Select Database " }</label></p>
-            <p>< SelectDatabase active_db_name={active_database} onclick_db={onclick_db}/></p>
-            <p><label for="tables">{ "Select Table " }</label></p>
-            <p>< SelectTable
-                active_database_name={active_table_database}
-                active_table_name = {active_table}
-                onclick_table={onclick_table}/>
-            </p>
-            <p>{"Current Behavior: "}</p>
-            <p>{(*behavior_type_state).clone()}</p>
+            <div class="box">
+                <p><h1 class="subtitle">{"Updates To Host"}</h1></p>
+                <p><h2 class="subtitle">{"View Current Behavior"}</h2></p>
+                <p><label for="databases">{ "Select Database " }</label></p>
+                <p>< SelectDatabase active_db_name={active_database} onclick_db={onclick_db}/></p>
+                <p><label for="tables">{ "Select Table " }</label></p>
+                <p>< SelectTable
+                    active_database_name={active_table_database}
+                    active_table_name = {active_table}
+                    onclick_table={onclick_table}/>
+                </p>
+                <p>{"Current Behavior: "}</p>
+                <p>{(*behavior_type_state).clone()}</p>
+                <p><h2 class="subtitle">{"Change Behavior"}</h2></p>
+            </div>
         </div>
     }
 }
