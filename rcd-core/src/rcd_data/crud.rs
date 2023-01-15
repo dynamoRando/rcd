@@ -1,9 +1,6 @@
 use rcd_common::{
     db::PartialDataResult,
-    rcd_enum::{
-        DeletesFromHostBehavior, 
-        
-    },
+    
 };
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::{partial_data_result_action::PartialDataResultAction, partial_data_status::PartialDataStatus};
@@ -13,7 +10,7 @@ use rcdproto::rcdp::{
     NotifyHostOfRemovedRowRequest, NotifyHostOfRemovedRowResponse, Row, RowInfo, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest, UpdateRowDataHashForHostResponse,
 };
-
+use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
 use super::RcdData;
 
 pub async fn insert_command_into_table(

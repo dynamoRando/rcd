@@ -6,12 +6,13 @@ use rcd_common::{
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
     rcd_enum::{
-        ContractStatus, DatabaseType, DeletesFromHostBehavior, LogicalStoragePolicy, RcdDbError,
+        ContractStatus, DatabaseType,  LogicalStoragePolicy, RcdDbError,
         RcdGenerateContractError, RemoteDeleteBehavior, 
         
     },
     table::Table,
 };
+use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;

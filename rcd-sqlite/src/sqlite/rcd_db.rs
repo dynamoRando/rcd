@@ -8,7 +8,7 @@ use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
 use rcd_common::rcd_enum::{
-    DeletesFromHostBehavior, HostStatus, 
+    HostStatus, 
 };
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use rcd_common::user::*;
@@ -17,7 +17,7 @@ use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rusqlite::{named_params, Connection, Result};
 use std::{fs, path::Path};
-
+use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
 use crate::sqlite::get_db_conn;
 
 pub mod contract;

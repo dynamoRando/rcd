@@ -41,11 +41,12 @@ use rcdproto::rcdp::{
 };
 
 use rcd_common::rcd_enum::{
-    DatabaseType, DeletesFromHostBehavior, LogicalStoragePolicy,
+    DatabaseType, LogicalStoragePolicy,
     RemoteDeleteBehavior, 
 };
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
+use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
 use log::info;
 use reqwest::Client;
 use std::error::Error;

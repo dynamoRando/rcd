@@ -1,10 +1,11 @@
 use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
-        DeletesFromHostBehavior, HostStatus, RcdGenerateContractError, RemoteDeleteBehavior,
+         HostStatus, RcdGenerateContractError, RemoteDeleteBehavior,
     
     },
 };
+use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::partial_data_result_action::PartialDataResultAction;
