@@ -166,7 +166,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -242,7 +241,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -299,7 +297,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn participant_service_client(
         participant_client_addr: ServiceAddr,
         contract_desc: String,
@@ -323,7 +320,7 @@ pub mod grpc {
         )
         .await;
 
-        client.generate_host_info("tester").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -345,7 +342,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -389,7 +385,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn main_read_deleted_row_should_succeed(
         db_name: &str,
         main_client_addr: ServiceAddr,
