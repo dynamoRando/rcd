@@ -7,9 +7,7 @@ use log::info;
 use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
-use rcd_common::rcd_enum::{
-    HostStatus, 
-};
+use rcd_enum::{host_status::HostStatus};
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use rcd_common::user::*;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;

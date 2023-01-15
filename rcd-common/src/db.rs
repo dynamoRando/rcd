@@ -1,4 +1,4 @@
-use rcd_enum::partial_data_result_action::PartialDataResultAction;
+use rcd_enum::{partial_data_result_action::PartialDataResultAction, host_status::HostStatus};
 
 use crate::{defaults, rcd_enum::*};
 

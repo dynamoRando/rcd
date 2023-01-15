@@ -6,9 +6,10 @@ use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
 use rcd_common::{
     db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
-    rcd_enum::{ContractStatus, HostStatus},
+    rcd_enum::{ContractStatus},
 };
 use rusqlite::{named_params, Connection, Result};
+use rcd_enum::{host_status::HostStatus};
 
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);

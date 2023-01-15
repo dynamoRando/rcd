@@ -328,7 +328,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::{DatabaseType, HostStatus};
+        use rcd_common::rcd_enum::{DatabaseType};
+        use rcd_enum::{host_status::HostStatus};
         use rcd_client::{RcdClient};
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -727,7 +728,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::{DatabaseType, HostStatus};
+        use rcd_common::rcd_enum::{DatabaseType};
+        use rcd_enum::{host_status::HostStatus};
         use rcd_client::{RcdClient};
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
