@@ -1,6 +1,6 @@
+use crate::{AppMessage, ContractIntent, RcdAdminApp};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
-use crate::{AppMessage, RcdAdminApp, ContractIntent};
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let text = app.contract.pending.data.markdown.clone();

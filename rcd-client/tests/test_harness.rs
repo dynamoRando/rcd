@@ -144,7 +144,8 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
                 String::from("tester"),
                 String::from("123456"),
                 5,
-            ).await;
+            )
+            .await;
 
             while reciever.try_recv().unwrap() {
                 let time = time::Duration::from_secs(sleep_in_seconds as u64);

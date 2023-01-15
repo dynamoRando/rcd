@@ -1,11 +1,9 @@
-use web_sys::{HtmlSelectElement, console};
+use crate::{AppMessage, ContractIntent, RcdAdminApp};
+use web_sys::{console, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
-use crate::{AppMessage, RcdAdminApp, ContractIntent};
-
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-
     let databases = &app.databases.data.databases;
 
     let mut db_names: Vec<String> = Vec::new();

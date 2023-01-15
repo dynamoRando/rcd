@@ -5,8 +5,9 @@ use rcdproto::rcdp::{
     ChangeUpdatesFromHostBehaviorRequest, ChangeUpdatesToHostBehaviorReply,
     ChangeUpdatesToHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
     GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest,
+    GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest,
     GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
-    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, GetDeletesToHostBehaviorRequest, GetDeletesToHostBehaviorReply,
+    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
 

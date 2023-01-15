@@ -67,10 +67,7 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                participant_addrs.0,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -107,7 +104,6 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -121,7 +117,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -172,9 +169,8 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
@@ -191,7 +187,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -205,7 +202,6 @@ pub mod grpc {
         return has_contract;
     }
 }
-
 
 pub mod http {
 
@@ -244,7 +240,7 @@ pub mod http {
 
         let pa1 = participant_addrs.clone();
         let pa2 = participant_addrs.clone();
-    
+
         let time = time::Duration::from_secs(1);
 
         info!("sleeping for 1 seconds...");
@@ -254,7 +250,7 @@ pub mod http {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-        
+
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
@@ -276,10 +272,7 @@ pub mod http {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                pa1,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(pa1, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -300,7 +293,6 @@ pub mod http {
         test_harness::release_port(pa2.port);
         test_harness::shutdown_http(ma2.ip4_addr, ma2.port);
         test_harness::shutdown_http(pa2.ip4_addr, pa2.port);
-     
     }
 
     #[cfg(test)]
@@ -315,7 +307,6 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -325,12 +316,11 @@ pub mod http {
         );
 
         let mut client = RcdClient::new_http_client(
-           
             String::from("tester"),
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -382,7 +372,6 @@ pub mod http {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
@@ -399,7 +388,7 @@ pub mod http {
             String::from("123456"),
             5,
             participant_client_addr.ip4_addr,
-            participant_client_addr.port
+            participant_client_addr.port,
         );
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();

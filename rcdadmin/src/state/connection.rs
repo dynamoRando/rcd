@@ -6,8 +6,8 @@ pub struct RcdConnectionUi {
     pub password: NodeRef,
     pub ip: NodeRef,
     pub port: NodeRef,
-    pub http_port: NodeRef, 
-    pub databases: NodeRef
+    pub http_port: NodeRef,
+    pub databases: NodeRef,
 }
 
 impl RcdConnectionUi {
@@ -54,7 +54,7 @@ pub struct RcdConnectionDataActive {
 
 impl RcdConnectionDataActive {
     pub fn new() -> RcdConnectionDataActive {
-        return  RcdConnectionDataActive {
+        return RcdConnectionDataActive {
             database: "".to_string(),
             table: "".to_string(),
             url: "".to_string(),
@@ -69,8 +69,8 @@ pub struct RcdConnection {
 }
 
 impl RcdConnection {
-    pub fn new() -> RcdConnection{
-        return RcdConnection{
+    pub fn new() -> RcdConnection {
+        return RcdConnection {
             ui: RcdConnectionUi::new(),
             data: RcdConnectionData::new(),
         };

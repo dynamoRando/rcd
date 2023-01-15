@@ -19,5 +19,4 @@ mod get_delete_from_host_behavior;
 #[path = "participant_tests-delete/get_delete_at_participant.rs"]
 mod get_delete_at_participant;
 
-
 pub mod test_harness;

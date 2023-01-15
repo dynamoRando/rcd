@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum HostStatus {
     Unknown = 0,

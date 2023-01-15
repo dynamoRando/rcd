@@ -5,7 +5,7 @@ use yew::{html::Scope, Html};
 
 /// Shows the RCD instance's host information
 pub fn view_host_info(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
-  let host_is_visible = !app.page.host_is_visible;
+    let host_is_visible = !app.page.host_is_visible;
 
     html!(
       <div hidden={host_is_visible}>
@@ -18,7 +18,7 @@ pub fn view_host_info(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
 
 /// Shows RCD instances that this RCD instance is cooperating with
 pub fn view_coop_hosts(app: &RcdAdminApp, _link: &Scope<RcdAdminApp>) -> Html {
-  let coop_host_is_visible = !app.page.coop_hosts_is_visible;
+    let coop_host_is_visible = !app.page.coop_hosts_is_visible;
     html!(
       <div hidden={coop_host_is_visible}>
           <h1> {"Cooperating Hosts"} </h1>

@@ -1,7 +1,7 @@
 use crate::state::databases::RcdDatabases;
 use crate::state::participant::RcdParticipants;
 use crate::{AppMessage, ContractIntent, RcdAdminApp};
-use web_sys::{HtmlSelectElement};
+use web_sys::HtmlSelectElement;
 use yew::prelude::*;
 use yew::{html::Scope, Html};
 
@@ -10,7 +10,6 @@ pub fn view(
     participants_ui: &RcdParticipants,
     link: &Scope<RcdAdminApp>,
 ) -> Html {
-
     let mut db_names: Vec<String> = Vec::new();
     for db in &databases.data.databases {
         db_names.push(db.database_name.clone());

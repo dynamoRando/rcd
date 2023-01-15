@@ -3,8 +3,7 @@ use rcd_common::host_info::HostInfo;
 use super::Rcd;
 use rcd_enum::{
     deletes_from_host_behavior::DeletesFromHostBehavior,
-    deletes_to_host_behavior::DeletesToHostBehavior, 
-    host_status::HostStatus,
+    deletes_to_host_behavior::DeletesToHostBehavior, host_status::HostStatus,
     partial_data_result_action::PartialDataResultAction,
     rcd_generate_contract_error::RcdGenerateContractError,
     remote_delete_behavior::RemoteDeleteBehavior,

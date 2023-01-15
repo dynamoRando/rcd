@@ -1,4 +1,3 @@
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum DmlType {
     Unknown = 0,

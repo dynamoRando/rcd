@@ -1,4 +1,3 @@
-
 use std::{error::Error, fmt};
 
 #[derive(Debug)]

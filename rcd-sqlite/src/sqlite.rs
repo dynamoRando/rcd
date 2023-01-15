@@ -88,7 +88,6 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     return value;
 }
 
-
 pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
     println!("get_scalar_as_bool: {:?}", cmd);
 

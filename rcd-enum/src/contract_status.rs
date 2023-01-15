@@ -1,4 +1,3 @@
-
 /// Determines where status of a contract between a host and a participant.
 /// # Types
 /// * 0 - Unknown

@@ -1,6 +1,5 @@
 use substring::Substring;
 
-
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ColumnType {
     Unknown = 0,

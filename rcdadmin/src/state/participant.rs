@@ -10,7 +10,7 @@ impl RcdParticipantDataActive {
     pub fn new() -> RcdParticipantDataActive {
         return RcdParticipantDataActive {
             participants: Vec::new(),
-            alias: "".to_string()
+            alias: "".to_string(),
         };
     }
 }
@@ -81,20 +81,23 @@ pub struct RcdParticipantsSendContractResult {
 
 impl RcdParticipantsSendContractResult {
     pub fn new() -> RcdParticipantsSendContractResult {
-        return RcdParticipantsSendContractResult { is_successful: false }
+        return RcdParticipantsSendContractResult {
+            is_successful: false,
+        };
     }
 }
 
 pub struct RcdParticipantSendContractUi {
-    pub alias: NodeRef
+    pub alias: NodeRef,
 }
 
 impl RcdParticipantSendContractUi {
     pub fn new() -> RcdParticipantSendContractUi {
-        return RcdParticipantSendContractUi { alias: NodeRef::default() }
+        return RcdParticipantSendContractUi {
+            alias: NodeRef::default(),
+        };
     }
 }
-
 
 pub struct RcdParticipantsSendContractData {
     pub alias: String,
@@ -102,14 +105,16 @@ pub struct RcdParticipantsSendContractData {
 
 impl RcdParticipantsSendContractData {
     pub fn new() -> RcdParticipantsSendContractData {
-        return RcdParticipantsSendContractData { alias: String::from("") }
+        return RcdParticipantsSendContractData {
+            alias: String::from(""),
+        };
     }
 }
 
 pub struct RcdParticipantsSendContract {
     pub ui: RcdParticipantSendContractUi,
     pub data: RcdParticipantsSendContractData,
-    pub result: RcdParticipantsSendContractResult
+    pub result: RcdParticipantsSendContractResult,
 }
 
 impl RcdParticipantsSendContract {
@@ -118,7 +123,7 @@ impl RcdParticipantsSendContract {
             ui: RcdParticipantSendContractUi::new(),
             data: RcdParticipantsSendContractData::new(),
             result: RcdParticipantsSendContractResult::new(),
-        }
+        };
     }
 }
 
@@ -133,7 +138,7 @@ impl RcdParticipants {
         return RcdParticipants {
             ui: RcdParticipantsUi::new(),
             data: RcdParticipantData::new(),
-            send_contract: RcdParticipantsSendContract::new()
+            send_contract: RcdParticipantsSendContract::new(),
         };
     }
 }

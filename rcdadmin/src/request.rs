@@ -1,4 +1,4 @@
-use gloo::net::http::{Request, Method};
+use gloo::net::http::{Method, Request};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
 /// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON

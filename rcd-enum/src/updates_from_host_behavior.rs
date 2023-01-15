@@ -1,4 +1,3 @@
-
 /// From the perspective of a participant: if we get an `UPDATE` statement from a database host
 /// we can define how we want to respond:
 /// 1. Allow Overwrite - will execute the `UPDATE` statement

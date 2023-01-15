@@ -68,7 +68,7 @@ impl RemoteGrpc {
             ContractStatus::Pending,
             db_schema,
             "",
-            0
+            0,
         );
 
         let request = tonic::Request::new(SaveContractRequest {
@@ -108,7 +108,7 @@ impl RemoteGrpc {
             database_port_number: 0,
             token: own_host_info.token.clone(),
             http_addr: "".to_string(),
-            http_port: 0
+            http_port: 0,
         };
 
         let request = NotifyHostOfRemovedRowRequest {
@@ -268,7 +268,7 @@ impl RemoteGrpc {
             database_port_number: 0,
             token: own_host_info.token.clone(),
             http_addr: "".to_string(),
-            http_port: 0
+            http_port: 0,
         };
 
         let hash_val = match hash {
@@ -399,7 +399,7 @@ fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
         pw: String::from(""),
         pw_hash: Vec::new(),
         token: own_host_info.token.clone(),
-        jwt: String::from("")
+        jwt: String::from(""),
     };
 
     return auth;

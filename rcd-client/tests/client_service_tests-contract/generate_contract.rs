@@ -2,7 +2,7 @@ pub mod grpc {
     use log::info;
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -35,7 +35,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port);
@@ -79,7 +79,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client_negative(&test_db_name, &target_client_address_port);
@@ -112,7 +112,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -150,7 +151,7 @@ pub mod grpc {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
@@ -161,8 +162,9 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
-        
+        )
+        .await;
+
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -191,7 +193,7 @@ pub mod http {
     use log::info;
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -228,7 +230,7 @@ pub mod http {
             );
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);
@@ -301,7 +303,6 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -351,7 +352,7 @@ pub mod http {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);

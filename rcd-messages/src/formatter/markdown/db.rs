@@ -16,7 +16,7 @@ pub fn full_database_schema_to_tables(database: &DatabaseSchema) -> String {
 
     total_schema = total_schema + "\n";
     total_schema = total_schema + "Table Details: ";
-    
+
     for table in &database.tables {
         total_schema = total_schema + "\n";
         total_schema = total_schema + &table.table_name.clone();

@@ -3,7 +3,7 @@ pub mod grpc {
     use log::info;
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -61,7 +61,6 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -73,8 +72,9 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
-        
+        )
+        .await;
+
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
         client
@@ -117,7 +117,7 @@ pub mod http {
     use log::info;
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -180,7 +180,6 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

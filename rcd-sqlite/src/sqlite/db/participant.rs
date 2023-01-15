@@ -1,14 +1,14 @@
 use guid_create::GUID;
 use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    db::{DbiConfigSqlite, get_metadata_table_name},
-    defaults
+    db::{get_metadata_table_name, DbiConfigSqlite},
+    defaults,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
-use crate::sqlite::{get_db_conn, has_any_rows, has_table, sql_text, execute_write};
+use crate::sqlite::{execute_write, get_db_conn, has_any_rows, has_table, sql_text};
 
 /// Creates the COOP_PARTICIPANT table if it does not exist. This holds
 /// the participant information that are cooperating with this database.
@@ -134,7 +134,7 @@ pub fn add_participant(
     db_port: u32,
     config: DbiConfigSqlite,
     http_addr: String,
-    http_port: u16
+    http_port: u16,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
     let is_added: bool;
@@ -153,7 +153,7 @@ pub fn add_participant(
             id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             token: Vec::new(),
             http_addr: http_addr,
-            http_port: http_port
+            http_port: http_port,
         };
         save_participant(participant, conn);
         is_added = true;
@@ -201,8 +201,7 @@ pub fn get_participant_by_internal_id(
                               token: Vec<u8>,
                               id: String,
                               http_addr: String,
-                              http_port: u16
-                              |
+                              http_port: u16|
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
@@ -215,7 +214,7 @@ pub fn get_participant_by_internal_id(
             token: token,
             id: GUID::parse(&id).unwrap(),
             http_addr: http_addr,
-            http_port: http_port
+            http_port: http_port,
         };
 
         Ok(participant)
@@ -291,8 +290,7 @@ pub fn get_participant_by_alias(
                               token: Vec<u8>,
                               id: String,
                               http_addr: String,
-                              http_port: u16
-                              |
+                              http_port: u16|
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
@@ -376,8 +374,7 @@ pub fn get_participants_for_database(
                               contract_status: u32,
                               participant_id: String,
                               http_addr: String,
-                              http_port: u32
-                              |
+                              http_port: u32|
      -> Result<ParticipantStatus> {
         let p = Participant {
             participant_guid: participant_id,
@@ -388,7 +385,7 @@ pub fn get_participants_for_database(
             token: Vec::new(),
             internal_participant_guid: internal_participant_id,
             http_addr: http_addr,
-            http_port: http_port
+            http_port: http_port,
         };
 
         let ps = ParticipantStatus {

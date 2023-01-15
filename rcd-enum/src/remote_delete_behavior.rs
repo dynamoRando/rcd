@@ -1,4 +1,3 @@
-
 /// Determines how a host will respond to a particpant's delete action.
 /// # Types
 /// * 0 - Unknown

@@ -1,9 +1,6 @@
 use crate::request::get_databases;
 use web_sys::HtmlInputElement;
-use yew::{
-    function_component, html, use_node_ref, Callback, Html, Properties,
-    UseStateHandle,
-};
+use yew::{function_component, html, use_node_ref, Callback, Html, Properties, UseStateHandle};
 
 #[derive(Properties, PartialEq)]
 /// Represents a state handle with the selected database name

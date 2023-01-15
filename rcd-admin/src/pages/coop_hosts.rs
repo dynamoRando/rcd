@@ -3,7 +3,7 @@ use rcd_messages::client::{GetCooperativeHostsReply, GetCooperativeHostsRequest,
 use web_sys::console;
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
-use crate::request::{clear_status, get_token, set_status, update_token_login_status, self};
+use crate::request::{self, clear_status, get_token, set_status, update_token_login_status};
 
 #[function_component]
 pub fn CooperativeHosts() -> Html {

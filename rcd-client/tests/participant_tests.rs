@@ -1,7 +1,7 @@
-#[path = "participant_tests/reject_host.rs"]
-mod reject_host;
 #[path = "participant_tests/get_host_info.rs"]
 mod get_host_info;
+#[path = "participant_tests/reject_host.rs"]
+mod reject_host;
 
 pub mod test_harness;
 

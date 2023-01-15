@@ -3,7 +3,7 @@ pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
     use rcd_client::RcdClient;
-    use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
+    use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
     use std::thread;
 
@@ -133,8 +133,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -345,7 +345,7 @@ pub mod http {
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
     use rcd_client::RcdClient;
-    use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
+    use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -474,8 +474,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);

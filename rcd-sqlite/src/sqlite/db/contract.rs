@@ -6,8 +6,9 @@ use rcd_common::{
 };
 
 use rcd_enum::{
+    logical_storage_policy::LogicalStoragePolicy,
     rcd_generate_contract_error::RcdGenerateContractError,
-    remote_delete_behavior::RemoteDeleteBehavior, logical_storage_policy::LogicalStoragePolicy,
+    remote_delete_behavior::RemoteDeleteBehavior,
 };
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};

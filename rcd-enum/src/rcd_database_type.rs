@@ -39,7 +39,7 @@ impl RcdDatabaseType {
             RcdDatabaseType::Unknown => "Unknown".to_string(),
             RcdDatabaseType::Rcd => "Rcd".to_string(),
             RcdDatabaseType::Host => "Host".to_string(),
-            RcdDatabaseType::Partial => "Partial".to_string()
+            RcdDatabaseType::Partial => "Partial".to_string(),
         }
     }
 

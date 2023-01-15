@@ -4,7 +4,7 @@ use yew::Properties;
 /// Represents a JWT granted from an RCD instance
 #[derive(Clone, Debug, Eq, PartialEq, Properties, serde::Serialize, serde::Deserialize)]
 pub struct Token {
-    /// The JWT 
+    /// The JWT
     pub jwt: String,
     /// The UTC expiration time of the token
     pub jwt_exp: String,
@@ -21,7 +21,7 @@ impl Token {
             jwt_exp: "".to_string(),
             addr: "".to_string(),
             is_logged_in: false,
-        }
+        };
     }
 
     /// Returns an AuthRequest in JSON format with this JWT as the authentication method

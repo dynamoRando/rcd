@@ -12,7 +12,7 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::CdsHosts,
-    host_info::HostInfo
+    host_info::HostInfo,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcd_http_common::url::data::{

@@ -1,6 +1,9 @@
 use crate::http_srv::Core;
 use rcd_common::defaults;
-use rcdproto::rcdp::{ChangeHostStatusReply, ChangeHostStatusRequest, TestReply, TestRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, AuthRequest, TokenReply, RevokeReply};
+use rcdproto::rcdp::{
+    AuthRequest, ChangeHostStatusReply, ChangeHostStatusRequest, RevokeReply, TestReply,
+    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+};
 use rocket::{get, http::Status, post, serde::json::Json, State};
 
 pub mod contract;
@@ -56,7 +59,6 @@ pub async fn change_host_status_name(
     (Status::Ok, Json(response))
 }
 
-
 #[post(
     "/client/try-auth-participant",
     format = "application/json",
@@ -73,12 +75,7 @@ pub async fn try_auth_at_participant(
     (Status::Ok, Json(response))
 }
 
-
-#[post(
-    "/client/token",
-    format = "application/json",
-    data = "<request>"
-)]
+#[post("/client/token", format = "application/json", data = "<request>")]
 pub async fn auth_for_token(
     request: Json<AuthRequest>,
     state: &State<Core>,
@@ -89,7 +86,6 @@ pub async fn auth_for_token(
 
     (Status::Ok, Json(response))
 }
-
 
 #[post(
     "/client/token-revoke",

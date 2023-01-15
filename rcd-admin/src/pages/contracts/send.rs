@@ -1,5 +1,4 @@
-use yew::{function_component, Html, html};
-
+use yew::{function_component, html, Html};
 
 #[function_component]
 pub fn Send() -> Html {

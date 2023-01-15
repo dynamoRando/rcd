@@ -28,7 +28,7 @@ pub struct CoopDatabaseParticipant {
     pub token: Vec<u8>,
     pub id: GUID,
     pub http_addr: String,
-    pub http_port: u16
+    pub http_port: u16,
 }
 
 #[derive(Clone, Debug)]

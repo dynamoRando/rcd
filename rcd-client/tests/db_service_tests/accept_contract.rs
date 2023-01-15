@@ -267,7 +267,7 @@ pub mod http {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-    
+
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,

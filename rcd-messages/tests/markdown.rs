@@ -184,7 +184,7 @@ pub fn test_host() {
         database_port_number: 5050,
         token: Vec::new(),
         http_addr: String::from(""),
-        http_port: 0
+        http_port: 0,
     };
 
     let table = formatter::markdown::host::host_to_markdown_table(&host);
@@ -410,7 +410,7 @@ pub fn test_contract() {
         database_port_number: 5050,
         token: Vec::new(),
         http_addr: String::from(""),
-        http_port: 0
+        http_port: 0,
     };
 
     let contract = Contract {

@@ -1,6 +1,5 @@
 use rcd_http_common::url::client::GET_UPDATES_FROM_HOST_BEHAVIOR;
-use yew::{function_component, Html, html};
-
+use yew::{function_component, html, Html};
 
 use rcd_messages::client::{GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest};
 use yew::{use_state_eq, AttrValue, Callback};
@@ -12,7 +11,6 @@ use crate::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
 };
-
 
 #[function_component]
 pub fn UpdatesFromHost() -> Html {

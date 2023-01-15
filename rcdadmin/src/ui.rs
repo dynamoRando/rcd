@@ -3,7 +3,6 @@ use yew::{html::Scope, Html};
 
 use crate::{AppMessage, RcdAdminApp, UiVisibility};
 
-
 pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let conn_is_visible = !app.page.conn_is_visible;
     let conn_ui = UiVisibility::Connection(conn_is_visible);
@@ -34,7 +33,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
             <div class="container">
                 <div class="box">
                     <h1 class="subtitle"> {"Configure UI"} </h1>
-            
+
                     <p>{"Hide any of the following:"}</p>
 
                     <div class="columns">
@@ -82,7 +81,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                             { " Contracts " }
                             </label>
                         </div>
-                
+
                         <div class="column">
                             <label class="checkbox" for="show_hosts">
                                 <input type="checkbox" onclick={link.callback(move |_|
@@ -93,7 +92,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                             { " Hosts " }
                             </label>
                         </div>
-                
+
                         <div class="column">
                             <label class="checkbox" for="participants">
                                 <input type="checkbox" onclick={link.callback(move |_|
@@ -104,7 +103,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                             { " Participants " }
                             </label>
                         </div>
-                
+
                         <div class="column">
                             <label class="checkbox" for="show_behaviors">
                                 <input type="checkbox" onclick={link.callback(move |_|
@@ -115,7 +114,7 @@ pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
                             { " Behaviors " }
                             </label>
                         </div>
-                
+
                         <div class="column">
                             <label class="checkbox" for="show_contract">
                                 <input type="checkbox" onclick={link.callback(move |_|

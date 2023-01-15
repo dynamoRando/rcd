@@ -1,4 +1,7 @@
-use rcd_enum::{partial_data_result_action::PartialDataResultAction, host_status::HostStatus, contract_status::ContractStatus};
+use rcd_enum::{
+    contract_status::ContractStatus, host_status::HostStatus,
+    partial_data_result_action::PartialDataResultAction,
+};
 
 use crate::defaults;
 // objects moved to here from rcdx.dbi

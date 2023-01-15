@@ -3,7 +3,6 @@ pub mod test_harness;
 #[path = "db_service_tests/accept_contract.rs"]
 mod accept_contract;
 
-
 #[path = "db_service_tests/insert_row.rs"]
 mod insert_row;
 #[path = "db_service_tests/save_contract.rs"]

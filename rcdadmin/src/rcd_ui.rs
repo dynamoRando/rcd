@@ -1,9 +1,8 @@
-use rcd_messages::client::{DatabaseSchema, Contract, ParticipantStatus};
+use rcd_messages::client::{Contract, DatabaseSchema, ParticipantStatus};
 use serde::{Deserialize, Serialize};
 use yew::{Component, Html, NodeRef};
 
 use crate::AppMessage;
-
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PageUi {
@@ -90,7 +89,7 @@ pub struct RcdContractInfo {
     pub pending_contracts: Vec<Contract>,
     pub accepted_contracts: Vec<Contract>,
     pub contract_gen_ui: RcdContractGenUi,
-    pub contract_detail_db_ui: NodeRef
+    pub contract_detail_db_ui: NodeRef,
 }
 
 pub struct RcdContractGenUi {
@@ -107,7 +106,7 @@ pub struct RcdAddParticipantUi {
     pub last_add_result: bool,
     pub current_participants: Vec<ParticipantStatus>,
     pub participant_http_addr_ui: NodeRef,
-    pub participant_http_port_num_ui: NodeRef
+    pub participant_http_port_num_ui: NodeRef,
 }
 
 pub struct RcdSendParticipantContractUi {

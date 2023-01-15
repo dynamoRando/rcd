@@ -6,7 +6,7 @@ pub mod grpc {
     extern crate tokio;
     use crate::test_harness;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -34,7 +34,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port);
@@ -70,7 +70,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -94,7 +95,6 @@ pub mod grpc {
     }
 }
 
-
 pub mod http {
 
     use log::info;
@@ -103,7 +103,7 @@ pub mod http {
     extern crate tokio;
     use crate::test_harness;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -128,7 +128,11 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir("127.0.0.1".to_string(), port_num as u16, root_dir);
+            let _service = service.start_http_at_addr_and_dir(
+                "127.0.0.1".to_string(),
+                port_num as u16,
+                root_dir,
+            );
         });
 
         test_harness::sleep_test();
@@ -168,7 +172,7 @@ pub mod http {
             String::from("123456"),
             5,
             "127.0.0.1".to_string(),
-            port
+            port,
         );
 
         client.create_user_database(db_name).await.unwrap();

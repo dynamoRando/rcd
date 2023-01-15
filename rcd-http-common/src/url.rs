@@ -28,14 +28,20 @@ pub mod client {
     pub const ACCEPT_PENDING_CONTRACT: &str = "/client/contract/accept/";
     pub const ACCEPT_PENDING_ACTION: &str = "/client/databases/actions/accept-pending";
     pub const GET_PENDING_ACTIONS: &str = "/client/databases/actions/get-pending";
-    pub const CHANGE_DELETES_TO_HOST_BEHAVIOR: &str = "/client/databases/behavior/change-deletes-to-host";
+    pub const CHANGE_DELETES_TO_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/change-deletes-to-host";
     pub const GET_DELETES_TO_HOST_BEHAVIOR: &str = "/client/databases/behavior/get-deletes-to-host";
-    pub const CHANGE_UPDATES_TO_HOST_BEHAVIOR: &str = "/client/databases/behavior/change-updates-to-host";
+    pub const CHANGE_UPDATES_TO_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/change-updates-to-host";
     pub const GET_UPDATES_TO_HOST_BEHAVIOR: &str = "/client/databases/behavior/get-updates-to-host";
-    pub const CHANGE_DELETES_FROM_HOST_BEHAVIOR: &str = "/client/databases/behavior/change-deletes-from-host";
-    pub const GET_DELETES_FROM_HOST_BEHAVIOR: &str = "/client/databases/behavior/get-deletes-from-host";
-    pub const CHANGE_UPDATES_FROM_HOST_BEHAVIOR: &str = "/client/databases/behavior/change-updates-from-host";
-    pub const GET_UPDATES_FROM_HOST_BEHAVIOR: &str = "/client/databases/behavior/get-updates-from-host";
+    pub const CHANGE_DELETES_FROM_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/change-deletes-from-host";
+    pub const GET_DELETES_FROM_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/get-deletes-from-host";
+    pub const CHANGE_UPDATES_FROM_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/change-updates-from-host";
+    pub const GET_UPDATES_FROM_HOST_BEHAVIOR: &str =
+        "/client/databases/behavior/get-updates-from-host";
     pub const CHANGE_HOST_STATUS_ID: &str = "/client/change-host-status-id";
     pub const CHANGE_HOST_STATUS_NAME: &str = "/client/change-host-status-name";
     pub const GET_DATABASES: &str = "/client/databases";

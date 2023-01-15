@@ -8,9 +8,7 @@ use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use triggered::Listener;
 
-use rcd_enum::{
-    database_type::DatabaseType,
-};
+use rcd_enum::database_type::DatabaseType;
 
 mod grpc;
 mod http;

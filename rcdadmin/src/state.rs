@@ -23,10 +23,9 @@
 - Cooperating Hosts
 */
 
-
 pub mod connection;
-pub mod databases;
-pub mod sql;
 pub mod contract;
-pub mod tables;
+pub mod databases;
 pub mod participant;
+pub mod sql;
+pub mod tables;

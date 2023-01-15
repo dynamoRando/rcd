@@ -3,16 +3,16 @@ use rcdproto::rcdp::{
     EnableCoooperativeFeaturesRequest, GenerateContractReply, GenerateContractRequest,
     GetActiveContractReply, GetActiveContractRequest, GetDataHashReply, GetDataHashRequest,
     GetDatabasesReply, GetDatabasesRequest, GetLogicalStoragePolicyReply,
-    GetLogicalStoragePolicyRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, HasTableRequest, HasTableReply,
+    GetLogicalStoragePolicyRequest, GetReadRowIdsReply, GetReadRowIdsRequest, HasTableReply,
+    HasTableRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
 
 use crate::http_srv::Core;
 
 pub mod actions;
-pub mod participant;
 pub mod behavior;
+pub mod participant;
 
 #[post("/client/databases", format = "application/json", data = "<request>")]
 pub async fn post_get_databases(
@@ -171,7 +171,6 @@ pub async fn get_data_hash_at_host(
 
     (Status::Ok, Json(result))
 }
-
 
 #[post(
     "/client/databases/has_table",

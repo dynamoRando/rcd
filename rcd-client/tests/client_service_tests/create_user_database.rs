@@ -4,7 +4,7 @@ pub mod grpc {
     use rcd_client::RcdClient;
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -35,7 +35,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port);
@@ -56,7 +56,6 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
-
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!(
             "client_create_user_database attempting to connect {}",
@@ -68,7 +67,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
         return client.create_user_database(db_name).await.unwrap();
     }
 
@@ -100,7 +100,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = negative_client(&test_db_name, &target_client_address_port);
@@ -119,7 +119,6 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn negative_client(db_name: &str, addr_port: &str) -> bool {
-
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!(
             "client_create_user_database attempting to connect {}",
@@ -131,8 +130,9 @@ pub mod grpc {
             String::from("wrong_user"),
             String::from("123456"),
             5,
-        ).await;
-        
+        )
+        .await;
+
         return client.create_user_database(db_name).await.unwrap();
     }
 }
@@ -143,7 +143,7 @@ pub mod http {
     use rcd_client::RcdClient;
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -178,7 +178,7 @@ pub mod http {
             );
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);
@@ -247,7 +247,7 @@ pub mod http {
                 root_dir,
             );
         });
-    
+
         test_harness::sleep_test();
 
         thread::spawn(move || {

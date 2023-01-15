@@ -3,9 +3,9 @@ pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
     use rcd_client::RcdClient;
-    use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
+    use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     /*
     # Test Description
@@ -103,11 +103,7 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                
-                participant_addrs.0,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -169,7 +165,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -180,7 +176,6 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -194,7 +189,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -245,7 +241,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -257,7 +253,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client
             .execute_cooperative_write_at_host(
@@ -301,16 +298,14 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
-        
+
         let mut has_contract = false;
 
         info!(
@@ -323,9 +318,10 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
-         client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -347,7 +343,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -355,7 +351,7 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
+
         info!(
             "participant_changes_update_behavior attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
@@ -366,7 +362,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let result = client
             .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
@@ -377,14 +374,15 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_delete_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let cmd = String::from("DELETE FROM EMPLOYEE WHERE Id = 999");
         let update_result = client
@@ -399,7 +397,7 @@ pub mod http {
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
     use rcd_client::RcdClient;
-    use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
+    use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -498,8 +496,7 @@ pub mod http {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res =
-                participant_service_client( pa2, participant_contract_desc);
+            let res = participant_service_client(pa2, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -560,7 +557,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -571,7 +568,6 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -636,13 +632,12 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
-    
 
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
@@ -694,16 +689,14 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
 
-        
         let mut has_contract = false;
 
         info!(
@@ -719,7 +712,7 @@ pub mod http {
             participant_client_addr.port,
         );
 
-         client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -741,7 +734,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -749,9 +742,6 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
-    
-
 
         info!(
             "participant_changes_update_behavior attempting to connect {}",
@@ -775,7 +765,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_delete_should_fail(db_name: &str, main_client_addr: ServiceAddr) -> bool {
         let mut client = RcdClient::new_http_client(
             String::from("tester"),

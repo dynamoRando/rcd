@@ -4,11 +4,11 @@ use crate::sqlite::{execute_write, get_scalar_as_string, has_any_rows};
 
 use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
-use rcd_common::{
-    db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
+use rcd_common::db::{
+    CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite,
 };
+use rcd_enum::{contract_status::ContractStatus, host_status::HostStatus};
 use rusqlite::{named_params, Connection, Result};
-use rcd_enum::{host_status::HostStatus, contract_status::ContractStatus};
 
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
@@ -278,7 +278,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             last_comm_utc,
             http_addr,
             http_port,
-            status: HostStatus::from_u32(status)
+            status: HostStatus::from_u32(status),
         };
         Ok(host)
     };

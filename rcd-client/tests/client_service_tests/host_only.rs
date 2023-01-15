@@ -5,9 +5,9 @@ pub mod grpc {
     extern crate futures;
     extern crate tokio;
     use crate::test_harness;
-    use std::sync::mpsc;
-    use std::{thread};
     use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+    use std::sync::mpsc;
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -62,7 +62,7 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-        
+
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
@@ -71,7 +71,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -127,7 +128,7 @@ pub mod http {
     extern crate tokio;
     use crate::test_harness;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -152,14 +153,15 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _= service.start_http_at_addr_and_dir(
+            let _ = service.start_http_at_addr_and_dir(
                 "127.0.0.1".to_string(),
                 port_num as u16,
                 root_dir,
             );
             test_harness::sleep_test();
-        }).join().unwrap();
-
+        })
+        .join()
+        .unwrap();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port, port_num);
@@ -184,12 +186,12 @@ pub mod http {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 

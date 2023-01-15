@@ -1,4 +1,7 @@
-use rcdproto::rcdp::{ViewPendingContractsRequest, ViewPendingContractsReply, AcceptPendingContractRequest, AcceptPendingContractReply};
+use rcdproto::rcdp::{
+    AcceptPendingContractReply, AcceptPendingContractRequest, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
+};
 use rocket::{http::Status, post, serde::json::Json, State};
 
 use crate::http_srv::Core;
@@ -17,7 +20,6 @@ pub async fn review_pending_contracts(
 
     (Status::Ok, Json(result))
 }
-
 
 #[post(
     "/client/contract/accept",

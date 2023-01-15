@@ -27,7 +27,7 @@ pub fn view_contracts(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
           // generate contract
           { generate::view(app,link) }
           // view active contract
-           { active::view(app, link)} 
+           { active::view(app, link)}
           </div>
     )
 }
@@ -114,13 +114,7 @@ pub fn handle_contract_intent(
             let base_address = get_base_address(&app.connection.data);
             let url = format!("{}{}", base_address.clone(), SEND_CONTRACT_TO_PARTICIPANT);
             let auth = get_auth_request(&app.connection.data);
-            let db_name = &app
-                
-                .databases
-                .data
-                .active
-                .database_name
-                .clone();
+            let db_name = &app.databases.data.active.database_name.clone();
             let participant_alias = app.participants.send_contract.data.alias.clone();
 
             let request = SendParticipantContractRequest {
@@ -170,13 +164,7 @@ pub fn handle_contract_response(app: &mut RcdAdminApp, json_response: String) {
             result_message + &format!("Is result successful: {}", reply.is_successful.to_string());
 
         console::log_1(&result_message.to_string().clone().into());
-        app
-            
-            .contract
-            .generate
-            .result
-            .data
-            .is_successful = reply.is_successful;
+        app.contract.generate.result.data.is_successful = reply.is_successful;
     }
 }
 

@@ -4,7 +4,9 @@ use crate::{
         common::select_database::SelectDatabase,
         sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
     },
-    request::{self, get_databases, get_token, set_status, update_token_login_status, clear_status},
+    request::{
+        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+    },
 };
 use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,

@@ -6,16 +6,17 @@ pub struct CDS {}
 pub struct COOP {}
 
 impl CDS {
-
     pub fn text_create_user_tokens_table() -> String {
-        return String::from("
+        return String::from(
+            "
         CREATE TABLE IF NOT EXISTS CDS_USER_TOKENS
         (
             USERNAME VARCHAR(25) NOT NULL,
             TOKEN TEXT NOT NULL,
             ISSUED_UTC DATETIME,
             EXPIRATION_UTC DATETIME
-        );")
+        );",
+        );
     }
 
     /// Returns create table statement for storing users of the CDS.

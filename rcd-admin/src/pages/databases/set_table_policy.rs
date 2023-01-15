@@ -1,7 +1,7 @@
 use crate::{
     log::log_to_console,
     pages::databases::columns::ColumnProps,
-    request::{self, get_token, update_token_login_status, set_status, clear_status},
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 use rcd_http_common::url::client::SET_POLICY;
 use rcd_messages::client::{SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};

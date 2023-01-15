@@ -1,4 +1,3 @@
-
 /// Determines where data in table will be stored.
 /// # Types
 /// * 0 - None - This is the default and when a database has no participants.

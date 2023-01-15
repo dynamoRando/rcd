@@ -1,6 +1,9 @@
-use rcd_http_common::url::client::{VIEW_PENDING_CONTRACTS, ACCEPT_PENDING_CONTRACT};
+use rcd_http_common::url::client::{ACCEPT_PENDING_CONTRACT, VIEW_PENDING_CONTRACTS};
 use rcd_messages::{
-    client::{Contract, ViewPendingContractsReply, ViewPendingContractsRequest, AcceptPendingContractRequest, AcceptPendingContractReply},
+    client::{
+        AcceptPendingContractReply, AcceptPendingContractRequest, Contract,
+        ViewPendingContractsReply, ViewPendingContractsRequest,
+    },
     formatter,
 };
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
@@ -120,7 +123,7 @@ pub fn Pending() -> Html {
                                             let json_request = serde_json::to_string(&request).unwrap();
                                             let url = format!("{}{}", token.addr, ACCEPT_PENDING_CONTRACT);
                                             let last_accept_reject_result = last_accept_reject_result.clone();
-                                            
+
                                             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                                                 if response.is_ok() {
                                                     clear_status();

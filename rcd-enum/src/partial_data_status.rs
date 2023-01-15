@@ -1,4 +1,3 @@
-
 /// Specifies the UpdateStatus in a UpdateDataResult message
 /// in rcdp.proto
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]

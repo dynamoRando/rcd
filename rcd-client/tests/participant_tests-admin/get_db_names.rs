@@ -45,7 +45,7 @@ pub mod grpc {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-        
+
         let main_db_name_write = main_db_name.clone();
 
         let addr_1 = participant_addrs.0.clone();
@@ -74,11 +74,7 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                
-                participant_addrs.0,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -281,13 +277,12 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-      
+
         let mut has_contract = false;
 
         info!(
@@ -303,7 +298,7 @@ pub mod grpc {
         )
         .await;
 
-         client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         client
             .create_user_database("part_example.db")
@@ -492,7 +487,7 @@ pub mod http {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-        
+
         let main_db_name_write = main_db_name.clone();
 
         thread::spawn(move || {

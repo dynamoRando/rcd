@@ -40,15 +40,13 @@ use rcdproto::rcdp::{
     ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
+use log::info;
 use rcd_enum::{
-    database_type::DatabaseType,
-    deletes_from_host_behavior::DeletesFromHostBehavior,
-    logical_storage_policy::LogicalStoragePolicy,
-    remote_delete_behavior::RemoteDeleteBehavior,
+    database_type::DatabaseType, deletes_from_host_behavior::DeletesFromHostBehavior,
+    logical_storage_policy::LogicalStoragePolicy, remote_delete_behavior::RemoteDeleteBehavior,
     updates_from_host_behavior::UpdatesFromHostBehavior,
     updates_to_host_behavior::UpdatesToHostBehavior,
 };
-use log::info;
 use reqwest::Client;
 use std::error::Error;
 use std::time::Duration;

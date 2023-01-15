@@ -1,4 +1,3 @@
-
 /// From the perspective of a participant: if we execute an `UPDATE` statement
 /// against our partial database, we can define how we want to notify the database host:
 /// 1. Send Data Hash Change - send a note to the host of the changed data hash, if applicable

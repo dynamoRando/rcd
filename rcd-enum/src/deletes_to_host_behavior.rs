@@ -1,4 +1,3 @@
-
 /// From the perspective of a participant: if we execute an `DELETE` statement
 /// against our partial database, we can define how we want to notify the database host:
 /// 1. Send Notification - send a note to the host of deleted row id
@@ -48,5 +47,4 @@ impl DeletesToHostBehavior {
     pub fn as_string(self) -> String {
         return DeletesToHostBehavior::to_string(self);
     }
-    
 }

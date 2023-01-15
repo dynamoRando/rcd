@@ -75,11 +75,7 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                
-                participant_addrs.0,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -130,7 +126,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -138,8 +134,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -206,7 +202,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -263,17 +259,14 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
 
-        
         let mut has_contract = false;
 
         info!(
@@ -311,7 +304,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_update_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -319,9 +312,6 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
-
-        
 
         info!(
             "participant_changes_update_behavior attempting to connect {}",
@@ -378,7 +368,7 @@ pub mod http {
         let (tx_participant, rx_participant) = mpsc::channel();
         let (tx_main_write, rx_main_read) = mpsc::channel();
         let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
-    
+
         let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
@@ -431,8 +421,7 @@ pub mod http {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res =
-                participant_service_client( pa1, participant_contract_desc);
+            let res = participant_service_client(pa1, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -482,7 +471,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -490,8 +479,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -557,7 +546,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -614,17 +603,14 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
 
-        
         let mut has_contract = false;
 
         info!(
@@ -662,7 +648,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_update_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -670,9 +656,6 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
-
-        
 
         info!(
             "participant_changes_update_behavior attempting to connect {}",

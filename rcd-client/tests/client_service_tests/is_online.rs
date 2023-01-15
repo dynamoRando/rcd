@@ -5,7 +5,7 @@ pub mod grpc {
     use rcdproto::rcdp::TestRequest;
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     use crate::test_harness;
 
@@ -58,7 +58,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_alt();
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(test_message, &client_address_port);
@@ -126,8 +126,7 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service =
-                service.start_http_at_addr_and_dir(addr1, http_port as u16, root_dir);
+            let _service = service.start_http_at_addr_and_dir(addr1, http_port as u16, root_dir);
         });
 
         let time = time::Duration::from_secs(1);

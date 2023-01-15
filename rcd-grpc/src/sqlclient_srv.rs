@@ -401,7 +401,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
-    
     async fn change_updates_from_host_behavior(
         &self,
         request: Request<ChangeUpdatesFromHostBehaviorRequest>,
@@ -414,7 +413,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn change_deletes_from_host_behavior(
         &self,
         request: Request<ChangeDeletesFromHostBehaviorRequest>,
@@ -427,7 +425,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn change_updates_to_host_behavior(
         &self,
         request: Request<ChangeUpdatesToHostBehaviorRequest>,
@@ -440,7 +437,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn change_deletes_to_host_behavior(
         &self,
         request: Request<ChangeDeletesToHostBehaviorRequest>,
@@ -453,7 +449,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn read_row_id_at_participant(
         &self,
         request: Request<GetReadRowIdsRequest>,
@@ -466,7 +461,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn get_data_hash_at_host(
         &self,
         request: Request<GetDataHashRequest>,
@@ -479,7 +473,6 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(result))
     }
 
-    
     async fn get_data_hash_at_participant(
         &self,
         request: Request<GetDataHashRequest>,

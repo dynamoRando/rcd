@@ -5,7 +5,7 @@ use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callb
 
 use crate::{
     log::log_to_console,
-    request::{self, get_token, update_token_login_status, set_status, clear_status},
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 
 #[function_component]

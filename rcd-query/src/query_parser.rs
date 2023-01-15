@@ -1,4 +1,4 @@
-use rcd_enum::{dml_type::DmlType, database_type::DatabaseType};
+use rcd_enum::{database_type::DatabaseType, dml_type::DmlType};
 pub mod sqlite;
 
 /// Takes a SQL statement and returns a list of tables involved in that SQL statement

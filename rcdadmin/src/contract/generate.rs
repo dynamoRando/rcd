@@ -1,11 +1,9 @@
-use web_sys::{HtmlSelectElement, console};
+use crate::{AppMessage, ContractIntent, RcdAdminApp};
+use web_sys::{console, HtmlSelectElement};
 use yew::prelude::*;
 use yew::{html::Scope, Html};
-use crate::{AppMessage, RcdAdminApp, ContractIntent};
-
 
 pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
-
     let generate = &app.contract.generate;
     let databases = &app.databases.data.databases;
 
@@ -15,10 +13,7 @@ pub fn view(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
         db_names.push(db.database_name.clone());
     }
 
-    let last_gen_result = generate
-        .result
-        .data
-        .is_successful;
+    let last_gen_result = generate.result.data.is_successful;
 
     html!(
         <div>

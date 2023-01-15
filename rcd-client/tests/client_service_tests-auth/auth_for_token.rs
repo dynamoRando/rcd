@@ -62,7 +62,7 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
@@ -178,7 +178,6 @@ pub mod http {
 
         test_harness::release_port(port_num);
         RcdService::shutdown_http("127.0.0.1".to_string(), port_num);
-        
     }
 
     #[cfg(test)]
@@ -188,7 +187,7 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);

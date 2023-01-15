@@ -88,7 +88,7 @@ pub fn view_tables_for_database(
                                         }
                                     </select>
                                 </div>
-                                
+
                                 <p>
                                     <label for="selected_table_policy">{"Current Policy:"}</label>
                                     <input class="input" type="text" id ="selected_table_policy" placeholder="Logical Storage Policy" ref={&tables_ui.ui.current_policy}
@@ -119,7 +119,7 @@ pub fn view_tables_for_database(
                                         AppMessage::Policy_HttpRequest(TableIntent::SetTablePolicy)
                                     })}/>
                                 </p>
-                        </p>            
+                        </p>
                     </div>
                 </div>
            </div>

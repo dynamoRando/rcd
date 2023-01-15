@@ -17,12 +17,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
                 return;
             }
 
-            let auth_json = &app
-                
-                .connection
-                .data
-                .active
-                .authentication_json;
+            let auth_json = &app.connection.data.active.authentication_json;
             let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
 
             let request = GetLogicalStoragePolicyRequest {
@@ -38,7 +33,9 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
                 base_address.clone(),
                 "/client/databases/table/policy/get"
             );
-            let callback = ctx.link().callback(AppMessage::Policy_HttpResponse_GetPolicy);
+            let callback = ctx
+                .link()
+                .callback(AppMessage::Policy_HttpResponse_GetPolicy);
 
             request::get_data(url, request_json, callback);
         }
@@ -50,11 +47,7 @@ pub fn handle_table_policy(intent: TableIntent, app: &mut RcdAdminApp, ctx: &Con
             let table = app.tables.data.active.table_name.clone();
             let policy_num: u32 = policy_val.parse().unwrap();
 
-            let auth_json = &app
-                .connection
-                .data
-                .active
-                .authentication_json;
+            let auth_json = &app.connection.data.active.authentication_json;
             let auth: AuthRequest = serde_json::from_str(&auth_json).unwrap();
 
             let request = SetLogicalStoragePolicyRequest {

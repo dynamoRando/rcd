@@ -103,7 +103,7 @@ pub async fn start() -> Result<(), rocket::Error> {
     let config = Config {
         port: get_port(),
         address: get_addr().parse().unwrap(),
-        log_level: LogLevel::Debug,
+        log_level: LogLevel::Normal,
         ..Config::debug_default()
     };
 

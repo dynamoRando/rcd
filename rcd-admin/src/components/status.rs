@@ -5,7 +5,7 @@ use crate::request::get_token;
 #[derive(Properties, PartialEq, Debug)]
 pub struct StatusProps {
     pub is_logged_in: UseStateHandle<bool>,
-    pub status_message: UseStateHandle<String>
+    pub status_message: UseStateHandle<String>,
 }
 
 #[function_component]

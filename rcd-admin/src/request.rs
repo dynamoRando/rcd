@@ -106,4 +106,3 @@ pub fn get_status() -> String {
 pub fn clear_status() {
     SessionStorage::set(STATUS, "".to_string()).expect("failed to set");
 }
-

@@ -10,7 +10,10 @@ use rcd_common::{
 };
 
 use super::{add_record_to_log_table, get_partial_db_connection};
-use rcd_enum::{partial_data_result_action::PartialDataResultAction, deletes_from_host_behavior::DeletesFromHostBehavior};
+use rcd_enum::{
+    deletes_from_host_behavior::DeletesFromHostBehavior,
+    partial_data_result_action::PartialDataResultAction,
+};
 
 pub fn delete_data_into_partial_db_queue(
     db_name: &str,

@@ -11,7 +11,6 @@ use crate::{
     },
 };
 
-
 #[function_component]
 pub fn DeletesToHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));
@@ -83,7 +82,8 @@ pub fn DeletesToHost() -> Html {
 
                         if is_authenticated {
                             let behavior = reply.behavior;
-                            let behavior_val = DeletesToHostBehavior::from_u32(behavior).as_string();
+                            let behavior_val =
+                                DeletesToHostBehavior::from_u32(behavior).as_string();
                             behavior_type_state.set(behavior_val);
                         }
                     } else {

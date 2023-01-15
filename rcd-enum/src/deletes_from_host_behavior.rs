@@ -1,5 +1,3 @@
-
-
 /// From the perspective of a participant: if we get an `DELETE` statement from a database host
 /// we can define how we want to respond:
 /// 1. Allow Removal - will execute the `DELETE` statement

@@ -10,8 +10,6 @@ use crate::{
     },
 };
 
-
-
 #[function_component]
 pub fn DeletesFromHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));

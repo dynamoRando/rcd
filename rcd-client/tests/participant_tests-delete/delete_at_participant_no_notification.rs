@@ -5,7 +5,7 @@ pub mod grpc {
     use rcd_client::RcdClient;
     use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     /*
     # Test Description
@@ -76,11 +76,7 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                
-                participant_addrs.0,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -142,7 +138,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -153,7 +149,7 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         info!(
@@ -166,7 +162,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -217,7 +214,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -229,7 +226,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client
             .execute_cooperative_write_at_host(
@@ -273,15 +271,14 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
+
         let mut has_contract = false;
 
         info!(
@@ -294,7 +291,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.generate_host_info("participant").await.unwrap();
 
@@ -318,7 +316,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -327,7 +325,7 @@ pub mod grpc {
         use log::info;
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
-      
+
         info!(
             "participant_changes_delete_behavior attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
@@ -338,7 +336,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let change_delete_behavior = client
             .change_deletes_to_host_behavior(db_name, "EMPLOYEE", behavior)
@@ -361,20 +360,20 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_read_deleted_row_should_succeed(
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
-
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
         let read_result = client
@@ -389,7 +388,6 @@ pub mod grpc {
         return results.rows.len() == 0;
     }
 }
-
 
 pub mod http {
 
@@ -475,11 +473,7 @@ pub mod http {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                
-                pa2,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(pa2, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -540,7 +534,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -551,7 +545,7 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         info!(
@@ -564,7 +558,7 @@ pub mod http {
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -615,7 +609,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -626,7 +620,7 @@ pub mod http {
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
 
         client
@@ -671,16 +665,14 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_service_client(
-        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        
-        
+
         let mut has_contract = false;
 
         info!(
@@ -693,10 +685,10 @@ pub mod http {
             String::from("123456"),
             5,
             participant_client_addr.ip4_addr,
-            participant_client_addr.port
+            participant_client_addr.port,
         );
 
-       client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -718,7 +710,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -726,7 +718,6 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-
 
         info!(
             "participant_changes_delete_behavior attempting to connect {}",
@@ -738,7 +729,7 @@ pub mod http {
             String::from("123456"),
             5,
             participant_client_addr.ip4_addr,
-            participant_client_addr.port
+            participant_client_addr.port,
         );
 
         let change_delete_behavior = client
@@ -752,7 +743,9 @@ pub mod http {
             .execute_write_at_participant(
                 db_name,
                 &statement,
-                rcd_enum::database_type::DatabaseType::to_u32(rcd_enum::database_type::DatabaseType::Sqlite),
+                rcd_enum::database_type::DatabaseType::to_u32(
+                    rcd_enum::database_type::DatabaseType::Sqlite,
+                ),
                 "ID = 999",
             )
             .await;
@@ -762,7 +755,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_read_deleted_row_should_succeed(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -773,7 +766,7 @@ pub mod http {
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
 
         let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");

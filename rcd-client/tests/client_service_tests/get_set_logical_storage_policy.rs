@@ -152,9 +152,7 @@ pub mod http {
 
     use log::info;
 
-    
     use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-    
 
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     extern crate futures;

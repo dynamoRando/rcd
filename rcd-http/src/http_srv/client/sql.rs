@@ -66,7 +66,6 @@ pub async fn cooperative_write_at_host(
     (Status::Ok, Json(result))
 }
 
-
 #[post(
     "/client/sql/participant/write",
     format = "application/json",
@@ -89,7 +88,6 @@ pub async fn write_at_participant(
     (Status::Ok, Json(result))
 }
 
-
 #[post(
     "/client/sql/participant/read",
     format = "application/json",
@@ -105,9 +103,7 @@ pub async fn read_at_participant(
     // authorization in the header rather than a POST
 
     let core = state.get_core();
-    let result = core
-        .execute_read_at_participant(request.into_inner())
-        .await;
+    let result = core.execute_read_at_participant(request.into_inner()).await;
 
     (Status::Ok, Json(result))
 }
