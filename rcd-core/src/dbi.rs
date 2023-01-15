@@ -5,18 +5,22 @@ use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
-    rcd_enum::{
-        ContractStatus, DatabaseType,  LogicalStoragePolicy, RcdDbError,
-        RcdGenerateContractError,  
-        
-    },
     table::Table,
 };
-use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
-use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
-use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
+
+use rcd_enum::{
+    contract_status::ContractStatus, 
+    database_type::DatabaseType,
+    deletes_from_host_behavior::DeletesFromHostBehavior,
+    deletes_to_host_behavior::DeletesToHostBehavior, 
+    logical_storage_policy::LogicalStoragePolicy,
+    rcd_db_error::RcdDbError, 
+    rcd_generate_contract_error::RcdGenerateContractError,
+    remote_delete_behavior::RemoteDeleteBehavior,
+    updates_from_host_behavior::UpdatesFromHostBehavior,
+    updates_to_host_behavior::UpdatesToHostBehavior,
+};
+
 use rcd_sqlite::sqlite::{self};
 use rcdproto::rcdp::{
     ColumnSchema, Contract, DatabaseSchema, Participant, ParticipantStatus, PendingStatement, Row,

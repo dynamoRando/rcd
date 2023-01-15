@@ -191,8 +191,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -263,7 +263,7 @@ pub mod grpc {
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -314,7 +314,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -322,7 +322,7 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         let mut has_contract = false;
@@ -361,7 +361,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -369,7 +369,7 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -418,7 +418,7 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         info!(
             "get_data_logs_at_participant attempting to connect {}",
@@ -647,8 +647,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -719,7 +719,7 @@ pub mod http {
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
@@ -771,7 +771,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -779,7 +779,7 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         let mut has_contract = false;
@@ -819,7 +819,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_changes_delete_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -827,7 +827,7 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -878,7 +878,7 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         info!(
             "get_data_logs_at_participant attempting to connect {}",

@@ -2,12 +2,13 @@ use chrono::{TimeZone, Utc};
 use guid_create::GUID;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
-    coop_database_participant::CoopDatabaseParticipant,
-    db::DbiConfigSqlite,
-    defaults,
-    rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError},
+    coop_database_participant::CoopDatabaseParticipant, db::DbiConfigSqlite, defaults,
 };
-use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+
+use rcd_enum::{
+    rcd_generate_contract_error::RcdGenerateContractError,
+    remote_delete_behavior::RemoteDeleteBehavior, logical_storage_policy::LogicalStoragePolicy,
+};
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};
 

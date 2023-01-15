@@ -1,4 +1,5 @@
-use crate::rcd_enum::DatabaseType;
+use rcd_enum::database_type::DatabaseType;
+
 
 /// Represents settings for rcd that can be passed in on a test case
 #[derive(Debug, Clone)]

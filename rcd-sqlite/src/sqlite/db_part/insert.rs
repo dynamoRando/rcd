@@ -1,10 +1,9 @@
 use rcd_common::{
     crypt,
     db::{DbiConfigSqlite, PartialDataResult},
-    rcd_enum::{DatabaseType},
 };
 use rusqlite::named_params;
-use rcd_enum::partial_data_result_action::PartialDataResultAction;
+use rcd_enum::{partial_data_result_action::PartialDataResultAction, database_type::DatabaseType};
 use crate::sqlite::{
     db_part::get_partial_db_connection, execute_write, get_scalar_as_u32, has_table, sql_text,
 };

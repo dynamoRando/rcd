@@ -4,13 +4,14 @@ use super::{
     execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table, has_table,
     sql_text, DbiConfigSqlite,
 };
-use ::rcd_enum::rcd_database_type::RcdDatabaseType;
-use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
-
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
-use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy};
 use rcd_common::table::*;
+use rcd_enum::{
+    column_type::ColumnType, database_type::DatabaseType,
+    logical_storage_policy::LogicalStoragePolicy, rcd_database_type::RcdDatabaseType,
+};
+use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 use rusqlite::{named_params, Connection, Error, Result};
 
 pub mod contract;
@@ -175,7 +176,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 /// to this table an defaulting the policy to NONE.
 fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStoragePolicy)> {
     let cmd = sql_text::COOP::text_get_logical_storage_policy_tables();
-    let mut table_policies: Vec<(String, rcd_enum::LogicalStoragePolicy)> = Vec::new();
+    let mut table_policies: Vec<(String, LogicalStoragePolicy)> = Vec::new();
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let row_to_tuple =

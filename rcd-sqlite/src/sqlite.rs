@@ -1,6 +1,7 @@
 use self::db_part::get_partial_db_connection;
 use log::info;
-use rcd_common::{db::DbiConfigSqlite, defaults, rcd_enum::ColumnType, table::*};
+use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
+use rcd_enum::column_type::ColumnType;
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
@@ -87,7 +88,7 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
     return value;
 }
 
-#[allow(dead_code, unused_variables)]
+
 pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
     println!("get_scalar_as_bool: {:?}", cmd);
 

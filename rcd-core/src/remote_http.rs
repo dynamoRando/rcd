@@ -12,9 +12,9 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::CdsHosts,
-    host_info::HostInfo,
-    rcd_enum::ContractStatus,
+    host_info::HostInfo
 };
+use rcd_enum::contract_status::ContractStatus;
 use rcd_http_common::url::data::{
     GET_ROW_AT_PARTICIPANT, INSERT_ROW_AT_PARTICIPANT, NOTIFY_HOST_OF_REMOVED_ROW,
     NOTIFY_HOST_OF_UPDATED_HASH, PARTICIPANT_ACCEPTS_CONTRACT, REMOVE_ROW_AT_PARTICIPANT,

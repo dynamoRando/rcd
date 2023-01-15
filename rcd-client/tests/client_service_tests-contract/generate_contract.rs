@@ -99,8 +99,8 @@ pub mod grpc {
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -148,8 +148,9 @@ pub mod grpc {
     #[tokio::main]
     async fn client_negative(db_name: &str, addr_port: &str) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+    
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
@@ -297,9 +298,11 @@ pub mod http {
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str, port_num: u32) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+    
+
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
@@ -346,9 +349,9 @@ pub mod http {
     #[tokio::main]
     async fn client_negative(db_name: &str, addr_port: &str, port_num: u32) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-
+    
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);

@@ -1,12 +1,16 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
-use rcd_common::rcd_enum::{LogicalStoragePolicy};
+
+use rcd_enum::{
+    logical_storage_policy::LogicalStoragePolicy,
+    remote_delete_behavior::RemoteDeleteBehavior,
+};
+
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_http::RemoteHttp;
-use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 use rcd_http::http_srv;
 use rcd_service::get_current_directory;
 use std::io::Write;

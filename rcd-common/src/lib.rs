@@ -4,7 +4,6 @@ pub mod crypt;
 pub mod db;
 pub mod defaults;
 pub mod host_info;
-pub mod rcd_enum;
 pub mod rcd_settings;
 pub mod table;
 pub mod user;

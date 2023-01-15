@@ -1,5 +1,5 @@
-use crate::rcd_enum::ColumnType;
 use guid_create::GUID;
+use rcd_enum::column_type::ColumnType;
 use substring::Substring;
 
 #[derive(Debug, Clone)]

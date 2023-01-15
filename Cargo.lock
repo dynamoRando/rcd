@@ -2414,6 +2414,7 @@ name = "rcd-enum"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "substring",
 ]
 
 [[package]]

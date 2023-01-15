@@ -1,7 +1,7 @@
 pub mod grpc {
     #[cfg(test)]
     use log::info;
-    use rcdx::rcd_service::{get_service_from_config_file};
+    use rcdx::rcd_service::get_service_from_config_file;
     extern crate futures;
     extern crate tokio;
     #[cfg(test)]
@@ -9,7 +9,7 @@ pub mod grpc {
     #[cfg(test)]
     use std::sync::mpsc;
     #[cfg(test)]
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -37,7 +37,7 @@ pub mod grpc {
             let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
         });
 
-       test_harness::sleep_test();
+        test_harness::sleep_test();
 
         thread::spawn(move || {
             let res = client(&test_db_name, &target_client_address_port);
@@ -63,7 +63,8 @@ pub mod grpc {
     #[allow(unused_assignments)]
     async fn client(db_name: &str, addr_port: &str) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -78,7 +79,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let is_db_created = client.create_user_database(db_name).await.unwrap();
 
@@ -139,7 +141,7 @@ pub mod http {
     #[cfg(test)]
     use std::sync::mpsc;
     #[cfg(test)]
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -195,10 +197,9 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_assignments)]
     async fn client(db_name: &str, addr_port: &str, port_num: u32) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -224,7 +225,7 @@ pub mod http {
         let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
         assert!(enable_coop_features);
-        let mut execute_write_drop_is_successful = false;
+        let execute_write_drop_is_successful;
         execute_write_drop_is_successful = client
             .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
             .await
@@ -235,7 +236,7 @@ pub mod http {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        let mut execute_write_create_reply_is_successful = false;
+        let execute_write_create_reply_is_successful;
         execute_write_create_reply_is_successful = client
             .execute_write_at_host(db_name, &create_table_statement, database_type, "")
             .await
@@ -246,7 +247,7 @@ pub mod http {
         let add_record_statement =
             String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
-        let mut execute_write_add_record_is_successful = false;
+        let execute_write_add_record_is_successful;
         execute_write_add_record_is_successful = client
             .execute_write_at_host(db_name, &add_record_statement, database_type, "")
             .await

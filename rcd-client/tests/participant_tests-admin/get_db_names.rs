@@ -4,7 +4,7 @@ pub mod grpc {
     use log::info;
     use rcd_client::RcdClient;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     /*
     # Test Description
@@ -41,13 +41,13 @@ pub mod grpc {
         let part_db_shutdown_trigger = participant_addrs.5;
 
         test_harness::sleep_test();
-       
+
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
         let participant_db_name = test_db_name.clone();
         let main_db_name_write = main_db_name.clone();
-    
+
         let addr_1 = participant_addrs.0.clone();
 
         let main_srv_addr = main_addrs.0.clone();
@@ -115,7 +115,7 @@ pub mod grpc {
         assert!(p_has_all_dbs);
 
         thread::spawn(move || {
-            let res = main_get_databases( addr);
+            let res = main_get_databases(addr);
             tx_h_has_dbs.send(res).unwrap();
         })
         .join()
@@ -138,7 +138,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -146,8 +146,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -162,7 +162,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
 
@@ -223,19 +224,19 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         client
             .execute_cooperative_write_at_host(
@@ -279,7 +280,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
@@ -287,7 +287,7 @@ pub mod grpc {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         let mut has_contract = false;
@@ -302,7 +302,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let is_generated_host = client.generate_host_info("participant").await.unwrap();
 
@@ -354,7 +355,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let result = client.get_databases().await;
 
@@ -400,7 +402,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         println!("main_get_databases");
 
@@ -515,11 +518,7 @@ pub mod http {
         assert!(sent_participant_contract);
 
         thread::spawn(move || {
-            let res = participant_service_client(
-                &participant_db_name,
-                pa2,
-                participant_contract_desc,
-            );
+            let res = participant_service_client(pa2, participant_contract_desc);
             tx_participant.send(res).unwrap();
         })
         .join()
@@ -556,7 +555,7 @@ pub mod http {
         assert!(p_has_all_dbs);
 
         thread::spawn(move || {
-            let res = main_get_databases( ma2);
+            let res = main_get_databases(ma2);
             tx_h_has_dbs.send(res).unwrap();
         })
         .join()
@@ -574,12 +573,11 @@ pub mod http {
 
         test_harness::shutdown_http(ma3.ip4_addr, ma3.port);
         test_harness::shutdown_http(pa3.ip4_addr, pa3.port);
-   
     }
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -587,8 +585,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -603,7 +601,7 @@ pub mod http {
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
 
@@ -664,19 +662,18 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
 
         client
@@ -721,17 +718,13 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
     async fn participant_service_client(
-        db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
 
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         let mut has_contract = false;
 
         info!(
@@ -744,10 +737,10 @@ pub mod http {
             String::from("123456"),
             5,
             participant_client_addr.ip4_addr,
-            participant_client_addr.port
+            participant_client_addr.port,
         );
 
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         client
             .create_user_database("part_example.db")
@@ -797,7 +790,7 @@ pub mod http {
             String::from("123456"),
             5,
             participant_client_addr.ip4_addr,
-            participant_client_addr.port
+            participant_client_addr.port,
         );
 
         let result = client.get_databases().await;
@@ -836,7 +829,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    
+
     async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
         let has_all_databases = true;
 
@@ -845,7 +838,7 @@ pub mod http {
             String::from("123456"),
             5,
             main_client_addr.ip4_addr,
-            main_client_addr.port
+            main_client_addr.port,
         );
 
         println!("main_get_databases");

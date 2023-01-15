@@ -232,8 +232,8 @@ pub mod grpc {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
@@ -302,7 +302,7 @@ pub mod grpc {
     #[tokio::main]
     
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -353,14 +353,14 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -400,14 +400,14 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_changes_update_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         behavior: UpdatesToHostBehavior,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -445,10 +445,10 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -476,14 +476,14 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_data_hash_for_changed_row_at_participant(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -510,14 +510,14 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_data_hash_for_changed_row_at_host(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -549,7 +549,7 @@ pub mod grpc {
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -811,8 +811,8 @@ pub mod http {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
@@ -881,7 +881,7 @@ pub mod http {
     #[tokio::main]
     
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
@@ -933,14 +933,14 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -981,14 +981,14 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_changes_update_behavior(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         behavior: UpdatesToHostBehavior,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1027,10 +1027,10 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1059,14 +1059,14 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_data_hash_for_changed_row_at_participant(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1094,14 +1094,14 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn get_data_hash_for_changed_row_at_host(
         db_name: &str,
         main_client_addr: ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -1134,7 +1134,7 @@ pub mod http {
         db_name: &str,
         main_client_addr: ServiceAddr,
     ) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_http_client(
             String::from("tester"),

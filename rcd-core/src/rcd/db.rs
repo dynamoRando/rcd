@@ -1,16 +1,16 @@
-use rcd_common::{
-    host_info::HostInfo,
-    rcd_enum::{
-         RcdGenerateContractError, 
-    
-    },
+use rcd_common::host_info::HostInfo;
+
+use super::Rcd;
+use rcd_enum::{
+    deletes_from_host_behavior::DeletesFromHostBehavior,
+    deletes_to_host_behavior::DeletesToHostBehavior, 
+    host_status::HostStatus,
+    partial_data_result_action::PartialDataResultAction,
+    rcd_generate_contract_error::RcdGenerateContractError,
+    remote_delete_behavior::RemoteDeleteBehavior,
+    updates_from_host_behavior::UpdatesFromHostBehavior,
+    updates_to_host_behavior::UpdatesToHostBehavior,
 };
-use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
-use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
-use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
-use rcd_enum::partial_data_result_action::PartialDataResultAction;
-use rcd_enum::{host_status::HostStatus};
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest,
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
@@ -29,8 +29,6 @@ use rcdproto::rcdp::{
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
     Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement,
 };
-use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-use super::Rcd;
 
 pub async fn create_user_database(
     core: &Rcd,

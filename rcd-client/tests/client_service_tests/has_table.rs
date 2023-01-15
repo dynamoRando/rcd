@@ -58,7 +58,7 @@ pub mod grpc {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -156,7 +156,7 @@ pub mod http {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

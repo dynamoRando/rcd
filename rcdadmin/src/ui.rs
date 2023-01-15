@@ -3,7 +3,7 @@ use yew::{html::Scope, Html};
 
 use crate::{AppMessage, RcdAdminApp, UiVisibility};
 
-#[allow(dead_code, unused_variables)]
+
 pub fn view_ui_options(app: &RcdAdminApp, link: &Scope<RcdAdminApp>) -> Html {
     let conn_is_visible = !app.page.conn_is_visible;
     let conn_ui = UiVisibility::Connection(conn_is_visible);

@@ -1,4 +1,4 @@
-use rcd_common::rcd_enum::LogicalStoragePolicy;
+use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
 use rcdproto::rcdp::{
     GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest, SetLogicalStoragePolicyReply,
     SetLogicalStoragePolicyRequest,

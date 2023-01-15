@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 pub mod markdown;
 
 /// takes a Vec of rows and formats a table similar to MySQL
-#[allow(dead_code, unused_variables)]
+
 pub fn rows_to_string_table(rows: Vec<Row>) -> String {
     todo!()
 }

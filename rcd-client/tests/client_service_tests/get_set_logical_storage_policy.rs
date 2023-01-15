@@ -1,13 +1,13 @@
 pub mod grpc {
 
     use log::info;
-    use rcd_common::rcd_enum::LogicalStoragePolicy;
     use rcdx::rcd_service::get_service_from_config_file;
     extern crate futures;
     extern crate tokio;
     use crate::test_harness;
+    use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -64,7 +64,7 @@ pub mod grpc {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -79,7 +79,8 @@ pub mod grpc {
             String::from("tester"),
             String::from("123456"),
             5,
-        ).await;
+        )
+        .await;
 
         let create_db_is_successful = client.create_user_database(db_name).await.unwrap();
 
@@ -147,17 +148,20 @@ pub mod grpc {
     }
 }
 
-
 pub mod http {
 
     use log::info;
-    use rcd_common::rcd_enum::LogicalStoragePolicy;
+
+    
+    use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+    
+
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     extern crate futures;
     extern crate tokio;
     use crate::test_harness;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     #[test]
     pub fn test() {
@@ -184,13 +188,22 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir("127.0.0.1".to_string(), port_num as u16, root_dir);
+            let _service = service.start_http_at_addr_and_dir(
+                "127.0.0.1".to_string(),
+                port_num as u16,
+                root_dir,
+            );
         });
 
         test_harness::sleep_test();
 
         thread::spawn(move || {
-            let res = client(&test_db_name, &target_client_address_port, i_policy, port_num);
+            let res = client(
+                &test_db_name,
+                &target_client_address_port,
+                i_policy,
+                port_num,
+            );
             tx.send(res).unwrap();
         })
         .join()
@@ -215,7 +228,7 @@ pub mod http {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -230,7 +243,7 @@ pub mod http {
             String::from("123456"),
             5,
             "127.0.0.1".to_string(),
-            port
+            port,
         );
 
         let create_db_is_successful = client.create_user_database(db_name).await.unwrap();

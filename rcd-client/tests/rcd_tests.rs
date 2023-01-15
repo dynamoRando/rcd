@@ -1,7 +1,8 @@
 use env_logger::{Builder, Target};
 use log::info;
 use rcd_common::db::DbiConfigSqlite;
-use rcd_common::rcd_enum::DatabaseType;
+use rcd_enum::database_type::DatabaseType;
+
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::dbi::Dbi;
 use rcdx::rcd_service::get_service_from_config;
@@ -29,14 +30,14 @@ fn read_settings_from_config() {
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
         admin_pw: String::from("123456"),
-        database_type: rcd_common::rcd_enum::DatabaseType::Unknown,
+        database_type: DatabaseType::Unknown,
         backing_database_name: String::from(""),
         grpc_client_service_addr_port: String::from("[::1]:50051"),
         grpc_data_service_addr_port: String::from(""),
         data_grpc_timeout_in_seconds: 5,
         client_grpc_timeout_in_seconds: 5,
         http_addr: "".to_string(),
-        http_port: 0
+        http_port: 0,
     };
 
     // ACT
@@ -65,7 +66,7 @@ fn configure_backing_db() {
         data_grpc_timeout_in_seconds: 5,
         client_grpc_timeout_in_seconds: 5,
         http_addr: "".to_string(),
-        http_port: 0
+        http_port: 0,
     };
 
     let cwd = env::current_dir().unwrap();

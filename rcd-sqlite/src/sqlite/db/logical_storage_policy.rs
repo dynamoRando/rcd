@@ -3,8 +3,8 @@ use crate::sqlite::{
 };
 use rcd_common::{
     db::DbiConfigSqlite,
-    rcd_enum::{LogicalStoragePolicy, RcdDbError},
 };
+use rcd_enum::{logical_storage_policy::LogicalStoragePolicy, rcd_db_error::RcdDbError};
 
 use super::{get_all_user_table_names_in_db, populate_data_host_tables};
 

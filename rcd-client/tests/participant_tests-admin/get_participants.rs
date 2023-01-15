@@ -118,8 +118,9 @@ pub mod grpc {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+    
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
@@ -208,14 +209,15 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
+    
         use rcd_client::{RcdClient};
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -378,9 +380,10 @@ pub mod http {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+    
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -471,14 +474,15 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(dead_code, unused_variables)]
+    
     async fn participant_service_client(
         db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
+    
         use rcd_client::{RcdClient};
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);

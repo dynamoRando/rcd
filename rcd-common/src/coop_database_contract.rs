@@ -1,7 +1,7 @@
 use crate::host_info::HostInfo;
-use crate::rcd_enum::ContractStatus;
 use chrono::{DateTime, Utc};
 use guid_create::GUID;
+use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{Contract, DatabaseSchema, Host};
 
 /*

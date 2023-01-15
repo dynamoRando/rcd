@@ -58,9 +58,11 @@ pub mod grpc {
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::{rcd_enum::DatabaseType};
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+    
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
@@ -89,7 +91,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        let logical_storage_policy = rcd_common::rcd_enum::LogicalStoragePolicy::ParticpantOwned;
+        let logical_storage_policy = LogicalStoragePolicy::ParticpantOwned;
 
         client
             .set_logical_storage_policy(db_name, "EMPLOYEE", logical_storage_policy)
@@ -183,10 +185,10 @@ pub mod http {
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str, port_num: u32) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-
+    
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);

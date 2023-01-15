@@ -188,8 +188,8 @@ pub mod grpc {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
@@ -257,7 +257,7 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -457,7 +457,7 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn main_should_not_have_rows(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -674,8 +674,8 @@ pub mod http {
         participant_db_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
-        use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
+        use rcd_enum::database_type::DatabaseType;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
@@ -743,7 +743,7 @@ pub mod http {
     #[cfg(test)]
     #[tokio::main]
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
@@ -948,7 +948,7 @@ pub mod http {
     #[cfg(test)]
     #[tokio::main]
     async fn main_should_not_have_rows(db_name: &str, main_client_addr: ServiceAddr) -> bool {
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
     
         let mut client = RcdClient::new_http_client(
             String::from("tester"),

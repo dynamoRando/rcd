@@ -14,8 +14,8 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     host_info::HostInfo,
-    rcd_enum::ContractStatus,
 };
+use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
     data_service_client::DataServiceClient, AuthRequest, Contract, DatabaseSchema,
     DeleteDataRequest, DeleteDataResult, GetRowFromPartialDatabaseRequest,

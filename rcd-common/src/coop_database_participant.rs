@@ -1,5 +1,5 @@
-use crate::rcd_enum::ContractStatus;
 use guid_create::GUID;
+use rcd_enum::contract_status::ContractStatus;
 
 /*
 "CREATE TABLE IF NOT EXISTS COOP_PARTICIPANT

@@ -8,8 +8,8 @@ use rcd_common::db::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
     PartialDataResult,
 };
-use rcd_common::rcd_enum::ColumnType;
 use rcd_common::table::Table;
+use rcd_enum::column_type::ColumnType;
 use rcdproto::rcdp::{ColumnSchema, Contract, PendingStatement, TableSchema};
 use rusqlite::types::Type;
 use rusqlite::{Connection, Result};

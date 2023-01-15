@@ -6,10 +6,9 @@ use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
 use rcd_common::{
     db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
-    rcd_enum::{ContractStatus},
 };
 use rusqlite::{named_params, Connection, Result};
-use rcd_enum::{host_status::HostStatus};
+use rcd_enum::{host_status::HostStatus, contract_status::ContractStatus};
 
 pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
@@ -413,7 +412,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
 /// later review the contract for us to accept or reject it. If we accept it
 /// this means that we'll create a partial database with the contract's schema
 /// and also notify the host that we are willing to be a participant of the database.
-#[allow(dead_code, unused_variables)]
+
 pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, String) {
     let conn = get_rcd_conn(config);
 

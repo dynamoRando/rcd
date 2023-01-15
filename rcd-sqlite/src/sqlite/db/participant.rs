@@ -2,9 +2,9 @@ use guid_create::GUID;
 use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::{DbiConfigSqlite, get_metadata_table_name},
-    defaults,
-    rcd_enum::ContractStatus,
+    defaults
 };
+use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 

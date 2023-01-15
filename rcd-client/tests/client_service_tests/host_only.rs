@@ -59,10 +59,10 @@ pub mod grpc {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-        use rcd_common::rcd_enum::*;
-
+        
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
@@ -184,11 +184,12 @@ pub mod http {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-        use rcd_common::rcd_enum::DatabaseType;
+        
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-        use rcd_common::rcd_enum::*;
+        use rcd_enum::database_type::DatabaseType;
+        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
         use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-
+    
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
