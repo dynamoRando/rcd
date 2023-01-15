@@ -9,11 +9,11 @@ use rcd_common::db::*;
 use rcd_common::host_info::*;
 use rcd_common::rcd_enum::{
     DeletesFromHostBehavior, HostStatus, 
-    UpdatesFromHostBehavior, 
 };
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use rcd_common::user::*;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
+use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rusqlite::{named_params, Connection, Result};
 use std::{fs, path::Path};

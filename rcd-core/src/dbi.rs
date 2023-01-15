@@ -7,11 +7,12 @@ use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
         ContractStatus, DatabaseType, DeletesFromHostBehavior, LogicalStoragePolicy, RcdDbError,
-        RcdGenerateContractError, RemoteDeleteBehavior, UpdatesFromHostBehavior,
+        RcdGenerateContractError, RemoteDeleteBehavior, 
         
     },
     table::Table,
 };
+use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_sqlite::sqlite::{self};

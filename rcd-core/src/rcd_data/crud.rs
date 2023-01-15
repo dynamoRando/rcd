@@ -2,9 +2,10 @@ use rcd_common::{
     db::PartialDataResult,
     rcd_enum::{
         DeletesFromHostBehavior, 
-        UpdatesFromHostBehavior,
+        
     },
 };
+use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::{partial_data_result_action::PartialDataResultAction, partial_data_status::PartialDataStatus};
 use rcdproto::rcdp::{
     DeleteDataRequest, DeleteDataResult, GetRowFromPartialDatabaseRequest,

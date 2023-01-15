@@ -2,7 +2,7 @@ use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
         DeletesFromHostBehavior, HostStatus, RcdGenerateContractError, RemoteDeleteBehavior,
-        UpdatesFromHostBehavior, 
+    
     },
 };
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
@@ -26,7 +26,7 @@ use rcdproto::rcdp::{
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
     Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement,
 };
-
+use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use super::Rcd;
 
 pub async fn create_user_database(
