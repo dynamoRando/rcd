@@ -2324,6 +2324,7 @@ dependencies = [
  "futures-util",
  "gloo",
  "js-sys",
+ "rcd-enum",
  "rcd-http-common",
  "rcd-messages",
  "reqwasm",
@@ -2350,6 +2351,7 @@ dependencies = [
  "log",
  "rcd-common",
  "rcd-core",
+ "rcd-enum",
  "rcd-http-common",
  "rcd-query",
  "rcdproto",
@@ -2389,6 +2391,7 @@ dependencies = [
  "log",
  "prost",
  "rcd-common",
+ "rcd-enum",
  "rcd-http-common",
  "rcd-query",
  "rcd-sqlite",
@@ -2403,6 +2406,13 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
+]
+
+[[package]]
+name = "rcd-enum"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -2510,6 +2520,7 @@ dependencies = [
  "log",
  "prost",
  "rcd-common",
+ "rcd-enum",
  "rcd-query",
  "rcdproto",
  "rusqlite",

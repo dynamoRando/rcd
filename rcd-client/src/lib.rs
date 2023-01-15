@@ -1,4 +1,5 @@
 use client_type::RcdClientType;
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_http_common::url::client::{
     ACCEPT_PENDING_ACTION, ACCEPT_PENDING_CONTRACT, ADD_PARTICIPANT, AUTH_FOR_TOKEN,
     CHANGE_DELETES_FROM_HOST_BEHAVIOR, CHANGE_DELETES_TO_HOST_BEHAVIOR, CHANGE_HOST_STATUS_ID,
@@ -40,7 +41,7 @@ use rcdproto::rcdp::{
 };
 
 use rcd_common::rcd_enum::{
-    DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior, LogicalStoragePolicy,
+    DatabaseType, DeletesFromHostBehavior, LogicalStoragePolicy,
     RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
 };
 

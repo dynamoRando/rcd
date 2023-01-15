@@ -1,11 +1,12 @@
 use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
-        DeletesFromHostBehavior, DeletesToHostBehavior, HostStatus, PartialDataResultAction,
+        DeletesFromHostBehavior, HostStatus, PartialDataResultAction,
         RcdGenerateContractError, RemoteDeleteBehavior, UpdatesFromHostBehavior,
         UpdatesToHostBehavior,
     },
 };
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest,
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,

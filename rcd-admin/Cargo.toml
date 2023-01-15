@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rcd-messages = { path = "../rcd-messages" }
 rcd-http-common = { path = "../rcd-http-common" }
+rcd-enum = { path = "../rcd-enum" }
 yew = { version = "0.20", features = ["csr"] }
 gloo = "0.8"
 strum = "0.24"

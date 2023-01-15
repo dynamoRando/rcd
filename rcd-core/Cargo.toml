@@ -9,6 +9,7 @@ edition = "2021"
 rcdproto = { path = "../rcdproto" }
 rcd-sqlite = { path = "../rcd-sqlite" }
 rcd-common = { path = "../rcd-common" }
+rcd-enum = { path = "../rcd-enum" }
 rcd-query = { path = "../rcd-query" }
 rcd-http-common = { path = "../rcd-http-common" }
 serde = "1"

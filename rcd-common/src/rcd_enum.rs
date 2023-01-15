@@ -27,12 +27,31 @@ impl RcdDatabaseType {
         }
     }
 
-    pub fn to_u32(db: RcdDatabaseType) -> u32 {
-        match db {
+    pub fn to_u32(value: RcdDatabaseType) -> u32 {
+        match value {
             RcdDatabaseType::Unknown => 0,
             RcdDatabaseType::Rcd => 1,
             RcdDatabaseType::Host => 2,
             RcdDatabaseType::Partial => 3,
+        }
+    }
+
+    pub fn to_string(value: RcdDatabaseType) -> String {
+        match value {
+            RcdDatabaseType::Unknown => "Unknown".to_string(),
+            RcdDatabaseType::Rcd => "Rcd".to_string(),
+            RcdDatabaseType::Host => "Host".to_string(),
+            RcdDatabaseType::Partial => "Partial".to_string()
+        }
+    }
+
+    pub fn from_str(value: &str) -> RcdDatabaseType {
+        match value {
+            "Unknown" => RcdDatabaseType::Unknown,
+            "Rcd" => RcdDatabaseType::Rcd,
+            "Host" => RcdDatabaseType::Host,
+            "Partial" => RcdDatabaseType::Partial,
+            _ => RcdDatabaseType::Unknown,
         }
     }
 }
@@ -64,6 +83,25 @@ impl PartialDataResultAction {
             PartialDataResultAction::Delete => 3,
         }
     }
+
+    pub fn to_string(value: PartialDataResultAction) -> String {
+        match value {
+            PartialDataResultAction::Unknown => "Unknown".to_string(),
+            PartialDataResultAction::Insert => "Insert".to_string(),
+            PartialDataResultAction::Update => "Update".to_string(),
+            PartialDataResultAction::Delete => "Delete".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> PartialDataResultAction {
+        match value {
+            "Unknown" => PartialDataResultAction::Unknown,
+            "Insert" => PartialDataResultAction::Insert,
+            "Update" => PartialDataResultAction::Update,
+            "Delete" => PartialDataResultAction::Delete,
+            _ => PartialDataResultAction::Update,
+        }
+    }
 }
 
 /// Specifies the UpdateStatus in a UpdateDataResult message
@@ -87,42 +125,31 @@ impl PartialDataStatus {
         }
     }
 
-    pub fn to_u32(db: PartialDataStatus) -> u32 {
-        match db {
+    pub fn to_u32(value: PartialDataStatus) -> u32 {
+        match value {
             PartialDataStatus::Unknown => 0,
             PartialDataStatus::SucessOverwriteOrLog => 1,
             PartialDataStatus::Pending => 2,
             PartialDataStatus::Ignored => 3,
         }
     }
-}
 
-/// From the perspective of a participant: if we execute an `DELETE` statement
-/// against our partial database, we can define how we want to notify the database host:
-/// 1. Send Notification - send a note to the host of deleted row id
-/// 2. Do Nothing - the host and the participant may potentially be out of sync
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum DeletesToHostBehavior {
-    Unknown = 0,
-    SendNotification = 1,
-    DoNothing = 2,
-}
-
-impl DeletesToHostBehavior {
-    pub fn from_u32(value: u32) -> DeletesToHostBehavior {
+    pub fn to_string(value: PartialDataStatus) -> String {
         match value {
-            0 => DeletesToHostBehavior::Unknown,
-            1 => DeletesToHostBehavior::SendNotification,
-            2 => DeletesToHostBehavior::DoNothing,
-            _ => panic!("Unknown value: {}", value),
+            PartialDataStatus::Unknown => "Unknown".to_string(),
+            PartialDataStatus::SucessOverwriteOrLog => "SucessOverwriteOrLog".to_string(),
+            PartialDataStatus::Pending => "Pending".to_string(),
+            PartialDataStatus::Ignored => "Ignored".to_string(),
         }
     }
 
-    pub fn to_u32(behavior: DeletesToHostBehavior) -> u32 {
-        match behavior {
-            DeletesToHostBehavior::Unknown => 0,
-            DeletesToHostBehavior::SendNotification => 1,
-            DeletesToHostBehavior::DoNothing => 2,
+    pub fn from_str(value: &str) -> PartialDataStatus {
+        match value {
+            "Unknown" => PartialDataStatus::Unknown,
+            "SucessOverwriteOrLog" => PartialDataStatus::SucessOverwriteOrLog,
+            "Pending" => PartialDataStatus::Pending,
+            "Ignored" => PartialDataStatus::Ignored,
+            _ => PartialDataStatus::Unknown,
         }
     }
 }

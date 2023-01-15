@@ -1,3 +1,4 @@
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_http_common::url::client::GET_DELETES_TO_HOST_BEHAVIOR;
 use rcd_messages::client::{GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
@@ -82,7 +83,8 @@ pub fn DeletesToHost() -> Html {
 
                         if is_authenticated {
                             let behavior = reply.behavior;
-                            behavior_type_state.set(behavior.to_string());
+                            let behavior_val = DeletesToHostBehavior::from_u32(behavior).as_string();
+                            behavior_type_state.set(behavior_val);
                         }
                     } else {
                         set_status(response.err().unwrap());

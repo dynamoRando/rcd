@@ -8,10 +8,11 @@ use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
 use rcd_common::rcd_enum::{
-    DeletesFromHostBehavior, DeletesToHostBehavior, HostStatus, RcdDatabaseType,
+    DeletesFromHostBehavior, HostStatus, RcdDatabaseType,
     UpdatesFromHostBehavior, UpdatesToHostBehavior,
 };
 use rcd_common::user::*;
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rusqlite::{named_params, Connection, Result};
 use std::{fs, path::Path};
 

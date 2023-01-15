@@ -33,5 +33,7 @@ members = [
     # library for http urls
     "rcd-http-common",
     # abstract client for http or grpc calls
-    "rcd-client"
+    "rcd-client",
+    # break out enum values
+    "rcd-enum"
 ]

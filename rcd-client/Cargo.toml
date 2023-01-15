@@ -10,6 +10,7 @@ edition = "2021"
 rcdproto = { path = "../rcdproto" }
 rcd-core = { path = "../rcd-core" }
 rcd-common = { path = "../rcd-common" }
+rcd-enum = { path = "../rcd-enum" }
 rcd-query = { path = "../rcd-query" }
 rcdx = { path = "../rcdx" }
 rcd-http-common = { path = "../rcd-http-common" }

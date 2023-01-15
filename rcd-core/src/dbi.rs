@@ -5,12 +5,13 @@ use rcd_common::{
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
     rcd_enum::{
-        ContractStatus, DatabaseType, DeletesFromHostBehavior, DeletesToHostBehavior,
+        ContractStatus, DatabaseType, DeletesFromHostBehavior, 
         LogicalStoragePolicy, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
         RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
     },
     table::Table,
 };
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_sqlite::sqlite::{self};
 use rcdproto::rcdp::{
     ColumnSchema, Contract, DatabaseSchema, Participant, ParticipantStatus, PendingStatement, Row,

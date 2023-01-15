@@ -1,11 +1,11 @@
 use super::Rcd;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use rcd_common::rcd_enum::DeletesToHostBehavior;
 use rcd_common::rcd_enum::DmlType;
 use rcd_common::rcd_enum::PartialDataStatus;
 use rcd_common::rcd_enum::RcdDatabaseType;
 use rcd_common::rcd_enum::UpdatesToHostBehavior;
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_query::query_parser::determine_dml_type;
 use rcd_query::query_parser::get_table_name;
 use rcdproto::rcdp::ExecuteCooperativeWriteReply;
