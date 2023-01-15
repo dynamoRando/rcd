@@ -1,8 +1,13 @@
-use yew::{function_component, html, use_state_eq, Callback, Html, AttrValue};
+use rcd_http_common::url::client::GET_UPDATES_TO_HOST_BEHAVIOR;
+use rcd_messages::client::{GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest};
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
+    log::log_to_console,
     pages::common::{select_database::SelectDatabase, select_table::SelectTable},
-    request::{get_databases, clear_status, set_status}, log::log_to_console,
+    request::{
+        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+    },
 };
 
 #[function_component]
@@ -10,6 +15,8 @@ pub fn UpdatesToHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));
     let active_table_database = active_database.clone();
     let active_table = use_state_eq(move || String::from(""));
+
+    let behavior_type_state = use_state_eq(move || String::from(""));
 
     let table_names = use_state_eq(move || {
         let x: Vec<String> = Vec::new();
@@ -38,9 +45,23 @@ pub fn UpdatesToHost() -> Html {
     };
 
     let onclick_table = {
+        let active_database = active_database.clone();
+        let behavior_type_state = behavior_type_state.clone();
         Callback::from(move |table_name: String| {
+            let behavior_type_state = behavior_type_state.clone();
             if table_name != "" {
                 log_to_console(table_name.clone());
+
+                let token = get_token();
+
+                let request = GetUpdatesToHostBehaviorRequest {
+                    authentication: Some(token.auth()),
+                    database_name: active_database.to_string(),
+                    table_name: table_name,
+                };
+
+                let body = serde_json::to_string(&request).unwrap();
+                let url = format!("{}{}", token.addr, GET_UPDATES_TO_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if response.is_ok() {
@@ -48,12 +69,26 @@ pub fn UpdatesToHost() -> Html {
                         log_to_console(response.to_string());
                         clear_status();
 
+                        let reply: GetUpdatesToHostBehaviorReply =
+                            serde_json::from_str(&response).unwrap();
 
-                    }
-                    else {
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
+
+                        if is_authenticated {
+                            let behavior = reply.behavior;
+                            behavior_type_state.set(behavior.to_string());
+                        }
+                    } else {
                         set_status(response.err().unwrap());
                     }
                 });
+
+                request::post(url, body, cb);
             }
         })
     };
@@ -70,11 +105,7 @@ pub fn UpdatesToHost() -> Html {
                 onclick_table={onclick_table}/>
             </p>
             <p>{"Current Behavior: "}</p>
-            <p>
-            <button class="button">
-                <span class="mdi mdi-magnify">{" View"}</span>
-            </button>
-            </p>
+            <p>{(*behavior_type_state).clone()}</p>
         </div>
     }
 }
