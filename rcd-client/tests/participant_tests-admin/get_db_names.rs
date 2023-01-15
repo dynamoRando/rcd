@@ -47,8 +47,7 @@ pub mod grpc {
         let main_db_name = test_db_name.clone();
         let participant_db_name = test_db_name.clone();
         let main_db_name_write = main_db_name.clone();
-        let db_name_copy = main_db_name_write.clone();
-
+    
         let addr_1 = participant_addrs.0.clone();
 
         let main_srv_addr = main_addrs.0.clone();
@@ -116,7 +115,7 @@ pub mod grpc {
         assert!(p_has_all_dbs);
 
         thread::spawn(move || {
-            let res = main_get_databases(&db_name_copy, addr);
+            let res = main_get_databases( addr);
             tx_h_has_dbs.send(res).unwrap();
         })
         .join()
@@ -393,8 +392,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    
-    async fn main_get_databases(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+    async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
         let has_all_databases = true;
 
         let mut client = RcdClient::new_grpc_client(
@@ -495,8 +493,6 @@ pub mod http {
         let main_db_name = test_db_name.clone();
         let participant_db_name = test_db_name.clone();
         let main_db_name_write = main_db_name.clone();
-        let db_name_copy = main_db_name_write.clone();
-
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -560,7 +556,7 @@ pub mod http {
         assert!(p_has_all_dbs);
 
         thread::spawn(move || {
-            let res = main_get_databases(&db_name_copy, ma2);
+            let res = main_get_databases( ma2);
             tx_h_has_dbs.send(res).unwrap();
         })
         .join()
@@ -841,7 +837,7 @@ pub mod http {
     #[cfg(test)]
     #[tokio::main]
     
-    async fn main_get_databases(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+    async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
         let has_all_databases = true;
 
         let mut client = RcdClient::new_http_client(

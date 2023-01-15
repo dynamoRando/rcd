@@ -159,7 +159,7 @@ pub mod grpc {
     
         // main - checks the update value again and should match
         thread::spawn(move || {
-            let res = main_read_updated_row_should_succed(&db_name_copy_, addr_, update_statement3);
+            let res = main_read_updated_row_should_succed(&db_name_copy_, addr_,);
             tx_h_can_read_success.send(res).unwrap();
         })
         .join()
@@ -482,7 +482,6 @@ pub mod grpc {
     async fn main_read_updated_row_should_succed(
         db_name: &str,
         main_client_addr: ServiceAddr,
-        update_statement: &str,
     ) -> bool {
         use rcd_common::rcd_enum::DatabaseType;
     
@@ -678,7 +677,7 @@ pub mod http {
     
         // main - checks the update value again and should match
         thread::spawn(move || {
-            let res = main_read_updated_row_should_succed(&db_name_copy_, ma3, update_statement3);
+            let res = main_read_updated_row_should_succed(&db_name_copy_, ma3);
             tx_h_can_read_success.send(res).unwrap();
         })
         .join()
@@ -1006,7 +1005,6 @@ pub mod http {
     async fn main_read_updated_row_should_succed(
         db_name: &str,
         main_client_addr: ServiceAddr,
-        update_statement: &str,
     ) -> bool {
         use rcd_common::rcd_enum::DatabaseType;
     

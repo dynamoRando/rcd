@@ -12,6 +12,7 @@ rcd-common = { path = "../rcd-common" }
 rcd-query = { path = "../rcd-query" }
 rcd-http = { path = "../rcd-http" }
 rcd-grpc = { path = "../rcd-grpc" }
+rcd-enum = { path = "../rcd-enum" }
 
 config = "0.13.1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "sqlcipher", "bundled-sqlcipher", "bundled-sqlcipher-vendored-openssl"] }

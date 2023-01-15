@@ -48,15 +48,11 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr
     ) -> bool {
-        use rcd_common::{rcd_enum::DatabaseType};
         use rcd_client::RcdClient;
-    
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
     
         info!(
             "main_service_client attempting to connect {}",
@@ -145,11 +141,8 @@ pub mod http {
         db_name: &str,
         main_client_addr: ServiceAddr
     ) -> bool {
-        use rcd_common::{rcd_enum::DatabaseType};
         use rcd_client::RcdClient;
-    
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-    
+
         info!(
             "main_service_client attempting to connect {}",
             main_client_addr.to_full_string_with_http()
