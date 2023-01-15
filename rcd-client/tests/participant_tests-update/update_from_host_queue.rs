@@ -188,7 +188,8 @@ pub mod gprc {
         contract_desc: String,
     ) -> bool {
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -432,7 +433,7 @@ pub mod gprc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_fail(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -477,7 +478,7 @@ pub mod gprc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_succed(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -708,7 +709,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -956,7 +958,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_fail(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -1002,7 +1004,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_succed(
         db_name: &str,
         main_client_addr: ServiceAddr,

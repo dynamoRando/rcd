@@ -58,7 +58,8 @@ pub mod grpc {
     #[tokio::main]
     async fn client(db_name: &str, addr_port: &str) -> bool {
         use rcd_client::RcdClient;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -185,7 +186,8 @@ pub mod http {
     async fn client(db_name: &str, addr_port: &str, port_num: u32) -> bool {
         use rcd_client::RcdClient;
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 

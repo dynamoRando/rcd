@@ -1,7 +1,8 @@
 use log::info;
 use log4rs;
 use rcd_common::defaults;
-use rcd_common::rcd_enum::{LogicalStoragePolicy, RemoteDeleteBehavior};
+use rcd_common::rcd_enum::{LogicalStoragePolicy};
+use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;

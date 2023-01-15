@@ -48,7 +48,7 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr
@@ -140,7 +140,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr

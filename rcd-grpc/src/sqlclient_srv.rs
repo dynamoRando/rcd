@@ -371,7 +371,7 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(accepted_reply))
     }
 
-    #[allow(unused_variables)]
+    
     async fn reject_pending_contract(
         &self,
         request: tonic::Request<RejectPendingContractRequest>,

@@ -7,6 +7,7 @@ pub mod grpc {
     use crate::test_harness;
     use std::sync::mpsc;
     use std::{thread};
+    use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
     #[test]
     pub fn test() {
@@ -186,6 +187,7 @@ pub mod http {
         use rcd_common::rcd_enum::DatabaseType;
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         use rcd_common::rcd_enum::*;
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);

@@ -123,7 +123,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -132,7 +132,8 @@ pub mod grpc {
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -197,7 +198,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -410,7 +411,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -419,7 +420,8 @@ pub mod http {
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
@@ -484,7 +486,7 @@ pub mod http {
 
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: ServiceAddr,

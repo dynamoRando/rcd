@@ -225,7 +225,7 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -233,7 +233,8 @@ pub mod grpc {
         contract_desc: String,
     ) -> bool {
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -299,7 +300,7 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
         use rcd_common::rcd_enum::DatabaseType;
     
@@ -543,7 +544,7 @@ pub mod grpc {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_succeed(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -803,7 +804,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_service_client(
         db_name: &str,
         main_client_addr: ServiceAddr,
@@ -811,7 +812,8 @@ pub mod http {
         contract_desc: String,
     ) -> bool {
         use rcd_common::rcd_enum::LogicalStoragePolicy;
-        use rcd_common::{rcd_enum::DatabaseType, rcd_enum::RemoteDeleteBehavior};
+        use rcd_common::{rcd_enum::DatabaseType};
+        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
         use rcd_client::RcdClient;
     
         let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
@@ -877,7 +879,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_execute_coop_write_and_read(db_name: &str, main_client_addr: ServiceAddr) -> bool {
         use rcd_common::rcd_enum::DatabaseType;
     
@@ -1127,7 +1129,7 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    #[allow(unused_variables)]
+    
     async fn main_read_updated_row_should_succeed(
         db_name: &str,
         main_client_addr: ServiceAddr,

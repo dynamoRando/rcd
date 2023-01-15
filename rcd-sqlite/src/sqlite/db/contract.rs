@@ -5,8 +5,9 @@ use rcd_common::{
     coop_database_participant::CoopDatabaseParticipant,
     db::DbiConfigSqlite,
     defaults,
-    rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError, RemoteDeleteBehavior},
+    rcd_enum::{LogicalStoragePolicy, RcdGenerateContractError},
 };
+use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};
 

@@ -42,8 +42,9 @@ use rcdproto::rcdp::{
 
 use rcd_common::rcd_enum::{
     DatabaseType, LogicalStoragePolicy,
-    RemoteDeleteBehavior, 
+    
 };
+use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_enum::{deletes_from_host_behavior::DeletesFromHostBehavior};
