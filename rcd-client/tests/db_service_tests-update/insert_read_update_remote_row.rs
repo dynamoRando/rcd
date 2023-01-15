@@ -47,7 +47,7 @@ pub mod grpc {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
+
         let main_db_name_write = main_db_name.clone();
     
         let main_srv_addr = main_addrs.0.clone();
@@ -74,7 +74,6 @@ pub mod grpc {
     
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
                 participant_addrs.0,
                 participant_contract_desc,
             );
@@ -285,16 +284,12 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_enum::database_type::DatabaseType;
-    
-    
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+       
         let mut has_contract = false;
     
         info!(
@@ -309,7 +304,7 @@ pub mod grpc {
             5,
         ).await;
     
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
     
         let pending_contracts = client.view_pending_contracts().await.unwrap();
     
@@ -378,7 +373,7 @@ pub mod http {
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description.clone();
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
+
         let main_db_name_write = main_db_name.clone();
     
         thread::spawn(move || {
@@ -403,7 +398,6 @@ pub mod http {
     
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
                 pa1,
                 participant_contract_desc,
             );
@@ -612,18 +606,13 @@ pub mod http {
     
     #[cfg(test)]
     #[tokio::main]
-    
     async fn participant_service_client(
-        db_name: &str,
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_enum::database_type::DatabaseType;
-    
-    
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
         let mut has_contract = false;
     
         info!(
@@ -639,7 +628,7 @@ pub mod http {
             participant_client_addr.port
         );
     
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
     
         let pending_contracts = client.view_pending_contracts().await.unwrap();
     

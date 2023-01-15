@@ -9,12 +9,7 @@ pub mod grpc {
 
     /*
     # Test Description
-
-
-
     */
-
-    // #[ignore = "code not finished"]
     #[test]
     fn test() {
         let test_name = "delete_from_part_no_notify_grpc";
@@ -82,7 +77,7 @@ pub mod grpc {
 
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
+                
                 participant_addrs.0,
                 participant_contract_desc,
             );
@@ -280,16 +275,13 @@ pub mod grpc {
     #[tokio::main]
     
     async fn participant_service_client(
-        db_name: &str,
+        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_enum::database_type::DatabaseType;
         
-
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         let mut has_contract = false;
 
         info!(
@@ -304,7 +296,7 @@ pub mod grpc {
             5,
         ).await;
 
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+        client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -335,11 +327,7 @@ pub mod grpc {
         use log::info;
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
-
+      
         info!(
             "participant_changes_delete_behavior attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
@@ -379,9 +367,7 @@ pub mod grpc {
         main_client_addr: ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
+
 
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -490,7 +476,7 @@ pub mod http {
 
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
+                
                 pa2,
                 participant_contract_desc,
             );
@@ -635,9 +621,6 @@ pub mod http {
         main_client_addr: ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
@@ -690,15 +673,14 @@ pub mod http {
     #[tokio::main]
     
     async fn participant_service_client(
-        db_name: &str,
+        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_enum::database_type::DatabaseType;
         
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
         let mut has_contract = false;
 
         info!(
@@ -714,7 +696,7 @@ pub mod http {
             participant_client_addr.port
         );
 
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+       client.generate_host_info("participant").await.unwrap();
 
         let pending_contracts = client.view_pending_contracts().await.unwrap();
 
@@ -744,12 +726,7 @@ pub mod http {
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
-        use rcd_enum::database_type::DatabaseType;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
 
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         info!(
             "participant_changes_delete_behavior attempting to connect {}",
@@ -775,7 +752,7 @@ pub mod http {
             .execute_write_at_participant(
                 db_name,
                 &statement,
-                DatabaseType::to_u32(DatabaseType::Sqlite),
+                rcd_enum::database_type::DatabaseType::to_u32(rcd_enum::database_type::DatabaseType::Sqlite),
                 "ID = 999",
             )
             .await;
@@ -791,9 +768,6 @@ pub mod http {
         main_client_addr: ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
-        use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
-    
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),

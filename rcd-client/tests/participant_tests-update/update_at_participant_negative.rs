@@ -127,7 +127,7 @@ pub mod grpc {
     
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
+                
                 participant_addrs.0,
                 participant_contract_desc,
             );
@@ -355,15 +355,15 @@ pub mod grpc {
     #[tokio::main]
     
     async fn participant_service_client(
-        db_name: &str,
+        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
         let mut has_contract = false;
     
         info!(
@@ -378,7 +378,7 @@ pub mod grpc {
             5,
         ).await;
     
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+ client.generate_host_info("participant").await.unwrap();
     
         let pending_contracts = client.view_pending_contracts().await.unwrap();
     
@@ -410,7 +410,7 @@ pub mod grpc {
         use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "participant_changes_update_behavior attempting to connect {}",
@@ -448,10 +448,10 @@ pub mod grpc {
     
     async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
@@ -483,10 +483,10 @@ pub mod grpc {
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
@@ -517,10 +517,10 @@ pub mod grpc {
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
@@ -709,7 +709,7 @@ pub mod http {
     
         thread::spawn(move || {
             let res = participant_service_client(
-                &participant_db_name,
+                
                 pa1,
                 participant_contract_desc,
             );
@@ -935,15 +935,15 @@ pub mod http {
     #[tokio::main]
     
     async fn participant_service_client(
-        db_name: &str,
+        
         participant_client_addr: ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
         let mut has_contract = false;
     
         info!(
@@ -959,7 +959,7 @@ pub mod http {
             participant_client_addr.port
         );
     
-        let is_generated_host = client.generate_host_info("participant").await.unwrap();
+         client.generate_host_info("participant").await.unwrap();
     
         let pending_contracts = client.view_pending_contracts().await.unwrap();
     
@@ -991,7 +991,7 @@ pub mod http {
         use rcd_enum::database_type::DatabaseType;
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "participant_changes_update_behavior attempting to connect {}",
@@ -1030,10 +1030,10 @@ pub mod http {
     
     async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
@@ -1066,10 +1066,10 @@ pub mod http {
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
@@ -1101,10 +1101,10 @@ pub mod http {
         row_id: u32,
     ) -> u64 {
         use log::info;
-        use rcd_enum::database_type::DatabaseType;
+        
         use rcd_client::RcdClient;
     
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
+        
     
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",

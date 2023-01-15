@@ -373,7 +373,7 @@ impl SqlClient for SqlClientImpl {
 
     async fn reject_pending_contract(
         &self,
-        request: tonic::Request<RejectPendingContractRequest>,
+        _request: tonic::Request<RejectPendingContractRequest>,
     ) -> Result<tonic::Response<RejectPendingContractReply>, tonic::Status> {
         unimplemented!();
     }
