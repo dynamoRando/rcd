@@ -1,5 +1,26 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq)]
+pub struct GetCooperativeHostsRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetCooperativeHostsReply {
+    pub authentication_result: Option<AuthResult>,
+    pub hosts: Vec<HostInfoStatus>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct HostInfoStatus {
+    pub host: ::core::option::Option<Host>,
+    pub last_communcation_utc: String,
+    pub status: u32,
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
 pub struct HostInfoReply {
     pub authentication_result: Option<AuthResult>,
     pub host_info: Option<Host>,
