@@ -19,7 +19,7 @@ pub mod sqlite {
 
     pub mod determine_statement_type {
         use query_parser::sqlite::determine_statement_type;
-        use rcd_common::rcd_enum::DmlType;
+        use rcd_enum::dml_type::DmlType;
         use rcd_query::query_parser;
         #[test]
         pub fn unknown() {

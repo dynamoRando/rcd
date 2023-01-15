@@ -2501,6 +2501,7 @@ dependencies = [
  "log",
  "prost",
  "rcd-common",
+ "rcd-enum",
  "serde",
  "serde_derive",
  "sodiumoxide",

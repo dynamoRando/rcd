@@ -6,3 +6,4 @@ pub mod updates_to_host_behavior;
 pub mod updates_from_host_behavior;
 pub mod deletes_from_host_behavior;
 pub mod host_status;
+pub mod dml_type;

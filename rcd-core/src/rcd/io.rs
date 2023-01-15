@@ -1,7 +1,7 @@
 use super::Rcd;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use rcd_common::rcd_enum::DmlType;
+use rcd_enum::dml_type::DmlType;
 use rcd_enum::{partial_data_status::PartialDataStatus};
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;

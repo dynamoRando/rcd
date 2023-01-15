@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 rcd-common = { path = "../rcd-common" }
+rcd-enum = { path = "../rcd-enum" }
 serde = "1"
 serde_derive = "1"
 tonic = "0.8.1"
