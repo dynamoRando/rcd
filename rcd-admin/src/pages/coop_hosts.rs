@@ -82,10 +82,26 @@ pub fn CooperativeHosts() -> Html {
                         </thead>
                         {
                             (*hosts_state).clone().into_iter().map(|h|{
-                        
+                                let id = h.host.as_ref().unwrap().host_guid.clone();
+                                let name = h.host.as_ref().unwrap().host_name.clone();
+                                let ip4 = h.host.as_ref().unwrap().ip4_address.clone();
+                                let ip6 = h.host.as_ref().unwrap().ip6_address.clone();
+                                let db_port = h.host.as_ref().unwrap().database_port_number.to_string();
+                                let http_addr = h.host.as_ref().unwrap().http_addr.clone();
+                                let http_port = h.host.as_ref().unwrap().http_port.to_string();
+                                let last_comm = h.last_communcation_utc.clone();
+                                let status = h.status.to_string();
                                 html!{
                                     <tr>
-                                        <td>{""}</td>
+                                        <td>{id}</td>
+                                        <td>{name}</td>
+                                        <td>{ip4}</td>
+                                        <td>{ip6}</td>
+                                        <td>{db_port}</td>
+                                        <td>{last_comm}</td>
+                                        <td>{status}</td>
+                                        <td>{http_addr}</td>
+                                        <td>{http_port}</td>
                                     </tr>
                                 }
                             }).collect::<Html>()
