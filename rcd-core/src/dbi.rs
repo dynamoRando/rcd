@@ -1,3 +1,4 @@
+use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::{DateTime, Utc};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
@@ -5,12 +6,13 @@ use rcd_common::{
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
     rcd_enum::{
-        ContractStatus, DatabaseType, DeletesFromHostBehavior, 
-        LogicalStoragePolicy, RcdDatabaseType, RcdDbError, RcdGenerateContractError,
-        RemoteDeleteBehavior, UpdatesFromHostBehavior, UpdatesToHostBehavior,
+        ContractStatus, DatabaseType, DeletesFromHostBehavior, LogicalStoragePolicy, RcdDbError,
+        RcdGenerateContractError, RemoteDeleteBehavior, UpdatesFromHostBehavior,
+        
     },
     table::Table,
 };
+use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_sqlite::sqlite::{self};
 use rcdproto::rcdp::{
@@ -98,7 +100,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                return rcd_sqlite::sqlite::rcd_db::get_cooperative_hosts(&settings)
+                return rcd_sqlite::sqlite::rcd_db::get_cooperative_hosts(&settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -430,7 +432,7 @@ impl Dbi {
             DatabaseType::Sqlserver => unimplemented!(),
         }
     }
-    
+
     pub fn change_deletes_to_host_behavior(
         self: &Self,
         db_name: &str,

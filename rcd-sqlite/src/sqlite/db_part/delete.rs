@@ -7,10 +7,11 @@ use crate::sqlite::{
 use rcd_common::{
     db::{get_data_queue_table_name, DbiConfigSqlite, PartialDataResult},
     defaults,
-    rcd_enum::{DeletesFromHostBehavior, PartialDataResultAction},
+    rcd_enum::{DeletesFromHostBehavior},
 };
 
 use super::{add_record_to_log_table, get_partial_db_connection};
+use rcd_enum::partial_data_result_action::PartialDataResultAction;
 
 pub fn delete_data_into_partial_db_queue(
     db_name: &str,

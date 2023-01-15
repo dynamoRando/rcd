@@ -2370,6 +2370,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "guid-create 0.3.0",
+ "rcd-enum",
  "rcdproto",
  "serde",
  "sodiumoxide",

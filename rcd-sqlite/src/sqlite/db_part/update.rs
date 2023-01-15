@@ -9,8 +9,9 @@ use rcd_common::{
     crypt,
     db::{get_data_queue_table_name, DbiConfigSqlite, PartialDataResult},
     defaults,
-    rcd_enum::{PartialDataResultAction, PartialDataStatus, UpdatesFromHostBehavior},
+    rcd_enum::{UpdatesFromHostBehavior},
 };
+use rcd_enum::{partial_data_result_action::PartialDataResultAction, partial_data_status::PartialDataStatus};
 use rusqlite::{named_params, types::Type};
 
 pub fn update_data_into_partial_db_queue(

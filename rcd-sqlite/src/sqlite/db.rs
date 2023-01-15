@@ -4,11 +4,12 @@ use super::{
     execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table, has_table,
     sql_text, DbiConfigSqlite,
 };
+use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
-use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy, RcdDatabaseType};
+use rcd_common::rcd_enum::{self, ColumnType, DatabaseType, LogicalStoragePolicy};
 use rcd_common::table::*;
 use rusqlite::{named_params, Connection, Error, Result};
 

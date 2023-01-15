@@ -1,3 +1,5 @@
+use rcd_enum::partial_data_result_action::PartialDataResultAction;
+
 use crate::{defaults, rcd_enum::*};
 
 // objects moved to here from rcdx.dbi

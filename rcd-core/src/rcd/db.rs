@@ -1,12 +1,13 @@
 use rcd_common::{
     host_info::HostInfo,
     rcd_enum::{
-        DeletesFromHostBehavior, HostStatus, PartialDataResultAction,
-        RcdGenerateContractError, RemoteDeleteBehavior, UpdatesFromHostBehavior,
-        UpdatesToHostBehavior,
+        DeletesFromHostBehavior, HostStatus, RcdGenerateContractError, RemoteDeleteBehavior,
+        UpdatesFromHostBehavior, 
     },
 };
+use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
+use rcd_enum::partial_data_result_action::PartialDataResultAction;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AuthRequest,
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
@@ -16,14 +17,14 @@ use rcdproto::rcdp::{
     ChangesUpdatesFromHostBehaviorReply, CreateUserDatabaseReply, CreateUserDatabaseRequest,
     DatabaseSchema, EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest,
     GenerateContractReply, GenerateContractRequest, GenerateHostInfoReply, GenerateHostInfoRequest,
-    GetActiveContractReply, GetActiveContractRequest, GetCooperativeHostsReply, GetDataHashReply,
-    GetDataHashRequest, GetDatabasesReply, GetDatabasesRequest, GetDeletesFromHostBehaviorReply,
-    GetDeletesFromHostBehaviorRequest, GetDeletesToHostBehaviorReply,
-    GetDeletesToHostBehaviorRequest, GetParticipantsReply, GetParticipantsRequest,
-    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
+    GetActiveContractReply, GetActiveContractRequest, GetCooperativeHostsReply,
+    GetCooperativeHostsRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
+    GetDatabasesRequest, GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest,
+    GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetParticipantsReply,
+    GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
+    GetReadRowIdsRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement, GetCooperativeHostsRequest,
+    Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement,
 };
 
 use super::Rcd;
@@ -54,7 +55,10 @@ pub async fn create_user_database(
     return create_db_result;
 }
 
-pub async fn get_cooperative_hosts(core: &Rcd, request: GetCooperativeHostsRequest) -> GetCooperativeHostsReply {
+pub async fn get_cooperative_hosts(
+    core: &Rcd,
+    request: GetCooperativeHostsRequest,
+) -> GetCooperativeHostsReply {
     let auth_result = core.verify_login(request.authentication.unwrap());
     let mut hosts: Vec<HostInfoStatus> = Vec::new();
 

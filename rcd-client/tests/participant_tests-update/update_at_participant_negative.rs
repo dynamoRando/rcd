@@ -2,7 +2,7 @@ pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
-    use rcd_common::rcd_enum::UpdatesToHostBehavior;
+    use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
     use rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread};
@@ -586,7 +586,7 @@ pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
     use log::info;
-    use rcd_common::rcd_enum::UpdatesToHostBehavior;
+    use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
     use rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
