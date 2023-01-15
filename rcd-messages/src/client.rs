@@ -3,12 +3,71 @@
 pub struct GetCooperativeHostsRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
 }
-
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq)]
 pub struct GetCooperativeHostsReply {
-    pub authentication_result: Option<AuthResult>,
+    pub authentication_result: ::core::option::Option<AuthResult>,
     pub hosts: Vec<HostInfoStatus>,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetDeletesToHostBehaviorRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String,
+    pub table_name: String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetDeletesToHostBehaviorReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetDeletesFromHostBehaviorRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String,
+    pub table_name: String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetDeletesFromHostBehaviorReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetUpdatesToHostBehaviorRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String,
+    pub table_name: String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetUpdatesToHostBehaviorReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetUpdatesFromHostBehaviorRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+    pub database_name: String,
+    pub table_name: String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct GetUpdatesFromHostBehaviorReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub behavior: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct VersionReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub rcdx: String,
+    /// ... so on
+    pub rcd_core: String,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]

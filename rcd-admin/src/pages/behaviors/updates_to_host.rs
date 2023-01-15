@@ -1,8 +1,8 @@
-use yew::{function_component, html, use_state_eq, Callback, Html};
+use yew::{function_component, html, use_state_eq, Callback, Html, AttrValue};
 
 use crate::{
     pages::common::{select_database::SelectDatabase, select_table::SelectTable},
-    request::get_databases, log::log_to_console,
+    request::{get_databases, clear_status, set_status}, log::log_to_console,
 };
 
 #[function_component]
@@ -41,6 +41,19 @@ pub fn UpdatesToHost() -> Html {
         Callback::from(move |table_name: String| {
             if table_name != "" {
                 log_to_console(table_name.clone());
+
+                let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                    if response.is_ok() {
+                        let response = response.unwrap();
+                        log_to_console(response.to_string());
+                        clear_status();
+
+
+                    }
+                    else {
+                        set_status(response.err().unwrap());
+                    }
+                });
             }
         })
     };
@@ -57,6 +70,11 @@ pub fn UpdatesToHost() -> Html {
                 onclick_table={onclick_table}/>
             </p>
             <p>{"Current Behavior: "}</p>
+            <p>
+            <button class="button">
+                <span class="mdi mdi-magnify">{" View"}</span>
+            </button>
+            </p>
         </div>
     }
 }
