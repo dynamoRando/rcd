@@ -26,4 +26,25 @@ impl UpdatesToHostBehavior {
             UpdatesToHostBehavior::DoNothing => 2,
         }
     }
+
+    pub fn to_string(value: UpdatesToHostBehavior) -> String {
+        match value {
+            UpdatesToHostBehavior::Unknown => "Unknown".to_string(),
+            UpdatesToHostBehavior::SendDataHashChange => "SendDataHashChange".to_string(),
+            UpdatesToHostBehavior::DoNothing => "DoNothing".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> UpdatesToHostBehavior {
+        match value {
+            "Unknown" => UpdatesToHostBehavior::Unknown,
+            "SendDataHashChange" => UpdatesToHostBehavior::SendDataHashChange,
+            "DoNothing" => UpdatesToHostBehavior::DoNothing,
+            _ => UpdatesToHostBehavior::Unknown,
+        }
+    }
+
+    pub fn as_string(self) -> String {
+        return UpdatesToHostBehavior::to_string(self);
+    }
 }

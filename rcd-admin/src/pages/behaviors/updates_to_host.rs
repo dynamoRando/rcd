@@ -1,3 +1,4 @@
+use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_http_common::url::client::GET_UPDATES_TO_HOST_BEHAVIOR;
 use rcd_messages::client::{GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
@@ -81,7 +82,9 @@ pub fn UpdatesToHost() -> Html {
 
                         if is_authenticated {
                             let behavior = reply.behavior;
-                            behavior_type_state.set(behavior.to_string());
+                            let behavior_value =
+                                UpdatesToHostBehavior::from_u32(behavior).as_string();
+                            behavior_type_state.set(behavior_value);
                         }
                     } else {
                         set_status(response.err().unwrap());

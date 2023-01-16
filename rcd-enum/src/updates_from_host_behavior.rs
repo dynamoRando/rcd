@@ -37,4 +37,30 @@ impl UpdatesFromHostBehavior {
             UpdatesFromHostBehavior::QueueForReviewAndLog => 5,
         }
     }
+
+    pub fn to_string(value: UpdatesFromHostBehavior) -> String {
+        match value {
+            UpdatesFromHostBehavior::Unknown => "Unknown".to_string(),
+            UpdatesFromHostBehavior::AllowOverwrite => "AllowOverwrite".to_string(),
+            UpdatesFromHostBehavior::QueueForReview => "QueueForReview".to_string(),
+            UpdatesFromHostBehavior::OverwriteWithLog => "OverwriteWithLog".to_string(),
+            UpdatesFromHostBehavior::Ignore => "Ignore".to_string(),
+            UpdatesFromHostBehavior::QueueForReviewAndLog => "QueueForReviewAndLog".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> UpdatesFromHostBehavior {
+        match value {
+            "Unknown" => UpdatesFromHostBehavior::Unknown,
+            "AllowOverwrite" => UpdatesFromHostBehavior::AllowOverwrite,
+            "QueueForReview" => UpdatesFromHostBehavior::QueueForReview,
+            "OverwriteWithLog" => UpdatesFromHostBehavior::OverwriteWithLog,
+            "QueueForReviewAndLog" => UpdatesFromHostBehavior::QueueForReviewAndLog,
+            _ => UpdatesFromHostBehavior::Unknown,
+        }
+    }
+
+    pub fn as_string(self) -> String {
+        return UpdatesFromHostBehavior::to_string(self);
+    }
 }

@@ -37,4 +37,30 @@ impl DeletesFromHostBehavior {
             DeletesFromHostBehavior::QueueForReviewAndLog => 5,
         }
     }
+
+    pub fn to_string(value: DeletesFromHostBehavior) -> String {
+        match value {
+            DeletesFromHostBehavior::Unknown => "Unknown".to_string(),
+            DeletesFromHostBehavior::AllowRemoval => "AllowRemoval".to_string(),
+            DeletesFromHostBehavior::QueueForReview => "QueueForReview".to_string(),
+            DeletesFromHostBehavior::DeleteWithLog => "DeleteWithLog".to_string(),
+            DeletesFromHostBehavior::Ignore => "Ignore".to_string(),
+            DeletesFromHostBehavior::QueueForReviewAndLog => "QueueForReviewAndLog".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> DeletesFromHostBehavior {
+        match value {
+            "Unknown" => DeletesFromHostBehavior::Unknown,
+            "AllowRemoval" => DeletesFromHostBehavior::AllowRemoval,
+            "DeleteWithLog" => DeletesFromHostBehavior::DeleteWithLog,
+            "Ignore" => DeletesFromHostBehavior::Ignore,
+            "QueueForReviewAndLog" => DeletesFromHostBehavior::QueueForReviewAndLog,
+            _ => DeletesFromHostBehavior::Unknown,
+        }
+    }
+
+    pub fn as_string(self) -> String {
+        return DeletesFromHostBehavior::to_string(self);
+    }
 }
