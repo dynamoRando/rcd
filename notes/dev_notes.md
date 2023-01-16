@@ -198,3 +198,28 @@ As an example:
 ```
 cargo run -- alt-config Test.toml
 ```
+
+# Handle Callbacks in Yew
+
+```
+let cb = Callback::from(move |response: Result<AttrValue, String>| {
+if response.is_ok() {
+    clear_status();
+    let response = response.unwrap();
+    log_to_console(response.clone().to_string());
+
+    let reply: AcceptPendingContractReply = serde_json::from_str(&response).unwrap();
+    let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+    update_token_login_status(is_authenticated);
+
+    if is_authenticated {
+        let message = format!("{}{}", "Last accept/reject status was: ", reply.is_successful.to_string());
+        last_accept_reject_result.set(message);
+    }
+} else {
+    let error_message = response.err().unwrap();
+    set_status(error_message);
+}
+});
+```
+
