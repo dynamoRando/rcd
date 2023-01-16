@@ -1,9 +1,16 @@
-use rcd_http_common::url::client::GET_COOP_HOSTS;
-use rcd_messages::client::{GetCooperativeHostsReply, GetCooperativeHostsRequest, HostInfoStatus};
+use rcd_enum::host_status::HostStatus;
+use rcd_http_common::url::client::{CHANGE_HOST_STATUS_NAME, GET_COOP_HOSTS};
+use rcd_messages::client::{
+    ChangeHostStatusReply, ChangeHostStatusRequest, GetCooperativeHostsReply,
+    GetCooperativeHostsRequest, HostInfoStatus,
+};
 use web_sys::console;
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
-use crate::request::{self, clear_status, get_token, set_status, update_token_login_status};
+use crate::{
+    log::log_to_console,
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
+};
 
 #[function_component]
 pub fn CooperativeHosts() -> Html {
@@ -78,6 +85,7 @@ pub fn CooperativeHosts() -> Html {
                                 <th>{"Status"}</th>
                                 <th>{"HTTP Addr"}</th>
                                 <th>{"HTTP Port"}</th>
+                                <th>{"Change Status"}</th>
                             </tr>
                         </thead>
                         {
@@ -90,11 +98,11 @@ pub fn CooperativeHosts() -> Html {
                                 let http_addr = h.host.as_ref().unwrap().http_addr.clone();
                                 let http_port = h.host.as_ref().unwrap().http_port.to_string();
                                 let last_comm = h.last_communcation_utc.clone();
-                                let status = h.status.to_string();
+                                let status = HostStatus::from_u32(h.status).as_string();
                                 html!{
                                     <tr>
-                                        <td>{id}</td>
-                                        <td>{name}</td>
+                                        <td>{id.clone()}</td>
+                                        <td>{name.clone()}</td>
                                         <td>{ip4}</td>
                                         <td>{ip6}</td>
                                         <td>{db_port}</td>
@@ -102,6 +110,100 @@ pub fn CooperativeHosts() -> Html {
                                         <td>{status}</td>
                                         <td>{http_addr}</td>
                                         <td>{http_port}</td>
+                                        <td>
+                                            <div class="buttons">
+                                                <button type="button" class="button is-primary" id="allow_host" value="Allow"
+                                                onclick={
+                                                    let id = id.clone();
+                                                    let name = name.clone();
+                                                    Callback::from(move |_|{
+                                                        let name = name.clone();
+                                                        let token = get_token();
+                                                        let url = format!("{}{}", token.addr, CHANGE_HOST_STATUS_NAME);
+                                                        let request = ChangeHostStatusRequest {
+                                                            authentication: Some(token.auth()),
+                                                            host_id: id.clone(),
+                                                            host_alias: name.clone(),
+                                                            status: HostStatus::to_u32(HostStatus::Allow)
+                                                        };
+
+                                                        let body = serde_json::to_string(&request).unwrap();
+
+                                                        let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                                                            if response.is_ok() {
+                                                                let name = name.clone();
+                                                                clear_status();
+                                                                let response = response.unwrap();
+                                                                log_to_console(response.clone().to_string());
+
+                                                                let reply: ChangeHostStatusReply = serde_json::from_str(&response).unwrap();
+                                                                let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                                                                update_token_login_status(is_authenticated);
+
+                                                                if is_authenticated {
+                                                                    if reply.is_successful {
+                                                                        let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to allow.");
+                                                                        set_status(message);
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                let error_message = response.err().unwrap();
+                                                                set_status(error_message);
+                                                            }
+                                                            });
+
+                                                        request::post(url, body, cb);
+                                                    })
+                                                }>
+                                                    <span class="mdi mdi-account-check">{" Allow"}</span>
+                                                </button>
+                                                <button type="button" class="button is-danger" id="deny_host" value="Deny"
+                                                onclick={
+                                                    let id = id.clone();
+                                                    let name = name.clone();
+                                                    Callback::from(move |_|{
+                                                        let name = name.clone();
+                                                        let token = get_token();
+                                                        let url = format!("{}{}", token.addr, CHANGE_HOST_STATUS_NAME);
+                                                        let request = ChangeHostStatusRequest {
+                                                            authentication: Some(token.auth()),
+                                                            host_id: id.clone(),
+                                                            host_alias: name.clone(),
+                                                            status: HostStatus::to_u32(HostStatus::Deny)
+                                                        };
+
+                                                        let body = serde_json::to_string(&request).unwrap();
+
+                                                        let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                                                            if response.is_ok() {
+                                                                let name = name.clone();
+                                                                clear_status();
+                                                                let response = response.unwrap();
+                                                                log_to_console(response.clone().to_string());
+
+                                                                let reply: ChangeHostStatusReply = serde_json::from_str(&response).unwrap();
+                                                                let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
+                                                                update_token_login_status(is_authenticated);
+
+                                                                if is_authenticated {
+                                                                    if reply.is_successful {
+                                                                        let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to deny.");
+                                                                        set_status(message);
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                let error_message = response.err().unwrap();
+                                                                set_status(error_message);
+                                                            }
+                                                            });
+
+                                                        request::post(url, body, cb);
+                                                    })
+                                                }>
+                                                    <span class="mdi mdi-account-cancel">{" Deny"}</span>
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 }
                             }).collect::<Html>()

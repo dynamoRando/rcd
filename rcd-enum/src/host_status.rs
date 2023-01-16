@@ -22,4 +22,25 @@ impl HostStatus {
             HostStatus::Deny => 2,
         }
     }
+
+    pub fn to_string(value: HostStatus) -> String {
+        match value {
+            HostStatus::Unknown => "Unknown".to_string(),
+            HostStatus::Allow => "Allow".to_string(),
+            HostStatus::Deny => "Deny".to_string(),
+        }
+    }
+
+    pub fn from_str(value: &str) -> HostStatus {
+        match value {
+            "Unknown" => HostStatus::Unknown,
+            "Allow" => HostStatus::Allow,
+            "Deny" => HostStatus::Deny,
+            _ => HostStatus::Unknown,
+        }
+    }
+
+    pub fn as_string(self) -> String {
+        return HostStatus::to_string(self);
+    }
 }
