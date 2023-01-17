@@ -5,9 +5,11 @@ use yew::{function_component, html, Html};
 use rcd_messages::client::{GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest};
 use yew::{use_state_eq, AttrValue, Callback};
 
+mod change_behavior;
+
 use crate::{
     log::log_to_console,
-    pages::common::{select_database::SelectDatabase, select_table::SelectTable},
+    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_from_host::change_behavior::ChangeBehavior},
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
@@ -111,6 +113,7 @@ pub fn UpdatesFromHost() -> Html {
                 </p>
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
+                < ChangeBehavior />
             </div>
         </div>
     }
