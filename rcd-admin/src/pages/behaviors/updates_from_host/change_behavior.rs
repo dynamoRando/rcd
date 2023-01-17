@@ -1,4 +1,17 @@
-use yew::{html, Html, function_component, use_node_ref, Properties, UseStateHandle, Callback};
+use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
+use rcd_http_common::url::client::CHANGE_UPDATES_FROM_HOST_BEHAVIOR;
+use rcd_messages::client::{
+    ChangeUpdatesFromHostBehaviorRequest, ChangesUpdatesFromHostBehaviorReply,
+};
+use web_sys::HtmlInputElement;
+use yew::{
+    function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
+};
+
+use crate::{
+    log::log_to_console,
+    request::{self, clear_status, get_token, set_status, update_token_login_status},
+};
 
 #[derive(Properties, PartialEq)]
 pub struct ChangeBehaviorProps {
@@ -13,13 +26,91 @@ pub fn ChangeBehavior(
         active_table,
     }: &ChangeBehaviorProps,
 ) -> Html {
-
     let ui_behavior = use_node_ref();
     let database = active_database.clone();
     let table = active_table.clone();
 
     let onclick = {
-        Callback::from(move |_| {})
+        let ui_behavior = ui_behavior.clone();
+        let database = database.clone();
+        let table = table.clone();
+        Callback::from(move |_| {
+            let behavior = ui_behavior.cast::<HtmlInputElement>().unwrap().value();
+            let database = database.clone();
+            let table = table.clone();
+
+            let behavior_value =
+                UpdatesFromHostBehavior::from_u32(behavior.parse::<u32>().unwrap());
+            let behavior_value = UpdatesFromHostBehavior::to_u32(behavior_value);
+
+            let token = get_token();
+            let url = format!("{}{}", token.addr, CHANGE_UPDATES_FROM_HOST_BEHAVIOR);
+            let request = ChangeUpdatesFromHostBehaviorRequest {
+                authentication: Some(token.auth()),
+                database_name: (*database).clone(),
+                table_name: (*table).clone(),
+                behavior: behavior_value,
+            };
+
+            let body = serde_json::to_string(&request).unwrap();
+
+            let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                if response.is_ok() {
+                    let database = database.clone();
+                    let table = table.clone();
+                    clear_status();
+                    let response = response.unwrap();
+                    log_to_console(response.clone().to_string());
+
+                    let reply: ChangesUpdatesFromHostBehaviorReply =
+                        serde_json::from_str(&response).unwrap();
+                    let is_authenticated = reply
+                        .authentication_result
+                        .as_ref()
+                        .unwrap()
+                        .is_authenticated;
+                    update_token_login_status(is_authenticated);
+
+                    if is_authenticated {
+                        if reply.is_successful {
+                            let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
+                            let behavior = behavior.as_string();
+    
+                            let message = format!(
+                                "{}{}{}{}{}{}",
+                                "Behavior Updated For: ",
+                                (*database),
+                                " table: ",
+                                (*table),
+                                " behavior to: ",
+                                behavior
+                            );
+                            set_status(message);
+                        } else {
+                            let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
+                        let behavior = behavior.as_string();
+
+                        let message = format!(
+                            "{}{}{}{}{}{}",
+                            "Behavior Updated FAILED For: ",
+                            (*database),
+                            " table: ",
+                            (*table),
+                            " behavior to: ",
+                            behavior
+                        );
+                        set_status(message);
+                        }
+                        
+                    }
+                } else {
+                    let error_message = response.err().unwrap();
+                    set_status(error_message);
+                }
+            });
+
+            request::post(url, body, cb);
+        })
     };
 
     html!(
@@ -35,11 +126,11 @@ pub fn ChangeBehavior(
                     <option value="5">{"QueueForReviewAndLog"}</option>
                 </select>
                 </div>
-                <button 
-                    class="button" 
-                    type="button" 
-                    id="update_behavior" 
-                    value="Update Behavior" 
+                <button
+                    class="button"
+                    type="button"
+                    id="update_behavior"
+                    value="Update Behavior"
                     onclick={onclick}>
                         <span class="mdi mdi-eject-circle">{" Update Behavior"}</span>
                 </button>
