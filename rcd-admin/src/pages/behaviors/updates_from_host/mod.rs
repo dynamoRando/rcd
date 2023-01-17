@@ -20,6 +20,8 @@ pub fn UpdatesFromHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));
     let active_table_database = active_database.clone();
     let active_table = use_state_eq(move || String::from(""));
+    let database = active_database.clone();
+    let table = active_table.clone();
 
     let behavior_type_state = use_state_eq(move || String::from(""));
 
@@ -113,7 +115,7 @@ pub fn UpdatesFromHost() -> Html {
                 </p>
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
-                < ChangeBehavior />
+                < ChangeBehavior active_database={database} active_table={table}/>
             </div>
         </div>
     }
