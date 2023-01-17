@@ -118,6 +118,7 @@ pub fn get_updates_to_host_behavior(
     config: &DbiConfigSqlite,
 ) -> UpdatesToHostBehavior {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let mut cmd = String::from(
         "
         SELECT 
@@ -130,7 +131,7 @@ pub fn get_updates_to_host_behavior(
             TABLE_NAME = ':table_name'
         ;",
     );
-    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":db_name", &db_name);
     cmd = cmd.replace(":table_name", table_name);
 
     let result = get_scalar_as_u32(cmd, &conn);
@@ -146,6 +147,7 @@ pub fn get_deletes_to_host_behavior(
     config: &DbiConfigSqlite,
 ) -> DeletesToHostBehavior {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let mut cmd = String::from(
         "
         SELECT 
@@ -158,7 +160,7 @@ pub fn get_deletes_to_host_behavior(
             TABLE_NAME = ':table_name'
         ;",
     );
-    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":db_name", &db_name);
     cmd = cmd.replace(":table_name", table_name);
 
     let result = get_scalar_as_u32(cmd, &conn);
@@ -174,6 +176,7 @@ pub fn get_deletes_from_host_behavior(
     config: &DbiConfigSqlite,
 ) -> DeletesFromHostBehavior {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let mut cmd = String::from(
         "
         SELECT 
@@ -186,7 +189,7 @@ pub fn get_deletes_from_host_behavior(
             TABLE_NAME = ':table_name'
         ;",
     );
-    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":db_name", &db_name);
     cmd = cmd.replace(":table_name", table_name);
 
     let result = get_scalar_as_u32(cmd, &conn);
@@ -202,6 +205,7 @@ pub fn get_updates_from_host_behavior(
     config: &DbiConfigSqlite,
 ) -> UpdatesFromHostBehavior {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let mut cmd = String::from(
         "
         SELECT 
@@ -214,7 +218,7 @@ pub fn get_updates_from_host_behavior(
             TABLE_NAME = ':table_name'
         ;",
     );
-    cmd = cmd.replace(":db_name", db_name);
+    cmd = cmd.replace(":db_name", &db_name);
     cmd = cmd.replace(":table_name", table_name);
 
     let result = get_scalar_as_u32(cmd, &conn);
@@ -289,6 +293,7 @@ pub fn change_deletes_from_host_behavior(
     config: &DbiConfigSqlite,
 ) -> bool {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let cmd = String::from(
         "
         UPDATE CDS_CONTRACTS_TABLES 
@@ -317,6 +322,7 @@ pub fn change_updates_to_host_behavior(
     config: &DbiConfigSqlite,
 ) -> bool {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let cmd = String::from(
         "
         UPDATE CDS_CONTRACTS_TABLES 
@@ -345,6 +351,7 @@ pub fn change_deletes_to_host_behavior(
     config: &DbiConfigSqlite,
 ) -> bool {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
     let cmd = String::from(
         "
         UPDATE CDS_CONTRACTS_TABLES 
