@@ -5,7 +5,7 @@ use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::DateTime;
 use chrono::Utc;
 use guid_create::GUID;
-use log::info;
+use log::{info, warn};
 use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
@@ -224,6 +224,33 @@ pub fn get_updates_from_host_behavior(
     return behavior;
 }
 
+pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection) -> String {
+    let mut db_name = db_name.to_string();
+
+    let mut cmd =
+        String::from("SELECT COUNT(*) FROM CDS_CONTRACTS_TABLES WHERE DATABASE_NAME = ':db_name'");
+    cmd = cmd.replace(":db_name", &db_name);
+    if !has_any_rows(cmd, &conn) {
+        let message = format!(
+            "{}{}",
+            "WARNING: check_database_name_for_contract_format no database named: ", db_name
+        );
+        warn!("{}", message);
+        println!("{}", message);
+
+        if db_name.contains(".dbpart") {
+            let message = "check_database_name_for_contract_format: renaming database name to contract version of database";
+            info!("{}", message);
+            db_name = db_name.replace(".dbpart", ".db");
+            let message = format!("New database name is: {}", db_name);
+            info!("{}", message);
+            println!("{}", message)
+        }
+    }
+
+    return db_name;
+}
+
 pub fn change_updates_from_host_behavior(
     db_name: &str,
     table_name: &str,
@@ -231,6 +258,9 @@ pub fn change_updates_from_host_behavior(
     config: &DbiConfigSqlite,
 ) -> bool {
     let conn = get_rcd_conn(config);
+    let db_name = check_database_name_for_contract_format(db_name, &conn);
+    let result: usize;
+
     let cmd = String::from(
         "
         UPDATE CDS_CONTRACTS_TABLES 
@@ -243,7 +273,7 @@ pub fn change_updates_from_host_behavior(
     );
 
     let mut statement = conn.prepare(&cmd).unwrap();
-    let result = statement
+    result = statement
         .execute(
             named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
         )
