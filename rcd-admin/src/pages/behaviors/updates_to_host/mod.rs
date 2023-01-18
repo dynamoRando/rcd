@@ -115,7 +115,6 @@ pub fn UpdatesToHost() -> Html {
                 </p>
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
-                <p><h2 class="subtitle">{"Change Behavior"}</h2></p>
                 < ChangeBehavior active_database={database} active_table={table}/>
             </div>
         </div>
