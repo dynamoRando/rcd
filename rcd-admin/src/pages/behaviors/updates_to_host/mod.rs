@@ -1,21 +1,25 @@
-use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
-use rcd_http_common::url::client::GET_DELETES_TO_HOST_BEHAVIOR;
-use rcd_messages::client::{GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest};
+use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
+use rcd_http_common::url::client::GET_UPDATES_TO_HOST_BEHAVIOR;
+use rcd_messages::client::{GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    pages::common::{select_database::SelectDatabase, select_table::SelectTable},
+    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_to_host::change_behavior::ChangeBehavior},
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
 };
 
+mod change_behavior;
+
 #[function_component]
-pub fn DeletesToHost() -> Html {
+pub fn UpdatesToHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));
     let active_table_database = active_database.clone();
+    let database = active_database.clone();
     let active_table = use_state_eq(move || String::from(""));
+    let table = active_table.clone();
 
     let behavior_type_state = use_state_eq(move || String::from(""));
 
@@ -55,14 +59,14 @@ pub fn DeletesToHost() -> Html {
 
                 let token = get_token();
 
-                let request = GetDeletesToHostBehaviorRequest {
+                let request = GetUpdatesToHostBehaviorRequest {
                     authentication: Some(token.auth()),
                     database_name: active_database.to_string(),
                     table_name: table_name,
                 };
 
                 let body = serde_json::to_string(&request).unwrap();
-                let url = format!("{}{}", token.addr, GET_DELETES_TO_HOST_BEHAVIOR);
+                let url = format!("{}{}", token.addr, GET_UPDATES_TO_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if response.is_ok() {
@@ -70,7 +74,7 @@ pub fn DeletesToHost() -> Html {
                         log_to_console(response.to_string());
                         clear_status();
 
-                        let reply: GetDeletesToHostBehaviorReply =
+                        let reply: GetUpdatesToHostBehaviorReply =
                             serde_json::from_str(&response).unwrap();
 
                         let is_authenticated = reply
@@ -82,9 +86,9 @@ pub fn DeletesToHost() -> Html {
 
                         if is_authenticated {
                             let behavior = reply.behavior;
-                            let behavior_val =
-                                DeletesToHostBehavior::from_u32(behavior).as_string();
-                            behavior_type_state.set(behavior_val);
+                            let behavior_value =
+                                UpdatesToHostBehavior::from_u32(behavior).as_string();
+                            behavior_type_state.set(behavior_value);
                         }
                     } else {
                         set_status(response.err().unwrap());
@@ -99,7 +103,8 @@ pub fn DeletesToHost() -> Html {
     html! {
         <div>
             <div class="box">
-                <p><h1 class="subtitle">{"Deletes To Host"}</h1></p>
+                <p><h1 class="subtitle">{"Updates To Host"}</h1></p>
+                <p><h2 class="subtitle">{"View Current Behavior"}</h2></p>
                 <p><label for="databases">{ "Select Database " }</label></p>
                 <p>< SelectDatabase active_db_name={active_database} onclick_db={onclick_db}/></p>
                 <p><label for="tables">{ "Select Table " }</label></p>
@@ -110,6 +115,8 @@ pub fn DeletesToHost() -> Html {
                 </p>
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
+                <p><h2 class="subtitle">{"Change Behavior"}</h2></p>
+                < ChangeBehavior active_database={database} active_table={table}/>
             </div>
         </div>
     }

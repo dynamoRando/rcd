@@ -14,22 +14,25 @@ use crate::{
     log::log_to_console,
     pages::{common::{
         select_database::SelectDatabase, select_table::SelectTable,
-    }, behaviors::deletes_from_host::view_pending_deletes::ViewPendingDeletes},
+    }, behaviors::deletes_from_host::{view_pending_deletes::ViewPendingDeletes, change_behavior::ChangeBehavior}},
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
 };
 
 mod view_pending_deletes;
+mod change_behavior;
 
 #[function_component]
 pub fn DeletesFromHost() -> Html {
     let active_database = use_state_eq(move || String::from(""));
     let active_table_database = active_database.clone();
     let active_database_pending = active_database.clone();
+    let database = active_database.clone();
 
     let active_table = use_state_eq(move || String::from(""));
     let active_table_pending = active_table.clone();
+    let table = active_table.clone();
 
     let behavior_type_state = use_state_eq(move || String::from(""));
 
@@ -125,6 +128,7 @@ pub fn DeletesFromHost() -> Html {
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
                 < ViewPendingDeletes active_database={active_database_pending} active_table={active_table_pending}/>
+                < ChangeBehavior active_database={database} active_table={table}/>
             </div>
         </div>
     }
