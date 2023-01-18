@@ -6,10 +6,11 @@ use rcd_messages::client::{GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBe
 use yew::{use_state_eq, AttrValue, Callback};
 
 mod change_behavior;
+mod view_pending_updates;
 
 use crate::{
     log::log_to_console,
-    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_from_host::change_behavior::ChangeBehavior},
+    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_from_host::{change_behavior::ChangeBehavior, view_pending_updates::ViewPendingUpdates}},
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
@@ -21,7 +22,9 @@ pub fn UpdatesFromHost() -> Html {
     let active_table_database = active_database.clone();
     let active_table = use_state_eq(move || String::from(""));
     let database = active_database.clone();
+    let db = database.clone();
     let table = active_table.clone();
+    let tbl = table.clone();
 
     let behavior_type_state = use_state_eq(move || String::from(""));
 
@@ -115,6 +118,7 @@ pub fn UpdatesFromHost() -> Html {
                 </p>
                 <p>{"Current Behavior: "}</p>
                 <p>{(*behavior_type_state).clone()}</p>
+                < ViewPendingUpdates active_database={db} active_table={tbl}/>
                 < ChangeBehavior active_database={database} active_table={table}/>
             </div>
         </div>
