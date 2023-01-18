@@ -2536,25 +2536,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rcdadmin"
-version = "0.1.0"
-dependencies = [
- "gloo",
- "rcd-http-common",
- "rcd-messages",
- "reqwasm",
- "serde",
- "serde_derive",
- "serde_json",
- "strum",
- "strum_macros",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
- "yew",
-]
-
-[[package]]
 name = "rcdcli"
 version = "0.1.0"
 
