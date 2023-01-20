@@ -9,11 +9,11 @@ use std::time::Duration;
 use chrono::Utc;
 use endianness::{read_i32, ByteOrder};
 use guid_create::GUID;
-use log::info;
+use log::{info, debug};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    host_info::HostInfo,
+    host_info::HostInfo, data_info::DataInfo,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
@@ -62,7 +62,7 @@ impl RemoteGrpc {
 
         let contract = contract.to_cdata_contract(
             &host_info,
-            self.db_addr_port.as_str().clone(),
+            &self.db_addr_port,
             "",
             0,
             ContractStatus::Pending,
@@ -76,7 +76,7 @@ impl RemoteGrpc {
             message_info: Some(message_info),
         });
 
-        let addr_port = format!("{}{}", participant.ip4addr, participant.db_port.to_string());
+        let addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -125,7 +125,7 @@ impl RemoteGrpc {
         let client = get_client_from_cds_host(host);
         let response = client.await.notify_host_of_removed_row(request).await;
         let result = response.unwrap().into_inner();
-        return result.is_successful;
+        result.is_successful
     }
 
     pub async fn remove_row_at_participant(
@@ -154,7 +154,7 @@ impl RemoteGrpc {
             .await
             .unwrap();
 
-        return response.into_inner();
+        response.into_inner()
     }
 
     pub async fn update_row_at_participant(
@@ -183,9 +183,9 @@ impl RemoteGrpc {
             .await
             .unwrap();
 
-        // println!("{:?}", response);
+        debug!("{:?}", response);
 
-        return response.into_inner();
+        response.into_inner()
     }
 
     pub async fn insert_row_at_participant(
@@ -212,7 +212,7 @@ impl RemoteGrpc {
             .await
             .unwrap();
 
-        return response.into_inner();
+        response.into_inner()
     }
 
     pub async fn get_row_from_participant(
@@ -244,18 +244,14 @@ impl RemoteGrpc {
             .await
             .unwrap();
 
-        return response.into_inner();
+        response.into_inner()
     }
 
     pub async fn notify_host_of_updated_hash(
         &self,
         host: &CdsHosts,
         own_host_info: &HostInfo,
-        db_name: &str,
-        table_name: &str,
-        row_id: u32,
-        hash: Option<u64>,
-        is_deleted: bool,
+        data_info: &DataInfo,
     ) -> bool {
         let auth = get_auth_request(own_host_info);
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
@@ -271,45 +267,45 @@ impl RemoteGrpc {
             http_port: 0,
         };
 
-        let hash_val = match hash {
-            Some(_) => hash.unwrap(),
+        let hash_val = match data_info.hash {
+            Some(_) => data_info.hash.unwrap(),
             None => 0,
         };
 
-        if !is_deleted {
+        if !data_info.is_deleted {
             let request = UpdateRowDataHashForHostRequest {
                 authentication: Some(auth),
                 message_info: Some(message_info),
                 host_info: Some(chost),
-                database_name: db_name.to_string(),
+                database_name: data_info.db_name.to_string(),
                 database_id: String::from(""),
-                table_name: table_name.to_string(),
+                table_name: data_info.table_name.to_string(),
                 table_id: 0,
-                row_id,
+                row_id: data_info.row_id,
                 updated_hash_value: hash_val,
-                is_deleted_at_participant: is_deleted,
+                is_deleted_at_participant: data_info.is_deleted,
             };
 
             let client = get_client_from_cds_host(host);
             let response = client.await.update_row_data_hash_for_host(request).await;
             let result = response.unwrap().into_inner();
-            return result.is_successful;
+            result.is_successful
         } else {
             let request = NotifyHostOfRemovedRowRequest {
                 authentication: Some(auth),
                 message_info: Some(message_info),
                 host_info: Some(chost),
-                database_name: db_name.to_string(),
+                database_name: data_info.db_name.to_string(),
                 database_id: String::from(""),
-                table_name: table_name.to_string(),
+                table_name: data_info.table_name.to_string(),
                 table_id: 0,
-                row_id,
+                row_id: data_info.row_id,
             };
 
             let client = get_client_from_cds_host(host);
             let response = client.await.notify_host_of_removed_row(request).await;
             let result = response.unwrap().into_inner();
-            return result.is_successful;
+            result.is_successful
         }
     }
 
@@ -359,50 +355,40 @@ impl RemoteGrpc {
             get_client_with_addr_port(host_info.ip4_address.clone(), self.timeout_in_seconds);
         let response = client.await.accept_contract(request).await.unwrap();
 
-        return response.into_inner().contract_acceptance_is_acknowledged;
+        response.into_inner().contract_acceptance_is_acknowledged
     }
 }
 
 fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
-    let mut addresses: Vec<String> = Vec::new();
-
-    addresses.push(host_info.id.clone());
-    addresses.push(host_info.name.clone());
-    addresses.push(own_db_addr_port);
+    let addresses: Vec<String> = vec![host_info.id.clone(), host_info.name.clone(), own_db_addr_port];
 
     let is_little_endian = is_little_endian();
 
-    let message_info = MessageInfo {
+    MessageInfo {
         is_little_endian: is_little_endian,
         message_addresses: addresses,
         message_generated_time_utc: Utc::now().to_string(),
         message_guid: GUID::rand().to_string(),
-    };
-
-    return message_info;
+    }
 }
 
 fn is_little_endian() -> bool {
     let v = vec![0, 128, 128, 0];
 
-    let result = match read_i32(&v, ByteOrder::LittleEndian) {
+    match read_i32(&v, ByteOrder::LittleEndian) {
         Ok(_n) => true,
         Err(_err) => false,
-    };
-
-    return result;
+    }
 }
 
 fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
-    let auth = AuthRequest {
+    AuthRequest {
         user_name: own_host_info.name.clone(),
         pw: String::from(""),
         pw_hash: Vec::new(),
         token: own_host_info.token.clone(),
         jwt: String::from(""),
-    };
-
-    return auth;
+    }
 }
 
 async fn get_client_with_addr_port(
@@ -417,7 +403,7 @@ async fn get_client_with_addr_port(
         .timeout(Duration::from_secs(timeout_in_seconds.into()));
     let channel = endpoint.connect().await.unwrap();
 
-    return DataServiceClient::new(channel);
+    DataServiceClient::new(channel)
 }
 
 #[allow(dead_code)]
@@ -435,7 +421,7 @@ async fn get_client(
         .timeout(Duration::from_secs(timeout_in_seconds.into()));
     let channel = endpoint.connect().await.unwrap();
 
-    return DataServiceClient::new(channel);
+    DataServiceClient::new(channel)
 }
 
 async fn get_client_from_cds_host(host: &CdsHosts) -> DataServiceClient<Channel> {

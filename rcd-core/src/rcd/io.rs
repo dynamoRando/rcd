@@ -1,4 +1,5 @@
 use super::Rcd;
+use rcd_common::data_info::DataInfo;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
@@ -176,6 +177,14 @@ pub async fn execute_write_at_participant(
                         &where_clause,
                     );
 
+                    let data_info = DataInfo {
+                        db_name: db_name.clone(),
+                        table_name: table_name.clone(),
+                        row_id: data_result.row_id,
+                        hash: data_result.data_hash,
+                        is_deleted: false,
+                    };
+
                     match update_behavior {
                         UpdatesToHostBehavior::Unknown => todo!(),
                         UpdatesToHostBehavior::SendDataHashChange => {
@@ -188,11 +197,7 @@ pub async fn execute_write_at_participant(
                                 .notify_host_of_updated_hash(
                                     &remote_host,
                                     &own_host_info,
-                                    &db_name,
-                                    &table_name,
-                                    data_result.row_id,
-                                    data_result.data_hash,
-                                    false,
+                                    &data_info
                                 )
                                 .await;
 

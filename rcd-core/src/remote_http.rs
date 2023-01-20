@@ -12,7 +12,7 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::CdsHosts,
-    host_info::HostInfo,
+    host_info::HostInfo, data_info::DataInfo,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcd_http_common::url::data::{
@@ -41,11 +41,7 @@ impl RemoteHttp {
         &self,
         host: &CdsHosts,
         own_host_info: &HostInfo,
-        db_name: &str,
-        table_name: &str,
-        row_id: u32,
-        hash: Option<u64>,
-        is_deleted: bool,
+        data_info: &DataInfo,
     ) -> bool {
         let auth = get_auth_request(own_host_info);
         let message_info = get_message_info(own_host_info, "".to_string());
@@ -61,23 +57,23 @@ impl RemoteHttp {
             http_port: 0,
         };
 
-        let hash_val = match hash {
-            Some(_) => hash.unwrap(),
+        let hash_val = match data_info.hash {
+            Some(_) => data_info.hash.unwrap(),
             None => 0,
         };
 
-        if !is_deleted {
+        if !data_info.is_deleted {
             let request = UpdateRowDataHashForHostRequest {
                 authentication: Some(auth),
                 message_info: Some(message_info),
                 host_info: Some(chost),
-                database_name: db_name.to_string(),
+                database_name: data_info.db_name.to_string(),
                 database_id: String::from(""),
-                table_name: table_name.to_string(),
+                table_name: data_info.table_name.to_string(),
                 table_id: 0,
-                row_id,
+                row_id: data_info.row_id,
                 updated_hash_value: hash_val,
-                is_deleted_at_participant: is_deleted,
+                is_deleted_at_participant: data_info.is_deleted,
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
@@ -97,11 +93,11 @@ impl RemoteHttp {
                 authentication: Some(auth),
                 message_info: Some(message_info),
                 host_info: Some(chost),
-                database_name: db_name.to_string(),
+                database_name: data_info.db_name.to_string(),
                 database_id: String::from(""),
-                table_name: table_name.to_string(),
+                table_name: data_info.table_name.to_string(),
                 table_id: 0,
-                row_id,
+                row_id: data_info.row_id,
             };
 
             let request_json = serde_json::to_string(&request).unwrap();

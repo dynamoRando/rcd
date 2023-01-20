@@ -1,4 +1,4 @@
-use rcd_common::host_info::HostInfo;
+use rcd_common::{host_info::HostInfo, data_info::DataInfo};
 
 use super::Rcd;
 use rcd_enum::{
@@ -256,16 +256,20 @@ pub async fn accept_pending_action_at_participant(
                 None => false,
             };
 
+            let data_info = DataInfo {
+                db_name: db_name.to_string(),
+                table_name: table_name.to_string(),
+                row_id,
+                hash,
+                is_deleted,
+            };
+
             let notify_is_successful = core
                 .remote()
                 .notify_host_of_updated_hash(
                     &remote_host,
                     &own_host_info,
-                    db_name,
-                    table_name,
-                    row_id,
-                    hash,
-                    is_deleted,
+                    &data_info
                 )
                 .await;
 

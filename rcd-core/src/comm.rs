@@ -2,7 +2,7 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::CdsHosts,
-    host_info::HostInfo,
+    host_info::HostInfo, data_info::DataInfo,
 };
 use rcdproto::rcdp::{
     Contract, DatabaseSchema, DeleteDataResult, GetRowFromPartialDatabaseResult, InsertDataResult,
@@ -248,11 +248,7 @@ impl RcdRemoteDbClient {
         &self,
         host: &CdsHosts,
         own_host_info: &HostInfo,
-        db_name: &str,
-        table_name: &str,
-        row_id: u32,
-        hash: Option<u64>,
-        is_deleted: bool,
+        data_info: &DataInfo,
     ) -> bool {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
@@ -262,11 +258,7 @@ impl RcdRemoteDbClient {
                     .notify_host_of_updated_hash(
                         host,
                         own_host_info,
-                        db_name,
-                        table_name,
-                        row_id,
-                        hash,
-                        is_deleted,
+                        data_info,
                     )
                     .await;
             }
@@ -276,11 +268,7 @@ impl RcdRemoteDbClient {
                     .notify_host_of_updated_hash(
                         host,
                         own_host_info,
-                        db_name,
-                        table_name,
-                        row_id,
-                        hash,
-                        is_deleted,
+                        data_info,
                     )
                     .await;
             }
