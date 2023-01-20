@@ -37,12 +37,12 @@ pub fn insert_data_into_partial_db(
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
-        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name.clone());
         execute_write(&conn, &cmd);
     }
 
-    let mut cmd = sql_text::COOP::text_insert_row_metadata_table();
+    let mut cmd = sql_text::Coop::text_insert_row_metadata_table();
     cmd = cmd.replace(":table_name", &metadata_table_name.clone());
     let mut statement = conn.prepare(&cmd).unwrap();
 

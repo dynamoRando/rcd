@@ -1,5 +1,5 @@
 use self::db_part::get_partial_db_connection;
-use log::info;
+use log::{debug, info};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
 use rcd_enum::column_type::ColumnType;
 use rcdproto::rcdp::{ColumnSchema, RowValue};
@@ -13,12 +13,12 @@ mod sql_text;
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
 /// created has also populated any data in it.
 pub fn has_any_rows(cmd: String, conn: &Connection) -> bool {
-    return total_count(cmd, conn) > 0;
+    total_count(cmd, conn) > 0
 }
 
 /// Takes a SELECT COUNT(*) SQL statement and returns the value
 pub fn total_count(cmd: String, conn: &Connection) -> u32 {
-    return get_scalar_as_u32(cmd, conn);
+    get_scalar_as_u32(cmd, conn)
 }
 
 #[allow(dead_code)]
@@ -36,16 +36,16 @@ pub fn get_scalar_as_vec_u8(cmd: String, conn: &Connection) -> Option<Vec<u8>> {
         returned_arrays.push(t.unwrap());
     }
 
-    if returned_arrays.len() >= 1 {
-        return Some(returned_arrays.first().unwrap().clone());
+    if !returned_arrays.is_empty() {
+        Some(returned_arrays.first().unwrap().clone())
     } else {
-        return None;
+        None
     }
 }
 
 pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
-    println!("{:?}", cmd);
-    println!("{:?}", conn);
+    debug!("{:?}", cmd);
+    debug!("{:?}", conn);
 
     let mut statement = conn.prepare(&cmd).unwrap();
     let mut returned_arrays: Vec<Vec<u8>> = Vec::new();
@@ -60,12 +60,12 @@ pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
         returned_arrays.push(t.unwrap());
     }
 
-    if returned_arrays.len() >= 1 {
+    if !returned_arrays.is_empty() {
         let array = returned_arrays.first().unwrap().clone();
         let value: u64 = u64::from_ne_bytes(vec_to_array(array));
-        return Some(value);
+        Some(value)
     } else {
-        return None;
+        None
     }
 }
 
@@ -85,7 +85,7 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
 
     drop(statement);
 
-    return value;
+    value
 }
 
 pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
@@ -101,13 +101,13 @@ pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
 
     drop(statement);
 
-    return value;
+    value
 }
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
     println!("{}", cmd);
     println!("{:?}", conn);
-    return conn.execute(&cmd, []).unwrap();
+    conn.execute(cmd, []).unwrap()
 }
 
 pub fn execute_read_on_connection_for_row(
@@ -188,16 +188,22 @@ pub fn execute_read_on_connection_for_row(
 
     let row_to_hash = |hash: Vec<u8>| -> Result<Vec<u8>> { Ok(hash) };
 
-    let hashes = statement
+    let mut hashes = statement
         .query_and_then([], |row| row_to_hash(row.get(0).unwrap()))
         .unwrap();
 
     let mut hash: Vec<u8> = Vec::new();
 
+    if let Some(h) = hashes.next() {
+        hash = h.unwrap()
+    }
+
+    /*
     for h in hashes {
         hash = h.unwrap();
         break;
     }
+    */
 
     let result = rcdproto::rcdp::Row {
         database_name: db_name.to_string(),
@@ -209,9 +215,7 @@ pub fn execute_read_on_connection_for_row(
         hash: hash,
     };
 
-    drop(statement);
-
-    return Ok(result);
+    Ok(result)
 }
 
 pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::Result<Table> {
@@ -281,7 +285,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
     drop(rows);
     drop(statement);
 
-    return Ok(table);
+    Ok(table)
 }
 
 pub fn execute_read_at_participant(
@@ -289,7 +293,7 @@ pub fn execute_read_at_participant(
     cmd: &str,
     config: &DbiConfigSqlite,
 ) -> rusqlite::Result<Table> {
-    let conn = get_partial_db_connection(&db_name, &config.root_folder);
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let cols = statement.columns();
@@ -349,7 +353,7 @@ pub fn execute_read_at_participant(
     drop(rows);
     drop(statement);
 
-    return Ok(table);
+    Ok(table)
 }
 
 pub fn execute_read_at_host(
@@ -417,7 +421,7 @@ pub fn execute_read_at_host(
     drop(rows);
     drop(statement);
 
-    return Ok(table);
+    Ok(table)
 }
 
 /// Runs any SQL statement that returns a single vlaue and attempts
@@ -433,7 +437,7 @@ fn get_scalar_as_string(cmd: String, conn: &Connection) -> String {
 
     drop(statement);
 
-    return value;
+    value
 }
 
 fn has_table(table_name: String, conn: &Connection) -> bool {
@@ -441,18 +445,18 @@ fn has_table(table_name: String, conn: &Connection) -> bool {
         "SELECT count(*) AS TABLECOUNT FROM sqlite_master WHERE type='table' AND name=':table_name'",
     );
     cmd = cmd.replace(":table_name", &table_name);
-    return has_any_rows(cmd, conn);
+    has_any_rows(cmd, conn)
 }
 
 pub fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
-    let db_path = Path::new(&config.root_folder).join(&db_name);
+    let db_path = Path::new(&config.root_folder).join(db_name);
     println!("{:?}", db_path);
-    return Connection::open(&db_path).unwrap();
+    Connection::open(db_path).unwrap()
 }
 
 pub fn get_db_conn_with_result(config: &DbiConfigSqlite, db_name: &str) -> Result<Connection> {
-    let db_path = Path::new(&config.root_folder).join(&db_name);
-    return Connection::open(&db_path);
+    let db_path = Path::new(&config.root_folder).join(db_name);
+    Connection::open(db_path)
 }
 
 pub fn execute_write_on_connection_at_host(
@@ -460,20 +464,30 @@ pub fn execute_write_on_connection_at_host(
     cmd: &str,
     config: &DbiConfigSqlite,
 ) -> Result<usize, String> {
-    let conn = get_db_conn(&config, db_name);
+    let conn = get_db_conn(config, db_name);
 
-    // println!("{:?}", conn);
-    // println!("{:?}", cmd);
+    debug!("{:?}", conn);
+    debug!("{:?}", cmd);
 
-    let result = conn.execute(&cmd, []);
+    let result = conn.execute(cmd, []);
 
     let _ = conn.close();
-    if result.is_ok() {
-        return Ok(result.unwrap());
+
+    if let Ok(x) = result {
+        Ok(x)
     } else {
         let err = result.expect_err("No error");
-        return Err(err.to_string());
+        Err(err.to_string())
     }
+
+    /*
+    if result.is_ok() {
+        Ok(result.unwrap())
+    } else {
+        let err = result.expect_err("No error");
+        Err(err.to_string())
+    }
+    */
 }
 
 pub fn execute_write_on_connection_at_participant(
@@ -481,10 +495,11 @@ pub fn execute_write_on_connection_at_participant(
     cmd: &str,
     config: &DbiConfigSqlite,
 ) -> usize {
-    let conn = get_partial_db_connection(&db_name, &config.root_folder);
-    let result = conn.execute(&cmd, []).unwrap();
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    let result = conn.execute(cmd, []).unwrap();
     let _ = conn.close();
-    return result;
+
+    result
 }
 
 pub fn get_table_col_names_with_data_type_as_string(
@@ -503,13 +518,13 @@ pub fn get_table_col_names_with_data_type_as_string(
         col_names = format!("{} {} {}{}", col_names, col_name, data_type, ",");
     }
 
-    // println!("{:?}", col_names);
+    debug!("{:?}", col_names);
 
     let result: &str = &col_names[1..col_names.len() - 1];
 
-    // println!("{:?}", result);
+    debug!("{:?}", result);
 
-    return result.to_string();
+    result.to_string()
 }
 
 /// Returns a table describing the schema of the table
@@ -524,7 +539,7 @@ pub fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Tabl
     let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
     cmd = cmd.replace(":table_name", &table_name);
 
-    return Ok(execute_read_on_connection(cmd, conn).unwrap());
+    Ok(execute_read_on_connection(cmd, conn).unwrap())
 }
 
 pub fn get_table_col_names(table_name: String, conn: &Connection) -> Vec<String> {
@@ -547,7 +562,7 @@ pub fn get_table_col_names(table_name: String, conn: &Connection) -> Vec<String>
 
     drop(statement);
 
-    return result;
+    result
 }
 
 fn vec_to_array<T, const N: usize>(v: Vec<T>) -> [T; N] {

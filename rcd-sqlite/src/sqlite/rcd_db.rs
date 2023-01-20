@@ -1,5 +1,5 @@
 use super::execute_write;
-use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::CDS};
+use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::Cds};
 use crate::sqlite::get_db_conn;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::DateTime;
@@ -38,32 +38,32 @@ pub fn get_rcd_db_type(db_name: &str, config: &DbiConfigSqlite) -> RcdDatabaseTy
         return RcdDatabaseType::Partial;
     }
 
-    let path = Path::new(&config.root_folder).join(&db_name);
+    let path = Path::new(&config.root_folder).join(db_name);
     if path.exists() {
         return RcdDatabaseType::Host;
     }
 
-    return RcdDatabaseType::Unknown;
+    RcdDatabaseType::Unknown
 }
 
 pub fn login_has_token(login: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
     let mut cmd = String::from("SELECT COUNT(*) FROM CDS_USER_TOKENS WHERE USERNAME = ':login'");
     cmd = cmd.replace(":login", login);
-    return has_any_rows(cmd, &conn);
+    has_any_rows(cmd, &conn)
 }
 
 pub fn revoke_token(token: &str, config: &DbiConfigSqlite) -> bool {
     let mut cmd = String::from("DELETE FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");
     cmd = cmd.replace(":token", token);
-    return execute_write_on_connection(&config.rcd_db_name, &cmd, config) > 0;
+    execute_write_on_connection(&config.rcd_db_name, &cmd, config) > 0
 }
 
 pub fn verify_token(token: &str, config: &DbiConfigSqlite) -> bool {
     let conn = get_rcd_conn(config);
     let mut cmd = String::from("SELECT COUNT(*) FROM CDS_USER_TOKENS WHERE TOKEN = ':token'");
     cmd = cmd.replace(":token", token);
-    return has_any_rows(cmd, &conn);
+    has_any_rows(cmd, &conn)
 }
 
 pub fn delete_expired_tokens(config: &DbiConfigSqlite) {
@@ -136,9 +136,7 @@ pub fn get_updates_to_host_behavior(
 
     let result = get_scalar_as_u32(cmd, &conn);
 
-    let behavior = UpdatesToHostBehavior::from_u32(result);
-
-    return behavior;
+    UpdatesToHostBehavior::from_u32(result)
 }
 
 pub fn get_deletes_to_host_behavior(
@@ -165,9 +163,7 @@ pub fn get_deletes_to_host_behavior(
 
     let result = get_scalar_as_u32(cmd, &conn);
 
-    let behavior = DeletesToHostBehavior::from_u32(result);
-
-    return behavior;
+    DeletesToHostBehavior::from_u32(result)
 }
 
 pub fn get_deletes_from_host_behavior(
@@ -194,9 +190,7 @@ pub fn get_deletes_from_host_behavior(
 
     let result = get_scalar_as_u32(cmd, &conn);
 
-    let behavior = DeletesFromHostBehavior::from_u32(result);
-
-    return behavior;
+    DeletesFromHostBehavior::from_u32(result)
 }
 
 pub fn get_updates_from_host_behavior(
@@ -223,9 +217,7 @@ pub fn get_updates_from_host_behavior(
 
     let result = get_scalar_as_u32(cmd, &conn);
 
-    let behavior = UpdatesFromHostBehavior::from_u32(result);
-
-    return behavior;
+    UpdatesFromHostBehavior::from_u32(result)
 }
 
 pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection) -> String {
@@ -234,7 +226,7 @@ pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection)
     let mut cmd =
         String::from("SELECT COUNT(*) FROM CDS_CONTRACTS_TABLES WHERE DATABASE_NAME = ':db_name'");
     cmd = cmd.replace(":db_name", &db_name);
-    if !has_any_rows(cmd, &conn) {
+    if !has_any_rows(cmd, conn) {
         let message = format!(
             "{}{}",
             "WARNING: check_database_name_for_contract_format no database named: ", db_name
@@ -252,7 +244,7 @@ pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection)
         }
     }
 
-    return db_name;
+    db_name
 }
 
 pub fn change_updates_from_host_behavior(
@@ -263,7 +255,6 @@ pub fn change_updates_from_host_behavior(
 ) -> bool {
     let conn = get_rcd_conn(config);
     let db_name = check_database_name_for_contract_format(db_name, &conn);
-    let result: usize;
 
     let cmd = String::from(
         "
@@ -277,13 +268,13 @@ pub fn change_updates_from_host_behavior(
     );
 
     let mut statement = conn.prepare(&cmd).unwrap();
-    result = statement
+    let result = statement
         .execute(
             named_params! {":behavior": behavior, ":db_name" : db_name, ":table_name" : table_name},
         )
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn change_deletes_from_host_behavior(
@@ -312,7 +303,7 @@ pub fn change_deletes_from_host_behavior(
         )
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn change_updates_to_host_behavior(
@@ -341,7 +332,7 @@ pub fn change_updates_to_host_behavior(
         )
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn change_deletes_to_host_behavior(
@@ -370,7 +361,7 @@ pub fn change_deletes_to_host_behavior(
         )
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn change_host_status_by_id(host_id: &str, status: u32, config: &DbiConfigSqlite) -> bool {
@@ -385,7 +376,7 @@ pub fn change_host_status_by_id(host_id: &str, status: u32, config: &DbiConfigSq
         .execute(named_params! {":status": status, ":hid" : host_id})
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn change_host_status_by_name(host_name: &str, status: u32, config: &DbiConfigSqlite) -> bool {
@@ -400,7 +391,7 @@ pub fn change_host_status_by_name(host_name: &str, status: u32, config: &DbiConf
         .execute(named_params! {":status": status, ":name" : host_name})
         .unwrap();
 
-    return result > 0;
+    result > 0
 }
 
 pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
@@ -427,10 +418,10 @@ pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite
         returned_tokens.push(t.unwrap());
     }
 
-    if returned_tokens.len() == 0 {
-        return false;
+    if returned_tokens.is_empty() {
+        false
     } else {
-        return do_vecs_match(&token, returned_tokens.last().unwrap());
+        do_vecs_match(&token, returned_tokens.last().unwrap())
     }
 }
 
@@ -458,23 +449,23 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
         returned_tokens.push(t.unwrap());
     }
 
-    if returned_tokens.len() == 0 {
-        return false;
+    if returned_tokens.is_empty() {
+        false
     } else {
-        return do_vecs_match(&token, returned_tokens.last().unwrap());
+        do_vecs_match(&token, returned_tokens.last().unwrap())
     }
 }
 
 pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
-    let conn = get_rcd_conn(&config);
+    let conn = get_rcd_conn(config);
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
 
     info!("un and pw: {} {}", login, pw);
 
-    let login_hash = crypt::hash(&pw);
-    let cmd = &String::from(CDS::text_add_user());
-    let mut statement = conn.prepare(cmd).unwrap();
+    let login_hash = crypt::hash(pw);
+    let cmd = Cds::text_add_user();
+    let mut statement = conn.prepare(&cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":hash": login_hash.0 })
         .unwrap();
@@ -492,17 +483,17 @@ pub fn get_database_names(config: &DbiConfigSqlite) -> Vec<String> {
         }
     }
 
-    return databases;
+    databases
 }
 
 pub fn has_login_via_config(login: &str, config: DbiConfigSqlite) -> Result<bool> {
     let conn = get_rcd_conn(&config);
-    return has_login(login, &conn);
+    has_login(login, &conn)
 }
 
 fn get_rcd_conn(config: &DbiConfigSqlite) -> Connection {
     let db_path = Path::new(&config.root_folder).join(&config.rcd_db_name);
-    return Connection::open(&db_path).unwrap();
+    Connection::open(db_path).unwrap()
 }
 
 pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
@@ -519,7 +510,7 @@ pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {
 
 pub fn if_host_info_exists(config: DbiConfigSqlite) -> bool {
     let cmd = String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_HOST_INFO");
-    return has_any_rows(cmd, &get_rcd_conn(&config));
+    has_any_rows(cmd, &get_rcd_conn(&config))
 }
 
 pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
@@ -529,7 +520,7 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
 
     let mut statement = conn.prepare(cmd).unwrap();
 
-    let rows = statement.query_map(&[(login.to_string().as_str())], |row| row.get(0))?;
+    let rows = statement.query_map([(login.to_string().as_str())], |row| row.get(0))?;
 
     for item in rows {
         let count: u64 = item.unwrap();
@@ -538,12 +529,12 @@ pub fn has_login(login: &str, conn: &Connection) -> Result<bool> {
         }
     }
 
-    return Ok(has_login);
+    Ok(has_login)
 }
 
 pub fn execute_write_on_connection(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> usize {
-    let conn = get_db_conn(&config, db_name);
-    return conn.execute(&cmd, []).unwrap();
+    let conn = get_db_conn(config, db_name);
+    conn.execute(cmd, []).unwrap()
 }
 
 pub fn configure_rcd_db(config: &DbiConfigSqlite) {
@@ -553,7 +544,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     info!("cwd is {}", &root);
     info!("db_name is {}", &db_name);
 
-    let db_path = Path::new(&root).join(&db_name);
+    let db_path = Path::new(&root).join(db_name);
     info!("db_path is {}", db_path.as_os_str().to_str().unwrap());
 
     if !db_path.exists() {
@@ -572,7 +563,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
 
         if !db_has_role {
             let statement = String::from("INSERT INTO CDS_ROLE (ROLENAME) VALUES ('SysAdmin');");
-            execute_write_on_connection(&db_name, &statement, config);
+            execute_write_on_connection(db_name, &statement, config);
         }
     }
 }
@@ -648,7 +639,7 @@ pub fn get_cooperative_hosts(config: &DbiConfigSqlite) -> Vec<CdsHosts> {
         cds_host_infos.push(h.unwrap());
     }
 
-    return cds_host_infos;
+    cds_host_infos
 }
 
 pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Option<CdsHosts> {
@@ -738,53 +729,53 @@ pub fn get_cds_host_for_part_db(db_name: &str, config: &DbiConfigSqlite) -> Opti
         cds_host_infos.push(h.unwrap());
     }
 
-    if cds_host_infos.len() > 0 {
-        return Some(cds_host_infos.first().unwrap().clone());
+    if !cds_host_infos.is_empty() {
+        Some(cds_host_infos.first().unwrap().clone())
     } else {
-        return None;
+        None
     }
 }
 
 fn create_user_tokens_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_tokens_table(), [])
+    conn.execute(&Cds::text_create_user_tokens_table(), [])
         .unwrap();
 }
 
 fn create_user_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_table(), []).unwrap();
+    conn.execute(&Cds::text_create_user_table(), []).unwrap();
 }
 
 fn create_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_role_table(), []).unwrap();
+    conn.execute(&Cds::text_create_role_table(), []).unwrap();
 }
 
 fn create_user_role_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_user_role_table(), [])
+    conn.execute(&Cds::text_create_user_role_table(), [])
         .unwrap();
 }
 
 fn create_host_info_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_host_info_table(), [])
+    conn.execute(&Cds::text_create_host_info_table(), [])
         .unwrap();
 }
 
 fn create_contracts_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_cds_contracts_table(), [])
+    conn.execute(&Cds::text_create_cds_contracts_table(), [])
         .unwrap();
 }
 
 fn create_contracts_table_table(conn: &Connection) {
-    conn.execute(&CDS::text_create_cds_contracts_tables_table(), [])
+    conn.execute(&Cds::text_create_cds_contracts_tables_table(), [])
         .unwrap();
 }
 
 fn create_contracts_table_table_schemas(conn: &Connection) {
-    conn.execute(&CDS::text_create_cds_contracts_tables_schemas_table(), [])
+    conn.execute(&Cds::text_create_cds_contracts_tables_schemas_table(), [])
         .unwrap();
 }
 
 fn create_cds_hosts_table(conn: &Connection) {
-    conn.execute(&&CDS::text_create_cds_hosts_table(), [])
+    conn.execute(&Cds::text_create_cds_hosts_table(), [])
         .unwrap();
 }
 
@@ -828,16 +819,14 @@ pub fn get_host_info(config: DbiConfigSqlite) -> HostInfo {
         results.push(hi.unwrap());
     }
 
-    if results.len() == 0 {
-        let host = HostInfo {
+    if results.is_empty() {
+        HostInfo {
             id: "host-info-not-set".to_string(),
             name: "host-info-not-set".to_string(),
             token: Vec::new(),
-        };
-
-        return host;
+        }
     } else {
-        return results.first().unwrap().clone();
+        results.first().unwrap().clone()
     }
 }
 
@@ -873,13 +862,13 @@ pub fn generate_host_info(host_name: &str, config: DbiConfigSqlite) {
 pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
     let mut is_verified = false;
 
-    let cmd = &String::from(CDS::text_get_user());
+    let cmd = Cds::text_get_user();
     let conn = get_rcd_conn(&config);
 
-    let mut statement = conn.prepare(cmd).unwrap();
+    let mut statement = conn.prepare(&cmd).unwrap();
 
     let user_iter = statement
-        .query_map(&[login.to_string().as_str()], |row| {
+        .query_map([login.to_string().as_str()], |row| {
             Ok(User {
                 username: row.get(0).unwrap(),
                 hash: row.get(1).unwrap(),
@@ -897,7 +886,7 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
             .iter()
             .enumerate()
             .for_each(|(i, val)| {
-                padded[i] = val.clone();
+                padded[i] = *val;
             });
 
         if crypt::verify(padded, pw) {
@@ -906,7 +895,7 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
         }
     }
 
-    return is_verified;
+    is_verified
 }
 
 /// checks rcd_db's CDS_CONTRACTS table to see if there already is a record
@@ -916,7 +905,7 @@ fn has_contract(contract_id: &str, conn: &Connection) -> bool {
         String::from("SELECT COUNT(*) TOTALCOUNT FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid'");
     cmd = cmd.replace(":cid", contract_id);
 
-    return has_any_rows(cmd, conn);
+    has_any_rows(cmd, conn)
 }
 
 fn do_vecs_match<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {

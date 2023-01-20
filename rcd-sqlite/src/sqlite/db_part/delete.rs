@@ -27,7 +27,7 @@ pub fn delete_data_into_partial_db_queue(
     let conn = &get_partial_db_connection(db_name, &config.root_folder);
 
     if !has_table(queue_log_table.clone(), conn) {
-        let mut cmd = sql_text::COOP::text_create_data_queue_table();
+        let mut cmd = sql_text::Coop::text_create_data_queue_table();
         cmd = cmd.replace(":table_name", &queue_log_table);
         execute_write(conn, &cmd);
     }

@@ -322,7 +322,7 @@ fn add_record_to_log_table(
     let conn = &get_partial_db_connection(db_name, &config.root_folder);
 
     if !has_table(data_log_table.clone(), conn) {
-        let mut cmd = sql_text::COOP::text_create_data_log_table();
+        let mut cmd = sql_text::Coop::text_create_data_log_table();
         let table_col_names =
             get_table_col_names_with_data_type_as_string(db_name, table_name, config);
         cmd = cmd.replace(":column_list", &table_col_names);

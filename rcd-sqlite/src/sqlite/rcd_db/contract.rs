@@ -486,7 +486,7 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
     let host = contract.host_info.as_ref().clone().unwrap().clone();
-    let db = contract.schema.as_ref().clone().unwrap().clone();
+    let db = contract.schema.as_ref().unwrap();
 
     let cmd = String::from(
         "INSERT INTO CDS_CONTRACTS
@@ -565,7 +565,7 @@ fn save_contract_table_schema_data(contract: &Contract, conn: &Connection) {
             let ctype = column.column_type;
             let clength = column.column_length;
             let cordinal = column.ordinal;
-            let is_nullable = if column.is_nullable { 1 } else { 0 };
+            let is_nullable = i32::from(column.is_nullable);
 
             let mut statement = conn.prepare(&cmd).unwrap();
             statement

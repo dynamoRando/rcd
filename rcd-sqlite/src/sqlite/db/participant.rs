@@ -432,7 +432,7 @@ pub fn get_participants_for_table(
 
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
-        let mut cmd = sql_text::COOP::text_create_metadata_table();
+        let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name.clone());
         execute_write(&conn, &cmd);
     }

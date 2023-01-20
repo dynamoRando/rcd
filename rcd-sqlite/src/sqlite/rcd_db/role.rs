@@ -1,14 +1,14 @@
-use crate::sqlite::sql_text::CDS;
+use crate::sqlite::sql_text::Cds;
 
 use super::get_rcd_conn;
 use rcd_common::db::DbiConfigSqlite;
 use rusqlite::{named_params, Result};
 
 pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
-    let conn = get_rcd_conn(&config);
+    let conn = get_rcd_conn(config);
     let mut has_role = false;
 
-    let cmd = &String::from(&CDS::text_get_role());
+    let cmd = &String::from(&Cds::text_get_role());
     let mut statement = conn.prepare(cmd).unwrap();
 
     let rows = statement.query_map(&[(":rolename", role_name.to_string().as_str())], |row| {
@@ -22,12 +22,12 @@ pub fn has_role_name(role_name: &str, config: &DbiConfigSqlite) -> Result<bool> 
         }
     }
 
-    return Ok(has_role);
+    Ok(has_role)
 }
 
 pub fn add_login_to_role(login: &str, role_name: &str, config: &DbiConfigSqlite) {
-    let conn = get_rcd_conn(&config);
-    let cmd = &String::from(&CDS::text_add_user_role());
+    let conn = get_rcd_conn(config);
+    let cmd = &String::from(&Cds::text_add_user_role());
     let mut statement = conn.prepare(cmd).unwrap();
     statement
         .execute(named_params! { ":username": login, ":rolename": role_name })
@@ -35,9 +35,9 @@ pub fn add_login_to_role(login: &str, role_name: &str, config: &DbiConfigSqlite)
 }
 
 pub fn login_is_in_role(login: &str, role_name: &str, config: &DbiConfigSqlite) -> Result<bool> {
-    let conn = get_rcd_conn(&config);
+    let conn = get_rcd_conn(config);
     let mut login_is_in_role = false;
-    let cmd = &CDS::text_get_user_role();
+    let cmd = &Cds::text_get_user_role();
     let mut statement = conn.prepare(cmd).unwrap();
 
     let params = [(":username", login), (":rolename", role_name)];
@@ -51,5 +51,5 @@ pub fn login_is_in_role(login: &str, role_name: &str, config: &DbiConfigSqlite) 
         }
     }
 
-    return Ok(login_is_in_role);
+    Ok(login_is_in_role)
 }

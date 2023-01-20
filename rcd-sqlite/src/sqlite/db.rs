@@ -175,7 +175,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 /// tables in the database. Generally, whenever we create a new table we should be adding the policy
 /// to this table an defaulting the policy to NONE.
 fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStoragePolicy)> {
-    let cmd = sql_text::COOP::text_get_logical_storage_policy_tables();
+    let cmd = sql_text::Coop::text_get_logical_storage_policy_tables();
     let mut table_policies: Vec<(String, LogicalStoragePolicy)> = Vec::new();
     let mut statement = conn.prepare(&cmd).unwrap();
 
@@ -200,11 +200,11 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
 /// Checks the COOP_DATA_HOST table to see if a database id has been generated and if not, creates and saves one.
 /// This is the id we will use to identify this database as having cooperative tables to participants
 fn populate_database_id(db_name: &str, conn: &Connection) {
-    let cmd = sql_text::COOP::text_get_count_from_data_host();
+    let cmd = sql_text::Coop::text_get_count_from_data_host();
     let has_database_id = has_any_rows(cmd, conn);
 
     if !has_database_id {
-        let cmd = sql_text::COOP::text_add_database_id_to_host();
+        let cmd = sql_text::Coop::text_add_database_id_to_host();
         let db_id = GUID::rand();
         let mut statement = conn.prepare(&cmd).unwrap();
         statement
@@ -229,9 +229,9 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         let table_name = &status.0;
         let table_id = GUID::rand();
 
-        let statement = sql_text::COOP::text_get_count_from_data_host_tables_for_table(&table_name);
+        let statement = sql_text::Coop::text_get_count_from_data_host_tables_for_table(&table_name);
         if !has_any_rows(statement, &conn) {
-            let cmd = sql_text::COOP::text_add_table_to_data_host_table(
+            let cmd = sql_text::Coop::text_add_table_to_data_host_table(
                 table_name.to_string(),
                 table_id.to_string(),
             );
@@ -249,13 +249,13 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
 /// to store schema information and the database_id that we send to participants of this database. This
 /// data is usually contained at the participant in the database contract.
 fn create_data_host_tables(conn: &Connection) {
-    let mut cmd = sql_text::COOP::text_create_data_host_table();
+    let mut cmd = sql_text::Coop::text_create_data_host_table();
     conn.execute(&cmd, []).unwrap();
-    cmd = sql_text::COOP::text_create_data_host_tables_table();
+    cmd = sql_text::Coop::text_create_data_host_tables_table();
     conn.execute(&cmd, []).unwrap();
-    cmd = sql_text::COOP::text_create_data_host_tables_columns_table();
+    cmd = sql_text::Coop::text_create_data_host_tables_columns_table();
     conn.execute(&cmd, []).unwrap();
-    cmd = sql_text::COOP::text_create_data_remotes_table();
+    cmd = sql_text::Coop::text_create_data_remotes_table();
     conn.execute(&cmd, []).unwrap();
 }
 
