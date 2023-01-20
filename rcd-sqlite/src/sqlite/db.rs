@@ -20,25 +20,24 @@ pub mod metadata;
 pub mod participant;
 
 pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connection, Error> {
-    return Ok(get_db_conn(&config, db_name));
+    Ok(get_db_conn(&config, db_name))
 }
 
 #[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConfigSqlite) -> bool {
     let conn = get_db_conn(&config, db_name);
-    return has_table(table_name.to_string(), &conn);
+    has_table(table_name.to_string(), &conn)
 }
 
 pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> bool {
     let mut has_cooperative_tables = false;
 
-    let tables = rcd_query::query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
+    let tables = rcd_query::query_parser::get_table_names(cmd, DatabaseType::Sqlite);
 
     for table in tables {
-        let result = logical_storage_policy::get_logical_storage_policy(db_name, &table, &config);
+        let result = logical_storage_policy::get_logical_storage_policy(db_name, &table, config);
 
-        if !result.is_err() {
-            let policy = result.unwrap();
+        if let Ok(policy) = result {
             match policy {
                 LogicalStoragePolicy::Mirror => {
                     has_cooperative_tables = true;
@@ -59,13 +58,13 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite
         }
     }
 
-    return has_cooperative_tables;
+    has_cooperative_tables
 }
 
 pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Vec<String> {
     let mut cooperative_tables: Vec<String> = Vec::new();
 
-    let tables = rcd_query::query_parser::get_table_names(&cmd, DatabaseType::Sqlite);
+    let tables = rcd_query::query_parser::get_table_names(cmd, DatabaseType::Sqlite);
 
     for table in &tables {
         let result = logical_storage_policy::get_logical_storage_policy(
@@ -74,8 +73,7 @@ pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
             &config,
         );
 
-        if !result.is_err() {
-            let policy = result.unwrap();
+        if let Ok(policy) = result {
             match policy {
                 LogicalStoragePolicy::Mirror => {
                     cooperative_tables.push(table.clone());
@@ -93,7 +91,7 @@ pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite)
         }
     }
 
-    return cooperative_tables;
+    cooperative_tables
 }
 
 fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
@@ -110,7 +108,7 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
         }
     }
 
-    return result;
+    result
 }
 
 fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Connection) {
@@ -139,7 +137,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
             ;",
             );
 
-            col_check = col_check.replace(":col_name", &col_name);
+            col_check = col_check.replace(":col_name", col_name);
             if !has_any_rows(col_check, conn) {
                 // we need to add the column schema to the data host tables
                 let col_id = GUID::rand();

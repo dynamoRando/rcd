@@ -137,10 +137,9 @@ pub fn add_participant(
     http_port: u16,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
-    let is_added: bool;
 
-    if has_participant(db_name, alias, config) {
-        is_added = false;
+    let is_added: bool = if has_participant(db_name, alias, config) {
+        false
     } else {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::rand(),
@@ -156,10 +155,10 @@ pub fn add_participant(
             http_port: http_port,
         };
         save_participant(participant, conn);
-        is_added = true;
-    }
+        true
+    };
 
-    return is_added;
+    is_added
 }
 
 pub fn get_participant_by_internal_id(
@@ -167,7 +166,7 @@ pub fn get_participant_by_internal_id(
     internal_id: &str,
     config: &DbiConfigSqlite,
 ) -> CoopDatabaseParticipant {
-    let conn = get_db_conn(&config, db_name);
+    let conn = get_db_conn(config, db_name);
     let cmd = String::from(
         "
         SELECT 
@@ -334,10 +333,10 @@ pub fn get_participant_by_alias(
         results.push(participant.unwrap());
     }
 
-    if results.len() >= 1 {
-        return Some(results.first().unwrap().clone());
+    if !results.is_empty() {
+        Some(results.first().unwrap().clone())
     } else {
-        return None;
+        None
     }
 }
 
@@ -347,7 +346,7 @@ pub fn get_participants_for_database(
 ) -> Vec<ParticipantStatus> {
     let mut result: Vec<ParticipantStatus> = Vec::new();
 
-    let conn = get_db_conn(&config, db_name);
+    let conn = get_db_conn(config, db_name);
 
     let cmd = "
     SELECT 
@@ -364,7 +363,7 @@ pub fn get_participants_for_database(
         COOP_PARTICIPANT
     ";
 
-    let mut statement = conn.prepare(&cmd).unwrap();
+    let mut statement = conn.prepare(cmd).unwrap();
 
     let row_to_participant = |internal_participant_id: String,
                               alias: String,
@@ -416,7 +415,7 @@ pub fn get_participants_for_database(
         result.push(p.unwrap());
     }
 
-    return result;
+    result
 }
 
 pub fn get_participants_for_table(
@@ -433,7 +432,7 @@ pub fn get_participants_for_table(
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
-        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        cmd = cmd.replace(":table_name", &metadata_table_name);
         execute_write(&conn, &cmd);
     }
 
@@ -511,14 +510,14 @@ pub fn get_participants_for_table(
         result.push(participant_data);
     }
 
-    return result;
+    result
 }
 
 pub fn has_participant_at_conn(alias: &str, conn: &Connection) -> bool {
     let mut cmd =
         String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
-    return has_any_rows(cmd, &conn);
+    has_any_rows(cmd, conn)
 }
 
 pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
@@ -526,5 +525,5 @@ pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> b
     let mut cmd =
         String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
-    return has_any_rows(cmd, conn);
+    has_any_rows(cmd, conn)
 }

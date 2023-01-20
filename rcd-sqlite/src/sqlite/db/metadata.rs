@@ -60,19 +60,19 @@ pub fn insert_metadata_into_host_db(
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
-        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        cmd = cmd.replace(":table_name", &metadata_table_name);
         execute_write(&conn, &cmd);
     }
 
     let mut cmd = sql_text::Coop::text_insert_row_metadata_table();
-    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement
         .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes(), ":pid" : internal_participant_id })
         .unwrap();
 
-    return rows > 0;
+    rows > 0
 }
 
 pub fn delete_metadata_in_host_db(
@@ -88,19 +88,19 @@ pub fn delete_metadata_in_host_db(
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
-        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        cmd = cmd.replace(":table_name", &metadata_table_name);
         execute_write(&conn, &cmd);
     }
 
     let mut cmd = sql_text::Coop::text_delete_row_metadata_table();
-    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement
         .execute(named_params! {":row": row_id, ":pid" : internal_participant_id })
         .unwrap();
 
-    return rows > 0;
+    rows > 0
 }
 
 pub fn update_metadata_in_host_db(
@@ -117,17 +117,17 @@ pub fn update_metadata_in_host_db(
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
-        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        cmd = cmd.replace(":table_name", &metadata_table_name);
         execute_write(&conn, &cmd);
     }
 
     let mut cmd = sql_text::Coop::text_update_row_metadata_table();
-    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
     let rows = statement
         .execute(named_params! {":row": row_id, ":hash" : hash.to_ne_bytes(), ":pid" : internal_participant_id })
         .unwrap();
 
-    return rows > 0;
+    rows > 0
 }
