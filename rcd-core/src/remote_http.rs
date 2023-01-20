@@ -417,7 +417,7 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.http_addr,
-            participant.http_port.to_string()
+            participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
@@ -444,33 +444,26 @@ impl RemoteHttp {
 }
 
 fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
-    let mut addresses: Vec<String> = Vec::new();
 
-    addresses.push(host_info.id.clone());
-    addresses.push(host_info.name.clone());
-    addresses.push(own_db_addr_port);
+    let addresses: Vec<String> = vec![host_info.id.clone(), host_info.name.clone(), own_db_addr_port];
 
     let is_little_endian = is_little_endian();
 
-    let message_info = MessageInfo {
+    MessageInfo {
         is_little_endian: is_little_endian,
         message_addresses: addresses,
         message_generated_time_utc: Utc::now().to_string(),
         message_guid: GUID::rand().to_string(),
-    };
-
-    return message_info;
+    }
 }
 
 fn is_little_endian() -> bool {
     let v = vec![0, 128, 128, 0];
 
-    let result = match read_i32(&v, ByteOrder::LittleEndian) {
+    match read_i32(&v, ByteOrder::LittleEndian) {
         Ok(_n) => true,
         Err(_err) => false,
-    };
-
-    return result;
+    }
 }
 
 async fn send_message(json_message: String, url: String) -> String {
@@ -492,13 +485,11 @@ async fn send_message(json_message: String, url: String) -> String {
 }
 
 fn get_auth_request(own_host_info: &HostInfo) -> AuthRequest {
-    let auth = AuthRequest {
+    AuthRequest {
         user_name: own_host_info.name.clone(),
         pw: String::from(""),
         pw_hash: Vec::new(),
         token: own_host_info.token.clone(),
         jwt: String::from(""),
-    };
-
-    return auth;
+    }
 }
