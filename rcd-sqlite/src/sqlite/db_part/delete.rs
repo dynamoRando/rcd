@@ -74,15 +74,13 @@ pub fn delete_data_into_partial_db_queue(
         })
         .unwrap();
 
-    let delete_result = PartialDataResult {
+    PartialDataResult {
         is_successful: rows_inserted > 0,
         row_id: next_id,
         data_hash: None,
         partial_data_status: None,
         action: Some(PartialDataResultAction::Delete),
-    };
-
-    return delete_result;
+    }
 }
 
 pub fn delete_data_in_partial_db(
@@ -98,10 +96,10 @@ pub fn delete_data_in_partial_db(
     match behavior {
         DeletesFromHostBehavior::Unknown => todo!(),
         DeletesFromHostBehavior::AllowRemoval => {
-            return execute_delete(db_name, table_name, cmd, where_clause, config)
+            execute_delete(db_name, table_name, cmd, where_clause, config)
         }
         DeletesFromHostBehavior::QueueForReview => {
-            return delete_data_into_partial_db_queue(
+            delete_data_into_partial_db_queue(
                 db_name,
                 table_name,
                 cmd,
@@ -111,7 +109,7 @@ pub fn delete_data_in_partial_db(
             )
         }
         DeletesFromHostBehavior::DeleteWithLog => {
-            return execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
+            execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
         }
         DeletesFromHostBehavior::Ignore => todo!(),
         DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
@@ -125,13 +123,13 @@ fn execute_delete(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> PartialDataResult {
-    let original_cmd = cmd.clone();
+    let original_cmd = cmd;
 
     let mut cmd;
     cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
         .replace(":table_name", table_name);
 
-    if where_clause.len() > 0 {
+    if !where_clause.is_empty() {
         cmd = cmd.replace(":where_clause", where_clause);
     } else {
         cmd = cmd.replace("WHERE", "");
@@ -157,7 +155,7 @@ fn execute_delete(
 
     println!("{:?}", row_ids);
 
-    let total_rows = execute_write(&conn, &original_cmd);
+    let total_rows = execute_write(&conn, original_cmd);
 
     println!("total rows deleted: {}", total_rows);
 
@@ -188,7 +186,7 @@ fn execute_delete(
 
     println!("{:?}", result);
 
-    return result;
+    result
 }
 
 pub fn handle_delete_pending_action(
@@ -216,8 +214,8 @@ pub fn handle_delete_pending_action(
         update_result = execute_delete(
             db_name,
             table_name,
-            &sql_update_statement,
-            &where_clause,
+            sql_update_statement,
+            where_clause,
             config,
         );
 
@@ -231,8 +229,8 @@ pub fn handle_delete_pending_action(
         update_result = execute_delete_with_log(
             db_name,
             table_name,
-            &sql_update_statement,
-            &where_clause,
+            sql_update_statement,
+            where_clause,
             config,
         );
 
@@ -244,7 +242,7 @@ pub fn handle_delete_pending_action(
         }
     }
 
-    return update_result;
+    update_result
 }
 
 fn execute_delete_with_log(
@@ -255,5 +253,5 @@ fn execute_delete_with_log(
     config: &DbiConfigSqlite,
 ) -> PartialDataResult {
     add_record_to_log_table(db_name, table_name, where_clause, "DELETE", config);
-    return execute_delete(db_name, table_name, cmd, where_clause, config);
+    execute_delete(db_name, table_name, cmd, where_clause, config)
 }

@@ -43,10 +43,10 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
         cmd = cmd.replace(":cid", &cid);
 
         let total_count = execute_write(&conn, &cmd);
-        return total_count > 0;
+        return total_count > 0
     }
 
-    return false;
+    false
 }
 
 pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
@@ -405,7 +405,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         pending_contracts.push(pc);
     }
 
-    return pending_contracts;
+    pending_contracts
 }
 
 /// Saves a contract sent from a host to our local rcd_db instance. This lets us
@@ -426,7 +426,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, Str
         return (true, "".to_string());
     }
 
-    return (false, "Contract already exists".to_string());
+    (false, "Contract already exists".to_string())
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
@@ -485,7 +485,7 @@ fn save_contract_table_data(contract: &Contract, conn: &Connection) {
 
 /// saves top level contract data to rcd_db's CDS_CONTRACTS table
 fn save_contract_metadata(contract: &Contract, conn: &Connection) {
-    let host = contract.host_info.as_ref().clone().unwrap().clone();
+    let host = contract.host_info.as_ref().unwrap().clone();
     let db = contract.schema.as_ref().unwrap();
 
     let cmd = String::from(
@@ -517,7 +517,7 @@ fn save_contract_metadata(contract: &Contract, conn: &Connection) {
     let mut statement = conn.prepare(&cmd).unwrap();
     statement
         .execute(named_params! {
-            ":hid": host.host_guid.to_string(),
+            ":hid": host.host_guid,
             ":cid" : contract.contract_guid,
             ":cvid" : contract.contract_version,
             ":dbname" : db.database_name,

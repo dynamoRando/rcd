@@ -163,7 +163,7 @@ fn save_schema_to_data_host_tables(table_id: String, schema: &Table, conn: &Conn
 
                 cmd = cmd.replace(":table_id", &table_id);
                 cmd = cmd.replace(":col_id", &col_id.to_string());
-                cmd = cmd.replace(":col_name", &col_name);
+                cmd = cmd.replace(":col_name", col_name);
                 conn.execute(&cmd, []).unwrap();
             }
         }
@@ -194,7 +194,7 @@ fn get_remote_status_for_tables(conn: &Connection) -> Vec<(String, LogicalStorag
         table_policies.push(status.unwrap());
     }
 
-    return table_policies;
+    table_policies
 }
 
 /// Checks the COOP_DATA_HOST table to see if a database id has been generated and if not, creates and saves one.
@@ -229,8 +229,8 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         let table_name = &status.0;
         let table_id = GUID::rand();
 
-        let statement = sql_text::Coop::text_get_count_from_data_host_tables_for_table(&table_name);
-        if !has_any_rows(statement, &conn) {
+        let statement = sql_text::Coop::text_get_count_from_data_host_tables_for_table(table_name);
+        if !has_any_rows(statement, conn) {
             let cmd = sql_text::Coop::text_add_table_to_data_host_table(
                 table_name.to_string(),
                 table_id.to_string(),
@@ -240,8 +240,8 @@ fn populate_data_host_tables(db_name: &str, conn: &Connection) {
         }
 
         // need to get schema and save it to the table
-        let schema = get_schema_of_table(table_name.to_string(), &conn);
-        save_schema_to_data_host_tables(table_id.to_string(), &schema.unwrap(), &conn);
+        let schema = get_schema_of_table(table_name.to_string(), conn);
+        save_schema_to_data_host_tables(table_id.to_string(), &schema.unwrap(), conn);
     }
 }
 
@@ -282,7 +282,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
     println!("{:?}", conn);
 
     // if this is a host db
-    if has_table("COOP_DATA_HOST".to_string(), conn.clone()) {
+    if has_table("COOP_DATA_HOST".to_string(), conn) {
         println!("get_db_schema for host_db");
         let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
         let db_id = get_scalar_as_string(cmd, conn);
@@ -564,7 +564,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         db_schema.tables.push(ts);
     }
 
-    return db_schema;
+    db_schema
 }
 
 pub fn enable_coooperative_features(db_name: &str, config: DbiConfigSqlite) {

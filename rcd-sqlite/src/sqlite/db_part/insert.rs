@@ -38,12 +38,12 @@ pub fn insert_data_into_partial_db(
     if !has_table(metadata_table_name.clone(), &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
-        cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+        cmd = cmd.replace(":table_name", &metadata_table_name);
         execute_write(&conn, &cmd);
     }
 
     let mut cmd = sql_text::Coop::text_insert_row_metadata_table();
-    cmd = cmd.replace(":table_name", &metadata_table_name.clone());
+    cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
     println!("{:?}", row_id);
@@ -53,13 +53,11 @@ pub fn insert_data_into_partial_db(
         .execute(named_params! {":row": row_id, ":hash" : hash_value.to_ne_bytes() })
         .unwrap();
 
-    let result = PartialDataResult {
+    PartialDataResult {
         is_successful: total_rows > 0,
         row_id,
         data_hash: Some(hash_value),
         partial_data_status: None,
         action: Some(PartialDataResultAction::Insert),
-    };
-
-    return result;
+    }
 }

@@ -75,15 +75,13 @@ pub fn update_data_into_partial_db_queue(
         })
         .unwrap();
 
-    let update_result = PartialDataResult {
+    PartialDataResult {
         is_successful: rows_inserted > 0,
         row_id: next_id,
         data_hash: None,
         partial_data_status: Some(PartialDataStatus::to_u32(PartialDataStatus::Pending)),
         action: Some(PartialDataResultAction::Update),
-    };
-
-    return update_result;
+    }
 }
 
 pub fn update_data_into_partial_db(
@@ -97,18 +95,18 @@ pub fn update_data_into_partial_db(
     let behavior = get_updates_from_host_behavior(db_name, table_name, config);
     match behavior {
         UpdatesFromHostBehavior::AllowOverwrite => {
-            return execute_update_overwrite(db_name, table_name, cmd, where_clause, config);
+            execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
         }
         UpdatesFromHostBehavior::Unknown => todo!(),
         UpdatesFromHostBehavior::QueueForReview => {
-            return update_data_into_partial_db_queue(
+            update_data_into_partial_db_queue(
                 db_name,
                 table_name,
                 cmd,
                 where_clause,
                 host_id,
                 config,
-            );
+            )
         }
         UpdatesFromHostBehavior::OverwriteWithLog => {
             execute_update_with_log(db_name, table_name, cmd, where_clause, config)
@@ -125,12 +123,12 @@ fn execute_update_overwrite(
     where_clause: &str,
     config: &DbiConfigSqlite,
 ) -> PartialDataResult {
-    let original_cmd = cmd.clone();
+    let original_cmd = cmd;
     let mut cmd;
     cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
         .replace(":table_name", table_name);
 
-    if where_clause.len() > 0 {
+    if !where_clause.is_empty() {
         cmd = cmd.replace(":where_clause", where_clause);
     } else {
         cmd = cmd.replace("WHERE", "");
@@ -157,7 +155,7 @@ fn execute_update_overwrite(
 
     // println!("{:?}", row_ids);
 
-    let total_rows = execute_write(&conn, &original_cmd);
+    let total_rows = execute_write(&conn, original_cmd);
 
     if total_rows != row_ids.len() {
         panic!("the update statement did not match the expected count of affected rows");
@@ -179,7 +177,7 @@ fn execute_update_overwrite(
     let completed_col_name_list = &col_name_list[0..&col_name_list.len() - 1];
     // println!("{}", completed_col_name_list);
 
-    cmd = cmd.replace(":col_names", &completed_col_name_list);
+    cmd = cmd.replace(":col_names", completed_col_name_list);
 
     // println!("{:?}", cmd);
 
@@ -230,15 +228,13 @@ fn execute_update_overwrite(
 
     let row_data = row_hashes.first().unwrap();
 
-    let result = PartialDataResult {
+    PartialDataResult {
         is_successful: true,
         row_id: row_data.0,
         data_hash: Some(row_data.1),
         partial_data_status: Some(1),
         action: Some(PartialDataResultAction::Update),
-    };
-
-    return result;
+    }
 }
 
 fn execute_update_with_log(
@@ -277,8 +273,8 @@ pub fn handle_update_pending_action(
         update_result = execute_update_overwrite(
             db_name,
             table_name,
-            &sql_update_statement,
-            &where_clause,
+            sql_update_statement,
+            where_clause,
             config,
         );
 
@@ -292,8 +288,8 @@ pub fn handle_update_pending_action(
         update_result = execute_update_with_log(
             db_name,
             table_name,
-            &sql_update_statement,
-            &where_clause,
+            sql_update_statement,
+            where_clause,
             config,
         );
 
@@ -305,5 +301,5 @@ pub fn handle_update_pending_action(
         }
     }
 
-    return update_result;
+    update_result
 }

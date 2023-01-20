@@ -73,7 +73,7 @@ pub fn accept_pending_action_at_participant(
         );
     }
 
-    return action_result;
+    action_result
 }
 
 pub fn get_data_hash_at_participant(
@@ -88,7 +88,7 @@ pub fn get_data_hash_at_participant(
     cmd = cmd.replace(":metadata", &metadata_table_name);
     cmd = cmd.replace(":row_id", &row_id.to_string());
 
-    return get_scalar_as_u64(cmd, &conn).unwrap();
+    get_scalar_as_u64(cmd, &conn).unwrap()
 }
 
 pub fn get_pending_actions(
@@ -115,9 +115,9 @@ pub fn get_pending_actions(
         ;",
     );
     cmd = cmd.replace(":table", &update_queue);
-    cmd = cmd.replace(":action", &action);
+    cmd = cmd.replace(":action", action);
 
-    let pending_rows = execute_read_at_participant(db_name, &cmd.to_string(), &config).unwrap();
+    let pending_rows = execute_read_at_participant(db_name, &cmd, config).unwrap();
 
     for row in &pending_rows.rows {
         let mut rid: u32 = 0;
@@ -160,7 +160,7 @@ pub fn get_pending_actions(
         pending_statements.push(ps);
     }
 
-    return pending_statements;
+    pending_statements
 }
 
 pub fn get_row_from_partial_database(
@@ -175,7 +175,7 @@ pub fn get_row_from_partial_database(
     cmd = cmd.replace(":table_name", table_name);
     cmd = cmd.replace(":rid", &row_id.to_string());
 
-    return execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap();
+    execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap()
 }
 
 pub fn create_partial_database_from_contract(
@@ -193,7 +193,7 @@ pub fn create_partial_database_from_contract(
         create_table_from_schema(table, &conn);
     }
 
-    return true;
+    true
 }
 
 pub fn create_partial_database(
@@ -203,7 +203,7 @@ pub fn create_partial_database(
     let mut db_part_name = db_name.replace(".db", "");
     db_part_name = db_part_name.replace(".dbpart", "");
     db_part_name = format!("{}{}", db_part_name, String::from(".dbpart"));
-    return get_db_conn_with_result(config, &db_part_name);
+    get_db_conn_with_result(config, &db_part_name)
 }
 
 #[allow(dead_code, unused_assignments, unused_variables)]
@@ -251,10 +251,7 @@ pub fn read_row_id_from_part_db(
     let mut cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause");
     cmd = cmd.replace(":table_name", table_name);
     cmd = cmd.replace(":where_clause", where_clause);
-
-    let row_id = get_scalar_as_u32(cmd, &conn);
-
-    return row_id;
+    get_scalar_as_u32(cmd, &conn)
 }
 
 pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
@@ -262,15 +259,14 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
     db_part_name = db_part_name.replace(".dbpart", "");
     db_part_name = format!("{}{}", db_part_name, String::from(".dbpart"));
     let db_path = Path::new(&cwd).join(&db_part_name);
-    let conn = Connection::open(&db_path).unwrap();
-    return conn;
+    Connection::open(db_path).unwrap()
 }
 
 fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
     let table_name = table_schema.table_name.clone();
     let mut cmd = String::from("CREATE TABLE IF NOT EXISTS :tablename ");
     cmd = cmd.replace(":tablename", &table_name);
-    cmd = cmd + " ( ";
+    cmd += " ( ";
 
     for column in &table_schema.columns {
         let col_name = column.column_name.clone();
@@ -278,9 +274,9 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
         let mut col_length = String::from("");
 
         if column.column_length > 0 {
-            col_length = col_length + " ( ";
+            col_length += " ( ";
             col_length = col_length + &column.column_length.to_string();
-            col_length = col_length + " ) ";
+            col_length += " ) ";
         }
 
         let mut col_nullable = String::from("");
@@ -289,25 +285,23 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
             col_nullable = String::from("NOT NULL");
         }
 
-        let col_statement: String;
-
         let last_column = &table_schema.columns.last().unwrap().column_name;
 
-        if last_column.to_string() == column.column_name {
-            col_statement = format!(
+        let col_statement: String = if *last_column == column.column_name {
+            format!(
                 " {} {} {} {} ",
                 col_name, col_type, col_length, col_nullable
-            );
+            )
         } else {
-            col_statement = format!(
+            format!(
                 " {} {} {} {} , ",
                 col_name, col_type, col_length, col_nullable
-            );
-        }
+            )
+        };
 
         cmd = cmd + &col_statement;
     }
-    cmd = cmd + " ) ";
+    cmd += " ) ";
     execute_write(conn, &cmd);
 }
 
@@ -376,7 +370,7 @@ fn add_record_to_log_table(
                 Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
                 Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
                 Type::Text => {
-                    format!("'{}'", row.get_ref_unwrap(i).as_str().unwrap().to_string())
+                    format!("'{}'", row.get_ref_unwrap(i).as_str().unwrap())
                 }
                 _ => String::from(""),
             };
@@ -401,5 +395,5 @@ fn add_record_to_log_table(
         execute_write(conn, &insert_cmd);
     }
 
-    return true;
+    true
 }
