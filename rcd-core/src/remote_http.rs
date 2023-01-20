@@ -48,7 +48,7 @@ impl RemoteHttp {
         is_deleted: bool,
     ) -> bool {
         let auth = get_auth_request(own_host_info);
-        let message_info = get_message_info(&own_host_info, "".to_string());
+        let message_info = get_message_info(own_host_info, "".to_string());
 
         let chost = Host {
             host_guid: own_host_info.id.clone(),
@@ -82,16 +82,16 @@ impl RemoteHttp {
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let addr_port = format!("{}:{}", host.http_addr, host.http_port.to_string());
+            let addr_port = format!("{}:{}", host.http_addr, host.http_port);
 
             info!("sending request to rcd at: {}", addr_port);
 
             let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_UPDATED_HASH);
             let result = send_message(request_json, url).await;
             let reply: UpdateRowDataHashForHostResponse =
-                serde_json::from_str(&result.to_string()).unwrap();
+                serde_json::from_str(&result).unwrap();
 
-            return reply.is_successful;
+            reply.is_successful
         } else {
             let request = NotifyHostOfRemovedRowRequest {
                 authentication: Some(auth),
@@ -106,16 +106,16 @@ impl RemoteHttp {
 
             let request_json = serde_json::to_string(&request).unwrap();
 
-            let addr_port = format!("{}:{}", host.http_addr, host.http_port.to_string());
+            let addr_port = format!("{}:{}", host.http_addr, host.http_port);
 
             info!("sending request to rcd at: {}", addr_port);
 
             let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
             let result = send_message(request_json, url).await;
             let reply: NotifyHostOfRemovedRowResponse =
-                serde_json::from_str(&result.to_string()).unwrap();
+                serde_json::from_str(&result).unwrap();
 
-            return reply.is_successful;
+            reply.is_successful
         }
     }
 
@@ -144,7 +144,7 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.participant.http_addr,
-            participant.participant.http_port.to_string()
+            participant.participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
@@ -152,9 +152,9 @@ impl RemoteHttp {
         let url = format!("http://{}{}", addr_port, GET_ROW_AT_PARTICIPANT);
         let result = send_message(request_json, url).await;
         let reply: GetRowFromPartialDatabaseResult =
-            serde_json::from_str(&result.to_string()).unwrap();
+            serde_json::from_str(&result).unwrap();
 
-        return reply;
+        reply
     }
 
     pub async fn insert_row_at_participant(
@@ -179,16 +179,16 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.http_addr,
-            participant.http_port.to_string()
+            participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, INSERT_ROW_AT_PARTICIPANT);
         let result = send_message(request_json, url).await;
-        let reply: InsertDataResult = serde_json::from_str(&result.to_string()).unwrap();
+        let reply: InsertDataResult = serde_json::from_str(&result).unwrap();
 
-        return reply;
+        reply
     }
 
     pub async fn update_row_at_participant(
@@ -215,16 +215,16 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.http_addr,
-            participant.http_port.to_string()
+            participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, UPDATE_ROW_AT_PARTICIPANT);
         let result = send_message(request_json, url).await;
-        let reply: UpdateDataResult = serde_json::from_str(&result.to_string()).unwrap();
+        let reply: UpdateDataResult = serde_json::from_str(&result).unwrap();
 
-        return reply;
+        reply
     }
 
     pub async fn try_auth_at_participant(
@@ -242,16 +242,16 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.http_addr,
-            participant.http_port.to_string()
+            participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, TRY_AUTH);
         let result = send_message(request_json, url).await;
-        let reply: TryAuthResult = serde_json::from_str(&result.to_string()).unwrap();
+        let reply: TryAuthResult = serde_json::from_str(&result).unwrap();
 
-        return reply.authentication_result.unwrap().is_authenticated;
+        reply.authentication_result.unwrap().is_authenticated
     }
 
     pub async fn notify_host_of_removed_row(
@@ -263,7 +263,7 @@ impl RemoteHttp {
         row_id: u32,
     ) -> bool {
         let auth = get_auth_request(own_host_info);
-        let message_info = get_message_info(&own_host_info, "".to_string());
+        let message_info = get_message_info(own_host_info, "".to_string());
 
         let chost = Host {
             host_guid: own_host_info.id.clone(),
@@ -289,16 +289,16 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!("{}:{}", host.http_addr, host.http_port.to_string());
+        let addr_port = format!("{}:{}", host.http_addr, host.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
         let result = send_message(request_json, url).await;
         let reply: NotifyHostOfRemovedRowResponse =
-            serde_json::from_str(&result.to_string()).unwrap();
+            serde_json::from_str(&result).unwrap();
 
-        return reply.is_successful;
+        reply.is_successful
     }
 
     pub async fn remove_row_at_participant(
@@ -325,16 +325,16 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             participant.http_addr,
-            participant.http_port.to_string()
+            participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, REMOVE_ROW_AT_PARTICIPANT);
         let result = send_message(request_json, url).await;
-        let reply: DeleteDataResult = serde_json::from_str(&result.to_string()).unwrap();
+        let reply: DeleteDataResult = serde_json::from_str(&result).unwrap();
 
-        return reply;
+        reply
     }
 
     pub async fn notify_host_of_acceptance_of_contract(
@@ -342,7 +342,7 @@ impl RemoteHttp {
         accepted_contract: &Contract,
         own_host_info: &HostInfo,
     ) -> bool {
-        let message_info = get_message_info(&own_host_info, "".to_string());
+        let message_info = get_message_info(own_host_info, "".to_string());
         let host_info = accepted_contract.host_info.as_ref().unwrap().clone();
 
         let participant = Participant {
@@ -375,7 +375,7 @@ impl RemoteHttp {
         let addr_port = format!(
             "{}:{}",
             host_info.http_addr,
-            host_info.http_port.to_string()
+            host_info.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
@@ -383,9 +383,9 @@ impl RemoteHttp {
         let url = format!("http://{}{}", addr_port, PARTICIPANT_ACCEPTS_CONTRACT);
         let result = send_message(request_json, url).await;
         let reply: ParticipantAcceptsContractResult =
-            serde_json::from_str(&result.to_string()).unwrap();
+            serde_json::from_str(&result).unwrap();
 
-        return reply.contract_acceptance_is_acknowledged;
+        reply.contract_acceptance_is_acknowledged
     }
 
     pub async fn send_participant_contract(
@@ -424,7 +424,7 @@ impl RemoteHttp {
 
         let url = format!("http://{}{}", addr_port, SAVE_CONTRACT);
         let result = send_message(request_json, url).await;
-        let reply: SaveContractResult = serde_json::from_str(&result.to_string()).unwrap();
+        let reply: SaveContractResult = serde_json::from_str(&result).unwrap();
 
         /*
         let http_response = reqwest::new(&url)
@@ -439,7 +439,7 @@ impl RemoteHttp {
             .unwrap();
             */
 
-        return (reply.is_saved, reply.error_message.clone());
+        (reply.is_saved, reply.error_message)
     }
 }
 
