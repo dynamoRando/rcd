@@ -40,7 +40,7 @@ pub fn set_logical_storage_policy(
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
         );
-        cmd = cmd.replace(":table_name", &table_name.clone());
+        cmd = cmd.replace(":table_name", table_name);
         if has_any_rows(cmd, &conn) {
             // then this is an update
             let mut cmd = String::from(
@@ -50,7 +50,7 @@ pub fn set_logical_storage_policy(
             ",
             );
 
-            cmd = cmd.replace(":table_name", &table_name);
+            cmd = cmd.replace(":table_name", table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
@@ -71,7 +71,7 @@ pub fn set_logical_storage_policy(
             );",
             );
 
-            cmd = cmd.replace(":table_name", &table_name);
+            cmd = cmd.replace(":table_name", table_name);
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
@@ -96,7 +96,7 @@ pub fn get_logical_storage_policy(
     table_name: &str,
     config: &DbiConfigSqlite,
 ) -> Result<LogicalStoragePolicy, RcdDbError> {
-    let conn = get_db_conn(&config, db_name);
+    let conn = get_db_conn(config, db_name);
     let policy;
 
     if has_table(table_name.to_string(), &conn) {
@@ -104,15 +104,15 @@ pub fn get_logical_storage_policy(
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
         );
-        cmd = cmd.replace(":table_name", &table_name.clone());
+        cmd = cmd.replace(":table_name", table_name);
         if has_any_rows(cmd, &conn) {
             // then we have a record for the policy of the table
             let mut cmd = String::from(
                 "SELECT LOGICAL_STORAGE_POLICY FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
             );
 
-            cmd = cmd.replace(":table_name", &table_name);
-            let i_policy = get_scalar_as_u32(cmd.clone(), &conn);
+            cmd = cmd.replace(":table_name", table_name);
+            let i_policy = get_scalar_as_u32(cmd, &conn);
             policy = LogicalStoragePolicy::from_i64(i_policy as i64);
         } else {
             /*
@@ -131,5 +131,5 @@ pub fn get_logical_storage_policy(
         return Err(err);
     }
 
-    return Ok(policy);
+    Ok(policy)
 }

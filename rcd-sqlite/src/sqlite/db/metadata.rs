@@ -15,7 +15,7 @@ pub fn get_data_hash_at_host(
     cmd = cmd.replace(":metadata", &metadata_table_name);
     cmd = cmd.replace(":row_id", &row_id.to_string());
 
-    return get_scalar_as_u64(cmd, &conn).unwrap();
+    get_scalar_as_u64(cmd, &conn).unwrap()
 }
 
 pub fn remove_remote_row_reference_from_host(
@@ -43,7 +43,7 @@ pub fn remove_remote_row_reference_from_host(
 
     println!("total row_references_deleted: {}", rows);
 
-    return rows > 0;
+    rows > 0
 }
 
 pub fn insert_metadata_into_host_db(
