@@ -81,8 +81,8 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
                 let request = SetLogicalStoragePolicyRequest {
                     authentication: Some(token.auth()),
-                    database_name: database_name,
-                    table_name: table_name,
+                    database_name,
+                    table_name,
                     policy_mode: policy_num,
                 };
 

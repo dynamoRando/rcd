@@ -49,20 +49,20 @@ impl CoopDatabaseContract {
             http_port: host_http_port,
         };
 
-        let contract = Contract {
+        
+
+        Contract {
             contract_guid: self.contract_id.to_string(),
             description: self.description.clone(),
             contract_version: self.version_id.to_string(),
             host_info: Some(c_host_info),
             schema: Some(db_schema),
             status: ContractStatus::to_u32(contract_status),
-        };
-
-        return contract;
+        }
     }
 
     /// Checks if the contract has a retired date or not
     pub fn is_retired(&self) -> bool {
-        return !self.retired_date.is_none();
+        self.retired_date.is_some()
     }
 }

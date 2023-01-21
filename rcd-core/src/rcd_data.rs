@@ -83,11 +83,11 @@ impl RcdData {
     pub async fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
-        return TestReply {
-            reply_time_utc: String::from(Utc::now().to_rfc2822()),
-            reply_echo_message: String::from(item),
+        TestReply {
+            reply_time_utc: Utc::now().to_rfc2822(),
+            reply_echo_message: item,
             rcdx_version: defaults::VERSION.to_string(),
-        };
+        }
     }
 
     pub async fn insert_command_into_table(&self, request: InsertDataRequest) -> InsertDataResult {
@@ -105,20 +105,20 @@ impl RcdData {
 
         if auth_result.0 {
             let result = self.dbi().create_partial_database(&db_name);
-            if !result.is_err() {
-                db_id = self.dbi().get_db_id(&db_name.as_str());
+            if result.is_ok() {
+                db_id = self.dbi().get_db_id(db_name.as_str());
             }
         }
 
-        let create_db_result = CreateDatabaseResult {
+        
+
+        CreateDatabaseResult {
             authentication_result: Some(auth_result.1),
             is_successful: auth_result.0,
             database_name: db_name,
             result_message: String::from(""),
             database_id: db_id,
-        };
-
-        return create_db_result;
+        }
     }
 
     fn authenticate_host(&self, authentication: AuthRequest) -> (bool, AuthResult) {
@@ -139,13 +139,13 @@ impl RcdData {
         }
 
         let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
+            is_authenticated,
             user_name: String::from(""),
             token: String::from(""),
             authentication_message: String::from(""),
         };
 
-        return (is_authenticated, auth_response);
+        (is_authenticated, auth_response)
     }
 
     fn authenticate_participant(
@@ -167,7 +167,7 @@ impl RcdData {
                     authentication_message: String::from(""),
                 };
 
-                return (is_auth, auth_response);
+                (is_auth, auth_response)
             }
             None => {
                 let auth_response = AuthResult {
@@ -177,7 +177,7 @@ impl RcdData {
                     authentication_message: String::from(""),
                 };
 
-                return (false, auth_response);
+                (false, auth_response)
             }
         }
     }
@@ -185,11 +185,11 @@ impl RcdData {
     pub async fn try_auth(&self, request: TryAuthRequest) -> TryAuthResult {
         let is_authenticated = self.authenticate_host(request.authentication.unwrap());
 
-        let result = TryAuthResult {
-            authentication_result: Some(is_authenticated.1),
-        };
+        
 
-        return result;
+        TryAuthResult {
+            authentication_result: Some(is_authenticated.1),
+        }
     }
 }
 

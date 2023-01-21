@@ -145,8 +145,8 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
                             logical_storage_policy: u32|
          -> Result<CdsContractsTables> {
             let table = CdsContractsTables {
-                database_id: database_id,
-                database_name: database_name,
+                database_id,
+                database_name,
                 table_id,
                 table_name,
                 logical_storage_policy,

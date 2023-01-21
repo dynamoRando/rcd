@@ -15,7 +15,7 @@ pub enum ColumnType {
 }
 
 impl ColumnType {
-    pub fn data_type_as_string_sqlite(self: &Self) -> String {
+    pub fn data_type_as_string_sqlite(&self) -> String {
         match self {
             ColumnType::Unknown => panic!(),
             ColumnType::Int => String::from("INT"),
@@ -33,28 +33,28 @@ impl ColumnType {
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
         println!("{:?}", desc);
         let ct = ColumnType::try_parse(&desc).unwrap();
-        return ColumnType::to_u32(ct);
+        ColumnType::to_u32(ct)
     }
 
     pub fn data_type_len(desc: String) -> u32 {
-        let idx_first_paren = desc.find("(");
+        let idx_first_paren = desc.find('(');
 
         if idx_first_paren.is_none() {
-            return 0;
+            0
         } else {
             let idx_first = idx_first_paren.unwrap();
-            let idx_last = desc.find(")").unwrap();
+            let idx_last = desc.find(')').unwrap();
             let str_length = desc.substring(idx_first + 1, idx_last);
             println!("{}", str_length);
             let length: u32 = str_length.parse().unwrap();
-            return length;
+            length
         }
     }
 
     pub fn try_parse(desc: &str) -> Option<ColumnType> {
         let string_data_type = desc.to_lowercase();
 
-        if string_data_type.len() == 0 {
+        if string_data_type.is_empty() {
             return Some(ColumnType::Unknown);
         }
 
@@ -98,7 +98,7 @@ impl ColumnType {
             return Some(ColumnType::Text);
         }
 
-        return None;
+        None
     }
 
     pub fn from_u32(value: u32) -> ColumnType {

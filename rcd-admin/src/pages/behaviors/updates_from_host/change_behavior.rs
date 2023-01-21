@@ -32,8 +32,8 @@ pub fn ChangeBehavior(
 
     let onclick = {
         let ui_behavior = ui_behavior.clone();
-        let database = database.clone();
-        let table = table.clone();
+        let database = database;
+        let table = table;
         Callback::from(move |_| {
             let behavior = ui_behavior.cast::<HtmlInputElement>().unwrap().value();
             let database = database.clone();
@@ -60,7 +60,7 @@ pub fn ChangeBehavior(
                     let table = table.clone();
                     clear_status();
                     let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(response.to_string());
 
                     let reply: ChangesUpdatesFromHostBehaviorReply =
                         serde_json::from_str(&response).unwrap();

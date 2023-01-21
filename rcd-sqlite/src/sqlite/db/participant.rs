@@ -146,13 +146,13 @@ pub fn add_participant(
             alias: alias.to_string(),
             ip4addr: ip4addr.to_string(),
             ip6addr: String::from(""),
-            db_port: db_port,
+            db_port,
             contract_status: ContractStatus::NotSent,
             accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
             token: Vec::new(),
-            http_addr: http_addr,
-            http_port: http_port,
+            http_addr,
+            http_port,
         };
         save_participant(participant, conn);
         true
@@ -204,16 +204,16 @@ pub fn get_participant_by_internal_id(
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
-            alias: alias,
-            ip4addr: ip4addr,
-            ip6addr: ip6addr,
+            alias,
+            ip4addr,
+            ip6addr,
             db_port: port,
             contract_status: ContractStatus::from_i64(contract_status as i64),
             accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
-            token: token,
+            token,
             id: GUID::parse(&id).unwrap(),
-            http_addr: http_addr,
-            http_port: http_port,
+            http_addr,
+            http_port,
         };
 
         Ok(participant)
@@ -293,16 +293,16 @@ pub fn get_participant_by_alias(
      -> Result<CoopDatabaseParticipant> {
         let participant = CoopDatabaseParticipant {
             internal_id: GUID::parse(&internal_id).unwrap(),
-            alias: alias,
-            ip4addr: ip4addr,
-            ip6addr: ip6addr,
+            alias,
+            ip4addr,
+            ip6addr,
             db_port: port,
             contract_status: ContractStatus::from_i64(contract_status as i64),
             accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
-            token: token,
+            token,
             id: GUID::parse(&id).unwrap(),
-            http_addr: http_addr,
-            http_port: http_port,
+            http_addr,
+            http_port,
         };
 
         Ok(participant)
@@ -383,8 +383,8 @@ pub fn get_participants_for_database(
             database_port_number: port,
             token: Vec::new(),
             internal_participant_guid: internal_participant_id,
-            http_addr: http_addr,
-            http_port: http_port,
+            http_addr,
+            http_port,
         };
 
         let ps = ParticipantStatus {

@@ -185,11 +185,11 @@ pub const SINGLE_LINE_COMMENT: isize = 154;
 pub const MULTILINE_COMMENT: isize = 155;
 pub const SPACES: isize = 156;
 pub const UNEXPECTED_CHAR: isize = 157;
-pub const channelNames: [&'static str; 0 + 2] = ["DEFAULT_TOKEN_CHANNEL", "HIDDEN"];
+pub const channelNames: [&str; 2] = ["DEFAULT_TOKEN_CHANNEL", "HIDDEN"];
 
-pub const modeNames: [&'static str; 1] = ["DEFAULT_MODE"];
+pub const modeNames: [&str; 1] = ["DEFAULT_MODE"];
 
-pub const ruleNames: [&'static str; 184] = [
+pub const ruleNames: [&str; 184] = [
     "SCOL",
     "DOT",
     "OPEN_PAR",
@@ -706,7 +706,7 @@ lazy_static! {
     };
 }
 
-const _serializedATN: &'static str =
+const _serializedATN: &str =
     "\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
 		\u{9f}\u{5ae}\x08\x01\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\
 		\x05\x09\x05\x04\x06\x09\x06\x04\x07\x09\x07\x04\x08\x09\x08\x04\x09\x09\

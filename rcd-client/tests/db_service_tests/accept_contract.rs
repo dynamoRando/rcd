@@ -36,7 +36,7 @@ pub mod grpc {
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
@@ -61,8 +61,8 @@ pub mod grpc {
         test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -226,7 +226,7 @@ pub mod grpc {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 }
 
@@ -244,14 +244,14 @@ pub mod http {
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         println!("{:?}", dirs);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
         let m_keep_alive = main_addrs.1;
-        let m_addr1 = main_addrs.0.clone();
+        let m_addr1 = main_addrs.0;
 
         let main_addrs = m_addr1.clone();
 
@@ -259,14 +259,14 @@ pub mod http {
         let p_keep_alive = participant_addrs.1;
 
         let p_addr1 = participant_addrs.0.clone();
-        let p_addr2 = participant_addrs.0.clone();
+        let p_addr2 = participant_addrs.0;
         let participant_addrs = p_addr1.clone();
 
         test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -427,6 +427,6 @@ pub mod http {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 }

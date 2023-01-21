@@ -17,10 +17,10 @@ pub mod grpc {
             .unwrap()
             .get_next_avail_port();
 
-        let root_dir = test_harness::get_test_temp_dir(&test_name);
+        let root_dir = test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
+        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
@@ -116,7 +116,7 @@ pub mod grpc {
 
         let revoke = client.revoke_token().await.unwrap();
 
-        return revoke.is_successful;
+        revoke.is_successful
     }
 }
 
@@ -139,10 +139,10 @@ pub mod http {
             .unwrap()
             .get_next_avail_port();
 
-        let root_dir = test_harness::get_test_temp_dir(&test_name);
+        let root_dir = test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
+        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
@@ -155,7 +155,7 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir(
+            service.start_http_at_addr_and_dir(
                 "127.0.0.1".to_string(),
                 port_num as u16,
                 root_dir,
@@ -243,6 +243,6 @@ pub mod http {
 
         let reply = client.revoke_token().await.unwrap();
 
-        return reply.is_successful;
+        reply.is_successful
     }
 }

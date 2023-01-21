@@ -137,11 +137,9 @@ pub fn CooperativeHosts() -> Html {
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
                                                                 update_token_login_status(is_authenticated);
 
-                                                                if is_authenticated {
-                                                                    if reply.is_successful {
-                                                                        let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to allow.");
-                                                                        set_status(message);
-                                                                    }
+                                                                if is_authenticated && reply.is_successful {
+                                                                    let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to allow.");
+                                                                    set_status(message);
                                                                 }
                                                             }  else {
                                                                 let error_message = response.err().unwrap();
@@ -183,11 +181,9 @@ pub fn CooperativeHosts() -> Html {
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
                                                                 update_token_login_status(is_authenticated);
 
-                                                                if is_authenticated {
-                                                                    if reply.is_successful {
-                                                                        let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to deny.");
-                                                                        set_status(message);
-                                                                    }
+                                                                if is_authenticated && reply.is_successful {
+                                                                    let message = format!("{}{}{}", "Host status for ", name.clone(), " changed to deny.");
+                                                                    set_status(message);
                                                                 }
                                                             } else {
                                                                 let error_message = response.err().unwrap();

@@ -15,7 +15,7 @@ pub mod grpc {
         let test_name = "get_host_info_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx_main, rx_main) = mpsc::channel();
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
         let time = time::Duration::from_secs(1);
@@ -24,7 +24,7 @@ pub mod grpc {
 
         thread::sleep(time);
 
-        let main_db_name = test_db_name.clone();
+        let main_db_name = test_db_name;
 
         thread::spawn(move || {
             let res = main_service_client(&main_db_name, main_addrs.0);
@@ -63,7 +63,7 @@ pub mod grpc {
 
         let host_info = client.get_host_info().await.unwrap();
 
-        return host_info.host_info.unwrap().host_name == "main";
+        host_info.host_info.unwrap().host_name == "main"
     }
 }
 
@@ -86,7 +86,7 @@ pub mod http {
 
         let (tx_main, rx_main) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
@@ -97,7 +97,7 @@ pub mod http {
         info!("sleeping for 1 seconds...");
         thread::sleep(time);
 
-        let main_db_name = test_db_name.clone();
+        let main_db_name = test_db_name;
         let ma3 = main_addrs.clone();
 
         thread::spawn(move || {
@@ -141,6 +141,6 @@ pub mod http {
 
         let host_info = client.get_host_info().await.unwrap();
 
-        return host_info.host_info.unwrap().host_name == "main";
+        host_info.host_info.unwrap().host_name == "main"
     }
 }

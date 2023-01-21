@@ -26,7 +26,7 @@ pub fn GenerateInfo() -> Html {
 
             let request = GenerateHostInfoRequest {
                 authentication: Some(token.auth()),
-                host_name: host_name,
+                host_name,
             };
 
             let json_request = serde_json::to_string(&request).unwrap();

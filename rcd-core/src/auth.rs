@@ -26,5 +26,5 @@ pub fn create_jwt(host_name: &str, login: &str) -> (String, DateTime<Utc>) {
     let token = Token::new(header, claims).sign_with_key(&key).unwrap();
     let token_str = token.as_str();
 
-    return (token_str.to_string(), expiration);
+    (token_str.to_string(), expiration)
 }

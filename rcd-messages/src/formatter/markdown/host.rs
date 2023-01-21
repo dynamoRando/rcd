@@ -29,5 +29,5 @@ pub fn host_to_markdown_table(host: &Host) -> String {
     kv.insert(http_addr.to_string(), host.http_addr.clone());
     kv.insert(http_port.to_string(), host.http_port.to_string());
 
-    return build_markdown_key_value_table(kv);
+    build_markdown_key_value_table(kv)
 }

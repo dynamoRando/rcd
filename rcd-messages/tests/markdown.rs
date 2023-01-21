@@ -73,7 +73,7 @@ pub fn test_markdown_rows() {
         database_name: "Example".to_string(),
         table_name: "Test".to_string(),
         row_id: 1,
-        values: values,
+        values,
         is_remoteable: false,
         remote_metadata: None,
         hash: Vec::new(),
@@ -111,7 +111,7 @@ pub fn test_markdown_rows() {
         database_name: "Example".to_string(),
         table_name: "Test".to_string(),
         row_id: 2,
-        values: values,
+        values,
         is_remoteable: false,
         remote_metadata: None,
         hash: Vec::new(),
@@ -120,7 +120,7 @@ pub fn test_markdown_rows() {
     rows.push(rv_2);
 
     let rv3_name = RowValue {
-        column: Some(cs_name.clone()),
+        column: Some(cs_name),
         is_null_value: false,
         value: "Jimmy Tester Le".as_bytes().to_vec(),
         string_value: "Jimmy Tester Le".to_string(),
@@ -151,7 +151,7 @@ pub fn test_markdown_rows() {
         database_name: "Example".to_string(),
         table_name: "Test".to_string(),
         row_id: 2,
-        values: values,
+        values,
         is_remoteable: false,
         remote_metadata: None,
         hash: Vec::new(),

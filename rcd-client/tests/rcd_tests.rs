@@ -189,7 +189,7 @@ fn hash_negative() {
 
     let config = DbiConfigSqlite {
         root_folder: cwd.to_str().unwrap().to_string(),
-        rcd_db_name: backing_database_name.clone(),
+        rcd_db_name: backing_database_name,
     };
 
     let dbi = Dbi {

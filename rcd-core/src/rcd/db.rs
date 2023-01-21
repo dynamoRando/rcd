@@ -41,18 +41,18 @@ pub async fn create_user_database(
 
     if auth_result.0 {
         let result = core.dbi().create_database(&db_name);
-        if !result.is_err() {
+        if result.is_ok() {
             is_database_created = true;
         }
     }
 
-    let create_db_result = CreateUserDatabaseReply {
+    
+
+    CreateUserDatabaseReply {
         authentication_result: Some(auth_result.1),
         is_created: is_database_created,
         message: String::from(""),
-    };
-
-    return create_db_result;
+    }
 }
 
 pub async fn get_cooperative_hosts(
@@ -65,7 +65,7 @@ pub async fn get_cooperative_hosts(
     if auth_result.0 {
         let result = core.dbi().get_cooperative_hosts();
 
-        if result.len() > 0 {
+        if !result.is_empty() {
             for host in &result {
                 let h = Host {
                     host_guid: host.host_id.clone(),
@@ -89,12 +89,12 @@ pub async fn get_cooperative_hosts(
         }
     }
 
-    let result = GetCooperativeHostsReply {
+    
+
+    GetCooperativeHostsReply {
         authentication_result: Some(auth_result.1),
         hosts,
-    };
-
-    return result;
+    }
 }
 
 pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
@@ -102,7 +102,7 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
     let mut host_info: Option<HostInfo> = None;
 
     if auth_result.0 {
-        host_info = Some(core.dbi().rcd_get_host_info().clone());
+        host_info = Some(core.dbi().rcd_get_host_info());
     }
 
     let host: Host;
@@ -131,12 +131,12 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
         }
     }
 
-    let result = HostInfoReply {
+    
+
+    HostInfoReply {
         authentication_result: Some(auth_result.1),
         host_info: Some(host),
-    };
-
-    return result;
+    }
 }
 
 pub async fn generate_host_info(
@@ -154,12 +154,12 @@ pub async fn generate_host_info(
         is_generate_successful = true;
     }
 
-    let generate_host_info_result = GenerateHostInfoReply {
+    
+
+    GenerateHostInfoReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_generate_successful,
-    };
-
-    return generate_host_info_result;
+    }
 }
 
 pub async fn change_host_status(
@@ -183,13 +183,13 @@ pub async fn change_host_status(
         }
     }
 
-    let result = ChangeHostStatusReply {
+    
+
+    ChangeHostStatusReply {
         authentication_result: Some(auth_result.1),
         is_successful: name_result || id_result,
         status,
-    };
-
-    return result;
+    }
 }
 
 pub async fn get_pending_updates_at_participant(
@@ -204,15 +204,15 @@ pub async fn get_pending_updates_at_participant(
     let mut pending_statements: Vec<PendingStatement> = Vec::new();
 
     if auth_result.0 {
-        pending_statements = core.dbi().get_pending_actions(db_name, table_name, &action);
+        pending_statements = core.dbi().get_pending_actions(db_name, table_name, action);
     }
 
-    let result = GetPendingActionsReply {
-        authentication_result: Some(auth_result.1),
-        pending_statements: pending_statements,
-    };
+    
 
-    return result;
+    GetPendingActionsReply {
+        authentication_result: Some(auth_result.1),
+        pending_statements,
+    }
 }
 
 pub async fn accept_pending_action_at_participant(
@@ -236,13 +236,13 @@ pub async fn accept_pending_action_at_participant(
         println!("{:?}", data_result);
         println!(
             "is_local_update_successful: {}",
-            is_local_update_successful.to_string()
+            is_local_update_successful
         );
 
         if data_result.is_successful {
             is_local_update_successful = true;
 
-            let remote_host = core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
+            let remote_host = core.dbi().get_cds_host_for_part_db(db_name).unwrap();
             let own_host_info = core.dbi().rcd_get_host_info().clone();
             let hash = data_result.data_hash;
 
@@ -273,7 +273,7 @@ pub async fn accept_pending_action_at_participant(
                 )
                 .await;
 
-            println!("notify_is_successful: {}", notify_is_successful.to_string());
+            println!("notify_is_successful: {}", notify_is_successful);
 
             if notify_is_successful {
                 is_remote_update_successful = true;
@@ -283,12 +283,12 @@ pub async fn accept_pending_action_at_participant(
         println!("not authenticated");
     }
 
-    let result = AcceptPendingActionReply {
+    
+
+    AcceptPendingActionReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_local_update_successful && is_remote_update_successful,
-    };
-
-    return result;
+    }
 }
 
 pub async fn has_table(core: &Rcd, request: HasTableRequest) -> HasTableReply {
@@ -303,12 +303,12 @@ pub async fn has_table(core: &Rcd, request: HasTableRequest) -> HasTableReply {
         has_table = core.dbi().has_table(&db_name, table_name.as_str())
     }
 
-    let has_table_reply = HasTableReply {
-        authentication_result: Some(auth_result.1),
-        has_table: has_table,
-    };
+    
 
-    return has_table_reply;
+    HasTableReply {
+        authentication_result: Some(auth_result.1),
+        has_table,
+    }
 }
 
 pub async fn generate_contract(
@@ -345,13 +345,13 @@ pub async fn generate_contract(
         }
     };
 
-    let generate_contract_reply = GenerateContractReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: reply_message,
-    };
+    
 
-    return generate_contract_reply;
+    GenerateContractReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: reply_message,
+    }
 }
 
 pub async fn get_data_hash_at_participant(
@@ -371,12 +371,12 @@ pub async fn get_data_hash_at_participant(
             .get_data_hash_at_participant(&db_name, &table_name, requested_row_id);
     }
 
-    let reply = GetDataHashReply {
+    
+
+    GetDataHashReply {
         authentication_result: Some(auth_result.1),
         data_hash: row_hash,
-    };
-
-    return reply;
+    }
 }
 
 pub async fn change_updates_from_host_behavior(
@@ -395,13 +395,13 @@ pub async fn change_updates_from_host_behavior(
                 .change_updates_from_host_behavior(&db_name, &table_name, behavior);
     }
 
-    let reply = ChangesUpdatesFromHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: String::from(""),
-    };
+    
 
-    return reply;
+    ChangesUpdatesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: String::from(""),
+    }
 }
 
 pub async fn get_updates_to_host_behavior(
@@ -420,12 +420,12 @@ pub async fn get_updates_to_host_behavior(
         behavior = UpdatesToHostBehavior::to_u32(x);
     }
 
-    let reply = GetUpdatesToHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        behavior: behavior,
-    };
+    
 
-    return reply;
+    GetUpdatesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior,
+    }
 }
 
 pub async fn get_updates_from_host_behavior(
@@ -444,12 +444,12 @@ pub async fn get_updates_from_host_behavior(
         behavior = UpdatesFromHostBehavior::to_u32(x);
     }
 
-    let reply = GetUpdatesFromHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        behavior: behavior,
-    };
+    
 
-    return reply;
+    GetUpdatesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior,
+    }
 }
 
 pub async fn get_active_contract(
@@ -467,10 +467,10 @@ pub async fn get_active_contract(
         };
     }
 
-    return GetActiveContractReply {
+    GetActiveContractReply {
         authentication_result: Some(auth_result.1),
         contract: None,
-    };
+    }
 }
 
 pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> GetParticipantsReply {
@@ -485,12 +485,12 @@ pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> Ge
         participants_result = participants;
     }
 
-    let result = GetParticipantsReply {
+    
+
+    GetParticipantsReply {
         authentication_result: Some(auth_result.1),
         participants: participants_result,
-    };
-
-    return result;
+    }
 }
 
 pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatabasesReply {
@@ -501,18 +501,18 @@ pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatab
     if auth_result.0 {
         let db_names = core.dbi().get_database_names();
         for name in &db_names {
-            let db_schema = core.dbi().get_database_schema(&name);
+            let db_schema = core.dbi().get_database_schema(name);
             println!("{:?}", db_schema);
             db_result.push(db_schema);
         }
     }
 
-    let result = GetDatabasesReply {
+    
+
+    GetDatabasesReply {
         authentication_result: Some(auth_result.1),
         databases: db_result,
-    };
-
-    return result;
+    }
 }
 
 pub async fn get_data_hash_at_host(core: &Rcd, request: GetDataHashRequest) -> GetDataHashReply {
@@ -528,12 +528,12 @@ pub async fn get_data_hash_at_host(core: &Rcd, request: GetDataHashRequest) -> G
             .get_data_hash_at_host(&db_name, &table_name, requested_row_id);
     }
 
-    let reply = GetDataHashReply {
+    
+
+    GetDataHashReply {
         authentication_result: Some(auth_result.1),
         data_hash: row_hash,
-    };
-
-    return reply;
+    }
 }
 
 pub async fn change_deletes_from_host_behavior(
@@ -552,13 +552,13 @@ pub async fn change_deletes_from_host_behavior(
                 .change_deletes_from_host_behavior(&db_name, &table_name, behavior);
     }
 
-    let reply = ChangeDeletesFromHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: String::from(""),
-    };
+    
 
-    return reply;
+    ChangeDeletesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: String::from(""),
+    }
 }
 
 pub async fn get_deletes_from_host_behavior(
@@ -579,12 +579,12 @@ pub async fn get_deletes_from_host_behavior(
         behavior = DeletesFromHostBehavior::to_u32(x);
     }
 
-    let reply = GetDeletesFromHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        behavior: behavior,
-    };
+    
 
-    return reply;
+    GetDeletesFromHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior,
+    }
 }
 
 pub async fn get_deletes_to_host_behavior(
@@ -605,12 +605,12 @@ pub async fn get_deletes_to_host_behavior(
         behavior = DeletesToHostBehavior::to_u32(x);
     }
 
-    let reply = GetDeletesToHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        behavior: behavior,
-    };
+    
 
-    return reply;
+    GetDeletesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        behavior,
+    }
 }
 
 pub async fn change_deletes_to_host_behavior(
@@ -630,13 +630,13 @@ pub async fn change_deletes_to_host_behavior(
             .change_deletes_to_host_behavior(&db_name, &table_name, behavior);
     }
 
-    let reply = ChangeDeletesToHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: String::from(""),
-    };
+    
 
-    return reply;
+    ChangeDeletesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: String::from(""),
+    }
 }
 
 pub async fn change_updates_to_host_behavior(
@@ -655,13 +655,13 @@ pub async fn change_updates_to_host_behavior(
             .change_updates_to_host_behavior(&db_name, &table_name, behavior);
     }
 
-    let reply = ChangeUpdatesToHostBehaviorReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: String::from(""),
-    };
+    
 
-    return reply;
+    ChangeUpdatesToHostBehaviorReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: String::from(""),
+    }
 }
 
 pub async fn read_row_id_at_participant(
@@ -686,12 +686,12 @@ pub async fn read_row_id_at_participant(
         row_ids.push(row_id);
     }
 
-    let reply = GetReadRowIdsReply {
-        authentication_result: Some(auth_result.1),
-        row_ids: row_ids,
-    };
+    
 
-    return reply;
+    GetReadRowIdsReply {
+        authentication_result: Some(auth_result.1),
+        row_ids,
+    }
 }
 
 pub async fn enable_coooperative_features(
@@ -706,11 +706,11 @@ pub async fn enable_coooperative_features(
         core.dbi().enable_coooperative_features(&db_name);
     }
 
-    let enable_cooperative_features_reply = EnableCoooperativeFeaturesReply {
+    
+
+    EnableCoooperativeFeaturesReply {
         authentication_result: Some(auth_result.1),
         is_successful: true,
         message: String::from(""),
-    };
-
-    return enable_cooperative_features_reply;
+    }
 }

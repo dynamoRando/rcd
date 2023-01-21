@@ -33,12 +33,12 @@ pub struct ServiceAddr {
 
 impl ServiceAddr {
     #[allow(dead_code)]
-    pub fn to_full_string(self: &Self) -> String {
-        return format!("{}{}", self.ip4_addr, self.port.to_string());
+    pub fn to_full_string(&self) -> String {
+        format!("{}{}", self.ip4_addr, self.port)
     }
     #[allow(dead_code)]
-    pub fn to_full_string_with_http(self: &Self) -> String {
-        return format!("{}{}", String::from("http://"), self.to_full_string());
+    pub fn to_full_string_with_http(&self) -> String {
+        format!("{}{}", String::from("http://"), self.to_full_string())
     }
 }
 
@@ -85,15 +85,14 @@ pub fn start_service_with_http(
     println!("{:?}", &test_db_name);
     println!("{:?}", &cwd);
 
-    let _ =
-        service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
+    service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
 
     let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, http_addr.clone());
     let _ = keep_alive.send(true);
 
     sleep_instance();
 
-    return (http_addr, keep_alive);
+    (http_addr, keep_alive)
 }
 
 #[allow(dead_code)]
@@ -130,7 +129,7 @@ pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -
     .join()
     .unwrap();
 
-    return tx_main;
+    tx_main
 }
 
 #[allow(dead_code)]
@@ -193,7 +192,7 @@ pub fn start_service_with_grpc(
 
     let mut service = get_service_from_config_file(None);
 
-    let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num.to_string());
+    let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num);
 
     let client_addr = ServiceAddr {
         ip4_addr: "[::1]:".to_string(),
@@ -201,7 +200,7 @@ pub fn start_service_with_grpc(
         addr_type: AddrType::Client,
     };
 
-    let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num.to_string());
+    let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num);
 
     let db_addr = ServiceAddr {
         ip4_addr: "[::1]:".to_string(),
@@ -225,7 +224,7 @@ pub fn start_service_with_grpc(
         db_name,
         client_address_port,
         db_address_port,
-        dir.clone(),
+        dir,
         client_listener,
         db_listener,
         5,
@@ -236,7 +235,7 @@ pub fn start_service_with_grpc(
 
     sleep_instance();
 
-    return (
+    (
         client_addr,
         db_addr,
         client_port_num,
@@ -244,7 +243,7 @@ pub fn start_service_with_grpc(
         client_trigger,
         db_trigger,
         keep_alive,
-    );
+    )
 }
 
 #[allow(dead_code)]
@@ -266,7 +265,7 @@ pub fn get_test_temp_dir(test_name: &str) -> String {
 /// returns a tuple for the root directory, the "main" directory, and the "participant" directory
 /// in the temp folder
 pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, String, String) {
-    let root_dir = get_test_temp_dir(&test_name);
+    let root_dir = get_test_temp_dir(test_name);
 
     let main_path = Path::new(&root_dir).join("main");
 
@@ -288,7 +287,7 @@ pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, Strin
 
     let participant_dir = participant_path.as_os_str().to_str().unwrap();
 
-    return (root_dir, main_dir.to_string(), participant_dir.to_string());
+    (root_dir, main_dir.to_string(), participant_dir.to_string())
 }
 
 pub struct TestSettings {
@@ -300,21 +299,21 @@ impl TestSettings {
     pub fn get_next_avail_port(&mut self) -> u32 {
         sleep_test_for_seconds(1);
 
-        if self.ports.len() == 0 {
-            self.max_port = self.max_port + 1;
+        if self.ports.is_empty() {
+            self.max_port += 1;
             self.ports.push(self.max_port);
-            return self.max_port;
+            self.max_port
         } else {
             let val = *self.ports.iter().max().unwrap() + 1;
             self.ports.push(val);
-            return val;
+            val
         }
     }
 
     #[allow(dead_code)]
     pub fn get_current_port(&self) -> u32 {
-        if self.ports.len() == 0 {
-            return self.max_port;
+        if self.ports.is_empty() {
+            self.max_port
         } else {
             *self.ports.iter().max().unwrap()
         }

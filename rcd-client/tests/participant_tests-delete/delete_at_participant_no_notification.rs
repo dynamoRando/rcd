@@ -22,7 +22,7 @@ pub mod grpc {
         let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
         let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
@@ -43,10 +43,10 @@ pub mod grpc {
         test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
 
@@ -266,7 +266,7 @@ pub mod grpc {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -311,7 +311,7 @@ pub mod grpc {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -355,7 +355,7 @@ pub mod grpc {
             )
             .await;
 
-        return delete_result.unwrap();
+        delete_result.unwrap()
     }
 
     #[cfg(test)]
@@ -385,7 +385,7 @@ pub mod grpc {
 
         let results = read_result.unwrap();
 
-        return results.rows.len() == 0;
+        results.rows.is_empty()
     }
 }
 
@@ -418,7 +418,7 @@ pub mod http {
         let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
         let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
@@ -445,10 +445,10 @@ pub mod http {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
 
@@ -660,7 +660,7 @@ pub mod http {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -705,7 +705,7 @@ pub mod http {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -750,7 +750,7 @@ pub mod http {
             )
             .await;
 
-        return delete_result.unwrap();
+        delete_result.unwrap()
     }
 
     #[cfg(test)]
@@ -779,6 +779,6 @@ pub mod http {
 
         let results = read_result.unwrap();
 
-        return results.rows.len() == 0;
+        results.rows.is_empty()
     }
 }

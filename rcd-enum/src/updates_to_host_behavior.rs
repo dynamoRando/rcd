@@ -45,6 +45,6 @@ impl UpdatesToHostBehavior {
     }
 
     pub fn as_string(self) -> String {
-        return UpdatesToHostBehavior::to_string(self);
+        UpdatesToHostBehavior::to_string(self)
     }
 }

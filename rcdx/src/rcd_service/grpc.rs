@@ -24,7 +24,7 @@ pub async fn start_client_service_at_addr_with_shutdown(
     let addr = address_port.parse().unwrap();
 
     let sql_client = SqlClientImpl {
-        root_folder: root_folder,
+        root_folder,
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
@@ -57,10 +57,10 @@ pub async fn start_db_service_at_addr_with_shutdown(
     let addr = address_port.parse().unwrap();
 
     let data_service = DataServiceImpl {
-        root_folder: root_folder,
+        root_folder,
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
-        core: core,
+        core,
     };
 
     let data_service_server = tonic_reflection::server::Builder::configure()
@@ -89,10 +89,10 @@ pub fn start_grpc_at_addrs_with_shutdown(
     data_grpc_timeout_in_seconds: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db1 = db_name.clone();
-    let db2 = db_name.clone();
+    let db2 = db_name;
 
     let root1 = root_folder.clone();
-    let root2 = root_folder.clone();
+    let root2 = root_folder;
 
     let db_addr1 = db_address_port.clone();
     let db_addr2 = db_address_port.clone();
@@ -101,7 +101,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
     let dbi2 = service.db_interface.clone();
 
     let grpc = RemoteGrpc {
-        db_addr_port: db_address_port.clone(),
+        db_addr_port: db_address_port,
         timeout_in_seconds: data_grpc_timeout_in_seconds,
     };
 
@@ -122,8 +122,8 @@ pub fn start_grpc_at_addrs_with_shutdown(
 
     thread::spawn(move || {
         let name = db1.clone();
-        let _ = start_client_service_at_addr_with_shutdown(
-            &name.to_string(),
+        start_client_service_at_addr_with_shutdown(
+            &name,
             &db_addr1,
             client_address_port,
             root1,
@@ -135,8 +135,8 @@ pub fn start_grpc_at_addrs_with_shutdown(
 
     thread::spawn(move || {
         let name = db2.clone();
-        let _ = start_db_service_at_addr_with_shutdown(
-            &name.to_string(),
+        start_db_service_at_addr_with_shutdown(
+            &name,
             db_addr2,
             root2,
             Some(core_data),
@@ -223,7 +223,7 @@ pub async fn start_grpc_client_service_at_addr(
     );
 
     let sql_client = SqlClientImpl {
-        root_folder: root_folder,
+        root_folder,
         database_name: database_name.to_string(),
         addr_port: address_port.to_string(),
         own_db_addr_port: own_db_addr_port.to_string(),
@@ -264,8 +264,8 @@ fn configure_core_for_grpc(
         http: None,
     };
 
-    return Rcd {
+    Rcd {
         db_interface: Some(dbi.clone()),
         remote_client: Some(remote_client),
-    };
+    }
 }

@@ -14,7 +14,7 @@ pub struct DataServiceImpl {
 }
 
 impl DataServiceImpl {
-    fn core(self: &Self) -> &RcdData {
+    fn core(&self) -> &RcdData {
         return self.core.as_ref().unwrap();
     }
 }

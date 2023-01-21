@@ -45,6 +45,6 @@ impl DeletesToHostBehavior {
     }
 
     pub fn as_string(self) -> String {
-        return DeletesToHostBehavior::to_string(self);
+        DeletesToHostBehavior::to_string(self)
     }
 }

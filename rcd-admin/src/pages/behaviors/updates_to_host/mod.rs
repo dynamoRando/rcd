@@ -65,7 +65,7 @@ pub fn UpdatesToHost() -> Html {
                 let request = GetUpdatesToHostBehaviorRequest {
                     authentication: Some(token.auth()),
                     database_name: active_database.to_string(),
-                    table_name: table_name,
+                    table_name,
                 };
 
                 let body = serde_json::to_string(&request).unwrap();

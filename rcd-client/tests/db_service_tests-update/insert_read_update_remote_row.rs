@@ -16,7 +16,7 @@ pub mod grpc {
         let (tx_participant, rx_participant) = mpsc::channel();
         let (tx_main_write, rx_main_read) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
@@ -45,8 +45,8 @@ pub mod grpc {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         let main_db_name_write = main_db_name.clone();
 
@@ -280,7 +280,7 @@ pub mod grpc {
         let expected_value = "Bob".as_bytes().to_vec();
         println!("{:?}", expected_value);
 
-        return new_value == expected_value;
+        new_value == expected_value
     }
 
     #[cfg(test)]
@@ -324,7 +324,7 @@ pub mod grpc {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 }
 
@@ -346,7 +346,7 @@ pub mod http {
         let (tx_participant, rx_participant) = mpsc::channel();
         let (tx_main_write, rx_main_read) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
@@ -371,8 +371,8 @@ pub mod http {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         let main_db_name_write = main_db_name.clone();
 
@@ -599,7 +599,7 @@ pub mod http {
         let expected_value = "Bob".as_bytes().to_vec();
         println!("{:?}", expected_value);
 
-        return new_value == expected_value;
+        new_value == expected_value
     }
 
     #[cfg(test)]
@@ -643,6 +643,6 @@ pub mod http {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 }

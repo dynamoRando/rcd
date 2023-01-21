@@ -19,7 +19,7 @@ pub mod grpc {
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
         let main_addr_client_port = main_addrs.2;
@@ -43,8 +43,8 @@ pub mod grpc {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -199,7 +199,7 @@ pub mod grpc {
             }
         }
 
-        return has_contract;
+        has_contract
     }
 }
 
@@ -224,7 +224,7 @@ pub mod http {
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
         let m_keep_alive = main_addrs.1;
@@ -248,8 +248,8 @@ pub mod http {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
-        let main_db_name = test_db_name.clone();
+        let participant_contract_desc = custom_contract_description;
+        let main_db_name = test_db_name;
 
         thread::spawn(move || {
             let res = main_service_client(
@@ -400,6 +400,6 @@ pub mod http {
             }
         }
 
-        return has_contract;
+        has_contract
     }
 }

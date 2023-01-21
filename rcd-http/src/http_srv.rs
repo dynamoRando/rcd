@@ -29,7 +29,7 @@ pub struct Core {
 
 impl Core {
     pub fn set_addr(&mut self, addr: String) {
-        self.addr = addr.clone();
+        self.addr = addr;
     }
 
     pub fn set_port(&mut self, port: u16) {
@@ -37,7 +37,7 @@ impl Core {
     }
 
     pub fn set_core(&mut self, core: Rcd) {
-        self.core = Some(core.clone());
+        self.core = Some(core);
     }
 
     pub fn get_core(&self) -> Rcd {
@@ -45,7 +45,7 @@ impl Core {
     }
 
     pub fn set_data(&mut self, data: RcdData) {
-        self.data = Some(data.clone());
+        self.data = Some(data);
     }
 
     pub fn get_data(&self) -> RcdData {
@@ -53,11 +53,11 @@ impl Core {
     }
 
     pub fn get_addr(&mut self) -> String {
-        return self.addr.clone();
+        self.addr.clone()
     }
 
     pub fn get_port(&mut self) -> u16 {
-        return self.port;
+        self.port
     }
 }
 
@@ -187,7 +187,7 @@ fn shutdown(shutdown: Shutdown) -> &'static str {
     shutdown.notify();
     let msg = "Shutting down http...";
     info!("{}", msg);
-    return msg;
+    msg
 }
 
 #[tokio::main]
@@ -212,7 +212,7 @@ pub async fn shutdown_http() {
 pub async fn shutdown_http_addr(addr: String, port: u32) {
     let url = format!("http://{}:{}/shutdown", addr, port);
 
-    println!("Shutdown Request for http://{}:{}", addr, port.to_string());
+    println!("Shutdown Request for http://{}:{}", addr, port);
 
     let _ = reqwest::get(url).await.unwrap();
 }

@@ -18,7 +18,7 @@ pub struct SqlClientImpl {
 }
 
 impl SqlClientImpl {
-    fn core(self: &Self) -> &Rcd {
+    fn core(&self) -> &Rcd {
         return self.core.as_ref().unwrap();
     }
 }

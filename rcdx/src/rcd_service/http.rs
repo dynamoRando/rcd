@@ -35,7 +35,7 @@ pub fn start_http_at_addr(service: &mut RcdService, http_addr: String, http_port
             db_interface: Some(dbi_core_clone),
         };
 
-        let _ = http_srv::start_http(core, data, http_addr, http_port);
+        http_srv::start_http(core, data, http_addr, http_port);
     });
 }
 

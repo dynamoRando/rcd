@@ -48,7 +48,7 @@ impl RemoteGrpc {
         let client = get_client(participant, self.timeout_in_seconds);
         let response = client.await.try_auth(request).await;
         let result = response.unwrap().into_inner();
-        return result.authentication_result.unwrap().is_authenticated;
+        result.authentication_result.unwrap().is_authenticated
     }
 
     pub async fn send_participant_contract(
@@ -86,7 +86,7 @@ impl RemoteGrpc {
         let is_saved = response.get_ref().is_saved;
         let error_message = response.get_ref().error_message.clone();
 
-        return (is_saved, error_message);
+        (is_saved, error_message)
     }
 
     pub async fn notify_host_of_removed_row(
@@ -365,7 +365,7 @@ fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageIn
     let is_little_endian = is_little_endian();
 
     MessageInfo {
-        is_little_endian: is_little_endian,
+        is_little_endian,
         message_addresses: addresses,
         message_generated_time_utc: Utc::now().to_string(),
         message_guid: GUID::rand().to_string(),

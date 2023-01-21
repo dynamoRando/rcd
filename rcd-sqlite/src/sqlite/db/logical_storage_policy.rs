@@ -25,7 +25,7 @@ pub fn get_logical_storage_policy_for_all_user_tables(
         result.push(item);
     }
 
-    return result;
+    result
 }
 
 pub fn set_logical_storage_policy(
@@ -54,7 +54,7 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
-                return Err(RcdDbError::General(result.err().unwrap().to_string()));
+                return Err(RcdDbError::General(result.err().unwrap()));
             }
         } else {
             // then this is an insert
@@ -75,7 +75,7 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
-                return Err(RcdDbError::General(result.err().unwrap().to_string()));
+                return Err(RcdDbError::General(result.err().unwrap()));
             }
         }
 
@@ -85,7 +85,7 @@ pub fn set_logical_storage_policy(
         let err = RcdDbError::TableNotFound(error_message);
         return Err(err);
     }
-    return Ok(true);
+    Ok(true)
 }
 
 /// Returns the logical storage policy for the specified table. If the table does not exist in the database, it will

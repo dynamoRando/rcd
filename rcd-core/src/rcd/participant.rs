@@ -21,13 +21,13 @@ pub async fn try_auth_at_participant(
         .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info())
         .await;
 
-    let response = TryAuthAtPartipantReply {
+    
+
+    TryAuthAtPartipantReply {
         authentication_result: Some(auth_result.1),
         is_successful: result,
         message: String::from(""),
-    };
-
-    return response;
+    }
 }
 
 pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddParticipantReply {
@@ -54,13 +54,13 @@ pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddP
         );
     };
 
-    let add_participant_reply = AddParticipantReply {
-        authentication_result: Some(auth_result.1),
-        is_successful: is_successful,
-        message: reply_message,
-    };
+    
 
-    return add_participant_reply;
+    AddParticipantReply {
+        authentication_result: Some(auth_result.1),
+        is_successful,
+        message: reply_message,
+    }
 }
 
 pub async fn send_participant_contract(
@@ -75,30 +75,28 @@ pub async fn send_participant_contract(
     let mut is_successful = false;
     let mut error_message = String::from("");
 
-    if auth_result.0 {
-        if core.dbi().has_participant(&db_name, &participant_alias) {
-            let participant = core
-                .dbi()
-                .get_participant_by_alias(&db_name, &participant_alias)
-                .unwrap();
-            let active_contract = core.dbi().get_active_contract(&db_name);
-            let db_schema = core.dbi().get_database_schema(&db_name);
-            let host_info = core.dbi().rcd_get_host_info();
-            let result = core
-                .remote()
-                .send_participant_contract(participant, host_info, active_contract, db_schema)
-                .await;
+    if auth_result.0 && core.dbi().has_participant(&db_name, &participant_alias) {
+        let participant = core
+            .dbi()
+            .get_participant_by_alias(&db_name, &participant_alias)
+            .unwrap();
+        let active_contract = core.dbi().get_active_contract(&db_name);
+        let db_schema = core.dbi().get_database_schema(&db_name);
+        let host_info = core.dbi().rcd_get_host_info();
+        let result = core
+            .remote()
+            .send_participant_contract(participant, host_info, active_contract, db_schema)
+            .await;
 
-            is_successful = result.0;
-            error_message = result.1;
-        }
+        is_successful = result.0;
+        error_message = result.1;
     };
 
-    let send_participant_contract_reply = SendParticipantContractReply {
+    
+
+    SendParticipantContractReply {
         authentication_result: Some(auth_result.1),
         is_sent: is_successful,
         message: error_message,
-    };
-
-    return send_participant_contract_reply;
+    }
 }

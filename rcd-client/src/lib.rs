@@ -103,9 +103,9 @@ impl RcdClient {
             Self::get_grpc_client(grpc_client_addr_port.clone(), timeout_in_seconds).await;
         let http_client = Self::get_http_client();
         RcdClient {
-            grpc_client_addr_port: grpc_client_addr_port,
-            user_name: user_name,
-            pw: pw,
+            grpc_client_addr_port,
+            user_name,
+            pw,
             timeout_in_seconds,
             http_addr,
             http_port,
@@ -130,9 +130,9 @@ impl RcdClient {
         let grpc_client =
             Self::get_grpc_client(grpc_client_addr_port.clone(), timeout_in_seconds).await;
         RcdClient {
-            grpc_client_addr_port: grpc_client_addr_port,
-            user_name: user_name,
-            pw: pw,
+            grpc_client_addr_port,
+            user_name,
+            pw,
             timeout_in_seconds,
             http_addr: "".to_string(),
             http_port: 0,
@@ -154,8 +154,8 @@ impl RcdClient {
         let http_client = Self::get_http_client();
         RcdClient {
             grpc_client_addr_port: "".to_string(),
-            user_name: user_name,
-            pw: pw,
+            user_name,
+            pw,
             timeout_in_seconds,
             http_addr,
             http_port,
@@ -594,7 +594,7 @@ impl RcdClient {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-            row_id: row_id,
+            row_id,
         });
 
         match self.client_type {
@@ -636,7 +636,7 @@ impl RcdClient {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-            row_id: row_id,
+            row_id,
         });
 
         match self.client_type {

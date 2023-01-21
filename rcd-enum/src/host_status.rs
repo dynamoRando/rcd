@@ -41,6 +41,6 @@ impl HostStatus {
     }
 
     pub fn as_string(self) -> String {
-        return HostStatus::to_string(self);
+        HostStatus::to_string(self)
     }
 }

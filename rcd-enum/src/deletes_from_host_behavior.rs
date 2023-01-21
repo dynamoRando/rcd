@@ -61,6 +61,6 @@ impl DeletesFromHostBehavior {
     }
 
     pub fn as_string(self) -> String {
-        return DeletesFromHostBehavior::to_string(self);
+        DeletesFromHostBehavior::to_string(self)
     }
 }

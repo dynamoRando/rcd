@@ -25,7 +25,7 @@ pub async fn accept_pending_contract(
             .iter()
             .enumerate()
             .filter(|&(_, c)| {
-                c.host_info.as_ref().unwrap().host_name.to_string() == request.host_alias
+                c.host_info.as_ref().unwrap().host_name == request.host_alias
             })
             .map(|(_, c)| c);
 
@@ -59,13 +59,13 @@ pub async fn accept_pending_contract(
         }
     };
 
-    let accepted_reply = AcceptPendingContractReply {
+    
+
+    AcceptPendingContractReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_accepted,
         message: return_message,
-    };
-
-    return accepted_reply;
+    }
 }
 
 pub async fn review_pending_contracts(
@@ -79,10 +79,10 @@ pub async fn review_pending_contracts(
         pending_contracts = core.dbi().get_pending_contracts();
     };
 
-    let review_pending_contracts_reply = ViewPendingContractsReply {
+    
+
+    ViewPendingContractsReply {
         authentication_result: Some(auth_result.1),
         contracts: pending_contracts,
-    };
-
-    return review_pending_contracts_reply;
+    }
 }

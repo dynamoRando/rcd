@@ -40,7 +40,7 @@ pub fn build_max_lengths_for_columns(rows: &[Row]) -> IndexMap<String, u32> {
 
     // println!("{:?}", max_lengths);
 
-    return max_lengths;
+    max_lengths
 }
 
 /// takes a vec of strings and returns the max length found + 4 (to account for space and | for column)
@@ -55,7 +55,7 @@ pub fn get_max_length_for_vec_strings(items: Vec<&str>) -> u32 {
         }
     }
 
-    return max_length;
+    max_length
 }
 
 /*

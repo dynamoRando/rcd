@@ -67,7 +67,7 @@ pub mod grpc {
         let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
         let (tx_p_read_data_log, rx_p_read_data_log) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
@@ -88,10 +88,10 @@ pub mod grpc {
         test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
 
@@ -363,7 +363,7 @@ pub mod grpc {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -409,7 +409,7 @@ pub mod grpc {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -441,7 +441,7 @@ pub mod grpc {
             .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
             .await;
 
-        return change_update_behavior.unwrap();
+        change_update_behavior.unwrap()
     }
 
     #[cfg(test)]
@@ -469,9 +469,9 @@ pub mod grpc {
             .get_row_id_at_participant(db_name, "EMPLOYEE", "NAME = 'TESTER'")
             .await
             .unwrap();
-        let row_id = row_ids.first().unwrap().clone();
+        let row_id = *row_ids.first().unwrap();
 
-        return row_id;
+        row_id
     }
 
     #[cfg(test)]
@@ -504,7 +504,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        return data_hash_result;
+        data_hash_result
     }
 
     #[cfg(test)]
@@ -537,7 +537,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        return data_hash_result;
+        data_hash_result
     }
 
     #[cfg(test)]
@@ -581,7 +581,7 @@ pub mod grpc {
 
         println!("{:?}", expected_value);
 
-        return *value == expected_value;
+        *value == expected_value
     }
 
     #[cfg(test)]
@@ -623,7 +623,7 @@ pub mod grpc {
         let expected_value = "ASDF".as_bytes().to_vec();
         println!("{:?}", expected_value);
 
-        return *value == expected_value;
+        *value == expected_value
     }
 }
 
@@ -696,7 +696,7 @@ pub mod http {
         let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
         let (tx_p_read_data_log, rx_p_read_data_log) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
@@ -725,10 +725,10 @@ pub mod http {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
 
@@ -987,7 +987,7 @@ pub mod http {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -1033,7 +1033,7 @@ pub mod http {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -1064,7 +1064,7 @@ pub mod http {
             .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
             .await;
 
-        return change_update_behavior.unwrap();
+        change_update_behavior.unwrap()
     }
 
     #[cfg(test)]
@@ -1091,9 +1091,9 @@ pub mod http {
             .get_row_id_at_participant(db_name, "EMPLOYEE", "NAME = 'TESTER'")
             .await
             .unwrap();
-        let row_id = row_ids.first().unwrap().clone();
+        let row_id = *row_ids.first().unwrap();
 
-        return row_id;
+        row_id
     }
 
     #[cfg(test)]
@@ -1126,7 +1126,7 @@ pub mod http {
             .await
             .unwrap();
 
-        return data_hash_result;
+        data_hash_result
     }
 
     #[cfg(test)]
@@ -1158,7 +1158,7 @@ pub mod http {
             .await
             .unwrap();
 
-        return data_hash_result;
+        data_hash_result
     }
 
     #[cfg(test)]
@@ -1202,7 +1202,7 @@ pub mod http {
 
         println!("{:?}", expected_value);
 
-        return *value == expected_value;
+        *value == expected_value
     }
 
     #[cfg(test)]
@@ -1245,6 +1245,6 @@ pub mod http {
         let expected_value = "ASDF".as_bytes().to_vec();
         println!("{:?}", expected_value);
 
-        return *value == expected_value;
+        *value == expected_value
     }
 }

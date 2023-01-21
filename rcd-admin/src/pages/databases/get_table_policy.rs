@@ -57,7 +57,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
     let request = GetLogicalStoragePolicyRequest {
         authentication: Some(token.auth()),
-        database_name: database_name,
+        database_name,
         table_name: table_name.clone(),
     };
 

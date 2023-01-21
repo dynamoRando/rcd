@@ -15,31 +15,31 @@ pub fn build_markdown_row(
 ) -> String {
     let mut string_row: String = "".to_string();
 
-    string_row = string_row + "| ";
+    string_row += "| ";
     string_row = string_row + key_string;
 
     let mut pad_length: u32;
     pad_length = key_string_max_length - key_string.len() as u32;
 
-    string_row = string_row + format!(" {:<width$} ", "", width = pad_length as usize).as_str();
-    string_row = string_row + "| ";
+    string_row += format!(" {:<width$} ", "", width = pad_length as usize).as_str();
+    string_row += "| ";
     string_row = string_row + key_value;
 
     pad_length = key_value_max_length - key_value.len() as u32;
 
-    string_row = string_row + format!(" {:<width$} ", "", width = pad_length as usize).as_str();
-    string_row = string_row + "|";
+    string_row += format!(" {:<width$} ", "", width = pad_length as usize).as_str();
+    string_row += "|";
 
-    return string_row;
+    string_row
 }
 
 /// builds a markdown seperator without the "|" between
 pub fn build_markdown_seperator(max_length: u32) -> String {
     let mut return_row = String::new();
     let pad_length = max_length;
-    return_row = return_row + format!(" {:-<width$} ", "", width = pad_length as usize).as_str();
+    return_row += format!(" {:-<width$} ", "", width = pad_length as usize).as_str();
 
-    return return_row;
+    return_row
 }
 
 pub fn build_markdown_key_value_table(key_value: IndexMap<String, String>) -> String {
@@ -71,25 +71,25 @@ pub fn build_markdown_key_value_table(key_value: IndexMap<String, String>) -> St
             max_length_key_values,
         );
 
-    markdown_table = markdown_table + "\n";
+    markdown_table += "\n";
 
-    markdown_table = markdown_table + "|";
+    markdown_table += "|";
 
     markdown_table = markdown_table + &build_markdown_seperator(max_length_key_strings + 1);
 
-    markdown_table = markdown_table + "|";
+    markdown_table += "|";
 
     markdown_table = markdown_table + &build_markdown_seperator(max_length_key_values + 1);
 
-    markdown_table = markdown_table + "|";
+    markdown_table += "|";
 
-    markdown_table = markdown_table + "\n";
+    markdown_table += "\n";
 
     for (k, v) in &key_value {
         markdown_table = markdown_table
-            + &build_markdown_row(&k, &v, max_length_key_strings, max_length_key_values);
-        markdown_table = markdown_table + "\n";
+            + &build_markdown_row(k, v, max_length_key_strings, max_length_key_values);
+        markdown_table += "\n";
     }
 
-    return markdown_table;
+    markdown_table
 }

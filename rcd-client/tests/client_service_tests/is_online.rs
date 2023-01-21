@@ -36,7 +36,7 @@ pub mod grpc {
         println!("RESPONSE={:?}", response);
         info!("response back");
 
-        return String::from(&response.reply_echo_message);
+        String::from(&response.reply_echo_message)
     }
 
     #[test]
@@ -98,7 +98,7 @@ pub mod http {
 
         let result = client.is_online_reply(test_message.to_string()).await;
 
-        return result.reply_echo_message;
+        result.reply_echo_message
     }
 
     #[test]
@@ -118,7 +118,7 @@ pub mod http {
         let http_port = port_num;
 
         let addr1 = http_addr.clone();
-        let addr2 = http_addr.clone();
+        let addr2 = http_addr;
 
         println!("{:?}", &service);
         service.start_at_dir(&root_dir);
@@ -126,7 +126,7 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir(addr1, http_port as u16, root_dir);
+            service.start_http_at_addr_and_dir(addr1, http_port as u16, root_dir);
         });
 
         let time = time::Duration::from_secs(1);
@@ -136,7 +136,7 @@ pub mod http {
         thread::sleep(time);
 
         thread::spawn(move || {
-            let res = client(test_message, &addr2, http_port.into());
+            let res = client(test_message, &addr2, http_port);
             tx.send(res).unwrap();
         })
         .join()

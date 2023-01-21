@@ -87,13 +87,13 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
 
-    let execute_read_reply = ExecuteReadReply {
+    
+
+    ExecuteReadReply {
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
-    };
-
-    return execute_read_reply;
+    }
 }
 
 pub async fn execute_read_at_participant(
@@ -130,13 +130,13 @@ pub async fn execute_read_at_participant(
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
 
-    let execute_read_reply = ExecuteReadReply {
+    
+
+    ExecuteReadReply {
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
-    };
-
-    return execute_read_reply;
+    }
 }
 
 pub async fn execute_write_at_participant(
@@ -270,14 +270,14 @@ pub async fn execute_write_at_participant(
         }
     }
 
-    let execute_write_reply = ExecuteWriteReply {
+    
+
+    ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_overall_successful,
         total_rows_affected: rows_affected,
         error_message: "".to_string(),
-    };
-
-    return execute_write_reply;
+    }
 }
 
 pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> ExecuteWriteReply {
@@ -302,14 +302,14 @@ pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> 
         println!("WARNING: execute_write_at_host not authenticated!");
     }
 
-    let execute_write_reply = ExecuteWriteReply {
+    
+
+    ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_sql_successful,
         total_rows_affected: rows_affected,
         error_message,
-    };
-
-    return execute_write_reply;
+    }
 }
 
 pub async fn execute_cooperative_write_at_host(
@@ -322,148 +322,146 @@ pub async fn execute_cooperative_write_at_host(
     let db_name = request.database_name;
     let statement = request.sql_statement;
 
-    if auth_result.0 {
-        if core.dbi().has_participant(&db_name, &request.alias) {
-            let dml_type = determine_dml_type(&statement, core.dbi().db_type());
-            let db_participant = core
-                .dbi()
-                .get_participant_by_alias(&db_name, &request.alias)
-                .unwrap();
-            let host_info = core.dbi().rcd_get_host_info();
-            let cmd_table_name = get_table_name(&statement, core.dbi().db_type());
-            let where_clause = request.where_clause.clone();
+    if auth_result.0 && core.dbi().has_participant(&db_name, &request.alias) {
+        let dml_type = determine_dml_type(&statement, core.dbi().db_type());
+        let db_participant = core
+            .dbi()
+            .get_participant_by_alias(&db_name, &request.alias)
+            .unwrap();
+        let host_info = core.dbi().rcd_get_host_info();
+        let cmd_table_name = get_table_name(&statement, core.dbi().db_type());
+        let where_clause = request.where_clause.clone();
 
-            let db_participant_reference = db_participant.clone();
+        let db_participant_reference = db_participant.clone();
 
-            match dml_type {
-                DmlType::Unknown => {
-                    panic!();
-                }
-                DmlType::Insert => {
-                    let remote_insert_result = core
-                        .remote()
-                        .insert_row_at_participant(
-                            db_participant,
-                            &host_info,
-                            &db_name,
-                            &cmd_table_name,
-                            &statement,
-                        )
-                        .await;
+        match dml_type {
+            DmlType::Unknown => {
+                panic!();
+            }
+            DmlType::Insert => {
+                let remote_insert_result = core
+                    .remote()
+                    .insert_row_at_participant(
+                        db_participant,
+                        &host_info,
+                        &db_name,
+                        &cmd_table_name,
+                        &statement,
+                    )
+                    .await;
 
-                    if remote_insert_result.is_successful {
-                        // we need to add the data hash and row id here
-                        let data_hash = remote_insert_result.data_hash.clone();
-                        let row_id = remote_insert_result.row_id;
+                if remote_insert_result.is_successful {
+                    // we need to add the data hash and row id here
+                    let data_hash = remote_insert_result.data_hash;
+                    let row_id = remote_insert_result.row_id;
 
-                        let internal_participant_id =
-                            db_participant_reference.internal_id.to_string().clone();
+                    let internal_participant_id =
+                        db_participant_reference.internal_id.to_string();
 
-                        let local_insert_is_successful = core.dbi().insert_metadata_into_host_db(
-                            &db_name,
-                            &cmd_table_name,
-                            row_id,
-                            data_hash,
-                            &internal_participant_id,
-                        );
+                    let local_insert_is_successful = core.dbi().insert_metadata_into_host_db(
+                        &db_name,
+                        &cmd_table_name,
+                        row_id,
+                        data_hash,
+                        &internal_participant_id,
+                    );
 
-                        if local_insert_is_successful {
-                            is_remote_action_successful = true;
-                        }
+                    if local_insert_is_successful {
+                        is_remote_action_successful = true;
                     }
                 }
-                DmlType::Update => {
-                    let remote_update_result = core
-                        .remote()
-                        .update_row_at_participant(
-                            db_participant,
-                            &host_info,
-                            &db_name,
-                            &cmd_table_name,
-                            &statement,
-                            &where_clause,
-                        )
-                        .await;
+            }
+            DmlType::Update => {
+                let remote_update_result = core
+                    .remote()
+                    .update_row_at_participant(
+                        db_participant,
+                        &host_info,
+                        &db_name,
+                        &cmd_table_name,
+                        &statement,
+                        &where_clause,
+                    )
+                    .await;
 
-                    if remote_update_result.is_successful {
-                        let data_hash: u64;
-                        let row_id: u32;
+                if remote_update_result.is_successful {
+                    let data_hash: u64;
+                    let row_id: u32;
 
-                        let update_result =
-                            PartialDataStatus::from_u32(remote_update_result.update_status);
+                    let update_result =
+                        PartialDataStatus::from_u32(remote_update_result.update_status);
 
-                        match update_result {
-                            PartialDataStatus::Unknown => todo!(),
-                            PartialDataStatus::SucessOverwriteOrLog => {
-                                data_hash = remote_update_result.rows.first().unwrap().data_hash;
-                                row_id = remote_update_result.rows.first().unwrap().rowid;
-                                let internal_participant_id =
-                                    db_participant_reference.internal_id.to_string().clone();
+                    match update_result {
+                        PartialDataStatus::Unknown => todo!(),
+                        PartialDataStatus::SucessOverwriteOrLog => {
+                            data_hash = remote_update_result.rows.first().unwrap().data_hash;
+                            row_id = remote_update_result.rows.first().unwrap().rowid;
+                            let internal_participant_id =
+                                db_participant_reference.internal_id.to_string();
 
-                                let local_update_is_successful =
-                                    core.dbi().update_metadata_in_host_db(
-                                        &db_name,
-                                        &cmd_table_name,
-                                        row_id,
-                                        data_hash,
-                                        &internal_participant_id,
-                                    );
-
-                                println!(
-                                    "local update is successful: {}",
-                                    local_update_is_successful.to_string()
+                            let local_update_is_successful =
+                                core.dbi().update_metadata_in_host_db(
+                                    &db_name,
+                                    &cmd_table_name,
+                                    row_id,
+                                    data_hash,
+                                    &internal_participant_id,
                                 );
 
-                                if local_update_is_successful {
-                                    is_remote_action_successful = true;
-                                }
-                            }
-                            PartialDataStatus::Pending => {
+                            println!(
+                                "local update is successful: {}",
+                                local_update_is_successful
+                            );
+
+                            if local_update_is_successful {
                                 is_remote_action_successful = true;
                             }
-                            PartialDataStatus::Ignored => todo!(),
                         }
-                    }
-                }
-                DmlType::Delete => {
-                    let remote_delete_result = core
-                        .remote()
-                        .remove_row_at_participant(
-                            db_participant,
-                            &host_info,
-                            &db_name,
-                            &cmd_table_name,
-                            &statement,
-                            &where_clause,
-                        )
-                        .await;
-
-                    if remote_delete_result.is_successful {
-                        let row_id: u32;
-
-                        if remote_delete_result.rows.len() == 0 {
-                            row_id = 0;
-                        } else {
-                            row_id = remote_delete_result.rows.first().unwrap().rowid;
-                        }
-
-                        let internal_participant_id =
-                            db_participant_reference.internal_id.to_string().clone();
-
-                        let local_delete_is_successful = core.dbi().delete_metadata_in_host_db(
-                            &db_name,
-                            &cmd_table_name,
-                            row_id,
-                            &internal_participant_id,
-                        );
-
-                        if local_delete_is_successful {
+                        PartialDataStatus::Pending => {
                             is_remote_action_successful = true;
                         }
+                        PartialDataStatus::Ignored => todo!(),
                     }
                 }
-                DmlType::Select => panic!(),
             }
+            DmlType::Delete => {
+                let remote_delete_result = core
+                    .remote()
+                    .remove_row_at_participant(
+                        db_participant,
+                        &host_info,
+                        &db_name,
+                        &cmd_table_name,
+                        &statement,
+                        &where_clause,
+                    )
+                    .await;
+
+                if remote_delete_result.is_successful {
+                    let row_id: u32;
+
+                    if remote_delete_result.rows.is_empty() {
+                        row_id = 0;
+                    } else {
+                        row_id = remote_delete_result.rows.first().unwrap().rowid;
+                    }
+
+                    let internal_participant_id =
+                        db_participant_reference.internal_id.to_string();
+
+                    let local_delete_is_successful = core.dbi().delete_metadata_in_host_db(
+                        &db_name,
+                        &cmd_table_name,
+                        row_id,
+                        &internal_participant_id,
+                    );
+
+                    if local_delete_is_successful {
+                        is_remote_action_successful = true;
+                    }
+                }
+            }
+            DmlType::Select => panic!(),
         }
     }
 
@@ -475,5 +473,5 @@ pub async fn execute_cooperative_write_at_host(
 
     println!("{:?}", execute_write_reply);
 
-    return execute_write_reply;
+    execute_write_reply
 }

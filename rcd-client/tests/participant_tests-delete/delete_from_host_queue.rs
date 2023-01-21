@@ -31,7 +31,7 @@ pub mod grpc {
         let (tx_p_accept_delete, rx_p_accept_delete) = mpsc::channel();
         let (tx_m_no_rows, rx_m_no_rows) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
 
@@ -52,11 +52,11 @@ pub mod grpc {
         test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
         let main_db_name_ = main_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
         let db_name_copy2 = db_name_copy.clone();
@@ -308,7 +308,7 @@ pub mod grpc {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -352,7 +352,7 @@ pub mod grpc {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -382,7 +382,7 @@ pub mod grpc {
             .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
             .await;
 
-        return result.unwrap();
+        result.unwrap()
     }
 
     #[cfg(test)]
@@ -409,7 +409,7 @@ pub mod grpc {
                 where_clause,
             )
             .await;
-        return delete_result.unwrap();
+        delete_result.unwrap()
     }
 
     #[cfg(test)]
@@ -465,7 +465,7 @@ pub mod grpc {
             return accept_delete_result.is_successful;
         }
 
-        return false;
+        false
     }
 
     #[cfg(test)]
@@ -491,7 +491,7 @@ pub mod grpc {
 
         let rows = result.unwrap().rows.len();
 
-        return rows == 0;
+        rows == 0
     }
 }
 
@@ -528,7 +528,7 @@ pub mod http {
         let (tx_p_accept_delete, rx_p_accept_delete) = mpsc::channel();
         let (tx_m_no_rows, rx_m_no_rows) = mpsc::channel();
 
-        let dirs = test_harness::get_test_temp_dir_main_and_participant(&test_name);
+        let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
 
@@ -557,11 +557,11 @@ pub mod http {
         thread::sleep(time);
 
         let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description.clone();
+        let participant_contract_desc = custom_contract_description;
         let main_db_name = test_db_name.clone();
         let main_db_name_ = main_db_name.clone();
-        let participant_db_name = test_db_name.clone();
-        let pdn = participant_db_name.clone();
+        let participant_db_name = test_db_name;
+        let pdn = participant_db_name;
         let main_db_name_write = main_db_name.clone();
         let db_name_copy = main_db_name_write.clone();
         let db_name_copy2 = db_name_copy.clone();
@@ -804,7 +804,7 @@ pub mod http {
 
         println!("{:?}", expected_value);
 
-        return value == expected_value;
+        value == expected_value
     }
 
     #[cfg(test)]
@@ -848,7 +848,7 @@ pub mod http {
             accepted_contract = client.accept_pending_contract("tester").await.unwrap();
         }
 
-        return accepted_contract;
+        accepted_contract
     }
 
     #[cfg(test)]
@@ -878,7 +878,7 @@ pub mod http {
             .change_deletes_from_host_behavior(db_name, "EMPLOYEE", behavior)
             .await;
 
-        return result.unwrap();
+        result.unwrap()
     }
 
     #[cfg(test)]
@@ -905,7 +905,7 @@ pub mod http {
                 where_clause,
             )
             .await;
-        return delete_result.unwrap();
+        delete_result.unwrap()
     }
 
     #[cfg(test)]
@@ -961,7 +961,7 @@ pub mod http {
             return accept_delete_result.is_successful;
         }
 
-        return false;
+        false
     }
 
     #[cfg(test)]
@@ -987,6 +987,6 @@ pub mod http {
 
         let rows = result.unwrap().rows.len();
 
-        return rows == 0;
+        rows == 0
     }
 }

@@ -12,11 +12,11 @@ pub fn table_schema_to_markdown_table(table: &TableSchema) -> String {
         kv.insert(column.column_name.clone(), data_type);
     }
 
-    return build_markdown_key_value_table(kv);
+    build_markdown_key_value_table(kv)
 }
 
 fn get_datatype_for_column_num(data_type: u32, length: u32) -> String {
-    return match data_type {
+    match data_type {
         0 => "Unknown".to_string(),
         1 => "Int".to_string(),
         2 => "Bit".to_string(),
@@ -28,5 +28,5 @@ fn get_datatype_for_column_num(data_type: u32, length: u32) -> String {
         8 => "Varbinary".to_string() + " - " + &length.to_string(),
         9 => "Text".to_string(),
         _ => "Unknown".to_string(),
-    };
+    }
 }

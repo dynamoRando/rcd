@@ -16,7 +16,7 @@ pub struct Value {
 
 impl Value {
     pub fn is_null(&self) -> bool {
-        return self.data.is_none();
+        self.data.is_none()
     }
 }
 
@@ -47,7 +47,7 @@ pub struct Column {
 impl Column {
     pub fn data_type_to_enum_u32(&self) -> u32 {
         let ct = ColumnType::try_parse(&self.data_type).unwrap();
-        return ColumnType::to_u32(ct);
+        ColumnType::to_u32(ct)
     }
 
     pub fn data_type_len(&self) -> u32 {
@@ -55,19 +55,19 @@ impl Column {
 
         println!("{:?}", str_data_type);
 
-        let idx_first_paren = str_data_type.find("(");
+        let idx_first_paren = str_data_type.find('(');
 
         if idx_first_paren.is_none() {
-            return 0;
+            0
         } else {
             let idx_first = idx_first_paren.unwrap() + 1;
-            let idx_last = str_data_type.find(")").unwrap();
+            let idx_last = str_data_type.find(')').unwrap();
             let str_length = str_data_type.substring(idx_first, idx_last);
 
             println!("{:?}", str_length);
 
             let length: u32 = str_length.parse().unwrap();
-            return length;
+            length
         }
     }
 }
@@ -99,7 +99,7 @@ impl Table {
     }
 
     pub fn num_cols(&self) -> usize {
-        return self.num_cols;
+        self.num_cols
     }
 
     pub fn add_column(&mut self, column: Column) {
@@ -116,7 +116,7 @@ impl Table {
                 return Some(col.clone());
             }
         }
-        return None;
+        None
     }
 
     pub fn debug(&self) {
@@ -157,7 +157,7 @@ impl Table {
                 let c_str_data = &t_val.data.as_ref().unwrap().data_string;
                 let c_str_bin_data = c_str_data.as_bytes().to_vec();
 
-                if c_bin_data.len() == 0 {
+                if c_bin_data.is_empty() {
                     c_bin_data = &c_str_bin_data;
                 }
 
@@ -165,7 +165,7 @@ impl Table {
 
                 let c_val: rcdproto::rcdp::RowValue = rcdproto::rcdp::RowValue {
                     column: Some(c_col_schema_item),
-                    is_null_value: if c_bd.len() > 0 { false } else { true },
+                    is_null_value: !(!c_bd.is_empty()),
                     value: c_bd,
                     string_value: c_str_data.clone(),
                 };
@@ -193,9 +193,9 @@ impl Table {
 
             result.push(c_row);
 
-            idx = idx + 1;
+            idx += 1;
         }
 
-        return result;
+        result
     }
 }

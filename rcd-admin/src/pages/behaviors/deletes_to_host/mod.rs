@@ -25,11 +25,11 @@ pub fn DeletesToHost() -> Html {
 
     let table_names = use_state_eq(move || {
         let x: Vec<String> = Vec::new();
-        return x;
+        x
     });
 
     let onclick_db = {
-        let table_names = table_names.clone();
+        let table_names = table_names;
         Callback::from(move |db_name: String| {
             let databases = get_databases();
 
@@ -54,7 +54,7 @@ pub fn DeletesToHost() -> Html {
         let behavior_type_state = behavior_type_state.clone();
         Callback::from(move |table_name: String| {
             let behavior_type_state = behavior_type_state.clone();
-            if table_name != "" {
+            if !table_name.is_empty() {
                 log_to_console(table_name.clone());
 
                 let token = get_token();
@@ -62,7 +62,7 @@ pub fn DeletesToHost() -> Html {
                 let request = GetDeletesToHostBehaviorRequest {
                     authentication: Some(token.auth()),
                     database_name: active_database.to_string(),
-                    table_name: table_name,
+                    table_name,
                 };
 
                 let body = serde_json::to_string(&request).unwrap();

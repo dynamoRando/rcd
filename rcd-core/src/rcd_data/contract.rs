@@ -30,23 +30,23 @@ pub async fn accept_contract(
         &request.contract_version_guid,
     );
 
-    let result = ParticipantAcceptsContractResult {
+    
+
+    ParticipantAcceptsContractResult {
         contract_acceptance_is_acknowledged: is_successful,
         error_message: String::from(""),
-    };
-
-    return result;
+    }
 }
 
 pub async fn save_contract(core: &RcdData, request: SaveContractRequest) -> SaveContractResult {
-    let contract = request.contract.unwrap().clone();
+    let contract = request.contract.unwrap();
 
     let save_is_successful = core.dbi().save_contract(contract);
 
-    let result = SaveContractResult {
-        is_saved: save_is_successful.0,
-        error_message: save_is_successful.1.to_string(),
-    };
+    
 
-    return result;
+    SaveContractResult {
+        is_saved: save_is_successful.0,
+        error_message: save_is_successful.1,
+    }
 }

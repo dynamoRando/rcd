@@ -42,7 +42,7 @@ pub fn Generate() -> Html {
                 authentication: Some(token.auth()),
                 database_name: (*active_db).clone(),
                 description: desc,
-                host_name: host_name,
+                host_name,
                 remote_delete_behavior: delete_behavior.parse().unwrap(),
             };
 

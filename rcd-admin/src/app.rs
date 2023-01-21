@@ -82,7 +82,7 @@ pub fn App() -> Html {
     html! {
         <BrowserRouter>
             <Nav />
-            <Status is_logged_in={is_logged_in_state} status_message={status_state.clone()}/>
+            <Status is_logged_in={is_logged_in_state} status_message={status_state}/>
             <main>
                 <Switch<Route> render={switch} />
             </main>

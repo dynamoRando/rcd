@@ -194,7 +194,7 @@ fn save_token(addr: String, auth_json: String, database_names: UseStateHandle<Ve
                 let jwt = response.jwt;
 
                 let token = Token {
-                    jwt: jwt,
+                    jwt,
                     jwt_exp: response.expiration_utc,
                     addr: addr.clone(),
                     is_logged_in: true,

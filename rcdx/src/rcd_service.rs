@@ -90,12 +90,12 @@ pub struct RcdService {
 
 impl RcdService {
     pub fn cwd(&self) -> String {
-        if self.root_dir == "" {
+        if self.root_dir.is_empty() {
             let wd = env::current_dir().unwrap();
             let cwd = wd.to_str().unwrap();
-            return cwd.to_string();
+            cwd.to_string()
         } else {
-            return self.root_dir.clone();
+            self.root_dir.clone()
         }
     }
 
@@ -105,7 +105,7 @@ impl RcdService {
             &self.rcd_settings.backing_database_name,
             &self.rcd_settings.admin_un,
             &self.rcd_settings.admin_pw,
-            &root_dir,
+            root_dir,
         );
 
         let db_type = self.rcd_settings.database_type;
@@ -118,7 +118,7 @@ impl RcdService {
                 };
 
                 let config = Dbi {
-                    db_type: db_type,
+                    db_type,
                     mysql_config: None,
                     postgres_config: None,
                     sqlite_config: Some(sqlite_config),
@@ -156,7 +156,7 @@ impl RcdService {
                 };
 
                 let config = Dbi {
-                    db_type: db_type,
+                    db_type,
                     mysql_config: None,
                     postgres_config: None,
                     sqlite_config: Some(sqlite_config),
@@ -214,12 +214,12 @@ impl RcdService {
         );
     }
 
-    pub fn start_grpc_client_service_alt(self: &Self) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn start_grpc_client_service_alt(&self) -> Result<(), Box<dyn std::error::Error>> {
         return grpc::start_grpc_client_service_alt(self);
     }
 
     pub fn start_grpc_client_service_at_addr(
-        self: &Self,
+        &self,
         address_port: String,
         root_folder: String,
     ) -> Result<(), Box<dyn std::error::Error>> {
@@ -239,27 +239,27 @@ pub fn get_service_from_config_file(settings_filename: Option<String>) -> RcdSer
         core: None,
     };
 
-    if service.root_dir == "" {
-        let wd = env::current_dir().unwrap().clone();
-        let cwd = wd.to_str().unwrap().to_string().clone();
-        service.root_dir = cwd.to_string();
+    if service.root_dir.is_empty() {
+        let wd = env::current_dir().unwrap();
+        let cwd = wd.to_str().unwrap().to_string();
+        service.root_dir = cwd;
     }
 
-    return service;
+    service
 }
 
 #[allow(dead_code)]
 /// Returns an RcdService from the supplied config (normally used in testing)
 /// This function is normally called in tests
 pub fn get_service_from_config(config: RcdSettings) -> RcdService {
-    return RcdService {
+    RcdService {
         rcd_settings: config,
         root_dir: String::from(""),
         db_interface: None,
         sql_client_channel: None,
         db_client_channel: None,
         core: None,
-    };
+    }
 }
 
 pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSettings {
@@ -330,10 +330,12 @@ pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSe
     let http_addr = settings.get_string(&String::from("http_addr")).unwrap();
     let http_port = settings.get_int(&String::from("http_port")).unwrap() as u16;
 
-    let rcd_setting = RcdSettings {
-        admin_un: admin_un,
-        admin_pw: admin_pw,
-        database_type: database_type,
+    
+
+    RcdSettings {
+        admin_un,
+        admin_pw,
+        database_type,
         backing_database_name: s_db_name,
         grpc_client_service_addr_port: s_client_service_addr_port,
         grpc_data_service_addr_port: d_client_service_addr_port,
@@ -341,13 +343,11 @@ pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSe
         data_grpc_timeout_in_seconds: data_timeout_in_seconds,
         http_addr,
         http_port,
-    };
-
-    return rcd_setting;
+    }
 }
 
 pub fn get_current_directory() -> String {
-    let wd = env::current_dir().unwrap().clone();
-    let cwd = wd.to_str().unwrap().to_string().clone();
-    return cwd.to_string();
+    let wd = env::current_dir().unwrap();
+    let cwd = wd.to_str().unwrap().to_string();
+    cwd
 }

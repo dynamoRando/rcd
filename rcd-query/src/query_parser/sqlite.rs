@@ -18,7 +18,7 @@ mod sqliteparser;
 
 pub fn get_table_names(cmd: &str) -> Vec<String> {
     let tf = CommonTokenFactory::default();
-    let input = InputStream::new(cmd.into());
+    let input = InputStream::new(cmd);
     let lexer = SQLiteLexer::new_with_token_factory(input, &tf);
     let token_source = CommonTokenStream::new(lexer);
     let mut parser = SQLiteParser::new(token_source);
@@ -35,12 +35,12 @@ pub fn get_table_names(cmd: &str) -> Vec<String> {
     let _ = parser.parse();
     let item = parser.remove_parse_listener(listener_id);
 
-    return item.statement_type.table_name_collection;
+    item.statement_type.table_name_collection
 }
 
 pub fn get_table_name(cmd: &str) -> String {
     let tf = CommonTokenFactory::default();
-    let input = InputStream::new(cmd.into());
+    let input = InputStream::new(cmd);
     let lexer = SQLiteLexer::new_with_token_factory(input, &tf);
     let token_source = CommonTokenStream::new(lexer);
     let mut parser = SQLiteParser::new(token_source);
@@ -57,7 +57,7 @@ pub fn get_table_name(cmd: &str) -> String {
     let _ = parser.parse();
     let item = parser.remove_parse_listener(listener_id);
 
-    return item.statement_type.table_name;
+    item.statement_type.table_name
 }
 
 pub fn determine_statement_type(sql_text: String) -> DmlType {
@@ -66,7 +66,7 @@ pub fn determine_statement_type(sql_text: String) -> DmlType {
     // println!("{}", sql_text);
 
     let tf = CommonTokenFactory::default();
-    let input = InputStream::new(text.into());
+    let input = InputStream::new(text);
     let lexer = SQLiteLexer::new_with_token_factory(input, &tf);
     let token_source = CommonTokenStream::new(lexer);
     let mut parser = SQLiteParser::new(token_source);
@@ -83,12 +83,12 @@ pub fn determine_statement_type(sql_text: String) -> DmlType {
     let _ = parser.parse();
     let item = parser.remove_parse_listener(listener_id);
 
-    return item.statement_type.data;
+    item.statement_type.data
 }
 
 pub fn get_values_from_insert_statement(insert_statement: &str) -> Vec<String> {
     let tf = CommonTokenFactory::default();
-    let input = InputStream::new(insert_statement.into());
+    let input = InputStream::new(insert_statement);
     let lexer = SQLiteLexer::new_with_token_factory(input, &tf);
     let token_source = CommonTokenStream::new(lexer);
     let mut parser = SQLiteParser::new(token_source);
@@ -106,5 +106,5 @@ pub fn get_values_from_insert_statement(insert_statement: &str) -> Vec<String> {
     let _ = parser.parse();
     let item = parser.remove_parse_listener(listener_id);
 
-    return item.insert_data.values;
+    item.insert_data.values
 }

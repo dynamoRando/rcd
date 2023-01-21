@@ -36,15 +36,15 @@ pub async fn insert_command_into_table(
             .insert_data_into_partial_db(&db_name, &table_name, cmd);
     }
 
-    let result = InsertDataResult {
+    
+
+    InsertDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,
         data_hash: result.data_hash.unwrap(),
         message: String::from(""),
         row_id: result.row_id,
-    };
-
-    return result;
+    }
 }
 
 pub async fn delete_command_into_table(
@@ -155,14 +155,14 @@ pub async fn delete_command_into_table(
         }
     }
 
-    let result = DeleteDataResult {
+    
+
+    DeleteDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,
         message: action_message,
-        rows: rows,
-    };
-
-    return result;
+        rows,
+    }
 }
 
 pub async fn update_command_into_table(
@@ -279,15 +279,15 @@ pub async fn update_command_into_table(
         }
     }
 
-    let result = UpdateDataResult {
+    
+
+    UpdateDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,
         message: action_message,
-        rows: rows,
-        update_status: update_status,
-    };
-
-    return result;
+        rows,
+        update_status,
+    }
 }
 
 pub async fn get_row_from_partial_database(
@@ -316,14 +316,14 @@ pub async fn get_row_from_partial_database(
             .get_row_from_partial_database(&db_name, &table_name, row_id);
     }
 
-    let result = GetRowFromPartialDatabaseResult {
+    
+
+    GetRowFromPartialDatabaseResult {
         authentication_result: Some(auth_result.1),
         is_successful: false,
         result_message: String::from(""),
         row: Some(result_row),
-    };
-
-    return result;
+    }
 }
 
 pub async fn update_row_data_hash_for_host(
@@ -361,12 +361,12 @@ pub async fn update_row_data_hash_for_host(
         println!("not authenticated!");
     }
 
-    let result = UpdateRowDataHashForHostResponse {
+    
+
+    UpdateRowDataHashForHostResponse {
         authentication_result: Some(auth_result.1),
         is_successful,
-    };
-
-    return result;
+    }
 }
 
 pub async fn notify_host_of_removed_row(
@@ -390,10 +390,10 @@ pub async fn notify_host_of_removed_row(
         println!("not authenticated!");
     }
 
-    let result = NotifyHostOfRemovedRowResponse {
+    
+
+    NotifyHostOfRemovedRowResponse {
         authentication_result: Some(auth_result.1),
         is_successful,
-    };
-
-    return result;
+    }
 }

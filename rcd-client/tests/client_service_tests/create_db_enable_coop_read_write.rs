@@ -21,10 +21,10 @@ pub mod grpc {
             .unwrap()
             .get_next_avail_port();
 
-        let root_dir = test_harness::get_test_temp_dir(&test_name);
+        let root_dir = test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num.to_string());
+        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
@@ -126,7 +126,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        return read_reply.is_error;
+        read_reply.is_error
     }
 }
 
@@ -153,10 +153,10 @@ pub mod http {
             .unwrap()
             .get_next_avail_port();
 
-        let root_dir = test_harness::get_test_temp_dir(&test_name);
+        let root_dir = test_harness::get_test_temp_dir(test_name);
         println!("{}", root_dir);
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("127.0.0.1:"), port_num.to_string());
+        let client_address_port = format!("{}{}", String::from("127.0.0.1:"), port_num);
         let target_client_address_port = client_address_port.clone();
         println!("{:?}", &service);
 
@@ -166,7 +166,7 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_http_at_addr_and_dir(
+            service.start_http_at_addr_and_dir(
                 "127.0.0.1".to_string(),
                 port_num as u16,
                 root_dir,
@@ -225,8 +225,8 @@ pub mod http {
         let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
         assert!(enable_coop_features);
-        let execute_write_drop_is_successful;
-        execute_write_drop_is_successful = client
+        
+        let execute_write_drop_is_successful = client
             .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
             .await
             .unwrap();
@@ -236,8 +236,8 @@ pub mod http {
         let create_table_statement =
             String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-        let execute_write_create_reply_is_successful;
-        execute_write_create_reply_is_successful = client
+        
+        let execute_write_create_reply_is_successful = client
             .execute_write_at_host(db_name, &create_table_statement, database_type, "")
             .await
             .unwrap();
@@ -247,8 +247,8 @@ pub mod http {
         let add_record_statement =
             String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
-        let execute_write_add_record_is_successful;
-        execute_write_add_record_is_successful = client
+        
+        let execute_write_add_record_is_successful = client
             .execute_write_at_host(db_name, &add_record_statement, database_type, "")
             .await
             .unwrap();
@@ -261,6 +261,6 @@ pub mod http {
             .await
             .unwrap();
 
-        return read_reply.is_error;
+        read_reply.is_error
     }
 }

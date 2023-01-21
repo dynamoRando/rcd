@@ -197,7 +197,7 @@ impl Rcd {
         &self,
         request: ChangeHostStatusRequest,
     ) -> ChangeHostStatusReply {
-        return db::change_host_status(&self, request).await;
+        return db::change_host_status(self, request).await;
     }
 
     pub async fn get_pending_actions_at_participant(
@@ -211,11 +211,11 @@ impl Rcd {
         &self,
         request: AcceptPendingActionRequest,
     ) -> AcceptPendingActionReply {
-        return db::accept_pending_action_at_participant(&self, request).await;
+        return db::accept_pending_action_at_participant(self, request).await;
     }
 
     pub async fn has_table(&self, request: HasTableRequest) -> HasTableReply {
-        return db::has_table(&self, request).await;
+        return db::has_table(self, request).await;
     }
 
     pub fn is_online(&self, request: TestRequest) -> TestReply {
@@ -223,12 +223,12 @@ impl Rcd {
 
         println!("is_online, requested echo: {}", item);
 
-        let response = TestReply {
-            reply_time_utc: String::from(Utc::now().to_rfc2822()),
-            reply_echo_message: String::from(item),
+        
+        TestReply {
+            reply_time_utc: Utc::now().to_rfc2822(),
+            reply_echo_message: item,
             rcdx_version: defaults::VERSION.to_string(),
-        };
-        return response;
+        }
     }
 
     pub async fn get_data_hash_at_host(&self, request: GetDataHashRequest) -> GetDataHashReply {
@@ -309,20 +309,20 @@ impl Rcd {
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
         let is_authenticated: bool;
 
-        if request.jwt.len() > 0 {
+        if !request.jwt.is_empty() {
             is_authenticated = self.dbi().verify_token(request.jwt);
         } else {
             is_authenticated = self.dbi().verify_login(&request.user_name, &request.pw);
         }
 
         let auth_response = AuthResult {
-            is_authenticated: is_authenticated,
+            is_authenticated,
             user_name: String::from(""),
             token: String::from(""),
             authentication_message: String::from(""),
         };
 
-        return (is_authenticated, auth_response);
+        (is_authenticated, auth_response)
     }
 
     fn dbi(&self) -> Dbi {

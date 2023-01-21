@@ -26,13 +26,13 @@ pub async fn set_logical_storage_policy(
             .unwrap();
     }
 
-    let set_policy_reply = SetLogicalStoragePolicyReply {
+    
+
+    SetLogicalStoragePolicyReply {
         authentication_result: Some(auth_result.1),
         is_successful: policy_is_set,
         message: String::from(""),
-    };
-
-    return set_policy_reply;
+    }
 }
 
 pub async fn get_logical_storage_policy(
@@ -55,10 +55,10 @@ pub async fn get_logical_storage_policy(
         policy = LogicalStoragePolicy::from_i64(i_policy as i64);
     }
 
-    let get_policy_reply = GetLogicalStoragePolicyReply {
+    
+
+    GetLogicalStoragePolicyReply {
         authentication_result: Some(auth_result.1),
         policy_mode: LogicalStoragePolicy::to_u32(policy),
-    };
-
-    return get_policy_reply;
+    }
 }

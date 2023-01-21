@@ -446,7 +446,7 @@ fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageIn
     let is_little_endian = is_little_endian();
 
     MessageInfo {
-        is_little_endian: is_little_endian,
+        is_little_endian,
         message_addresses: addresses,
         message_generated_time_utc: Utc::now().to_string(),
         message_guid: GUID::rand().to_string(),

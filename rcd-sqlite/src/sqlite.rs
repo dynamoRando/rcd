@@ -208,11 +208,11 @@ pub fn execute_read_on_connection_for_row(
     let result = rcdproto::rcdp::Row {
         database_name: db_name.to_string(),
         table_name: table_name.to_string(),
-        row_id: row_id,
-        values: values,
+        row_id,
+        values,
         is_remoteable: true,
         remote_metadata: None,
-        hash: hash,
+        hash,
     };
 
     Ok(result)
@@ -273,7 +273,7 @@ pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::R
 
             let data_value = Value {
                 data: Some(data_item),
-                col: col,
+                col,
             };
 
             data_row.add_value(data_value);
@@ -341,7 +341,7 @@ pub fn execute_read_at_participant(
 
             let data_value = Value {
                 data: Some(data_item),
-                col: col,
+                col,
             };
 
             data_row.add_value(data_value);
@@ -409,7 +409,7 @@ pub fn execute_read_at_host(
 
             let data_value = Value {
                 data: Some(data_item),
-                col: col,
+                col,
             };
 
             data_row.add_value(data_value);

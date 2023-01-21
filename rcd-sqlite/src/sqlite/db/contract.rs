@@ -61,7 +61,7 @@ pub fn generate_contract(
     }
 
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
-    if !has_any_rows(cmd, &conn) {
+    if !has_any_rows(cmd, conn) {
         // this is the first contract
         // println!("generate contract: first_contract");
         let contract = CoopDatabaseContract {
@@ -76,11 +76,11 @@ pub fn generate_contract(
     } else {
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
-        let contracts = get_all_database_contracts(&conn);
+        let contracts = get_all_database_contracts(conn);
         // println!("generate contract: retire contracts");
         println!(
             "generate contract: retire contracts count: {}",
-            contracts.len().to_string()
+            contracts.len()
         );
         for con in contracts {
             if !con.is_retired() {
@@ -88,7 +88,7 @@ pub fn generate_contract(
                     "generate contract: retire contract {}",
                     &con.contract_id.to_string()
                 );
-                retire_contract(con.version_id, &conn);
+                retire_contract(con.version_id, conn);
                 // println!(
                 //     "generate contract: save retired contract {}",
                 //     &con.contract_id.to_string()
@@ -106,7 +106,7 @@ pub fn generate_contract(
             version_id: GUID::rand(),
             remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
         };
-        save_contract_at_connection(new_contract, &conn);
+        save_contract_at_connection(new_contract, conn);
     }
     Ok(true)
 }
@@ -116,7 +116,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
         "SELECT COUNT(*) TOTALCOUNT FROM COOP_DATABASE_CONTRACT WHERE VERSION_ID = ':vid'",
     );
     cmd = cmd.replace(":vid", &contract.version_id.to_string());
-    if has_any_rows(cmd, &conn) {
+    if has_any_rows(cmd, conn) {
         // this is an update
         if contract.is_retired() {
             let mut cmd = String::from(
@@ -141,7 +141,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
                 ":remote_behavior",
                 &contract.remote_delete_behavior.to_string(),
             );
-            execute_write(&conn, &cmd);
+            execute_write(conn, &cmd);
         } else {
             let mut cmd = String::from(
                 "
@@ -162,7 +162,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
                 ":remote_behavior",
                 &contract.remote_delete_behavior.to_string(),
             );
-            execute_write(&conn, &cmd);
+            execute_write(conn, &cmd);
         }
     } else {
         // this is an insert
@@ -199,7 +199,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
                 ":remote_behavior",
                 &contract.remote_delete_behavior.to_string(),
             );
-            execute_write(&conn, &cmd);
+            execute_write(conn, &cmd);
         } else {
             let mut cmd = String::from(
                 "
@@ -231,7 +231,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
                 ":remote_behavior",
                 &contract.remote_delete_behavior.to_string(),
             );
-            execute_write(&conn, &cmd);
+            execute_write(conn, &cmd);
         }
     }
 }
@@ -301,7 +301,7 @@ pub fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract
                     is_retired = false;
                 } else {
                     let vret_date = val.data.as_ref().unwrap().data_string.clone();
-                    if vret_date.len() > 0 {
+                    if !vret_date.is_empty() {
                         // println!("{}", vret_date);
                         let tret_date = Utc::datetime_from_str(
                             &Utc,
@@ -340,7 +340,7 @@ pub fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract
         }
     }
 
-    return result;
+    result
 }
 
 pub fn update_participant_accepts_contract(
@@ -352,9 +352,9 @@ pub fn update_participant_accepts_contract(
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
 
-    let internal_id = participant.internal_id.clone();
+    let internal_id = participant.internal_id;
     let participant_id = participant_message.participant_guid.clone();
-    let token = participant_message.token.clone();
+    let token = participant_message.token;
 
     let cmd = String::from(
         "
@@ -382,7 +382,7 @@ pub fn update_participant_accepts_contract(
         })
         .unwrap();
 
-    return rows_affected > 0;
+    rows_affected > 0
 }
 
 pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDatabaseContract {
@@ -417,10 +417,10 @@ pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDataba
                 defaults::DATETIME_STRING_FORMAT,
             )
             .unwrap(),
-            description: description,
+            description,
             retired_date: None,
             version_id: GUID::parse(&version_id).unwrap(),
-            remote_delete_behavior: remote_delete_behavior,
+            remote_delete_behavior,
         };
 
         Ok(contract)
