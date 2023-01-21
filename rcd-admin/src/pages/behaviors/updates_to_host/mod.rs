@@ -5,7 +5,10 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_to_host::change_behavior::ChangeBehavior},
+    pages::{
+        behaviors::updates_to_host::change_behavior::ChangeBehavior,
+        common::{select_database::SelectDatabase, select_table::SelectTable},
+    },
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
@@ -25,11 +28,11 @@ pub fn UpdatesToHost() -> Html {
 
     let table_names = use_state_eq(move || {
         let x: Vec<String> = Vec::new();
-        return x;
+        x
     });
 
     let onclick_db = {
-        let table_names = table_names.clone();
+        let table_names = table_names;
         Callback::from(move |db_name: String| {
             let databases = get_databases();
 
@@ -54,7 +57,7 @@ pub fn UpdatesToHost() -> Html {
         let behavior_type_state = behavior_type_state.clone();
         Callback::from(move |table_name: String| {
             let behavior_type_state = behavior_type_state.clone();
-            if table_name != "" {
+            if !table_name.is_empty() {
                 log_to_console(table_name.clone());
 
                 let token = get_token();
@@ -69,13 +72,11 @@ pub fn UpdatesToHost() -> Html {
                 let url = format!("{}{}", token.addr, GET_UPDATES_TO_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: GetUpdatesToHostBehaviorReply =
-                            serde_json::from_str(&response).unwrap();
+                        let reply: GetUpdatesToHostBehaviorReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result

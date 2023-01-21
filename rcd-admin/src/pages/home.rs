@@ -2,7 +2,7 @@ use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_DATABASES, REVOKE_TOKEN};
 use rcd_messages::client::{
     AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, RevokeReply, TokenReply,
 };
-use web_sys::{console, HtmlInputElement};
+use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 use crate::{
@@ -50,7 +50,7 @@ pub fn Connect() -> Html {
 
     let database_names = use_state(|| {
         let databases: Vec<String> = Vec::new();
-        return databases;
+        databases
     });
 
     let onclick_logout = {
@@ -60,11 +60,10 @@ pub fn Connect() -> Html {
             let url = format!("{}{}", token.addr, REVOKE_TOKEN);
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                if let Ok(ref x) = response {
+                    log_to_console(x.to_string());
                     clear_status();
-                    let reply: RevokeReply = serde_json::from_str(&response.to_string()).unwrap();
+                    let reply: RevokeReply = serde_json::from_str(x).unwrap();
                     if reply.is_successful {
                         let token = Token::new();
                         set_token(token);
@@ -106,17 +105,11 @@ pub fn Connect() -> Html {
             let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
             let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-            let base_address = format!(
-                "{}{}{}{}",
-                "http://",
-                ip_val.clone().to_string(),
-                ":",
-                port_val
-            );
+            let base_address = format!("{}{}{}{}", "http://", ip_val, ":", port_val);
 
             let auth_request = AuthRequest {
-                user_name: un_val.to_string(),
-                pw: pw_val.to_string(),
+                user_name: un_val,
+                pw: pw_val,
                 pw_hash: Vec::new(),
                 token: Vec::new(),
                 jwt: String::from(""),
@@ -185,25 +178,24 @@ pub fn Connect() -> Html {
 /// and attempts to get a JWT from the RCD instance. If successfully authenticated,
 /// it will save the JWT to Session Storage
 fn save_token(addr: String, auth_json: String, database_names: UseStateHandle<Vec<String>>) {
-    let addr = addr.clone();
+    let addr = addr;
     let address = addr.clone();
-    let database_names = database_names.clone();
+    let database_names = database_names;
 
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
-        if response.is_ok() {
-            let response = response.unwrap();
-            console::log_1(&response.to_string().into());
+        if let Ok(ref x) = response {
+            log_to_console(x.to_string());
             clear_status();
 
             let database_names = database_names.clone();
 
-            let response: TokenReply = serde_json::from_str(&response.to_string()).unwrap();
+            let response: TokenReply = serde_json::from_str(x).unwrap();
             if response.is_successful {
                 let jwt = response.jwt;
 
                 let token = Token {
                     jwt: jwt,
-                    jwt_exp: response.expiration_utc.clone(),
+                    jwt_exp: response.expiration_utc,
                     addr: addr.clone(),
                     is_logged_in: true,
                 };
@@ -225,21 +217,19 @@ pub fn databases(database_names: UseStateHandle<Vec<String>>) {
     let auth_request = token.auth();
 
     let db_request = GetDatabasesRequest {
-        authentication: Some(auth_request.clone()),
+        authentication: Some(auth_request),
     };
 
     let db_request_json = serde_json::to_string(&db_request).unwrap();
 
     let db_callback = Callback::from(move |response: Result<AttrValue, String>| {
-        if response.is_ok() {
-            let response = response.unwrap();
-            console::log_1(&response.to_string().into());
+        if let Ok(ref x) = response {
+            log_to_console(x.to_string());
             clear_status();
 
             let database_names = database_names.clone();
 
-            let db_response: GetDatabasesReply =
-                serde_json::from_str(&response.to_string()).unwrap();
+            let db_response: GetDatabasesReply = serde_json::from_str(x).unwrap();
 
             let is_authenticated = db_response
                 .authentication_result
@@ -249,7 +239,7 @@ pub fn databases(database_names: UseStateHandle<Vec<String>>) {
             update_token_login_status(is_authenticated);
 
             if is_authenticated {
-                let databases = db_response.databases.clone();
+                let databases = db_response.databases;
                 set_databases(databases.clone());
 
                 let mut db_names: Vec<String> = Vec::new();
@@ -264,7 +254,7 @@ pub fn databases(database_names: UseStateHandle<Vec<String>>) {
         }
     });
 
-    let url = format!("{}{}", token.addr.clone(), GET_DATABASES);
+    let url = format!("{}{}", token.addr, GET_DATABASES);
     request::post(url, db_request_json, db_callback);
 }
 
@@ -273,8 +263,14 @@ pub struct DatabaseDetails {
     pub dbs: Vec<DatabaseSchema>,
 }
 
+impl Default for DatabaseDetails {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DatabaseDetails {
     pub fn new() -> DatabaseDetails {
-        return DatabaseDetails { dbs: Vec::new() };
+        DatabaseDetails { dbs: Vec::new() }
     }
 }

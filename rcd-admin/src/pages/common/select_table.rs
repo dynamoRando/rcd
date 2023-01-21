@@ -24,18 +24,16 @@ pub fn SelectTable(
 
     let mut table_names: Vec<String> = Vec::new();
 
-    if active_database_name.is_some() {
+    if let Some(x) = active_database_name {
         table_names.clear();
-
-        let active_database_name = active_database_name.clone();
         let databases = get_databases();
 
-        let db_name = &*active_database_name.unwrap().clone();
+        let db_name = x;
 
-        if db_name != "" {
+        if !db_name.is_empty() {
             let database = databases
                 .iter()
-                .find(|x| x.database_name.to_string() == db_name.to_string())
+                .find(|x| x.database_name == *db_name)
                 .unwrap()
                 .clone();
 
@@ -48,7 +46,7 @@ pub fn SelectTable(
     let ui_active_table = use_node_ref();
 
     let local_onclick = {
-        let active_table_name = active_table_name.clone();
+        let active_table_name = active_table_name;
         let ui_active_table = ui_active_table.clone();
         let onclick_table = onclick_table.clone();
         Callback::from(move |_| {
@@ -59,12 +57,12 @@ pub fn SelectTable(
                 let selected_table_val =
                     ui_active_table.cast::<HtmlInputElement>().unwrap().value();
 
-                if active_table_name.is_some() {
-                    active_table_name.unwrap().set(selected_table_val.clone());
+                if let Some(x) = active_table_name {
+                    x.set(selected_table_val.clone());
                 }
 
-                if onclick_table.is_some() {
-                    onclick_table.unwrap().emit(selected_table_val.clone());
+                if let Some(x) = onclick_table {
+                    x.emit(selected_table_val);
                 }
             }
         })

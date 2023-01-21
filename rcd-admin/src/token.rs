@@ -14,14 +14,20 @@ pub struct Token {
     pub is_logged_in: bool,
 }
 
+impl Default for Token {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Token {
     pub fn new() -> Token {
-        return Token {
+        Token {
             jwt: "".to_string(),
             jwt_exp: "".to_string(),
             addr: "".to_string(),
             is_logged_in: false,
-        };
+        }
     }
 
     /// Returns an AuthRequest in JSON format with this JWT as the authentication method
@@ -34,17 +40,17 @@ impl Token {
             jwt: self.jwt.clone(),
         };
 
-        return serde_json::to_string(&request).unwrap();
+        serde_json::to_string(&request).unwrap()
     }
 
     /// Returns an AuthRequest with this JWT as the authentication method
     pub fn auth(&self) -> AuthRequest {
-        return AuthRequest {
+        AuthRequest {
             user_name: "".to_string(),
             pw: "".to_string(),
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: self.jwt.clone(),
-        };
+        }
     }
 }

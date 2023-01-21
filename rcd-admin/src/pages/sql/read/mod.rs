@@ -24,12 +24,11 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
     let url = format!("{}{}", token.addr, endpoint);
 
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
-        if response.is_ok() {
-            let response = response.unwrap().to_string();
-            log_to_console(response.clone());
+        if let Ok(ref x) = response {
+            log_to_console(x.to_string());
             clear_status();
 
-            let read_reply: ExecuteReadReply = serde_json::from_str(&response.to_string()).unwrap();
+            let read_reply: ExecuteReadReply = serde_json::from_str(x).unwrap();
 
             let is_authenticated = read_reply
                 .authentication_result
@@ -47,8 +46,8 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
                     state.set(Some(sql_table_text));
                 } else {
                     let mut message = String::new();
-                    message = message + &"ERROR: ";
-                    message = message + &result.execution_error_message.clone();
+                    message += "ERROR: ";
+                    message += &result.execution_error_message.clone();
 
                     state.set(Some(message));
                 }

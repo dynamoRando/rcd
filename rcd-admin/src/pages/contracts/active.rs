@@ -21,28 +21,26 @@ pub fn Active() -> Html {
         Callback::from(move |db_name: String| {
             let active_contract_text = active_contract_text.clone();
 
-            if db_name.to_string() == "" || db_name.to_string() == "SELECT DATABASE" {
+            if db_name.is_empty() || db_name == "SELECT DATABASE" {
                 ()
             } else {
                 let token = get_token();
-                let auth = token.auth().clone();
+                let auth = token.auth();
 
                 let get_active_contract_request = GetActiveContractRequest {
                     authentication: Some(auth),
-                    database_name: db_name.clone().to_string(),
+                    database_name: db_name.clone(),
                 };
 
                 let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_ACTIVE_CONTRACT);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.clone().to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: GetActiveContractReply =
-                            serde_json::from_str(&&response.to_string()).unwrap();
+                        let reply: GetActiveContractReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result
@@ -67,7 +65,7 @@ pub fn Active() -> Html {
                 let message = format!(
                     "{}{}",
                     "sending active contract request for: ",
-                    db_name.clone()
+                    db_name
                 );
                 log_to_console(message);
 

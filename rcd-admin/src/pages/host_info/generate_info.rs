@@ -26,22 +26,20 @@ pub fn GenerateInfo() -> Html {
 
             let request = GenerateHostInfoRequest {
                 authentication: Some(token.auth()),
-                host_name: host_name.clone(),
+                host_name: host_name,
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
             let url = format!("{}{}", token.addr, GENERATE_HOST_INFO);
 
             let cb = {
-                let last_gen_result = last_gen_result.clone();
+                let last_gen_result = last_gen_result;
                 Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: GenerateHostInfoReply =
-                            serde_json::from_str(&response.to_string()).unwrap();
+                        let reply: GenerateHostInfoReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result
@@ -51,11 +49,8 @@ pub fn GenerateInfo() -> Html {
                         update_token_login_status(is_authenticated);
 
                         if is_authenticated {
-                            let message = format!(
-                                "{}{}",
-                                "Last gen result was: ",
-                                reply.is_successful.to_string()
-                            );
+                            let message =
+                                format!("{}{}", "Last gen result was: ", reply.is_successful);
                             last_gen_result.set(message);
                         }
                     } else {

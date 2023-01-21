@@ -25,22 +25,20 @@ pub fn Create() -> Html {
 
             let request = CreateUserDatabaseRequest {
                 authentication: Some(token.auth()),
-                database_name: db_name.clone(),
+                database_name: db_name,
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
             let url = format!("{}{}", token.addr, NEW_DATABASE);
 
             let cb = {
-                let last_created_result = last_created_result.clone();
+                let last_created_result = last_created_result;
                 Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: CreateUserDatabaseReply =
-                            serde_json::from_str(&response.to_string()).unwrap();
+                        let reply: CreateUserDatabaseReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result

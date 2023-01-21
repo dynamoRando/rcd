@@ -1,4 +1,4 @@
-use crate::pages::sql::sql::SqlProps;
+use crate::pages::sql::sqlx::SqlProps;
 use yew::{function_component, html, Html};
 
 #[function_component]
@@ -6,7 +6,7 @@ pub fn SqlResult(SqlProps { sql_result_state }: &SqlProps) -> Html {
     let mut text = String::from("");
 
     if sql_result_state.is_some() {
-        let sql_result_state = sql_result_state.as_ref().clone();
+        let sql_result_state = sql_result_state.as_ref();
         text = sql_result_state.unwrap().clone();
     }
 

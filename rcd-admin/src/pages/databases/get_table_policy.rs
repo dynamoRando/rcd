@@ -19,15 +19,13 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     let policy = table_policy.clone();
 
     let get_policy_response_cb = Callback::from(move |response: Result<AttrValue, String>| {
-        if response.is_ok() {
-            let response = response.unwrap();
-            log_to_console(response.to_string());
+        if let Ok(ref x) = response {
+            log_to_console(x.to_string());
             clear_status();
 
             let table_policy = table_policy.clone();
 
-            let reply: GetLogicalStoragePolicyReply =
-                serde_json::from_str(&&response.to_string()).unwrap();
+            let reply: GetLogicalStoragePolicyReply = serde_json::from_str(x).unwrap();
 
             let is_authenticated = reply
                 .authentication_result

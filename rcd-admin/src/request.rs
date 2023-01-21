@@ -17,7 +17,7 @@ const STATUS: &str = "rcdadmin.key.status";
 pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, String>>) {
     let message = format!("{}{}", "outgoing message: ", body);
     log_to_console(message);
-    if body != "" {
+    if !body.is_empty() {
         spawn_local(async move {
             let result = Request::new(&url)
                 .method(Method::POST)
@@ -27,14 +27,14 @@ pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, Stri
                 .await;
 
             if result.is_ok() {
-                let response = result.unwrap().text().await;
-                if response.is_ok() {
-                    let data = response.unwrap();
+                let response = result.as_ref().unwrap().text().await;
+
+                if let Ok(data) = response {
                     callback.emit(Ok(AttrValue::from(data)));
+                } else {
+                    let err = result.err().unwrap().to_string();
+                    callback.emit(Err(err))
                 }
-            } else {
-                let err = result.err().unwrap().to_string();
-                callback.emit(Err(err))
             }
         });
     }
@@ -49,12 +49,11 @@ pub fn set_token(token: Token) {
 /// Gets the JWT from Session Storage
 pub fn get_token() -> Token {
     let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
-    if token == "" {
-        let token = Token::new();
-        return token;
+    if token.is_empty() {
+        Token::new()
     } else {
-        let token: Token = serde_json::from_str(&token.to_string()).unwrap();
-        return token;
+        let token: Token = serde_json::from_str(&token).unwrap();
+        token
     }
 }
 
@@ -68,7 +67,7 @@ pub fn set_databases(dbs: Vec<DatabaseSchema>) {
 pub fn get_databases() -> Vec<DatabaseSchema> {
     let databases = SessionStorage::get(DATABASES).unwrap_or_else(|_| String::from(""));
     let databases: Vec<DatabaseSchema> = serde_json::from_str(&databases).unwrap();
-    return databases;
+    databases
 }
 
 /// Saves the RCD databases Participants to Session Storage
@@ -81,7 +80,7 @@ pub fn set_participants(participants: Vec<ParticipantStatus>) {
 pub fn get_participants() -> Vec<ParticipantStatus> {
     let participants = SessionStorage::get(PARTICIPANTS).unwrap_or_else(|_| String::from(""));
     let participants: Vec<ParticipantStatus> = serde_json::from_str(&participants).unwrap();
-    return participants;
+    participants
 }
 
 /// updates our status on if we're logged in or not
@@ -94,13 +93,13 @@ pub fn update_token_login_status(is_logged_in: bool) {
 pub fn set_status(status: String) {
     let date = js_sys::Date::new_0();
     let now = String::from(date.to_locale_time_string("en-US"));
-    let message = format!("{}: {}", now, &status.to_string());
+    let message = format!("{}: {}", now, &status);
     SessionStorage::set(STATUS, message).expect("failed to set");
 }
 
 /// Gets the JWT from Session Storage
 pub fn get_status() -> String {
-    return SessionStorage::get(STATUS).unwrap_or_else(|_| String::from(""));
+    SessionStorage::get(STATUS).unwrap_or_else(|_| String::from(""))
 }
 
 pub fn clear_status() {

@@ -12,12 +12,12 @@ use crate::components::status::Status;
 use crate::pages::behaviors::Behaviors;
 use crate::pages::contracts::Contracts;
 use crate::pages::coop_hosts::CooperativeHosts;
-use crate::pages::databases::databases::Databases;
+use crate::pages::databases::db::Databases;
 use crate::pages::home::Home;
 use crate::pages::host_info::HostInfo;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::participants::Participants;
-use crate::pages::sql::sql::Sql;
+use crate::pages::sql::sqlx::Sql;
 use crate::request::{get_status, get_token};
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]

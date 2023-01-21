@@ -58,8 +58,8 @@ pub fn PendingActions(
                                             let onclick_accept = onclick_accept.clone();
                                             Callback::from(move |_| {
                                                 let onclick_accept = onclick_accept.clone();
-                                                if onclick_accept.is_some() {
-                                                    onclick_accept.unwrap().emit(id);
+                                                if let Some(x) = onclick_accept {
+                                                    x.emit(id);
                                                 }
                                             }
                                         )}>
@@ -72,8 +72,9 @@ pub fn PendingActions(
                                             let onclick_reject = onclick_reject.clone();
                                             Callback::from(move |_| {
                                                 let onclick_reject = onclick_reject.clone();
-                                                if onclick_reject.is_some() {
-                                                    onclick_reject.unwrap().emit(id);
+
+                                                if let Some(x) = onclick_reject {
+                                                    x.emit(id);
                                                 }
                                             }
                                         )}

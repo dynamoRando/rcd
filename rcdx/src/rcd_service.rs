@@ -99,7 +99,7 @@ impl RcdService {
         }
     }
 
-    pub fn start_at_dir(self: &mut Self, root_dir: &str) {
+    pub fn start_at_dir(&mut self, root_dir: &str) {
         configure_backing_store_at_dir(
             self.rcd_settings.database_type,
             &self.rcd_settings.backing_database_name,
@@ -138,7 +138,7 @@ impl RcdService {
         return self.db_interface.as_ref().unwrap().clone();
     }
 
-    pub fn start(self: &mut Self) {
+    pub fn start(&mut self) {
         configure_backing_store(
             self.rcd_settings.database_type,
             &self.rcd_settings.backing_database_name,

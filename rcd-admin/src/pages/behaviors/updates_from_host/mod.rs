@@ -10,7 +10,12 @@ mod view_pending_updates;
 
 use crate::{
     log::log_to_console,
-    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::updates_from_host::{change_behavior::ChangeBehavior, view_pending_updates::ViewPendingUpdates}},
+    pages::{
+        behaviors::updates_from_host::{
+            change_behavior::ChangeBehavior, view_pending_updates::ViewPendingUpdates,
+        },
+        common::{select_database::SelectDatabase, select_table::SelectTable},
+    },
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
@@ -30,11 +35,11 @@ pub fn UpdatesFromHost() -> Html {
 
     let table_names = use_state_eq(move || {
         let x: Vec<String> = Vec::new();
-        return x;
+        x
     });
 
     let onclick_db = {
-        let table_names = table_names.clone();
+        let table_names = table_names;
         Callback::from(move |db_name: String| {
             let databases = get_databases();
 
@@ -59,7 +64,7 @@ pub fn UpdatesFromHost() -> Html {
         let behavior_type_state = behavior_type_state.clone();
         Callback::from(move |table_name: String| {
             let behavior_type_state = behavior_type_state.clone();
-            if table_name != "" {
+            if !table_name.is_empty() {
                 log_to_console(table_name.clone());
 
                 let token = get_token();
@@ -74,13 +79,12 @@ pub fn UpdatesFromHost() -> Html {
                 let url = format!("{}{}", token.addr, GET_UPDATES_FROM_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
                         let reply: GetUpdatesFromHostBehaviorReply =
-                            serde_json::from_str(&response).unwrap();
+                            serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result
@@ -91,7 +95,8 @@ pub fn UpdatesFromHost() -> Html {
 
                         if is_authenticated {
                             let behavior = reply.behavior;
-                            let behavior_value = UpdatesFromHostBehavior::from_u32(behavior).as_string();
+                            let behavior_value =
+                                UpdatesFromHostBehavior::from_u32(behavior).as_string();
                             behavior_type_state.set(behavior_value);
                         }
                     } else {

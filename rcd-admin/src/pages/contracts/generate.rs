@@ -39,7 +39,7 @@ pub fn Generate() -> Html {
             let token = get_token();
 
             let request = GenerateContractRequest {
-                authentication: Some(token.auth().clone()),
+                authentication: Some(token.auth()),
                 database_name: (*active_db).clone(),
                 description: desc,
                 host_name: host_name,
@@ -52,12 +52,11 @@ pub fn Generate() -> Html {
 
             let cb = {
                 Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: GenerateContractReply = serde_json::from_str(&response).unwrap();
+                        let reply: GenerateContractReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result

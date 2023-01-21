@@ -33,29 +33,27 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
         let participant_details = participant_details.clone();
 
         Callback::from(move |db_name: String| {
-            if db_name != "" && db_name != "SELECT DATABASE" {
+            if !db_name.is_empty() && db_name != "SELECT DATABASE" {
                 let participant_details = participant_details.clone();
 
                 let token = get_token();
-                let auth = token.auth().clone();
+                let auth = token.auth();
 
                 let get_participants_request = GetParticipantsRequest {
                     authentication: Some(auth),
-                    database_name: db_name.clone(),
+                    database_name: db_name,
                 };
 
                 let request_json = serde_json::to_string(&get_participants_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
                         let participant_details = participant_details.clone();
-                        let reply: GetParticipantsReply =
-                            serde_json::from_str(&&response.to_string()).unwrap();
+                        let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result
@@ -65,7 +63,7 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                         update_token_login_status(is_authenticated);
 
                         if is_authenticated {
-                            participant_details.set(reply.participants.clone());
+                            participant_details.set(reply.participants);
                         }
                     } else {
                         set_status(response.err().unwrap());
@@ -161,13 +159,13 @@ pub fn ViewParticipantsForDb(
                                                 log_to_console(url.clone());
 
                                                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                                                    if response.is_ok() {
-                                                        let response = response.unwrap();
+
+                                                    if let Ok(ref x) = response {
                                                         let participant_send_contract_result = participant_send_contract_result.clone();
-                                                        log_to_console(response.to_string());
+                                                        log_to_console(x.to_string());
 
                                                         let reply: SendParticipantContractReply =
-                                                        serde_json::from_str(&&response.clone().to_string()).unwrap();
+                                                        serde_json::from_str(x).unwrap();
 
                                                         let is_authenticated = reply.authentication_result.unwrap().is_authenticated;
                                                         update_token_login_status(is_authenticated);

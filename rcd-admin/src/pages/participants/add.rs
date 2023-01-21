@@ -46,8 +46,8 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             let url = format!("{}{}", token.addr, ADD_PARTICIPANT);
 
             let request = AddParticipantRequest {
-                authentication: Some(token.auth().clone()),
-                database_name: db_name.clone(),
+                authentication: Some(token.auth()),
+                database_name: db_name,
                 alias: alias.clone(),
                 ip4_address: addr,
                 port: port.parse().unwrap(),
@@ -58,13 +58,11 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             let request_json = serde_json::to_string(&request).unwrap();
 
             let callback = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
-                    let response = response.unwrap();
-                    log_to_console(response.to_string());
+                if let Ok(ref x) = response {
+                    log_to_console(x.to_string());
                     clear_status();
 
-                    let reply: AddParticipantReply =
-                        serde_json::from_str(&&response.to_string()).unwrap();
+                    let reply: AddParticipantReply = serde_json::from_str(x).unwrap();
 
                     let is_authenticated = reply
                         .authentication_result
@@ -79,9 +77,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
                         let message = format!(
                             "Alias: {} Is Successful: {} At Time: {}",
-                            alias,
-                            reply.is_successful.to_string(),
-                            now
+                            alias, reply.is_successful, now
                         );
                         add_participant_result.set(message);
                     }

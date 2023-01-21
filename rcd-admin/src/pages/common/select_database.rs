@@ -28,25 +28,26 @@ pub fn SelectDatabase(
     let active_db_name = active_db_name.clone();
 
     let local_onclick = {
-        let active_db_name = active_db_name.clone();
+        let active_db_name = active_db_name;
         let ui_active_database = ui_active_database.clone();
         let onclick_db = onclick_db.clone();
         Callback::from(move |_| {
             let active_db_name = active_db_name.clone();
             let onclick_db = onclick_db.clone();
             let selected_db = ui_active_database.cast::<HtmlInputElement>();
+
             if selected_db.is_some() {
                 let selected_db_val = ui_active_database
                     .cast::<HtmlInputElement>()
                     .unwrap()
                     .value();
 
-                if active_db_name.is_some() {
-                    active_db_name.unwrap().set(selected_db_val.clone());
+                if let Some(x) = active_db_name {
+                    x.set(selected_db_val.clone());
                 }
 
-                if onclick_db.is_some() {
-                    onclick_db.unwrap().emit(selected_db_val.clone());
+                if let Some(y) = onclick_db {
+                    y.emit(selected_db_val);
                 }
             }
         })

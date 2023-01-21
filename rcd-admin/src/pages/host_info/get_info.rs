@@ -11,7 +11,7 @@ use crate::{
 #[function_component]
 pub fn GetInfo() -> Html {
     let host_info = use_state_eq(move || {
-        return Host {
+        Host {
             host_guid: "".to_string(),
             host_name: "".to_string(),
             ip4_address: "".to_string(),
@@ -20,26 +20,24 @@ pub fn GetInfo() -> Html {
             token: Vec::new(),
             http_addr: "".to_string(),
             http_port: 0,
-        };
+        }
     });
 
     let get_host_info_onclick = {
         let host_info = host_info.clone();
         Callback::from(move |_| {
             let host_info = host_info.clone();
-            let token = get_token().clone();
+            let token = get_token();
             let url = format!("{}{}", token.addr, GET_HOST_INFO);
 
             let request_json = token.auth_json();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+                if let Ok(ref x) = response {
                     clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(x.to_string());
                     let host_info = host_info.clone();
-                    let reply: HostInfoReply =
-                        serde_json::from_str(&&response.to_string()).unwrap();
+                    let reply: HostInfoReply = serde_json::from_str(x).unwrap();
 
                     let is_authenticated = reply
                         .authentication_result
@@ -49,7 +47,7 @@ pub fn GetInfo() -> Html {
                     update_token_login_status(is_authenticated);
 
                     if is_authenticated {
-                        host_info.set(reply.host_info.unwrap().clone());
+                        host_info.set(reply.host_info.unwrap());
                     }
                 } else {
                     let error_message = response.err().unwrap();
@@ -77,8 +75,8 @@ pub fn GetInfo() -> Html {
                             <th>{"Name"}</th>
                         </thead>
                         <tr>
-                            <td>{(*host_info).host_guid.clone()}</td>
-                            <td>{(*host_info).host_name.clone()}</td>
+                            <td>{host_info.host_guid.clone()}</td>
+                            <td>{host_info.host_name.clone()}</td>
                         </tr>
                     </table>
                 </div>

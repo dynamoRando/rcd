@@ -35,7 +35,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
     let onclick: Callback<MouseEvent> = {
         log_to_console("SetTablePolicy - Clicked".to_string());
-        let set_new_policy = set_new_policy.clone();
+        let set_new_policy = set_new_policy;
 
         if set_new_policy.is_some() {
             let policy_val = set_new_policy.as_ref().unwrap();
@@ -45,7 +45,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
             let policy_num: u32 = policy_val.parse().unwrap();
 
-            let database_name = database_name.clone();
+            let database_name = database_name;
             let table_name = table_name.clone();
 
             let set_policy_result = set_policy_result.clone();
@@ -55,13 +55,11 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                 let set_policy_result = set_policy_result.clone();
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
+                    if let Ok(ref x) = response {
+                        log_to_console(x.to_string());
                         clear_status();
 
-                        let reply: SetLogicalStoragePolicyReply =
-                            serde_json::from_str(&&response.to_string()).unwrap();
+                        let reply: SetLogicalStoragePolicyReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result

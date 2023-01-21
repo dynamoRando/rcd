@@ -2,7 +2,7 @@ use crate::{
     log::log_to_console,
     pages::{
         common::select_database::SelectDatabase,
-        sql::{read::read, sql::SqlProps, write::cooperative_write, write::write},
+        sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
@@ -43,29 +43,27 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
     let onclick_db = {
         let participant_aliases = participant_aliases.clone();
         Callback::from(move |db_name: String| {
-            if db_name.to_string() == "" || db_name.to_string() == "SELECT DATABASE" {
+            if db_name.is_empty() || db_name == "SELECT DATABASE" {
                 ()
             } else {
                 let participant_aliases = participant_aliases.clone();
                 let token = get_token();
-                let auth = token.auth().clone();
+                let auth = token.auth();
 
                 let get_participants_request = GetParticipantsRequest {
                     authentication: Some(auth),
-                    database_name: db_name.clone().to_string(),
+                    database_name: db_name.clone(),
                 };
 
                 let request_json = serde_json::to_string(&get_participants_request).unwrap();
                 let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
+                    if let Ok(ref x) = response {
                         clear_status();
-                        let response = response.unwrap();
-                        log_to_console(response.clone().to_string());
+                        log_to_console(x.to_string());
                         let participant_aliases = participant_aliases.clone();
-                        let reply: GetParticipantsReply =
-                            serde_json::from_str(&&response.to_string()).unwrap();
+                        let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
 
                         let is_authenticated = reply
                             .authentication_result
@@ -75,7 +73,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                         update_token_login_status(is_authenticated);
 
                         if is_authenticated {
-                            let participants = reply.participants.clone();
+                            let participants = reply.participants;
 
                             let mut aliases: Vec<String> = Vec::new();
                             for p in &participants {
@@ -90,7 +88,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                     }
                 });
 
-                let message = format!("{}{}", "sending participant request for: ", db_name.clone());
+                let message = format!("{}{}", "sending participant request for: ", &db_name);
                 log_to_console(message);
 
                 request::post(url, request_json, cb);
@@ -122,7 +120,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            let db_name = active_database.clone();
+            let db_name = active_database;
             let text = ui_enter_sql_text
                 .cast::<HtmlInputElement>()
                 .unwrap()
@@ -142,7 +140,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
         let active_database = active_database.clone();
         Callback::from(move |_| {
             let active_database = active_database.clone();
-            let db_name = active_database.clone();
+            let db_name = active_database;
             let text = ui_enter_sql_text
                 .cast::<HtmlInputElement>()
                 .unwrap()
@@ -195,7 +193,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
     };
 
     let onclick_coop_write_at_host = {
-        let sql_result_state = sql_result_state.clone();
+        let sql_result_state = sql_result_state;
         let ui_enter_sql_text = ui_enter_sql_text.clone();
         let active_database = active_database.clone();
         Callback::from(move |_| {
@@ -203,7 +201,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
 
             let alias = active_participant.as_ref().unwrap().clone();
 
-            let db_name = active_database.clone();
+            let db_name = active_database;
             let text = ui_enter_sql_text
                 .cast::<HtmlInputElement>()
                 .unwrap()

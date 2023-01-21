@@ -2357,6 +2357,7 @@ dependencies = [
  "rcdproto",
  "rcdx",
  "reqwest",
+ "serde",
  "serde_json",
  "tokio",
  "tonic",

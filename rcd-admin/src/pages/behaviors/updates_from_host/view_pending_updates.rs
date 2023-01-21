@@ -28,7 +28,7 @@ pub fn ViewPendingUpdates(
 ) -> Html {
     let pending_actions = use_state_eq(move || {
         let x: Vec<PendingStatement> = Vec::new();
-        return x;
+        x
     });
 
     let active_database = active_database.clone();
@@ -54,12 +54,11 @@ pub fn ViewPendingUpdates(
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+                if let Ok(ref x) = response {
                     clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(x.to_string());
 
-                    let reply: AcceptPendingActionReply = serde_json::from_str(&response).unwrap();
+                    let reply: AcceptPendingActionReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
                         .authentication_result
                         .as_ref()
@@ -101,12 +100,11 @@ pub fn ViewPendingUpdates(
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+                if let Ok(ref x) = response {
                     clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(x.to_string());
 
-                    let reply: AcceptPendingActionReply = serde_json::from_str(&response).unwrap();
+                    let reply: AcceptPendingActionReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
                         .authentication_result
                         .as_ref()
@@ -129,8 +127,8 @@ pub fn ViewPendingUpdates(
     };
 
     let onclick_view = {
-        let active_database = active_database.clone();
-        let active_table = active_table.clone();
+        let active_database = active_database;
+        let active_table = active_table;
         let pending_actions = pending_actions.clone();
 
         Callback::from(move |_| {
@@ -147,12 +145,11 @@ pub fn ViewPendingUpdates(
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+                if let Ok(ref x) = response {
                     clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(x.to_string());
 
-                    let reply: GetPendingActionsReply = serde_json::from_str(&response).unwrap();
+                    let reply: GetPendingActionsReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
                         .authentication_result
                         .as_ref()
@@ -161,7 +158,7 @@ pub fn ViewPendingUpdates(
                     update_token_login_status(is_authenticated);
 
                     if is_authenticated {
-                        let actions = reply.pending_statements.clone();
+                        let actions = reply.pending_statements;
                         pending_actions.set(actions);
                     }
                 } else {

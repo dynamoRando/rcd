@@ -4,7 +4,6 @@ use rcd_messages::client::{
     ChangeHostStatusReply, ChangeHostStatusRequest, GetCooperativeHostsReply,
     GetCooperativeHostsRequest, HostInfoStatus,
 };
-use web_sys::console;
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
@@ -16,7 +15,7 @@ use crate::{
 pub fn CooperativeHosts() -> Html {
     let hosts_state = use_state_eq(move || {
         let x: Vec<HostInfoStatus> = Vec::new();
-        return x;
+        x
     });
 
     let onclick = {
@@ -34,13 +33,11 @@ pub fn CooperativeHosts() -> Html {
             let hosts_state = hosts_state.clone();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
-                    let response = response.unwrap();
-                    console::log_1(&response.to_string().into());
+                if let Ok(ref x) = response {
+                    log_to_console(x.to_string());
                     clear_status();
 
-                    let coop_response: GetCooperativeHostsReply =
-                        serde_json::from_str(&response).unwrap();
+                    let coop_response: GetCooperativeHostsReply = serde_json::from_str(x).unwrap();
 
                     let is_authenticated = coop_response
                         .authentication_result
@@ -50,7 +47,7 @@ pub fn CooperativeHosts() -> Html {
                     update_token_login_status(is_authenticated);
 
                     if is_authenticated {
-                        let hosts = coop_response.hosts.clone();
+                        let hosts = coop_response.hosts;
                         hosts_state.set(hosts);
                     }
                 } else {
@@ -130,13 +127,13 @@ pub fn CooperativeHosts() -> Html {
                                                         let body = serde_json::to_string(&request).unwrap();
 
                                                         let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                                                            if response.is_ok() {
+
+                                                            if let Ok(ref x) = response {
                                                                 let name = name.clone();
                                                                 clear_status();
-                                                                let response = response.unwrap();
-                                                                log_to_console(response.clone().to_string());
+                                                                log_to_console(x.to_string());
 
-                                                                let reply: ChangeHostStatusReply = serde_json::from_str(&response).unwrap();
+                                                                let reply: ChangeHostStatusReply = serde_json::from_str(x).unwrap();
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
                                                                 update_token_login_status(is_authenticated);
 
@@ -146,10 +143,11 @@ pub fn CooperativeHosts() -> Html {
                                                                         set_status(message);
                                                                     }
                                                                 }
-                                                            } else {
+                                                            }  else {
                                                                 let error_message = response.err().unwrap();
                                                                 set_status(error_message);
                                                             }
+
                                                             });
 
                                                         request::post(url, body, cb);
@@ -175,13 +173,13 @@ pub fn CooperativeHosts() -> Html {
                                                         let body = serde_json::to_string(&request).unwrap();
 
                                                         let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                                                            if response.is_ok() {
+
+                                                            if let Ok(ref x) = response {
                                                                 let name = name.clone();
                                                                 clear_status();
-                                                                let response = response.unwrap();
-                                                                log_to_console(response.clone().to_string());
+                                                                log_to_console(x.to_string());
 
-                                                                let reply: ChangeHostStatusReply = serde_json::from_str(&response).unwrap();
+                                                                let reply: ChangeHostStatusReply = serde_json::from_str(x).unwrap();
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
                                                                 update_token_login_status(is_authenticated);
 

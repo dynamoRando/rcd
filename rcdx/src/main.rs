@@ -1,5 +1,4 @@
 use log::info;
-use log4rs;
 use rcd_common::defaults;
 
 use rcd_enum::{
@@ -15,7 +14,6 @@ use rcd_service::get_current_directory;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
-use triggered;
 
 use crate::rcd_service::get_service_from_config_file;
 
@@ -93,7 +91,7 @@ async fn main() {
             db_interface: Some(dbi_data_clone),
         };
 
-        let _ = http_srv::start_http(core, data, http_addr, http_port);
+        http_srv::start_http(core, data, http_addr, http_port);
     });
 
     let mut input = String::from("");
@@ -104,7 +102,7 @@ async fn main() {
             .read_line(&mut input)
             .expect("Failed to read line");
 
-        if input.contains("q") {
+        if input.contains('q') {
             info!("shutting down...");
             client_trigger.trigger();
             db_trigger.trigger();
@@ -137,7 +135,7 @@ fn process_cmd_args(args: Vec<String>) -> Option<String> {
         }
     }
 
-    return None;
+    None
 }
 
 fn set_default_config() {
@@ -228,20 +226,20 @@ fn make_test_db() {
         service.start();
         let dbi = service.get_dbi();
 
-        let _ = dbi.create_database(test_db_name);
-        let _ = dbi.enable_coooperative_features(test_db_name);
+        dbi.create_database(test_db_name).unwrap();
+        dbi.enable_coooperative_features(test_db_name);
 
         let drop_table = "DROP TABLE IF EXISTS Example";
 
-        let _ = dbi.execute_write_at_host(test_db_name, &drop_table);
+        dbi.execute_write_at_host(test_db_name, drop_table).unwrap();
 
         let create_table_statement = "CREATE TABLE IF NOT EXISTS Example (Id INT, Name TEXT);";
 
-        let _ = dbi.execute_write_at_host(test_db_name, &create_table_statement);
+        dbi.execute_write_at_host(test_db_name, create_table_statement).unwrap();
 
         let policy = LogicalStoragePolicy::HostOnly;
 
-        let _ = dbi.set_logical_storage_policy(test_db_name, "Example", policy);
+        dbi.set_logical_storage_policy(test_db_name, "Example", policy).unwrap();
 
         let behavior = RemoteDeleteBehavior::Ignore;
 

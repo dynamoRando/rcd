@@ -23,21 +23,19 @@ pub fn EnableCoop() -> Html {
             let token = get_token();
 
             let request = EnableCoooperativeFeaturesRequest {
-                authentication: Some(token.auth().clone()),
+                authentication: Some(token.auth()),
                 database_name: (*active_database).clone(),
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
-            let url = format!("{}{}", token.addr.clone(), ENABLE_COOPERATIVE_FEATURES);
+            let url = format!("{}{}", token.addr, ENABLE_COOPERATIVE_FEATURES);
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
-                    let response = response.unwrap();
-                    log_to_console(response.to_string());
+                if let Ok(ref x) = response {
+                    log_to_console(x.to_string());
                     clear_status();
 
-                    let reply: EnableCoooperativeFeaturesReply =
-                        serde_json::from_str(&response).unwrap();
+                    let reply: EnableCoooperativeFeaturesReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply.authentication_result.unwrap().is_authenticated;
                     update_token_login_status(is_authenticated);
 
@@ -45,7 +43,7 @@ pub fn EnableCoop() -> Html {
                         let message = format!(
                             "{}{}",
                             "Last cooperation enable request for database was: ",
-                            reply.is_successful.to_string()
+                            reply.is_successful
                         );
                         enable_result.set(message);
                     }

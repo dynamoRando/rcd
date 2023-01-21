@@ -21,7 +21,7 @@ pub fn Databases() -> Html {
 
     let x = use_state_eq(move || {
         let x: Vec<String> = Vec::new();
-        return x;
+        x
     });
 
     let selected_database = use_state_eq(|| None);

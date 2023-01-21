@@ -1,6 +1,6 @@
 use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_http_common::url::client::CHANGE_UPDATES_TO_HOST_BEHAVIOR;
-use rcd_messages::client::{ChangeUpdatesToHostBehaviorRequest, ChangeUpdatesToHostBehaviorReply};
+use rcd_messages::client::{ChangeUpdatesToHostBehaviorReply, ChangeUpdatesToHostBehaviorRequest};
 use web_sys::HtmlInputElement;
 use yew::{
     function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
@@ -30,8 +30,8 @@ pub fn ChangeBehavior(
 
     let onclick = {
         let ui_behavior = ui_behavior.clone();
-        let database = database.clone();
-        let table = table.clone();
+        let database = database;
+        let table = table;
         Callback::from(move |_| {
             let behavior = ui_behavior.cast::<HtmlInputElement>().unwrap().value();
             let database = database.clone();
@@ -52,15 +52,13 @@ pub fn ChangeBehavior(
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+                if let Ok(ref x) = response {
                     let database = database.clone();
                     let table = table.clone();
                     clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.clone().to_string());
+                    log_to_console(x.to_string());
 
-                    let reply: ChangeUpdatesToHostBehaviorReply =
-                        serde_json::from_str(&response).unwrap();
+                    let reply: ChangeUpdatesToHostBehaviorReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
                         .authentication_result
                         .as_ref()
