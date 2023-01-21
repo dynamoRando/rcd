@@ -9,7 +9,7 @@ use std::path::Path;
 pub mod log_entry;
 mod sql_text;
 
-static DEFAULT_DB_NAME: &'static str = "log.db";
+static DEFAULT_DB_NAME: &str = "log.db";
 
 #[derive(Debug)]
 pub struct SqliteLog {

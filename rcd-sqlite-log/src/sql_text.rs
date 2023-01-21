@@ -60,7 +60,7 @@ pub fn add_log(level: &str, message: &str) -> String {
 
     cmd = cmd.replace(":dt", &dt);
     cmd = cmd.replace(":utc", &dt_utc);
-    cmd = cmd.replace(":level", &level.to_string());
+    cmd = cmd.replace(":level", level);
     cmd = cmd.replace(":message", message);
     cmd
 }
