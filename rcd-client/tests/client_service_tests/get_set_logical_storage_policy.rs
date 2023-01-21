@@ -143,8 +143,8 @@ pub mod grpc {
             .await
             .unwrap();
 
-        let i_res_policy = LogicalStoragePolicy::to_u32(policy_response);
-        i_res_policy
+        
+        LogicalStoragePolicy::to_u32(policy_response)
     }
 }
 
@@ -305,7 +305,7 @@ pub mod http {
             .await
             .unwrap();
 
-        let i_res_policy = LogicalStoragePolicy::to_u32(policy_response);
-        i_res_policy
+        
+        LogicalStoragePolicy::to_u32(policy_response)
     }
 }
