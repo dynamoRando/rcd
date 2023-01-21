@@ -406,7 +406,6 @@ async fn get_client_with_addr_port(
     DataServiceClient::new(channel)
 }
 
-#[allow(dead_code)]
 async fn get_client(
     participant: CoopDatabaseParticipant,
     timeout_in_seconds: u32,
