@@ -32,5 +32,7 @@ members = [
     # abstract client for http or grpc calls
     "rcd-client",
     # break out enum values
-    "rcd-enum"
+    "rcd-enum",
+    # a small library to log to sql lite
+    "rcd-sqlite-log"
 ]

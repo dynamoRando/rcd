@@ -2422,33 +2422,8 @@ dependencies = [
 name = "rcd-foo"
 version = "0.1.0"
 dependencies = [
- "antlr-rust",
- "chrono",
- "config",
- "conv",
- "endianness",
- "futures",
- "guid-create 0.2.0",
- "lazy_static",
  "log",
- "log4rs",
- "prost",
- "prost-types",
- "rcd-common",
- "rcd-core",
- "rcd-query",
- "rcdproto",
- "rocket",
- "rusqlite",
- "serde",
- "serde_derive",
- "serde_json",
- "sodiumoxide",
- "substring",
- "tokio",
- "tonic",
- "tonic-reflection 0.5.0",
- "triggered",
+ "rcd-sqlite-log",
 ]
 
 [[package]]
@@ -2460,7 +2435,7 @@ dependencies = [
  "rusqlite",
  "tokio",
  "tonic",
- "tonic-reflection 0.6.0",
+ "tonic-reflection",
 ]
 
 [[package]]
@@ -2537,6 +2512,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-sqlite-log"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "log",
+ "rusqlite",
+ "serde",
+ "serde_derive",
+]
+
+[[package]]
 name = "rcdcli"
 version = "0.1.0"
 
@@ -2547,6 +2533,7 @@ dependencies = [
  "prost",
  "prost-build",
  "serde",
+ "serde_derive",
  "tonic",
  "tonic-build",
 ]
@@ -2593,7 +2580,7 @@ dependencies = [
  "substring",
  "tokio",
  "tonic",
- "tonic-reflection 0.6.0",
+ "tonic-reflection",
  "triggered",
 ]
 
@@ -3416,21 +3403,6 @@ dependencies = [
  "prost-build",
  "quote 1.0.20",
  "syn 1.0.98",
-]
-
-[[package]]
-name = "tonic-reflection"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0455f730d540a1484bffc3c55c94100b18a662597b982c2e9073f2c55c602616"
-dependencies = [
- "bytes",
- "prost",
- "prost-types",
- "tokio",
- "tokio-stream",
- "tonic",
- "tonic-build",
 ]
 
 [[package]]
