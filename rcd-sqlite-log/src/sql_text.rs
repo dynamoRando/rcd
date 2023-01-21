@@ -13,8 +13,8 @@ pub fn create_log_table() -> String {
     )
 }
 
-pub fn get_last_one_hundred_logs() -> String {
-    String::from(
+pub fn get_last_x_logs(x: u32) -> String {
+    let mut result = String::from(
         "
     SELECT 
         log_dt,
@@ -25,9 +25,12 @@ pub fn get_last_one_hundred_logs() -> String {
         log 
     ORDER BY
         log_dt_utc DESC
-    LIMIT 100
+    LIMIT :x
     ;",
-    )
+    );
+
+    result = result.replace(":x", &x.to_string());
+    result
 }
 
 pub fn add_log(level: &str, message: &str) -> String {
