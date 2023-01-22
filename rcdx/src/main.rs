@@ -14,10 +14,7 @@ use rcd_service::get_current_directory;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
-
-use log::{LevelFilter, debug, warn, info, error, trace};
 use rcd_sqlite_log::SqliteLog;
-
 
 use crate::rcd_service::get_service_from_config_file;
 
@@ -262,5 +259,5 @@ fn make_test_db() {
 }
 
 fn use_sqlite_logging() {
-    SqliteLog::init(LevelFilter::Trace).unwrap();
+    SqliteLog::init(LevelFilter::Info).unwrap();
 }
