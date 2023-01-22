@@ -4,6 +4,7 @@ use log::SetLoggerError;
 use log::{set_max_level, LevelFilter, Metadata, Record};
 use log_entry::LogEntry;
 use rcd_markdown::markdown_kv_table::build_table;
+use regex::Regex;
 use rusqlite::{Connection, Result};
 use sql_text::{create_log_table, get_last_x_logs};
 use std::env;
@@ -134,6 +135,7 @@ impl log::Log for SqliteLog {
             let level: String = record.level().to_string();
             let args = record.args();
             let message = format!("{}", format_args!("{}", args));
+            let message = demoji(message);
 
             let sql_message = message.clone();
             let sql_level = level.clone();
@@ -182,4 +184,20 @@ fn format_message(level: &str, message: &str) -> String {
     kv.insert("Message".to_string(), message.to_string());
 
     build_table(kv)
+}
+
+fn demoji(string: String) -> String {
+    let regex = Regex::new(concat!(
+        "[",
+        "\u{01F600}-\u{01F64F}", // emoticons
+        "\u{01F300}-\u{01F5FF}", // symbols & pictographs
+        "\u{01F680}-\u{01F6FF}", // transport & map symbols
+        "\u{01F1E0}-\u{01F1FF}", // flags (iOS)
+        "\u{002702}-\u{0027B0}",
+        "\u{0024C2}-\u{01F251}",
+        "]+",
+    ))
+    .unwrap();
+
+    regex.replace_all(&string, "").to_string()
 }

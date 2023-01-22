@@ -104,6 +104,7 @@ pub async fn start() -> Result<(), rocket::Error> {
         port: get_port(),
         address: get_addr().parse().unwrap(),
         log_level: LogLevel::Normal,
+        cli_colors: false,
         ..Config::debug_default()
     };
 
