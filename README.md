@@ -1,5 +1,5 @@
 # rcd
-"Relational Cooperative Data" or "Rust Cooperative Data."
+"Relational Cooperative Data" or "Rust Cooperative Data." Or alternatively, "record."
 
 An implementation of [dotCDS](https://github.com/dynamoRando/dotCDS), but done in Rust. I'm not a native Rust programmer, I'm learning as I go. 
 
