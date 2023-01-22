@@ -10,6 +10,7 @@ rcdproto = { path = "../rcdproto" }
 rcd-common = { path = "../rcd-common" }
 rcd-query = { path = "../rcd-query" }
 rcd-enum = { path = "../rcd-enum" }
+rcd-sqlite-log = { path = "../rcd-sqlite-log" }
 serde = "1"
 serde_derive = "1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }

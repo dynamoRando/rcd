@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 rcdproto = { path = "../rcdproto" }
 rcd-sqlite = { path = "../rcd-sqlite" }
+rcd-sqlite-log = { path = "../rcd-sqlite-log" }
 rcd-common = { path = "../rcd-common" }
 rcd-enum = { path = "../rcd-enum" }
 rcd-query = { path = "../rcd-query" }

@@ -14,7 +14,7 @@ use std::thread;
 pub mod log_entry;
 mod sql_text;
 
-static DEFAULT_DB_NAME: &str = "log.sqlite";
+pub static DEFAULT_DB_NAME: &str = "log.sqlite";
 
 #[derive(Debug)]
 pub struct SqliteLog {

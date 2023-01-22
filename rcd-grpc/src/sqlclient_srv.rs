@@ -34,6 +34,15 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_logs_by_last_number(
+        &self,
+        request: Request<GetLogsByLastNumberRequest>,
+    ) -> Result<Response<GetLogsByLastNumberReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self.core().get_last_log_entries(request.into_inner()).await;
+        Ok(Response::new(response))
+    }
+
     async fn get_settings(
         &self,
         request: Request<GetSettingsRequest>,

@@ -19,6 +19,7 @@ use rcd_enum::{
 };
 
 use rcd_sqlite::sqlite::{self};
+use rcd_sqlite_log::log_entry::LogEntry;
 use rcdproto::rcdp::{
     ColumnSchema, Contract, DatabaseSchema, Participant, ParticipantStatus, PendingStatement, Row,
     TokenReply,
@@ -70,6 +71,17 @@ impl Dbi {
                 let settings = self.get_sqlite_settings();
                 rcd_sqlite::sqlite::rcd_db::login_has_token(login, &settings)
             }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_last_log_entries(&self, number_of_entries: u32) -> Vec<LogEntry> {
+        self.delete_expired_tokens();
+        match self.db_type {
+            DatabaseType::Sqlite => rcd_sqlite::sqlite::get_last_log_entries(number_of_entries),
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
             DatabaseType::Postgres => unimplemented!(),

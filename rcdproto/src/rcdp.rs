@@ -1,5 +1,33 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RcdLogEntry {
+    #[prost(string, tag="1")]
+    pub dt: ::prost::alloc::string::String,
+    #[prost(string, tag="2")]
+    pub dt_utc: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub level: ::prost::alloc::string::String,
+    #[prost(string, tag="4")]
+    pub message: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetLogsByLastNumberRequest {
+    #[prost(message, optional, tag="1")]
+    pub authentication: ::core::option::Option<AuthRequest>,
+    #[prost(uint32, tag="2")]
+    pub number_of_logs: u32,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct GetLogsByLastNumberReply {
+    #[prost(message, optional, tag="1")]
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    #[prost(message, repeated, tag="2")]
+    pub logs: ::prost::alloc::vec::Vec<RcdLogEntry>,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct GetSettingsRequest {
     #[prost(message, optional, tag="1")]
     pub authentication: ::core::option::Option<AuthRequest>,
@@ -2285,6 +2313,25 @@ pub mod sql_client_client {
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
+        pub async fn get_logs_by_last_number(
+            &mut self,
+            request: impl tonic::IntoRequest<super::GetLogsByLastNumberRequest>,
+        ) -> Result<tonic::Response<super::GetLogsByLastNumberReply>, tonic::Status> {
+            self.inner
+                .ready()
+                .await
+                .map_err(|e| {
+                    tonic::Status::new(
+                        tonic::Code::Unknown,
+                        format!("Service was not ready: {}", e.into()),
+                    )
+                })?;
+            let codec = tonic::codec::ProstCodec::default();
+            let path = http::uri::PathAndQuery::from_static(
+                "/rcdp.SQLClient/GetLogsByLastNumber",
+            );
+            self.inner.unary(request.into_request(), path, codec).await
+        }
     }
 }
 /// Generated client implementations.
@@ -2808,6 +2855,10 @@ pub mod sql_client_server {
             &self,
             request: tonic::Request<super::GetSettingsRequest>,
         ) -> Result<tonic::Response<super::GetSettingsReply>, tonic::Status>;
+        async fn get_logs_by_last_number(
+            &self,
+            request: tonic::Request<super::GetLogsByLastNumberRequest>,
+        ) -> Result<tonic::Response<super::GetLogsByLastNumberReply>, tonic::Status>;
     }
     /// a service for passing cooperative SQL statements to a rcd instance
     #[derive(Debug)]
@@ -4645,6 +4696,46 @@ pub mod sql_client_server {
                     let fut = async move {
                         let inner = inner.0;
                         let method = GetSettingsSvc(inner);
+                        let codec = tonic::codec::ProstCodec::default();
+                        let mut grpc = tonic::server::Grpc::new(codec)
+                            .apply_compression_config(
+                                accept_compression_encodings,
+                                send_compression_encodings,
+                            );
+                        let res = grpc.unary(method, req).await;
+                        Ok(res)
+                    };
+                    Box::pin(fut)
+                }
+                "/rcdp.SQLClient/GetLogsByLastNumber" => {
+                    #[allow(non_camel_case_types)]
+                    struct GetLogsByLastNumberSvc<T: SqlClient>(pub Arc<T>);
+                    impl<
+                        T: SqlClient,
+                    > tonic::server::UnaryService<super::GetLogsByLastNumberRequest>
+                    for GetLogsByLastNumberSvc<T> {
+                        type Response = super::GetLogsByLastNumberReply;
+                        type Future = BoxFuture<
+                            tonic::Response<Self::Response>,
+                            tonic::Status,
+                        >;
+                        fn call(
+                            &mut self,
+                            request: tonic::Request<super::GetLogsByLastNumberRequest>,
+                        ) -> Self::Future {
+                            let inner = self.0.clone();
+                            let fut = async move {
+                                (*inner).get_logs_by_last_number(request).await
+                            };
+                            Box::pin(fut)
+                        }
+                    }
+                    let accept_compression_encodings = self.accept_compression_encodings;
+                    let send_compression_encodings = self.send_compression_encodings;
+                    let inner = self.inner.clone();
+                    let fut = async move {
+                        let inner = inner.0;
+                        let method = GetLogsByLastNumberSvc(inner);
                         let codec = tonic::codec::ProstCodec::default();
                         let mut grpc = tonic::server::Grpc::new(codec)
                             .apply_compression_config(

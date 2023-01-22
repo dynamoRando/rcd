@@ -28,15 +28,15 @@ use rcdproto::rcdp::{
     GetCooperativeHostsRequest, GetDataHashReply, GetDataHashRequest, GetDatabasesReply,
     GetDatabasesRequest, GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest,
     GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply,
-    GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
-    GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    GetSettingsReply, GetSettingsRequest, GetUpdatesFromHostBehaviorReply,
-    GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
-    GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest, HostInfoReply, RevokeReply,
-    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
-    SetLogicalStoragePolicyRequest, TestReply, TestRequest, TokenReply,
-    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
-    ViewPendingContractsRequest,
+    GetLogicalStoragePolicyRequest, GetLogsByLastNumberReply, GetLogsByLastNumberRequest,
+    GetParticipantsReply, GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest,
+    GetReadRowIdsReply, GetReadRowIdsRequest, GetSettingsReply, GetSettingsRequest,
+    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
+    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
+    HostInfoReply, RcdLogEntry, RevokeReply, SendParticipantContractReply,
+    SendParticipantContractRequest, SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest,
+    TestReply, TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+    ViewPendingContractsReply, ViewPendingContractsRequest,
 };
 
 use crate::comm::RcdRemoteDbClient;
@@ -320,6 +320,34 @@ impl Rcd {
         request: GetDeletesFromHostBehaviorRequest,
     ) -> GetDeletesFromHostBehaviorReply {
         return db::get_deletes_from_host_behavior(self, request).await;
+    }
+
+    pub async fn get_last_log_entries(
+        &self,
+        request: GetLogsByLastNumberRequest,
+    ) -> GetLogsByLastNumberReply {
+        let auth_result = self.verify_login(request.authentication.unwrap());
+        let mut entries: Vec<RcdLogEntry> = Vec::new();
+
+        if auth_result.0 {
+            let log_entries = self.dbi().get_last_log_entries(request.number_of_logs);
+
+            for entry in &log_entries {
+                let x = RcdLogEntry {
+                    dt: entry.dt.clone(),
+                    dt_utc: entry.dt_utc.clone(),
+                    level: entry.level.clone(),
+                    message: entry.message.clone(),
+                };
+
+                entries.push(x);
+            }
+        }
+
+        GetLogsByLastNumberReply {
+            authentication_result: Some(auth_result.1),
+            logs: entries,
+        }
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {

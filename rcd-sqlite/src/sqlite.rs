@@ -2,6 +2,7 @@ use self::db_part::get_partial_db_connection;
 use log::{debug, info};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
 use rcd_enum::column_type::ColumnType;
+use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
@@ -9,6 +10,10 @@ pub mod db;
 pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
+
+pub fn get_last_log_entries(number_of_entries: u32) -> Vec<LogEntry> {
+    SqliteLog::default_get_last_x_logs(number_of_entries)
+}
 
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been
 /// created has also populated any data in it.

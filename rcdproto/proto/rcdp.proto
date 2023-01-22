@@ -48,6 +48,24 @@ service SQLClient {
 	rpc GetDeletesToHostBehavior (GetDeletesToHostBehaviorRequest) returns (GetDeletesToHostBehaviorReply);
 	rpc GetCooperativeHosts (GetCooperativeHostsRequest) returns (GetCooperativeHostsReply);
 	rpc GetSettings (GetSettingsRequest) returns (GetSettingsReply);
+	rpc GetLogsByLastNumber (GetLogsByLastNumberRequest) returns (GetLogsByLastNumberReply);
+}
+
+message RcdLogEntry {
+	string dt = 1;
+	string dt_utc = 2;
+	string level = 3;
+	string message = 4;
+}
+
+message GetLogsByLastNumberRequest {
+	AuthRequest authentication = 1;
+	uint32 number_of_logs = 2;
+}
+
+message GetLogsByLastNumberReply {
+	AuthResult authenticationResult = 1;
+	repeated RcdLogEntry logs = 2;
 }
 
 message GetSettingsRequest {
