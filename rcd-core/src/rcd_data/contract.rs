@@ -30,8 +30,6 @@ pub async fn accept_contract(
         &request.contract_version_guid,
     );
 
-    
-
     ParticipantAcceptsContractResult {
         contract_acceptance_is_acknowledged: is_successful,
         error_message: String::from(""),
@@ -42,8 +40,6 @@ pub async fn save_contract(core: &RcdData, request: SaveContractRequest) -> Save
     let contract = request.contract.unwrap();
 
     let save_is_successful = core.dbi().save_contract(contract);
-
-    
 
     SaveContractResult {
         is_saved: save_is_successful.0,

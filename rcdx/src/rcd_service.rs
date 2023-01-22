@@ -201,7 +201,7 @@ impl RcdService {
         client_shutdown_listener: Listener,
         db_shutdown_listener: Listener,
         data_grpc_timeout_in_seconds: u32,
-        settings: Option<RcdSettings>
+        settings: Option<RcdSettings>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         return grpc::start_grpc_at_addrs_with_shutdown(
             &mut self,
@@ -212,7 +212,7 @@ impl RcdService {
             client_shutdown_listener,
             db_shutdown_listener,
             data_grpc_timeout_in_seconds,
-            settings
+            settings,
         );
     }
 
@@ -331,8 +331,6 @@ pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSe
 
     let http_addr = settings.get_string(&String::from("http_addr")).unwrap();
     let http_port = settings.get_int(&String::from("http_port")).unwrap() as u16;
-
-    
 
     RcdSettings {
         admin_un,

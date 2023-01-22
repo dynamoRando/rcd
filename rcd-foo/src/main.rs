@@ -1,4 +1,4 @@
-use log::{LevelFilter, debug, warn, info, error, trace};
+use log::{debug, error, info, trace, warn, LevelFilter};
 use rcd_sqlite_log::SqliteLog;
 
 fn main() {
@@ -17,4 +17,3 @@ fn main() {
         println!("{}", message);
     }
 }
-

@@ -11,8 +11,9 @@ use log::info;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    data_info::DataInfo,
     db::CdsHosts,
-    host_info::HostInfo, data_info::DataInfo,
+    host_info::HostInfo,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcd_http_common::url::data::{
@@ -84,8 +85,7 @@ impl RemoteHttp {
 
             let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_UPDATED_HASH);
             let result = send_message(request_json, url).await;
-            let reply: UpdateRowDataHashForHostResponse =
-                serde_json::from_str(&result).unwrap();
+            let reply: UpdateRowDataHashForHostResponse = serde_json::from_str(&result).unwrap();
 
             reply.is_successful
         } else {
@@ -108,8 +108,7 @@ impl RemoteHttp {
 
             let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
             let result = send_message(request_json, url).await;
-            let reply: NotifyHostOfRemovedRowResponse =
-                serde_json::from_str(&result).unwrap();
+            let reply: NotifyHostOfRemovedRowResponse = serde_json::from_str(&result).unwrap();
 
             reply.is_successful
         }
@@ -139,16 +138,14 @@ impl RemoteHttp {
 
         let addr_port = format!(
             "{}:{}",
-            participant.participant.http_addr,
-            participant.participant.http_port
+            participant.participant.http_addr, participant.participant.http_port
         );
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, GET_ROW_AT_PARTICIPANT);
         let result = send_message(request_json, url).await;
-        let reply: GetRowFromPartialDatabaseResult =
-            serde_json::from_str(&result).unwrap();
+        let reply: GetRowFromPartialDatabaseResult = serde_json::from_str(&result).unwrap();
 
         reply
     }
@@ -172,11 +169,7 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!(
-            "{}:{}",
-            participant.http_addr,
-            participant.http_port
-        );
+        let addr_port = format!("{}:{}", participant.http_addr, participant.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -208,11 +201,7 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!(
-            "{}:{}",
-            participant.http_addr,
-            participant.http_port
-        );
+        let addr_port = format!("{}:{}", participant.http_addr, participant.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -235,11 +224,7 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!(
-            "{}:{}",
-            participant.http_addr,
-            participant.http_port
-        );
+        let addr_port = format!("{}:{}", participant.http_addr, participant.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -291,8 +276,7 @@ impl RemoteHttp {
 
         let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
         let result = send_message(request_json, url).await;
-        let reply: NotifyHostOfRemovedRowResponse =
-            serde_json::from_str(&result).unwrap();
+        let reply: NotifyHostOfRemovedRowResponse = serde_json::from_str(&result).unwrap();
 
         reply.is_successful
     }
@@ -318,11 +302,7 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!(
-            "{}:{}",
-            participant.http_addr,
-            participant.http_port
-        );
+        let addr_port = format!("{}:{}", participant.http_addr, participant.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -368,18 +348,13 @@ impl RemoteHttp {
 
         let request_json = serde_json::to_string(&request).unwrap();
 
-        let addr_port = format!(
-            "{}:{}",
-            host_info.http_addr,
-            host_info.http_port
-        );
+        let addr_port = format!("{}:{}", host_info.http_addr, host_info.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
         let url = format!("http://{}{}", addr_port, PARTICIPANT_ACCEPTS_CONTRACT);
         let result = send_message(request_json, url).await;
-        let reply: ParticipantAcceptsContractResult =
-            serde_json::from_str(&result).unwrap();
+        let reply: ParticipantAcceptsContractResult = serde_json::from_str(&result).unwrap();
 
         reply.contract_acceptance_is_acknowledged
     }
@@ -410,11 +385,7 @@ impl RemoteHttp {
         };
 
         let request_json = serde_json::to_string(&request).unwrap();
-        let addr_port = format!(
-            "{}:{}",
-            participant.http_addr,
-            participant.http_port
-        );
+        let addr_port = format!("{}:{}", participant.http_addr, participant.http_port);
 
         info!("sending request to rcd at: {}", addr_port);
 
@@ -440,8 +411,11 @@ impl RemoteHttp {
 }
 
 fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
-
-    let addresses: Vec<String> = vec![host_info.id.clone(), host_info.name.clone(), own_db_addr_port];
+    let addresses: Vec<String> = vec![
+        host_info.id.clone(),
+        host_info.name.clone(),
+        own_db_addr_port,
+    ];
 
     let is_little_endian = is_little_endian();
 

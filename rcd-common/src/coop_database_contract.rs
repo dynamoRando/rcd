@@ -49,8 +49,6 @@ impl CoopDatabaseContract {
             http_port: host_http_port,
         };
 
-        
-
         Contract {
             contract_guid: self.contract_id.to_string(),
             description: self.description.clone(),

@@ -1,7 +1,4 @@
-use super::{
-    db::full_database_schema_to_tables,
-    host::host_to_markdown_table,
-};
+use super::{db::full_database_schema_to_tables, host::host_to_markdown_table};
 use crate::client::Contract;
 use indexmap::IndexMap;
 use rcd_markdown::markdown_kv_table::build_table;
@@ -29,8 +26,7 @@ pub fn contract_to_markdown_table(contract: &Contract) -> String {
     markdown_table += "\n";
     markdown_table += "Host: ";
     markdown_table += "\n";
-    markdown_table =
-        markdown_table + &host_to_markdown_table(contract.host_info.as_ref().unwrap());
+    markdown_table = markdown_table + &host_to_markdown_table(contract.host_info.as_ref().unwrap());
     markdown_table += "\n";
 
     markdown_table

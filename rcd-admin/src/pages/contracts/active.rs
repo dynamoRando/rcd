@@ -22,7 +22,6 @@ pub fn Active() -> Html {
             let active_contract_text = active_contract_text.clone();
 
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
-                
             } else {
                 let token = get_token();
                 let auth = token.auth();
@@ -62,11 +61,7 @@ pub fn Active() -> Html {
                     }
                 });
 
-                let message = format!(
-                    "{}{}",
-                    "sending active contract request for: ",
-                    db_name
-                );
+                let message = format!("{}{}", "sending active contract request for: ", db_name);
                 log_to_console(message);
 
                 request::post(url, request_json, cb);

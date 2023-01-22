@@ -110,8 +110,6 @@ impl RcdData {
             }
         }
 
-        
-
         CreateDatabaseResult {
             authentication_result: Some(auth_result.1),
             is_successful: auth_result.0,
@@ -184,8 +182,6 @@ impl RcdData {
 
     pub async fn try_auth(&self, request: TryAuthRequest) -> TryAuthResult {
         let is_authenticated = self.authenticate_host(request.authentication.unwrap());
-
-        
 
         TryAuthResult {
             authentication_result: Some(is_authenticated.1),

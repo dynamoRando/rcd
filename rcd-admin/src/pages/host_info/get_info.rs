@@ -10,17 +10,15 @@ use crate::{
 
 #[function_component]
 pub fn GetInfo() -> Html {
-    let host_info = use_state_eq(move || {
-        Host {
-            host_guid: "".to_string(),
-            host_name: "".to_string(),
-            ip4_address: "".to_string(),
-            ip6_address: "".to_string(),
-            database_port_number: 0,
-            token: Vec::new(),
-            http_addr: "".to_string(),
-            http_port: 0,
-        }
+    let host_info = use_state_eq(move || Host {
+        host_guid: "".to_string(),
+        host_name: "".to_string(),
+        ip4_address: "".to_string(),
+        ip6_address: "".to_string(),
+        database_port_number: 0,
+        token: Vec::new(),
+        http_addr: "".to_string(),
+        http_port: 0,
     });
 
     let get_host_info_onclick = {

@@ -1,8 +1,9 @@
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
+    data_info::DataInfo,
     db::CdsHosts,
-    host_info::HostInfo, data_info::DataInfo,
+    host_info::HostInfo,
 };
 use rcdproto::rcdp::{
     Contract, DatabaseSchema, DeleteDataResult, GetRowFromPartialDatabaseResult, InsertDataResult,
@@ -255,21 +256,13 @@ impl RcdRemoteDbClient {
             RcdCommunication::Grpc => {
                 return self
                     .grpc()
-                    .notify_host_of_updated_hash(
-                        host,
-                        own_host_info,
-                        data_info,
-                    )
+                    .notify_host_of_updated_hash(host, own_host_info, data_info)
                     .await;
             }
             RcdCommunication::Http => {
                 return self
                     .http()
-                    .notify_host_of_updated_hash(
-                        host,
-                        own_host_info,
-                        data_info,
-                    )
+                    .notify_host_of_updated_hash(host, own_host_info, data_info)
                     .await;
             }
         };

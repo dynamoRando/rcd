@@ -1,8 +1,8 @@
 use super::Rcd;
-use rcd_common::data_info::DataInfo;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
+use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
 use rcd_enum::partial_data_status::PartialDataStatus;
@@ -87,8 +87,6 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
 
-    
-
     ExecuteReadReply {
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
@@ -129,8 +127,6 @@ pub async fn execute_read_at_participant(
 
     let mut statement_results = Vec::new();
     statement_results.push(statement_result_set);
-
-    
 
     ExecuteReadReply {
         authentication_result: Some(auth_result.1),
@@ -197,7 +193,7 @@ pub async fn execute_write_at_participant(
                                 .notify_host_of_updated_hash(
                                     &remote_host,
                                     &own_host_info,
-                                    &data_info
+                                    &data_info,
                                 )
                                 .await;
 
@@ -270,8 +266,6 @@ pub async fn execute_write_at_participant(
         }
     }
 
-    
-
     ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_overall_successful,
@@ -301,8 +295,6 @@ pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> 
     } else {
         println!("WARNING: execute_write_at_host not authenticated!");
     }
-
-    
 
     ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
@@ -355,8 +347,7 @@ pub async fn execute_cooperative_write_at_host(
                     let data_hash = remote_insert_result.data_hash;
                     let row_id = remote_insert_result.row_id;
 
-                    let internal_participant_id =
-                        db_participant_reference.internal_id.to_string();
+                    let internal_participant_id = db_participant_reference.internal_id.to_string();
 
                     let local_insert_is_successful = core.dbi().insert_metadata_into_host_db(
                         &db_name,
@@ -399,19 +390,15 @@ pub async fn execute_cooperative_write_at_host(
                             let internal_participant_id =
                                 db_participant_reference.internal_id.to_string();
 
-                            let local_update_is_successful =
-                                core.dbi().update_metadata_in_host_db(
-                                    &db_name,
-                                    &cmd_table_name,
-                                    row_id,
-                                    data_hash,
-                                    &internal_participant_id,
-                                );
-
-                            println!(
-                                "local update is successful: {}",
-                                local_update_is_successful
+                            let local_update_is_successful = core.dbi().update_metadata_in_host_db(
+                                &db_name,
+                                &cmd_table_name,
+                                row_id,
+                                data_hash,
+                                &internal_participant_id,
                             );
+
+                            println!("local update is successful: {}", local_update_is_successful);
 
                             if local_update_is_successful {
                                 is_remote_action_successful = true;
@@ -446,8 +433,7 @@ pub async fn execute_cooperative_write_at_host(
                         row_id = remote_delete_result.rows.first().unwrap().rowid;
                     }
 
-                    let internal_participant_id =
-                        db_participant_reference.internal_id.to_string();
+                    let internal_participant_id = db_participant_reference.internal_id.to_string();
 
                     let local_delete_is_successful = core.dbi().delete_metadata_in_host_db(
                         &db_name,

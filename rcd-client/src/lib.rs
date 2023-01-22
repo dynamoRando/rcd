@@ -1097,10 +1097,7 @@ impl RcdClient {
         }
     }
 
-    pub async fn generate_host_info(
-        &mut self,
-        host_name: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    pub async fn generate_host_info(&mut self, host_name: &str) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(GenerateHostInfoRequest {
@@ -1620,12 +1617,7 @@ impl RcdClient {
         }
     }
 
-    pub async fn try_auth_at_participant(
-        &mut self,
-        alias: &str,
-        id: &str,
-        db_name: &str,
-    ) -> bool {
+    pub async fn try_auth_at_participant(&mut self, alias: &str, id: &str, db_name: &str) -> bool {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(TryAuthAtParticipantRequest {
@@ -1784,10 +1776,7 @@ impl RcdClient {
         }
     }
 
-    pub async fn create_user_database(
-        &mut self,
-        db_name: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    pub async fn create_user_database(&mut self, db_name: &str) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
         let request = tonic::Request::new(CreateUserDatabaseRequest {

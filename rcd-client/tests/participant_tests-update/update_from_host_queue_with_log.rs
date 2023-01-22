@@ -458,12 +458,7 @@ pub mod grpc {
         .await;
 
         let update_result = client
-            .execute_cooperative_write_at_host(
-                db_name,
-                update_statement,
-                "participant",
-                "ID = 999",
-            )
+            .execute_cooperative_write_at_host(db_name, update_statement, "participant", "ID = 999")
             .await;
 
         println!("{:?}", update_result);
@@ -988,12 +983,7 @@ pub mod http {
         );
 
         let update_result = client
-            .execute_cooperative_write_at_host(
-                db_name,
-                update_statement,
-                "participant",
-                "ID = 999",
-            )
+            .execute_cooperative_write_at_host(db_name, update_statement, "participant", "ID = 999")
             .await;
 
         println!("{:?}", update_result);

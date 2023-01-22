@@ -32,7 +32,5 @@ pub async fn revoke_token(core: &Rcd, request: AuthRequest) -> RevokeReply {
         is_successful = result;
     }
 
-    RevokeReply {
-        is_successful,
-    }
+    RevokeReply { is_successful }
 }

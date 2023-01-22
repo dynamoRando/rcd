@@ -1,27 +1,23 @@
 use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
-use rcd_http_common::url::client::{
-    GET_DELETES_FROM_HOST_BEHAVIOR, 
-};
-use rcd_messages::client::{
-    GetDeletesFromHostBehaviorReply,
-    GetDeletesFromHostBehaviorRequest,
-};
-use yew::{
-    function_component, html, use_state_eq, AttrValue, Callback, Html,
-};
+use rcd_http_common::url::client::GET_DELETES_FROM_HOST_BEHAVIOR;
+use rcd_messages::client::{GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest};
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    pages::{common::{
-        select_database::SelectDatabase, select_table::SelectTable,
-    }, behaviors::deletes_from_host::{view_pending_deletes::ViewPendingDeletes, change_behavior::ChangeBehavior}},
+    pages::{
+        behaviors::deletes_from_host::{
+            change_behavior::ChangeBehavior, view_pending_deletes::ViewPendingDeletes,
+        },
+        common::{select_database::SelectDatabase, select_table::SelectTable},
+    },
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },
 };
 
-mod view_pending_deletes;
 mod change_behavior;
+mod view_pending_deletes;
 
 #[function_component]
 pub fn DeletesFromHost() -> Html {

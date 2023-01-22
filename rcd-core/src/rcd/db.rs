@@ -1,4 +1,4 @@
-use rcd_common::{host_info::HostInfo, data_info::DataInfo};
+use rcd_common::{data_info::DataInfo, host_info::HostInfo};
 
 use super::Rcd;
 use rcd_enum::{
@@ -46,8 +46,6 @@ pub async fn create_user_database(
         }
     }
 
-    
-
     CreateUserDatabaseReply {
         authentication_result: Some(auth_result.1),
         is_created: is_database_created,
@@ -89,8 +87,6 @@ pub async fn get_cooperative_hosts(
         }
     }
 
-    
-
     GetCooperativeHostsReply {
         authentication_result: Some(auth_result.1),
         hosts,
@@ -131,8 +127,6 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
         }
     }
 
-    
-
     HostInfoReply {
         authentication_result: Some(auth_result.1),
         host_info: Some(host),
@@ -153,8 +147,6 @@ pub async fn generate_host_info(
         core.dbi().rcd_generate_host_info(&host_name);
         is_generate_successful = true;
     }
-
-    
 
     GenerateHostInfoReply {
         authentication_result: Some(auth_result.1),
@@ -183,8 +175,6 @@ pub async fn change_host_status(
         }
     }
 
-    
-
     ChangeHostStatusReply {
         authentication_result: Some(auth_result.1),
         is_successful: name_result || id_result,
@@ -206,8 +196,6 @@ pub async fn get_pending_updates_at_participant(
     if auth_result.0 {
         pending_statements = core.dbi().get_pending_actions(db_name, table_name, action);
     }
-
-    
 
     GetPendingActionsReply {
         authentication_result: Some(auth_result.1),
@@ -234,10 +222,7 @@ pub async fn accept_pending_action_at_participant(
             .accept_pending_action_at_participant(db_name, table_name, row_id);
 
         println!("{:?}", data_result);
-        println!(
-            "is_local_update_successful: {}",
-            is_local_update_successful
-        );
+        println!("is_local_update_successful: {}", is_local_update_successful);
 
         if data_result.is_successful {
             is_local_update_successful = true;
@@ -266,11 +251,7 @@ pub async fn accept_pending_action_at_participant(
 
             let notify_is_successful = core
                 .remote()
-                .notify_host_of_updated_hash(
-                    &remote_host,
-                    &own_host_info,
-                    &data_info
-                )
+                .notify_host_of_updated_hash(&remote_host, &own_host_info, &data_info)
                 .await;
 
             println!("notify_is_successful: {}", notify_is_successful);
@@ -282,8 +263,6 @@ pub async fn accept_pending_action_at_participant(
     } else {
         println!("not authenticated");
     }
-
-    
 
     AcceptPendingActionReply {
         authentication_result: Some(auth_result.1),
@@ -302,8 +281,6 @@ pub async fn has_table(core: &Rcd, request: HasTableRequest) -> HasTableReply {
     if auth_result.0 {
         has_table = core.dbi().has_table(&db_name, table_name.as_str())
     }
-
-    
 
     HasTableReply {
         authentication_result: Some(auth_result.1),
@@ -345,8 +322,6 @@ pub async fn generate_contract(
         }
     };
 
-    
-
     GenerateContractReply {
         authentication_result: Some(auth_result.1),
         is_successful,
@@ -371,8 +346,6 @@ pub async fn get_data_hash_at_participant(
             .get_data_hash_at_participant(&db_name, &table_name, requested_row_id);
     }
 
-    
-
     GetDataHashReply {
         authentication_result: Some(auth_result.1),
         data_hash: row_hash,
@@ -394,8 +367,6 @@ pub async fn change_updates_from_host_behavior(
             core.dbi()
                 .change_updates_from_host_behavior(&db_name, &table_name, behavior);
     }
-
-    
 
     ChangesUpdatesFromHostBehaviorReply {
         authentication_result: Some(auth_result.1),
@@ -420,8 +391,6 @@ pub async fn get_updates_to_host_behavior(
         behavior = UpdatesToHostBehavior::to_u32(x);
     }
 
-    
-
     GetUpdatesToHostBehaviorReply {
         authentication_result: Some(auth_result.1),
         behavior,
@@ -443,8 +412,6 @@ pub async fn get_updates_from_host_behavior(
             .get_updates_from_host_behavior(&db_name, &table_name);
         behavior = UpdatesFromHostBehavior::to_u32(x);
     }
-
-    
 
     GetUpdatesFromHostBehaviorReply {
         authentication_result: Some(auth_result.1),
@@ -485,8 +452,6 @@ pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> Ge
         participants_result = participants;
     }
 
-    
-
     GetParticipantsReply {
         authentication_result: Some(auth_result.1),
         participants: participants_result,
@@ -507,8 +472,6 @@ pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatab
         }
     }
 
-    
-
     GetDatabasesReply {
         authentication_result: Some(auth_result.1),
         databases: db_result,
@@ -527,8 +490,6 @@ pub async fn get_data_hash_at_host(core: &Rcd, request: GetDataHashRequest) -> G
             .dbi()
             .get_data_hash_at_host(&db_name, &table_name, requested_row_id);
     }
-
-    
 
     GetDataHashReply {
         authentication_result: Some(auth_result.1),
@@ -551,8 +512,6 @@ pub async fn change_deletes_from_host_behavior(
             core.dbi()
                 .change_deletes_from_host_behavior(&db_name, &table_name, behavior);
     }
-
-    
 
     ChangeDeletesFromHostBehaviorReply {
         authentication_result: Some(auth_result.1),
@@ -579,8 +538,6 @@ pub async fn get_deletes_from_host_behavior(
         behavior = DeletesFromHostBehavior::to_u32(x);
     }
 
-    
-
     GetDeletesFromHostBehaviorReply {
         authentication_result: Some(auth_result.1),
         behavior,
@@ -605,8 +562,6 @@ pub async fn get_deletes_to_host_behavior(
         behavior = DeletesToHostBehavior::to_u32(x);
     }
 
-    
-
     GetDeletesToHostBehaviorReply {
         authentication_result: Some(auth_result.1),
         behavior,
@@ -630,8 +585,6 @@ pub async fn change_deletes_to_host_behavior(
             .change_deletes_to_host_behavior(&db_name, &table_name, behavior);
     }
 
-    
-
     ChangeDeletesToHostBehaviorReply {
         authentication_result: Some(auth_result.1),
         is_successful,
@@ -654,8 +607,6 @@ pub async fn change_updates_to_host_behavior(
             .dbi()
             .change_updates_to_host_behavior(&db_name, &table_name, behavior);
     }
-
-    
 
     ChangeUpdatesToHostBehaviorReply {
         authentication_result: Some(auth_result.1),
@@ -686,8 +637,6 @@ pub async fn read_row_id_at_participant(
         row_ids.push(row_id);
     }
 
-    
-
     GetReadRowIdsReply {
         authentication_result: Some(auth_result.1),
         row_ids,
@@ -705,8 +654,6 @@ pub async fn enable_coooperative_features(
     if auth_result.0 {
         core.dbi().enable_coooperative_features(&db_name);
     }
-
-    
 
     EnableCoooperativeFeaturesReply {
         authentication_result: Some(auth_result.1),

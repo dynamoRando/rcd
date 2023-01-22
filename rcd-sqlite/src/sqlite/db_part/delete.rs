@@ -98,16 +98,14 @@ pub fn delete_data_in_partial_db(
         DeletesFromHostBehavior::AllowRemoval => {
             execute_delete(db_name, table_name, cmd, where_clause, config)
         }
-        DeletesFromHostBehavior::QueueForReview => {
-            delete_data_into_partial_db_queue(
-                db_name,
-                table_name,
-                cmd,
-                where_clause,
-                host_id,
-                config,
-            )
-        }
+        DeletesFromHostBehavior::QueueForReview => delete_data_into_partial_db_queue(
+            db_name,
+            table_name,
+            cmd,
+            where_clause,
+            host_id,
+            config,
+        ),
         DeletesFromHostBehavior::DeleteWithLog => {
             execute_delete_with_log(db_name, table_name, cmd, where_clause, config)
         }

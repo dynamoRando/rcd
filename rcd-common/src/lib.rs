@@ -1,10 +1,10 @@
 pub mod coop_database_contract;
 pub mod coop_database_participant;
 pub mod crypt;
+pub mod data_info;
 pub mod db;
 pub mod defaults;
 pub mod host_info;
 pub mod rcd_settings;
 pub mod table;
 pub mod user;
-pub mod data_info;

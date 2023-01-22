@@ -26,8 +26,6 @@ pub async fn set_logical_storage_policy(
             .unwrap();
     }
 
-    
-
     SetLogicalStoragePolicyReply {
         authentication_result: Some(auth_result.1),
         is_successful: policy_is_set,
@@ -54,8 +52,6 @@ pub async fn get_logical_storage_policy(
 
         policy = LogicalStoragePolicy::from_i64(i_policy as i64);
     }
-
-    
 
     GetLogicalStoragePolicyReply {
         authentication_result: Some(auth_result.1),

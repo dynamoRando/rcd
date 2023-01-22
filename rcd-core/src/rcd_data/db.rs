@@ -26,8 +26,6 @@ pub async fn create_table_in_database(
         }
     }
 
-    
-
     CreateTableResult {
         authentication_result: Some(auth_result.1),
         is_successful: table_is_created,

@@ -43,7 +43,7 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
         cmd = cmd.replace(":cid", &cid);
 
         let total_count = execute_write(&conn, &cmd);
-        return total_count > 0
+        return total_count > 0;
     }
 
     false

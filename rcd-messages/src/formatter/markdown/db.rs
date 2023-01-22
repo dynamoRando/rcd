@@ -1,9 +1,8 @@
+use crate::client::DatabaseSchema;
 use indexmap::IndexMap;
 use rcd_markdown::markdown_kv_table::build_table;
-use crate::client::DatabaseSchema;
 
 use super::table;
-
 
 /// returns a series of markdown tables representing the entire database
 pub fn full_database_schema_to_tables(database: &DatabaseSchema) -> String {

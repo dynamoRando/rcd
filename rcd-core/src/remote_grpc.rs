@@ -9,11 +9,12 @@ use std::time::Duration;
 use chrono::Utc;
 use endianness::{read_i32, ByteOrder};
 use guid_create::GUID;
-use log::{info, debug};
+use log::{debug, info};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
-    host_info::HostInfo, data_info::DataInfo,
+    data_info::DataInfo,
+    host_info::HostInfo,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
@@ -360,7 +361,11 @@ impl RemoteGrpc {
 }
 
 fn get_message_info(host_info: &HostInfo, own_db_addr_port: String) -> MessageInfo {
-    let addresses: Vec<String> = vec![host_info.id.clone(), host_info.name.clone(), own_db_addr_port];
+    let addresses: Vec<String> = vec![
+        host_info.id.clone(),
+        host_info.name.clone(),
+        own_db_addr_port,
+    ];
 
     let is_little_endian = is_little_endian();
 

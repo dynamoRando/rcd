@@ -11,10 +11,10 @@ use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_http::RemoteHttp;
 use rcd_http::http_srv;
 use rcd_service::get_current_directory;
+use rcd_sqlite_log::SqliteLog;
 use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
-use rcd_sqlite_log::SqliteLog;
 
 use crate::rcd_service::get_service_from_config_file;
 
@@ -178,7 +178,7 @@ data_grpc_timeout_in_seconds = 5
     }
 }
 
-/* 
+/*
 fn set_default_logging() {
     let cwd = get_current_directory();
     let default_logging_content = r#"appenders:
@@ -243,11 +243,13 @@ fn make_test_db() {
 
         let create_table_statement = "CREATE TABLE IF NOT EXISTS Example (Id INT, Name TEXT);";
 
-        dbi.execute_write_at_host(test_db_name, create_table_statement).unwrap();
+        dbi.execute_write_at_host(test_db_name, create_table_statement)
+            .unwrap();
 
         let policy = LogicalStoragePolicy::HostOnly;
 
-        dbi.set_logical_storage_policy(test_db_name, "Example", policy).unwrap();
+        dbi.set_logical_storage_policy(test_db_name, "Example", policy)
+            .unwrap();
 
         let behavior = RemoteDeleteBehavior::Ignore;
 

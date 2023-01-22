@@ -154,11 +154,7 @@ pub mod http {
         info!("starting client service");
 
         thread::spawn(move || {
-            service.start_http_at_addr_and_dir(
-                "127.0.0.1".to_string(),
-                port_num as u16,
-                root_dir,
-            );
+            service.start_http_at_addr_and_dir("127.0.0.1".to_string(), port_num as u16, root_dir);
         });
 
         test_harness::sleep_test();

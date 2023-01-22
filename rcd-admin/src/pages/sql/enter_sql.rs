@@ -44,7 +44,6 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
         let participant_aliases = participant_aliases.clone();
         Callback::from(move |db_name: String| {
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
-                
             } else {
                 let participant_aliases = participant_aliases.clone();
                 let token = get_token();

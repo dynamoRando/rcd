@@ -21,8 +21,6 @@ pub async fn try_auth_at_participant(
         .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info())
         .await;
 
-    
-
     TryAuthAtPartipantReply {
         authentication_result: Some(auth_result.1),
         is_successful: result,
@@ -53,8 +51,6 @@ pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddP
             http_port as u16,
         );
     };
-
-    
 
     AddParticipantReply {
         authentication_result: Some(auth_result.1),
@@ -91,8 +87,6 @@ pub async fn send_participant_contract(
         is_successful = result.0;
         error_message = result.1;
     };
-
-    
 
     SendParticipantContractReply {
         authentication_result: Some(auth_result.1),

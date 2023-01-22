@@ -2445,11 +2445,12 @@ where
                         recog.base.set_state(277);
                         _la = recog.base.input.la(1);
                         if !(((_la - 58) & !0x3f) == 0
-                        && ((1usize << (_la - 58))
-                            & ((1usize << (K_DEFERRED - 58))
-                                | (1usize << (K_EXCLUSIVE - 58))
-                                | (1usize << (K_IMMEDIATE - 58))))
-                            != 0) {
+                            && ((1usize << (_la - 58))
+                                & ((1usize << (K_DEFERRED - 58))
+                                    | (1usize << (K_EXCLUSIVE - 58))
+                                    | (1usize << (K_IMMEDIATE - 58))))
+                                != 0)
+                        {
                             recog.err_handler.recover_inline(&mut recog.base)?;
                         } else {
                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -10818,10 +10819,11 @@ where
                         recog.base.set_state(1068);
                         _la = recog.base.input.la(1);
                         if !(_la == K_ABORT
-                        || _la == K_FAIL
-                        || _la == K_IGNORE
-                        || _la == K_REPLACE
-                        || _la == K_ROLLBACK) {
+                            || _la == K_FAIL
+                            || _la == K_IGNORE
+                            || _la == K_REPLACE
+                            || _la == K_ROLLBACK)
+                        {
                             recog.err_handler.recover_inline(&mut recog.base)?;
                         } else {
                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -11778,11 +11780,12 @@ where
                                         recog.base.set_state(1153);
                                         _la = recog.base.input.la(1);
                                         if !(((_la) & !0x3f) == 0
-                                        && ((1usize << _la)
-                                            & ((1usize << STAR)
-                                                | (1usize << DIV)
-                                                | (1usize << MOD)))
-                                            != 0) {
+                                            && ((1usize << _la)
+                                                & ((1usize << STAR)
+                                                    | (1usize << DIV)
+                                                    | (1usize << MOD)))
+                                                != 0)
+                                        {
                                             recog.err_handler.recover_inline(&mut recog.base)?;
                                         } else {
                                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -11853,12 +11856,13 @@ where
                                         recog.base.set_state(1159);
                                         _la = recog.base.input.la(1);
                                         if !(((_la) & !0x3f) == 0
-                                        && ((1usize << _la)
-                                            & ((1usize << LT2)
-                                                | (1usize << GT2)
-                                                | (1usize << AMP)
-                                                | (1usize << PIPE)))
-                                            != 0) {
+                                            && ((1usize << _la)
+                                                & ((1usize << LT2)
+                                                    | (1usize << GT2)
+                                                    | (1usize << AMP)
+                                                    | (1usize << PIPE)))
+                                                != 0)
+                                        {
                                             recog.err_handler.recover_inline(&mut recog.base)?;
                                         } else {
                                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -11894,12 +11898,13 @@ where
                                         recog.base.set_state(1162);
                                         _la = recog.base.input.la(1);
                                         if !(((_la) & !0x3f) == 0
-                                        && ((1usize << _la)
-                                            & ((1usize << LT)
-                                                | (1usize << LT_EQ)
-                                                | (1usize << GT)
-                                                | (1usize << GT_EQ)))
-                                            != 0) {
+                                            && ((1usize << _la)
+                                                & ((1usize << LT)
+                                                    | (1usize << LT_EQ)
+                                                    | (1usize << GT)
+                                                    | (1usize << GT_EQ)))
+                                                != 0)
+                                        {
                                             recog.err_handler.recover_inline(&mut recog.base)?;
                                         } else {
                                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -11935,12 +11940,13 @@ where
                                         recog.base.set_state(1165);
                                         _la = recog.base.input.la(1);
                                         if !(((_la) & !0x3f) == 0
-                                        && ((1usize << _la)
-                                            & ((1usize << ASSIGN)
-                                                | (1usize << EQ)
-                                                | (1usize << NOT_EQ1)
-                                                | (1usize << NOT_EQ2)))
-                                            != 0) {
+                                            && ((1usize << _la)
+                                                & ((1usize << ASSIGN)
+                                                    | (1usize << EQ)
+                                                    | (1usize << NOT_EQ1)
+                                                    | (1usize << NOT_EQ2)))
+                                                != 0)
+                                        {
                                             recog.err_handler.recover_inline(&mut recog.base)?;
                                         } else {
                                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -12307,12 +12313,13 @@ where
                                         recog.base.set_state(1221);
                                         _la = recog.base.input.la(1);
                                         if !((((_la - 77) & !0x3f) == 0
-                                        && ((1usize << (_la - 77))
-                                            & ((1usize << (K_GLOB - 77))
-                                                | (1usize << (K_LIKE - 77))
-                                                | (1usize << (K_MATCH - 77))))
-                                            != 0)
-                                        || _la == K_REGEXP) {
+                                            && ((1usize << (_la - 77))
+                                                & ((1usize << (K_GLOB - 77))
+                                                    | (1usize << (K_LIKE - 77))
+                                                    | (1usize << (K_MATCH - 77))))
+                                                != 0)
+                                            || _la == K_REGEXP)
+                                        {
                                             recog.err_handler.recover_inline(&mut recog.base)?;
                                         } else {
                                             if recog.base.input.la(1) == TOKEN_EOF {
@@ -16949,18 +16956,19 @@ where
                 recog.base.set_state(1615);
                 _la = recog.base.input.la(1);
                 if !((((_la - 52) & !0x3f) == 0
-                && ((1usize << (_la - 52))
-                    & ((1usize << (K_CURRENT_DATE - 52))
-                        | (1usize << (K_CURRENT_TIME - 52))
-                        | (1usize << (K_CURRENT_TIMESTAMP - 52))))
-                    != 0)
-                || _la == K_NULL
-                || (((_la - 150) & !0x3f) == 0
-                    && ((1usize << (_la - 150))
-                        & ((1usize << (NUMERIC_LITERAL - 150))
-                            | (1usize << (STRING_LITERAL - 150))
-                            | (1usize << (BLOB_LITERAL - 150))))
-                        != 0)) {
+                    && ((1usize << (_la - 52))
+                        & ((1usize << (K_CURRENT_DATE - 52))
+                            | (1usize << (K_CURRENT_TIME - 52))
+                            | (1usize << (K_CURRENT_TIMESTAMP - 52))))
+                        != 0)
+                    || _la == K_NULL
+                    || (((_la - 150) & !0x3f) == 0
+                        && ((1usize << (_la - 150))
+                            & ((1usize << (NUMERIC_LITERAL - 150))
+                                | (1usize << (STRING_LITERAL - 150))
+                                | (1usize << (BLOB_LITERAL - 150))))
+                            != 0))
+                {
                     recog.err_handler.recover_inline(&mut recog.base)?;
                 } else {
                     if recog.base.input.la(1) == TOKEN_EOF {
@@ -17094,10 +17102,11 @@ where
                 recog.base.set_state(1617);
                 _la = recog.base.input.la(1);
                 if !((((_la) & !0x3f) == 0
-                && ((1usize << _la)
-                    & ((1usize << PLUS) | (1usize << MINUS) | (1usize << TILDE)))
-                    != 0)
-                || _la == K_NOT) {
+                    && ((1usize << _la)
+                        & ((1usize << PLUS) | (1usize << MINUS) | (1usize << TILDE)))
+                        != 0)
+                    || _la == K_NOT)
+                {
                     recog.err_handler.recover_inline(&mut recog.base)?;
                 } else {
                     if recog.base.input.la(1) == TOKEN_EOF {
@@ -18525,141 +18534,142 @@ where
                 recog.base.set_state(1627);
                 _la = recog.base.input.la(1);
                 if !((((_la - 25) & !0x3f) == 0
-                && ((1usize << (_la - 25))
-                    & ((1usize << (K_ABORT - 25))
-                        | (1usize << (K_ACTION - 25))
-                        | (1usize << (K_ADD - 25))
-                        | (1usize << (K_AFTER - 25))
-                        | (1usize << (K_ALL - 25))
-                        | (1usize << (K_ALTER - 25))
-                        | (1usize << (K_ANALYZE - 25))
-                        | (1usize << (K_AND - 25))
-                        | (1usize << (K_AS - 25))
-                        | (1usize << (K_ASC - 25))
-                        | (1usize << (K_ATTACH - 25))
-                        | (1usize << (K_AUTOINCREMENT - 25))
-                        | (1usize << (K_BEFORE - 25))
-                        | (1usize << (K_BEGIN - 25))
-                        | (1usize << (K_BETWEEN - 25))
-                        | (1usize << (K_BY - 25))
-                        | (1usize << (K_CASCADE - 25))
-                        | (1usize << (K_CASE - 25))
-                        | (1usize << (K_CAST - 25))
-                        | (1usize << (K_CHECK - 25))
-                        | (1usize << (K_COLLATE - 25))
-                        | (1usize << (K_COLUMN - 25))
-                        | (1usize << (K_COMMIT - 25))
-                        | (1usize << (K_CONFLICT - 25))
-                        | (1usize << (K_CONSTRAINT - 25))
-                        | (1usize << (K_CREATE - 25))
-                        | (1usize << (K_CROSS - 25))
-                        | (1usize << (K_CURRENT_DATE - 25))
-                        | (1usize << (K_CURRENT_TIME - 25))
-                        | (1usize << (K_CURRENT_TIMESTAMP - 25))
-                        | (1usize << (K_DATABASE - 25))
-                        | (1usize << (K_DEFAULT - 25))))
-                    != 0)
-                || (((_la - 57) & !0x3f) == 0
-                    && ((1usize << (_la - 57))
-                        & ((1usize << (K_DEFERRABLE - 57))
-                            | (1usize << (K_DEFERRED - 57))
-                            | (1usize << (K_DELETE - 57))
-                            | (1usize << (K_DESC - 57))
-                            | (1usize << (K_DETACH - 57))
-                            | (1usize << (K_DISTINCT - 57))
-                            | (1usize << (K_DROP - 57))
-                            | (1usize << (K_EACH - 57))
-                            | (1usize << (K_ELSE - 57))
-                            | (1usize << (K_END - 57))
-                            | (1usize << (K_ESCAPE - 57))
-                            | (1usize << (K_EXCEPT - 57))
-                            | (1usize << (K_EXCLUSIVE - 57))
-                            | (1usize << (K_EXISTS - 57))
-                            | (1usize << (K_EXPLAIN - 57))
-                            | (1usize << (K_FAIL - 57))
-                            | (1usize << (K_FOR - 57))
-                            | (1usize << (K_FOREIGN - 57))
-                            | (1usize << (K_FROM - 57))
-                            | (1usize << (K_FULL - 57))
-                            | (1usize << (K_GLOB - 57))
-                            | (1usize << (K_GROUP - 57))
-                            | (1usize << (K_HAVING - 57))
-                            | (1usize << (K_IF - 57))
-                            | (1usize << (K_IGNORE - 57))
-                            | (1usize << (K_IMMEDIATE - 57))
-                            | (1usize << (K_IN - 57))
-                            | (1usize << (K_INDEX - 57))
-                            | (1usize << (K_INDEXED - 57))
-                            | (1usize << (K_INITIALLY - 57))
-                            | (1usize << (K_INNER - 57))
-                            | (1usize << (K_INSERT - 57))))
+                    && ((1usize << (_la - 25))
+                        & ((1usize << (K_ABORT - 25))
+                            | (1usize << (K_ACTION - 25))
+                            | (1usize << (K_ADD - 25))
+                            | (1usize << (K_AFTER - 25))
+                            | (1usize << (K_ALL - 25))
+                            | (1usize << (K_ALTER - 25))
+                            | (1usize << (K_ANALYZE - 25))
+                            | (1usize << (K_AND - 25))
+                            | (1usize << (K_AS - 25))
+                            | (1usize << (K_ASC - 25))
+                            | (1usize << (K_ATTACH - 25))
+                            | (1usize << (K_AUTOINCREMENT - 25))
+                            | (1usize << (K_BEFORE - 25))
+                            | (1usize << (K_BEGIN - 25))
+                            | (1usize << (K_BETWEEN - 25))
+                            | (1usize << (K_BY - 25))
+                            | (1usize << (K_CASCADE - 25))
+                            | (1usize << (K_CASE - 25))
+                            | (1usize << (K_CAST - 25))
+                            | (1usize << (K_CHECK - 25))
+                            | (1usize << (K_COLLATE - 25))
+                            | (1usize << (K_COLUMN - 25))
+                            | (1usize << (K_COMMIT - 25))
+                            | (1usize << (K_CONFLICT - 25))
+                            | (1usize << (K_CONSTRAINT - 25))
+                            | (1usize << (K_CREATE - 25))
+                            | (1usize << (K_CROSS - 25))
+                            | (1usize << (K_CURRENT_DATE - 25))
+                            | (1usize << (K_CURRENT_TIME - 25))
+                            | (1usize << (K_CURRENT_TIMESTAMP - 25))
+                            | (1usize << (K_DATABASE - 25))
+                            | (1usize << (K_DEFAULT - 25))))
                         != 0)
-                || (((_la - 89) & !0x3f) == 0
-                    && ((1usize << (_la - 89))
-                        & ((1usize << (K_INSTEAD - 89))
-                            | (1usize << (K_INTERSECT - 89))
-                            | (1usize << (K_INTO - 89))
-                            | (1usize << (K_IS - 89))
-                            | (1usize << (K_ISNULL - 89))
-                            | (1usize << (K_JOIN - 89))
-                            | (1usize << (K_KEY - 89))
-                            | (1usize << (K_LEFT - 89))
-                            | (1usize << (K_LIKE - 89))
-                            | (1usize << (K_LIMIT - 89))
-                            | (1usize << (K_MATCH - 89))
-                            | (1usize << (K_NATURAL - 89))
-                            | (1usize << (K_NO - 89))
-                            | (1usize << (K_NOT - 89))
-                            | (1usize << (K_NOTNULL - 89))
-                            | (1usize << (K_NULL - 89))
-                            | (1usize << (K_OF - 89))
-                            | (1usize << (K_OFFSET - 89))
-                            | (1usize << (K_ON - 89))
-                            | (1usize << (K_OR - 89))
-                            | (1usize << (K_ORDER - 89))
-                            | (1usize << (K_OUTER - 89))
-                            | (1usize << (K_PLAN - 89))
-                            | (1usize << (K_PRAGMA - 89))
-                            | (1usize << (K_PRIMARY - 89))
-                            | (1usize << (K_QUERY - 89))
-                            | (1usize << (K_RAISE - 89))
-                            | (1usize << (K_RECURSIVE - 89))
-                            | (1usize << (K_REFERENCES - 89))
-                            | (1usize << (K_REGEXP - 89))
-                            | (1usize << (K_REINDEX - 89))
-                            | (1usize << (K_RELEASE - 89))))
-                        != 0)
-                || (((_la - 121) & !0x3f) == 0
-                    && ((1usize << (_la - 121))
-                        & ((1usize << (K_RENAME - 121))
-                            | (1usize << (K_REPLACE - 121))
-                            | (1usize << (K_RESTRICT - 121))
-                            | (1usize << (K_RIGHT - 121))
-                            | (1usize << (K_ROLLBACK - 121))
-                            | (1usize << (K_ROW - 121))
-                            | (1usize << (K_SAVEPOINT - 121))
-                            | (1usize << (K_SELECT - 121))
-                            | (1usize << (K_SET - 121))
-                            | (1usize << (K_TABLE - 121))
-                            | (1usize << (K_TEMP - 121))
-                            | (1usize << (K_TEMPORARY - 121))
-                            | (1usize << (K_THEN - 121))
-                            | (1usize << (K_TO - 121))
-                            | (1usize << (K_TRANSACTION - 121))
-                            | (1usize << (K_TRIGGER - 121))
-                            | (1usize << (K_UNION - 121))
-                            | (1usize << (K_UNIQUE - 121))
-                            | (1usize << (K_UPDATE - 121))
-                            | (1usize << (K_USING - 121))
-                            | (1usize << (K_VACUUM - 121))
-                            | (1usize << (K_VALUES - 121))
-                            | (1usize << (K_VIEW - 121))
-                            | (1usize << (K_VIRTUAL - 121))
-                            | (1usize << (K_WHEN - 121))
-                            | (1usize << (K_WHERE - 121))
-                            | (1usize << (K_WITH - 121))
-                            | (1usize << (K_WITHOUT - 121))))
-                        != 0)) {
+                    || (((_la - 57) & !0x3f) == 0
+                        && ((1usize << (_la - 57))
+                            & ((1usize << (K_DEFERRABLE - 57))
+                                | (1usize << (K_DEFERRED - 57))
+                                | (1usize << (K_DELETE - 57))
+                                | (1usize << (K_DESC - 57))
+                                | (1usize << (K_DETACH - 57))
+                                | (1usize << (K_DISTINCT - 57))
+                                | (1usize << (K_DROP - 57))
+                                | (1usize << (K_EACH - 57))
+                                | (1usize << (K_ELSE - 57))
+                                | (1usize << (K_END - 57))
+                                | (1usize << (K_ESCAPE - 57))
+                                | (1usize << (K_EXCEPT - 57))
+                                | (1usize << (K_EXCLUSIVE - 57))
+                                | (1usize << (K_EXISTS - 57))
+                                | (1usize << (K_EXPLAIN - 57))
+                                | (1usize << (K_FAIL - 57))
+                                | (1usize << (K_FOR - 57))
+                                | (1usize << (K_FOREIGN - 57))
+                                | (1usize << (K_FROM - 57))
+                                | (1usize << (K_FULL - 57))
+                                | (1usize << (K_GLOB - 57))
+                                | (1usize << (K_GROUP - 57))
+                                | (1usize << (K_HAVING - 57))
+                                | (1usize << (K_IF - 57))
+                                | (1usize << (K_IGNORE - 57))
+                                | (1usize << (K_IMMEDIATE - 57))
+                                | (1usize << (K_IN - 57))
+                                | (1usize << (K_INDEX - 57))
+                                | (1usize << (K_INDEXED - 57))
+                                | (1usize << (K_INITIALLY - 57))
+                                | (1usize << (K_INNER - 57))
+                                | (1usize << (K_INSERT - 57))))
+                            != 0)
+                    || (((_la - 89) & !0x3f) == 0
+                        && ((1usize << (_la - 89))
+                            & ((1usize << (K_INSTEAD - 89))
+                                | (1usize << (K_INTERSECT - 89))
+                                | (1usize << (K_INTO - 89))
+                                | (1usize << (K_IS - 89))
+                                | (1usize << (K_ISNULL - 89))
+                                | (1usize << (K_JOIN - 89))
+                                | (1usize << (K_KEY - 89))
+                                | (1usize << (K_LEFT - 89))
+                                | (1usize << (K_LIKE - 89))
+                                | (1usize << (K_LIMIT - 89))
+                                | (1usize << (K_MATCH - 89))
+                                | (1usize << (K_NATURAL - 89))
+                                | (1usize << (K_NO - 89))
+                                | (1usize << (K_NOT - 89))
+                                | (1usize << (K_NOTNULL - 89))
+                                | (1usize << (K_NULL - 89))
+                                | (1usize << (K_OF - 89))
+                                | (1usize << (K_OFFSET - 89))
+                                | (1usize << (K_ON - 89))
+                                | (1usize << (K_OR - 89))
+                                | (1usize << (K_ORDER - 89))
+                                | (1usize << (K_OUTER - 89))
+                                | (1usize << (K_PLAN - 89))
+                                | (1usize << (K_PRAGMA - 89))
+                                | (1usize << (K_PRIMARY - 89))
+                                | (1usize << (K_QUERY - 89))
+                                | (1usize << (K_RAISE - 89))
+                                | (1usize << (K_RECURSIVE - 89))
+                                | (1usize << (K_REFERENCES - 89))
+                                | (1usize << (K_REGEXP - 89))
+                                | (1usize << (K_REINDEX - 89))
+                                | (1usize << (K_RELEASE - 89))))
+                            != 0)
+                    || (((_la - 121) & !0x3f) == 0
+                        && ((1usize << (_la - 121))
+                            & ((1usize << (K_RENAME - 121))
+                                | (1usize << (K_REPLACE - 121))
+                                | (1usize << (K_RESTRICT - 121))
+                                | (1usize << (K_RIGHT - 121))
+                                | (1usize << (K_ROLLBACK - 121))
+                                | (1usize << (K_ROW - 121))
+                                | (1usize << (K_SAVEPOINT - 121))
+                                | (1usize << (K_SELECT - 121))
+                                | (1usize << (K_SET - 121))
+                                | (1usize << (K_TABLE - 121))
+                                | (1usize << (K_TEMP - 121))
+                                | (1usize << (K_TEMPORARY - 121))
+                                | (1usize << (K_THEN - 121))
+                                | (1usize << (K_TO - 121))
+                                | (1usize << (K_TRANSACTION - 121))
+                                | (1usize << (K_TRIGGER - 121))
+                                | (1usize << (K_UNION - 121))
+                                | (1usize << (K_UNIQUE - 121))
+                                | (1usize << (K_UPDATE - 121))
+                                | (1usize << (K_USING - 121))
+                                | (1usize << (K_VACUUM - 121))
+                                | (1usize << (K_VALUES - 121))
+                                | (1usize << (K_VIEW - 121))
+                                | (1usize << (K_VIRTUAL - 121))
+                                | (1usize << (K_WHEN - 121))
+                                | (1usize << (K_WHERE - 121))
+                                | (1usize << (K_WITH - 121))
+                                | (1usize << (K_WITHOUT - 121))))
+                            != 0))
+                {
                     recog.err_handler.recover_inline(&mut recog.base)?;
                 } else {
                     if recog.base.input.la(1) == TOKEN_EOF {

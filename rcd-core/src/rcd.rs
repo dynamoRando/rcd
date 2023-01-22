@@ -165,12 +165,10 @@ impl Rcd {
             settings = serde_json::to_string(&self.settings.as_ref().unwrap()).unwrap();
         }
 
-        let result = GetSettingsReply {
+        GetSettingsReply {
             authentication_result: Some(auth_result.1),
             settings_json: settings,
-        };
-
-        result
+        }
     }
 
     pub async fn get_cooperative_hosts(

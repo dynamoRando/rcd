@@ -1,6 +1,11 @@
-use rcd_enum::{updates_from_host_behavior::UpdatesFromHostBehavior, deletes_from_host_behavior::DeletesFromHostBehavior};
+use rcd_enum::{
+    deletes_from_host_behavior::DeletesFromHostBehavior,
+    updates_from_host_behavior::UpdatesFromHostBehavior,
+};
 use rcd_http_common::url::client::CHANGE_DELETES_FROM_HOST_BEHAVIOR;
-use rcd_messages::client::{ChangeDeletesFromHostBehaviorRequest, ChangeDeletesFromHostBehaviorReply};
+use rcd_messages::client::{
+    ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
+};
 use web_sys::HtmlInputElement;
 use yew::{
     function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
@@ -73,7 +78,7 @@ pub fn ChangeBehavior(
                         if reply.is_successful {
                             let behavior = DeletesFromHostBehavior::from_u32(behavior_value);
                             let behavior = behavior.as_string();
-    
+
                             let message = format!(
                                 "{}{}{}{}{}{}",
                                 "Behavior Updated For: ",
@@ -86,20 +91,19 @@ pub fn ChangeBehavior(
                             set_status(message);
                         } else {
                             let behavior = DeletesFromHostBehavior::from_u32(behavior_value);
-                        let behavior = behavior.as_string();
+                            let behavior = behavior.as_string();
 
-                        let message = format!(
-                            "{}{}{}{}{}{}",
-                            "Behavior Updated FAILED For: ",
-                            (*database),
-                            " table: ",
-                            (*table),
-                            " behavior to: ",
-                            behavior
-                        );
-                        set_status(message);
+                            let message = format!(
+                                "{}{}{}{}{}{}",
+                                "Behavior Updated FAILED For: ",
+                                (*database),
+                                " table: ",
+                                (*table),
+                                " behavior to: ",
+                                behavior
+                            );
+                            set_status(message);
                         }
-                        
                     }
                 } else {
                     let error_message = response.err().unwrap();

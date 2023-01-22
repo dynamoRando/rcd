@@ -1,6 +1,6 @@
+use crate::client::TableSchema;
 use indexmap::IndexMap;
 use rcd_markdown::markdown_kv_table::build_table;
-use crate::client::TableSchema;
 
 /// returns a markdown table with column name, column data type
 pub fn table_schema_to_markdown_table(table: &TableSchema) -> String {

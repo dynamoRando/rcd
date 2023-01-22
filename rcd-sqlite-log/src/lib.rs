@@ -139,8 +139,8 @@ impl log::Log for SqliteLog {
 
             let sql_message = message.clone();
             let sql_level = level.clone();
-            let stdout_message = message.clone();
-            let stdout_level = level.clone();
+            let stdout_message = message;
+            let stdout_level = level;
 
             if self.output_to_stdout {
                 thread::spawn(move || {

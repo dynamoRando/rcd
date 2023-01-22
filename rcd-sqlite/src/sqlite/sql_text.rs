@@ -49,9 +49,7 @@ impl Cds {
     }
 
     pub fn text_get_role() -> String {
-        String::from(
-            "SELECT count(*) AS ROLECOUNT FROM CDS_ROLE WHERE ROLENAME = :rolename",
-        )
+        String::from("SELECT count(*) AS ROLECOUNT FROM CDS_ROLE WHERE ROLENAME = :rolename")
     }
 
     /// Returns create table statement for storing roles of the CDS.

@@ -3,5 +3,5 @@ pub struct DataInfo {
     pub table_name: String,
     pub row_id: u32,
     pub hash: Option<u64>,
-    pub is_deleted: bool
+    pub is_deleted: bool,
 }

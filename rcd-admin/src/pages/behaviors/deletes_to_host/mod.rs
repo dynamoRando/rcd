@@ -5,7 +5,10 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    pages::{common::{select_database::SelectDatabase, select_table::SelectTable}, behaviors::deletes_to_host::change_behavior::ChangeBehavior},
+    pages::{
+        behaviors::deletes_to_host::change_behavior::ChangeBehavior,
+        common::{select_database::SelectDatabase, select_table::SelectTable},
+    },
     request::{
         self, clear_status, get_databases, get_token, set_status, update_token_login_status,
     },

@@ -98,16 +98,14 @@ pub fn update_data_into_partial_db(
             execute_update_overwrite(db_name, table_name, cmd, where_clause, config)
         }
         UpdatesFromHostBehavior::Unknown => todo!(),
-        UpdatesFromHostBehavior::QueueForReview => {
-            update_data_into_partial_db_queue(
-                db_name,
-                table_name,
-                cmd,
-                where_clause,
-                host_id,
-                config,
-            )
-        }
+        UpdatesFromHostBehavior::QueueForReview => update_data_into_partial_db_queue(
+            db_name,
+            table_name,
+            cmd,
+            where_clause,
+            host_id,
+            config,
+        ),
         UpdatesFromHostBehavior::OverwriteWithLog => {
             execute_update_with_log(db_name, table_name, cmd, where_clause, config)
         }

@@ -52,7 +52,6 @@ pub fn build_table(key_value: IndexMap<String, String>) -> String {
     markdown_table
 }
 
-
 /// builds a markdown seperator without the "|" between
 fn build_markdown_seperator(max_length: u32) -> String {
     let mut return_row = String::new();
@@ -61,8 +60,6 @@ fn build_markdown_seperator(max_length: u32) -> String {
 
     return_row
 }
-
-
 
 /// takes a vec of strings and returns the max length found + 4 (to account for space and | for column)
 fn get_max_length_for_vec_strings(items: Vec<&str>) -> u32 {
@@ -79,14 +76,13 @@ fn get_max_length_for_vec_strings(items: Vec<&str>) -> u32 {
     max_length
 }
 
-
 /*
 # String Padding In Rust
 - https://stackoverflow.com/questions/50458144/what-is-the-easiest-way-to-pad-a-string-with-0-to-the-left
 - https://stackoverflow.com/questions/64810657/how-to-pad-left-in-rust
 - https://stackoverflow.com/questions/69067436/how-do-i-make-the-fill-padding-in-stdformat-dynamic
  */
- 
+
 fn build_markdown_row(
     key_string: &String,
     key_value: &String,

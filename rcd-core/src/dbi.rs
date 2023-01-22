@@ -56,8 +56,6 @@ impl Dbi {
             }
         }
 
-        
-
         TokenReply {
             is_successful: is_authorized,
             expiration_utc,
@@ -182,9 +180,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db_part::get_pending_actions(
-                    db_name, table_name, action, &settings,
-                )
+                sqlite::db_part::get_pending_actions(db_name, table_name, action, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -197,9 +193,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db::metadata::get_data_hash_at_host(
-                    db_name, table_name, row_id, &settings,
-                )
+                sqlite::db::metadata::get_data_hash_at_host(db_name, table_name, row_id, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -309,9 +303,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::get_updates_to_host_behavior(
-                    db_name, table_name, &settings,
-                )
+                sqlite::rcd_db::get_updates_to_host_behavior(db_name, table_name, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -328,9 +320,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::get_deletes_to_host_behavior(
-                    db_name, table_name, &settings,
-                )
+                sqlite::rcd_db::get_deletes_to_host_behavior(db_name, table_name, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -347,9 +337,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::get_deletes_from_host_behavior(
-                    db_name, table_name, &settings,
-                )
+                sqlite::rcd_db::get_deletes_from_host_behavior(db_name, table_name, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -366,9 +354,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::get_updates_from_host_behavior(
-                    db_name, table_name, &settings,
-                )
+                sqlite::rcd_db::get_updates_from_host_behavior(db_name, table_name, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -780,7 +766,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                
+
                 sqlite::rcd_db::contract::save_contract(contract, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
@@ -836,10 +822,7 @@ impl Dbi {
         }
     }
 
-    pub fn create_partial_database(
-        &self,
-        db_name: &str,
-    ) -> Result<Connection, rusqlite::Error> {
+    pub fn create_partial_database(&self, db_name: &str) -> Result<Connection, rusqlite::Error> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -884,8 +867,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::role::login_is_in_role(login, role_name, &settings)
-                    .unwrap()
+                sqlite::rcd_db::role::login_is_in_role(login, role_name, &settings).unwrap()
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -996,11 +978,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db::participant::has_participant(
-                    db_name,
-                    participant_alias,
-                    settings,
-                )
+                sqlite::db::participant::has_participant(db_name, participant_alias, settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -1100,11 +1078,7 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read_at_participant(
-        &self,
-        db_name: &str,
-        cmd: &str,
-    ) -> rusqlite::Result<Table> {
+    pub fn execute_read_at_participant(&self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -1151,9 +1125,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db::participant::get_participants_for_table(
-                    db_name, table_name, settings,
-                )
+                sqlite::db::participant::get_participants_for_table(db_name, table_name, settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

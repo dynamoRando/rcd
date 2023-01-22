@@ -75,7 +75,7 @@ pub fn ChangeBehavior(
                         if reply.is_successful {
                             let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
                             let behavior = behavior.as_string();
-    
+
                             let message = format!(
                                 "{}{}{}{}{}{}",
                                 "Behavior Updated For: ",
@@ -88,20 +88,19 @@ pub fn ChangeBehavior(
                             set_status(message);
                         } else {
                             let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
-                        let behavior = behavior.as_string();
+                            let behavior = behavior.as_string();
 
-                        let message = format!(
-                            "{}{}{}{}{}{}",
-                            "Behavior Updated FAILED For: ",
-                            (*database),
-                            " table: ",
-                            (*table),
-                            " behavior to: ",
-                            behavior
-                        );
-                        set_status(message);
+                            let message = format!(
+                                "{}{}{}{}{}{}",
+                                "Behavior Updated FAILED For: ",
+                                (*database),
+                                " table: ",
+                                (*table),
+                                " behavior to: ",
+                                behavior
+                            );
+                            set_status(message);
                         }
-                        
                     }
                 } else {
                     let error_message = response.err().unwrap();

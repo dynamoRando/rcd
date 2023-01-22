@@ -39,10 +39,7 @@ impl SqlClient for SqlClientImpl {
         request: Request<GetSettingsRequest>,
     ) -> Result<Response<GetSettingsReply>, Status> {
         println!("Request from {:?}", request.remote_addr());
-        let response = self
-            .core()
-            .get_settings(request.into_inner())
-            .await;
+        let response = self.core().get_settings(request.into_inner()).await;
         Ok(Response::new(response))
     }
 

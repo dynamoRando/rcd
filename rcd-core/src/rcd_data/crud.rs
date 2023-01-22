@@ -36,8 +36,6 @@ pub async fn insert_command_into_table(
             .insert_data_into_partial_db(&db_name, &table_name, cmd);
     }
 
-    
-
     InsertDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,
@@ -154,8 +152,6 @@ pub async fn delete_command_into_table(
             DeletesFromHostBehavior::QueueForReviewAndLog => todo!(),
         }
     }
-
-    
 
     DeleteDataResult {
         authentication_result: Some(auth_result.1),
@@ -279,8 +275,6 @@ pub async fn update_command_into_table(
         }
     }
 
-    
-
     UpdateDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,
@@ -315,8 +309,6 @@ pub async fn get_row_from_partial_database(
             .dbi()
             .get_row_from_partial_database(&db_name, &table_name, row_id);
     }
-
-    
 
     GetRowFromPartialDatabaseResult {
         authentication_result: Some(auth_result.1),
@@ -361,8 +353,6 @@ pub async fn update_row_data_hash_for_host(
         println!("not authenticated!");
     }
 
-    
-
     UpdateRowDataHashForHostResponse {
         authentication_result: Some(auth_result.1),
         is_successful,
@@ -389,8 +379,6 @@ pub async fn notify_host_of_removed_row(
     } else {
         println!("not authenticated!");
     }
-
-    
 
     NotifyHostOfRemovedRowResponse {
         authentication_result: Some(auth_result.1),
