@@ -1,4 +1,4 @@
-use log::info;
+use log::{info, LevelFilter};
 use rcd_common::defaults;
 
 use rcd_enum::{
