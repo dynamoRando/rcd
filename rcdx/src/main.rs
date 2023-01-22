@@ -15,6 +15,10 @@ use std::io::Write;
 use std::{env, fs::File, io, path::Path};
 use tokio::task;
 
+use log::{LevelFilter, debug, warn, info, error, trace};
+use rcd_sqlite_log::SqliteLog;
+
+
 use crate::rcd_service::get_service_from_config_file;
 
 pub mod rcd_service;
@@ -24,6 +28,7 @@ async fn main() {
     let version_message = format!("rcdx version {}.", defaults::VERSION);
     println!("{}", version_message);
     set_default_logging();
+    use_sqlite_logging();
 
     // https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/
     log4rs::init_file("logging_config.yaml", Default::default()).unwrap();
@@ -254,4 +259,8 @@ fn make_test_db() {
             &default_src_path.to_str().unwrap()
         );
     }
+}
+
+fn use_sqlite_logging() {
+    SqliteLog::init(LevelFilter::Trace).unwrap();
 }

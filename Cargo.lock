@@ -2569,6 +2569,7 @@ dependencies = [
  "rcd-grpc",
  "rcd-http",
  "rcd-query",
+ "rcd-sqlite-log",
  "rcdproto",
  "reqwest",
  "rocket",
