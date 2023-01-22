@@ -1,6 +1,6 @@
-use super::build_markdown_key_value_table;
 use crate::client::Host;
 use indexmap::IndexMap;
+use rcd_markdown::markdown_kv_table::build_table;
 
 /// takes a Host and returns a markdown table in a key/value format
 pub fn host_to_markdown_table(host: &Host) -> String {
@@ -29,5 +29,5 @@ pub fn host_to_markdown_table(host: &Host) -> String {
     kv.insert(http_addr.to_string(), host.http_addr.clone());
     kv.insert(http_port.to_string(), host.http_port.to_string());
 
-    build_markdown_key_value_table(kv)
+    build_table(kv)
 }

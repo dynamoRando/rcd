@@ -33,6 +33,8 @@ members = [
     "rcd-client",
     # break out enum values
     "rcd-enum",
-    # a small library to log to sql lite
-    "rcd-sqlite-log"
+    # a small library to log to sql lite and console
+    "rcd-sqlite-log", 
+    # a breakout of formatting into markdown 
+    "rcd-markdown",
 ]

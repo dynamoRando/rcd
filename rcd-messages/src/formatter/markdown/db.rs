@@ -1,8 +1,9 @@
 use indexmap::IndexMap;
-
+use rcd_markdown::markdown_kv_table::build_table;
 use crate::client::DatabaseSchema;
 
-use super::{build_markdown_key_value_table, table};
+use super::table;
+
 
 /// returns a series of markdown tables representing the entire database
 pub fn full_database_schema_to_tables(database: &DatabaseSchema) -> String {
@@ -36,7 +37,7 @@ pub fn database_schema_to_markdown_table(database: &DatabaseSchema) -> String {
         kv.insert(table.table_name.clone(), policy_name);
     }
 
-    build_markdown_key_value_table(kv)
+    build_table(kv)
 }
 
 fn get_string_logical_storage_policy(policy_num: u32) -> String {

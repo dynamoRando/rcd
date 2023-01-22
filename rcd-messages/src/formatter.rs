@@ -43,24 +43,4 @@ pub fn build_max_lengths_for_columns(rows: &[Row]) -> IndexMap<String, u32> {
     max_lengths
 }
 
-/// takes a vec of strings and returns the max length found + 4 (to account for space and | for column)
-pub fn get_max_length_for_vec_strings(items: Vec<&str>) -> u32 {
-    let mut max_length: u32 = 0;
 
-    for item in items {
-        let item_length = item.len() as u32;
-
-        if item_length >= max_length {
-            max_length = item_length;
-        }
-    }
-
-    max_length
-}
-
-/*
-# String Padding In Rust
-- https://stackoverflow.com/questions/50458144/what-is-the-easiest-way-to-pad-a-string-with-0-to-the-left
-- https://stackoverflow.com/questions/64810657/how-to-pad-left-in-rust
-- https://stackoverflow.com/questions/69067436/how-do-i-make-the-fill-padding-in-stdformat-dynamic
- */

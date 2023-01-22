@@ -1,9 +1,10 @@
 use super::{
-    build_markdown_key_value_table, db::full_database_schema_to_tables,
+    db::full_database_schema_to_tables,
     host::host_to_markdown_table,
 };
 use crate::client::Contract;
 use indexmap::IndexMap;
+use rcd_markdown::markdown_kv_table::build_table;
 
 pub fn contract_to_markdown_table(contract: &Contract) -> String {
     let mut markdown_table = String::new();
@@ -19,7 +20,7 @@ pub fn contract_to_markdown_table(contract: &Contract) -> String {
 
     markdown_table += "Contract Details: ";
     markdown_table += "\n";
-    markdown_table = markdown_table + &build_markdown_key_value_table(contract_kv);
+    markdown_table = markdown_table + &build_table(contract_kv);
     markdown_table += "\n";
     markdown_table += "Database Schema: ";
     markdown_table += "\n";

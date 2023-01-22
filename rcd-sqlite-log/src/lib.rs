@@ -1,20 +1,25 @@
+use chrono::{DateTime, Local, Utc};
+use indexmap::IndexMap;
 use log::SetLoggerError;
 use log::{set_max_level, LevelFilter, Metadata, Record};
 use log_entry::LogEntry;
+use rcd_markdown::markdown_kv_table::build_table;
 use rusqlite::{Connection, Result};
 use sql_text::{create_log_table, get_last_x_logs};
 use std::env;
 use std::path::Path;
+use std::thread;
 
 pub mod log_entry;
 mod sql_text;
 
-static DEFAULT_DB_NAME: &str = "log.db";
+static DEFAULT_DB_NAME: &str = "log.sqlite";
 
 #[derive(Debug)]
 pub struct SqliteLog {
     level: LevelFilter,
     database_name: String,
+    output_to_stdout: bool,
 }
 
 impl SqliteLog {
@@ -22,6 +27,7 @@ impl SqliteLog {
         SqliteLog {
             level,
             database_name,
+            output_to_stdout: true,
         }
     }
 
@@ -124,14 +130,56 @@ impl log::Log for SqliteLog {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
-            let conn = self.get_db_conn();
+            let db_path = self.get_db_location();
             let level: String = record.level().to_string();
             let args = record.args();
             let message = format!("{}", format_args!("{}", args));
-            let cmd = sql_text::add_log(&level, &message);
-            conn.execute(&cmd, []).unwrap();
+
+            let sql_message = message.clone();
+            let sql_level = level.clone();
+            let stdout_message = message.clone();
+            let stdout_level = level.clone();
+
+            if self.output_to_stdout {
+                thread::spawn(move || {
+                    log_stdout(stdout_level, stdout_message);
+                });
+            }
+
+            thread::spawn(move || {
+                log_sql(db_path, sql_level, sql_message);
+            });
         }
     }
 
     fn flush(&self) {}
+}
+
+fn log_sql(db_location: String, level: String, message: String) {
+    let conn = Connection::open(db_location).unwrap();
+
+    let cmd = sql_text::add_log(&level, &message);
+    conn.execute(&cmd, []).unwrap();
+}
+
+fn log_stdout(level: String, message: String) {
+    let message = format_message(&level, &message);
+    println!("{}", message)
+}
+
+fn format_message(level: &str, message: &str) -> String {
+    let utc: DateTime<Utc> = Utc::now();
+    let local: DateTime<Local> = Local::now();
+
+    let dt: String = local.to_string();
+    let dt_utc: String = utc.to_string();
+
+    let mut kv: IndexMap<String, String> = IndexMap::new();
+
+    kv.insert("Local DT".to_string(), dt);
+    kv.insert("UTC DT".to_string(), dt_utc);
+    kv.insert("Level".to_string(), level.to_string());
+    kv.insert("Message".to_string(), message.to_string());
+
+    build_table(kv)
 }

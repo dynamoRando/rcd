@@ -24,11 +24,11 @@ pub mod rcd_service;
 async fn main() {
     let version_message = format!("rcdx version {}.", defaults::VERSION);
     println!("{}", version_message);
-    set_default_logging();
+    // set_default_logging();
     use_sqlite_logging();
 
     // https://tms-dev-blog.com/log-to-a-file-in-rust-with-log4rs/
-    log4rs::init_file("logging_config.yaml", Default::default()).unwrap();
+    // log4rs::init_file("logging_config.yaml", Default::default()).unwrap();
     info!("{}", version_message);
 
     let (client_trigger, client_listener) = triggered::trigger();
@@ -174,6 +174,7 @@ data_grpc_timeout_in_seconds = 5
     }
 }
 
+/* 
 fn set_default_logging() {
     let cwd = get_current_directory();
     let default_logging_content = r#"appenders:
@@ -213,6 +214,7 @@ root:
         println!("logging_config.yaml was found, skipping default settings");
     }
 }
+*/
 
 fn make_test_db() {
     let test_db_name = "test.db";

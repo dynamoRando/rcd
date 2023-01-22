@@ -1,6 +1,5 @@
 use indexmap::IndexMap;
-
-use super::build_markdown_key_value_table;
+use rcd_markdown::markdown_kv_table::build_table;
 use crate::client::TableSchema;
 
 /// returns a markdown table with column name, column data type
@@ -12,7 +11,7 @@ pub fn table_schema_to_markdown_table(table: &TableSchema) -> String {
         kv.insert(column.column_name.clone(), data_type);
     }
 
-    build_markdown_key_value_table(kv)
+    build_table(kv)
 }
 
 fn get_datatype_for_column_num(data_type: u32, length: u32) -> String {
