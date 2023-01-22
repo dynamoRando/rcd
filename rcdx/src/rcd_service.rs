@@ -201,6 +201,7 @@ impl RcdService {
         client_shutdown_listener: Listener,
         db_shutdown_listener: Listener,
         data_grpc_timeout_in_seconds: u32,
+        settings: Option<RcdSettings>
     ) -> Result<(), Box<dyn std::error::Error>> {
         return grpc::start_grpc_at_addrs_with_shutdown(
             &mut self,
@@ -211,6 +212,7 @@ impl RcdService {
             client_shutdown_listener,
             db_shutdown_listener,
             data_grpc_timeout_in_seconds,
+            settings
         );
     }
 

@@ -1,7 +1,8 @@
 use rcd_enum::database_type::DatabaseType;
+use serde::{Deserialize, Serialize};
 
 /// Represents settings for rcd that can be passed in on a test case
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RcdSettings {
     pub admin_un: String,
     pub admin_pw: String,

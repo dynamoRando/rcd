@@ -1,3 +1,4 @@
+use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
@@ -87,6 +88,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
     client_shutdown_listener: Listener,
     db_shutdown_listener: Listener,
     data_grpc_timeout_in_seconds: u32,
+    settings: Option<RcdSettings>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db1 = db_name.clone();
     let db2 = db_name;
@@ -114,6 +116,7 @@ pub fn start_grpc_at_addrs_with_shutdown(
     let core = Rcd {
         db_interface: Some(dbi1.unwrap()),
         remote_client: Some(remote_client),
+        settings,
     };
 
     let core_data = RcdData {
@@ -178,6 +181,7 @@ pub async fn start_grpc_client_service_alt(
     let core = Rcd {
         db_interface: Some(dbi2),
         remote_client: Some(remote_client),
+        settings: Some(service.rcd_settings.clone()),
     };
 
     let sql_client = SqlClientImpl {
@@ -220,6 +224,7 @@ pub async fn start_grpc_client_service_at_addr(
         &dbi,
         own_db_addr_port,
         service.rcd_settings.data_grpc_timeout_in_seconds,
+        Some(service.rcd_settings.clone()),
     );
 
     let sql_client = SqlClientImpl {
@@ -252,6 +257,7 @@ fn configure_core_for_grpc(
     dbi: &Dbi,
     own_db_addr_port: &str,
     data_grpc_timeout_in_seconds: u32,
+    settings: Option<RcdSettings>,
 ) -> Rcd {
     let grpc = RemoteGrpc {
         db_addr_port: own_db_addr_port.to_string(),
@@ -267,5 +273,6 @@ fn configure_core_for_grpc(
     Rcd {
         db_interface: Some(dbi.clone()),
         remote_client: Some(remote_client),
+        settings,
     }
 }

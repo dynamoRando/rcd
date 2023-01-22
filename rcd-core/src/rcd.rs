@@ -11,6 +11,7 @@ This 'core' will handle most client actions by way of the defined proto types.
 
 use chrono::Utc;
 use rcd_common::defaults;
+use rcd_common::rcd_settings::RcdSettings;
 use rcdproto::rcdp::{
     AcceptPendingActionReply, AcceptPendingActionRequest, AcceptPendingContractReply,
     AcceptPendingContractRequest, AddParticipantReply, AddParticipantRequest, AuthRequest,
@@ -29,11 +30,12 @@ use rcdproto::rcdp::{
     GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply,
     GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
-    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    HostInfoReply, RevokeReply, SendParticipantContractReply, SendParticipantContractRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, TestReply, TestRequest,
-    TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
+    GetSettingsReply, GetSettingsRequest, GetUpdatesFromHostBehaviorReply,
+    GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
+    GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest, HostInfoReply, RevokeReply,
+    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyRequest, TestReply, TestRequest, TokenReply,
+    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
     ViewPendingContractsRequest,
 };
 
@@ -51,6 +53,7 @@ mod participant;
 pub struct Rcd {
     pub db_interface: Option<Dbi>,
     pub remote_client: Option<RcdRemoteDbClient>,
+    pub settings: Option<RcdSettings>,
 }
 
 impl Rcd {
@@ -154,6 +157,22 @@ impl Rcd {
         return db::change_updates_from_host_behavior(self, request).await;
     }
 
+    pub async fn get_settings(&self, request: GetSettingsRequest) -> GetSettingsReply {
+        let auth_result = self.verify_login(request.authentication.unwrap());
+        let mut settings: String = String::from("");
+
+        if auth_result.0 {
+            settings = serde_json::to_string(&self.settings.as_ref().unwrap()).unwrap();
+        }
+
+        let result = GetSettingsReply {
+            authentication_result: Some(auth_result.1),
+            settings_json: settings,
+        };
+
+        result
+    }
+
     pub async fn get_cooperative_hosts(
         &self,
         request: GetCooperativeHostsRequest,
@@ -223,7 +242,6 @@ impl Rcd {
 
         println!("is_online, requested echo: {}", item);
 
-        
         TestReply {
             reply_time_utc: Utc::now().to_rfc2822(),
             reply_echo_message: item,

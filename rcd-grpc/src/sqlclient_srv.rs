@@ -34,6 +34,18 @@ impl SqlClient for SqlClientImpl {
         Ok(Response::new(response))
     }
 
+    async fn get_settings(
+        &self,
+        request: Request<GetSettingsRequest>,
+    ) -> Result<Response<GetSettingsReply>, Status> {
+        println!("Request from {:?}", request.remote_addr());
+        let response = self
+            .core()
+            .get_settings(request.into_inner())
+            .await;
+        Ok(Response::new(response))
+    }
+
     async fn get_cooperative_hosts(
         &self,
         request: Request<GetCooperativeHostsRequest>,

@@ -12,6 +12,7 @@ use super::RcdService;
 pub fn start_http_at_addr(service: &mut RcdService, http_addr: String, http_port: u16) {
     let dbi_settings = service.get_dbi();
     let dbi_core_clone = dbi_settings.clone();
+    let settings = service.rcd_settings.clone();
 
     // start http, need to make this configurable
     let _ = task::spawn_blocking(move || {
@@ -29,6 +30,7 @@ pub fn start_http_at_addr(service: &mut RcdService, http_addr: String, http_port
         let core = Rcd {
             db_interface: Some(dbi_settings),
             remote_client: Some(remote_client),
+            settings: Some(settings),
         };
 
         let data = RcdData {

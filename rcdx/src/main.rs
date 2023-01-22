@@ -54,6 +54,8 @@ async fn main() {
     let db_port = settings.grpc_data_service_addr_port.clone();
     let root_dir = service.root_dir.clone();
     let data_timeout = settings.data_grpc_timeout_in_seconds;
+    let service_settings = service.rcd_settings.clone();
+    let rcd_service_settings = settings.clone();
 
     let http_addr = settings.http_addr;
     let http_port = settings.http_port;
@@ -67,6 +69,7 @@ async fn main() {
             client_listener,
             db_listener,
             data_timeout,
+            Some(service_settings),
         );
     })
     .await;
@@ -87,6 +90,7 @@ async fn main() {
         let core = Rcd {
             db_interface: Some(dbi_core_clone),
             remote_client: Some(remote_client),
+            settings: Some(rcd_service_settings),
         };
 
         let data = RcdData {

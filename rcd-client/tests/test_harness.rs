@@ -228,6 +228,7 @@ pub fn start_service_with_grpc(
         client_listener,
         db_listener,
         5,
+        None,
     );
 
     let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, client_addr.clone());

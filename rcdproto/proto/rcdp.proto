@@ -47,6 +47,16 @@ service SQLClient {
 	rpc GetDeletesFromHostBehavior (GetDeletesFromHostBehaviorRequest) returns (GetDeletesFromHostBehaviorReply);
 	rpc GetDeletesToHostBehavior (GetDeletesToHostBehaviorRequest) returns (GetDeletesToHostBehaviorReply);
 	rpc GetCooperativeHosts (GetCooperativeHostsRequest) returns (GetCooperativeHostsReply);
+	rpc GetSettings (GetSettingsRequest) returns (GetSettingsReply);
+}
+
+message GetSettingsRequest {
+	AuthRequest authentication = 1;
+}
+
+message GetSettingsReply {
+	AuthResult authenticationResult = 1;
+	string settings_json = 2;
 }
 
 message GetCooperativeHostsRequest {
