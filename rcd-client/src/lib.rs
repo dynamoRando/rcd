@@ -15,8 +15,8 @@ use rcd_http_common::url::client::{
     GENERATE_HOST_INFO, GET_ACTIVE_CONTRACT, GET_COOP_HOSTS, GET_DATABASES, GET_DATA_HASH_AT_HOST,
     GET_DATA_HASH_AT_PARTICIPANT, GET_DELETES_FROM_HOST_BEHAVIOR, GET_DELETES_TO_HOST_BEHAVIOR,
     GET_HOST_INFO, GET_PARTICIPANTS, GET_PENDING_ACTIONS, GET_POLICY, GET_ROW_AT_PARTICIPANT,
-    GET_UPDATES_FROM_HOST_BEHAVIOR, GET_UPDATES_TO_HOST_BEHAVIOR, HAS_TABLE, IS_ONLINE,
-    NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, REVOKE_TOKEN,
+    GET_SETTINGS, GET_UPDATES_FROM_HOST_BEHAVIOR, GET_UPDATES_TO_HOST_BEHAVIOR, HAS_TABLE,
+    IS_ONLINE, NEW_DATABASE, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, REVOKE_TOKEN,
     SEND_CONTRACT_TO_PARTICIPANT, SET_POLICY, TRY_AUTH_PARTICIPANT, VIEW_PENDING_CONTRACTS,
     WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
 };
@@ -39,12 +39,13 @@ use rcdproto::rcdp::{
     GetDeletesToHostBehaviorReply, GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyReply,
     GetLogicalStoragePolicyRequest, GetParticipantsReply, GetParticipantsRequest,
     GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply, GetReadRowIdsRequest,
-    GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
-    GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    HostInfoReply, RevokeReply, SendParticipantContractReply, SendParticipantContractRequest,
-    SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest, StatementResultset, TestReply,
-    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
-    ViewPendingContractsReply, ViewPendingContractsRequest,
+    GetSettingsReply, GetSettingsRequest, GetUpdatesFromHostBehaviorReply,
+    GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorReply,
+    GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest, HostInfoReply, RevokeReply,
+    SendParticipantContractReply, SendParticipantContractRequest, SetLogicalStoragePolicyReply,
+    SetLogicalStoragePolicyRequest, StatementResultset, TestReply, TestRequest, TokenReply,
+    TryAuthAtParticipantRequest, TryAuthAtPartipantReply, ViewPendingContractsReply,
+    ViewPendingContractsRequest,
 };
 use reqwest::Client;
 use serde::de;
@@ -225,6 +226,36 @@ impl RcdClient {
                 let url = self.get_http_url(IS_ONLINE);
                 let result: TestReply = self.get_http_result(url, request).await;
                 result.reply_echo_message == test_string
+            }
+        }
+    }
+
+    pub async fn get_settings(&mut self) -> Result<GetSettingsReply, Box<dyn Error>> {
+        let auth = self.gen_auth_request();
+        let request = GetSettingsRequest {
+            authentication: Some(auth),
+        };
+
+        match self.client_type {
+            RcdClientType::Grpc => {
+                info!("sending request");
+
+                let response = self
+                    .grpc_client
+                    .as_mut()
+                    .unwrap()
+                    .get_settings(request)
+                    .await
+                    .unwrap()
+                    .into_inner();
+
+                Ok(response)
+            }
+            RcdClientType::Http => {
+                info!("sending request");
+                let url = self.get_http_url(GET_SETTINGS);
+                let result = self.get_http_result(url, request).await;
+                Ok(result)
             }
         }
     }
