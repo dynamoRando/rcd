@@ -2,7 +2,7 @@ use crate::http_srv::Core;
 use rcd_common::defaults;
 use rcdproto::rcdp::{
     AuthRequest, ChangeHostStatusReply, ChangeHostStatusRequest, RevokeReply, TestReply,
-    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
+    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, GetSettingsRequest, GetSettingsReply,
 };
 use rocket::{get, http::Status, post, serde::json::Json, State};
 
@@ -86,6 +86,19 @@ pub async fn auth_for_token(
 
     (Status::Ok, Json(response))
 }
+
+#[post("/client/settings", format = "application/json", data = "<request>")]
+pub async fn get_settings(
+    request: Json<GetSettingsRequest>,
+    state: &State<Core>,
+) -> (Status, Json<GetSettingsReply>) {
+    let core = state.get_core();
+
+    let response = core.get_settings(request.into_inner()).await;
+
+    (Status::Ok, Json(response))
+}
+
 
 #[post(
     "/client/token-revoke",

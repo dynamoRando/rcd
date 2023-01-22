@@ -46,6 +46,7 @@ pub mod client {
     pub const CHANGE_HOST_STATUS_NAME: &str = "/client/change-host-status-name";
     pub const GET_DATABASES: &str = "/client/databases";
     pub const HAS_TABLE: &str = "/client/databases/has_table";
+    pub const GET_SETTINGS: &str = "/client/settings";
 }
 
 /// Represents endpoints for an RCD Data Service

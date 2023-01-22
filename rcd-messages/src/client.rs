@@ -1,4 +1,14 @@
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct GetSettingsRequest {
+    pub authentication: ::core::option::Option<AuthRequest>,
+}
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+pub struct GetSettingsReply {
+    pub authentication_result: ::core::option::Option<AuthResult>,
+    pub settings_json: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetCooperativeHostsRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
 }
