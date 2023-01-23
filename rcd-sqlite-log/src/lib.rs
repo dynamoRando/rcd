@@ -49,9 +49,7 @@ impl SqliteLog {
     }
 
     pub fn get_db_conn(&self) -> Connection {
-        let cwd = env::current_dir().unwrap();
-        let cwd = cwd.as_os_str();
-        let db_path = Path::new(&cwd).join(&self.database_name);
+        let db_path = self.get_db_location();
         Connection::open(db_path).unwrap()
     }
 
@@ -156,6 +154,7 @@ impl log::Log for SqliteLog {
 
     fn log(&self, record: &Record) {
         if self.enabled(record.metadata()) {
+            self.configure();
             let db_path = self.get_db_location();
             let level: String = record.level().to_string();
             let args = record.args();
@@ -183,10 +182,11 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
+    println!("{}", db_location);
     let conn = Connection::open(db_location).unwrap();
-
     let cmd = sql_text::add_log(&level, &message);
     conn.execute(&cmd, []).unwrap();
+    conn.close().unwrap();
 }
 
 fn log_stdout(level: String, message: String) {

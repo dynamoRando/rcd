@@ -128,7 +128,11 @@ impl RcdService {
 
                 self.db_interface = Some(config);
 
-                SqliteLog::init_at_dir(LevelFilter::Trace, root_dir.to_string()).unwrap();
+                let result = SqliteLog::init_at_dir(LevelFilter::Debug, root_dir.to_string());
+
+                if result.is_err() {
+                    println!("{}", result.err().unwrap().to_string());
+                }
             }
 
             DatabaseType::Mysql => unimplemented!(),
