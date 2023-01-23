@@ -182,7 +182,7 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
-    println!("{}", db_location);
+    // println!("{}", db_location);
     let conn = Connection::open(db_location).unwrap();
     let cmd = sql_text::add_log(&level, &message);
     conn.execute(&cmd, []).unwrap();
