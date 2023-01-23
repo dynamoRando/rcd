@@ -20,6 +20,9 @@ mod is_online;
 #[path = "client_service_tests/get_settings.rs"]
 mod get_settings;
 
+#[path = "client_service_tests/get_logs.rs"]
+mod get_logs;
+
 #[test]
 fn get_harness_value() {
     let current = crate::test_harness::TEST_SETTINGS
