@@ -47,6 +47,7 @@ pub mod client {
     pub const GET_DATABASES: &str = "/client/databases";
     pub const HAS_TABLE: &str = "/client/databases/has_table";
     pub const GET_SETTINGS: &str = "/client/settings";
+    pub const GET_LAST_LOGS: &str = "client/logs/by-last-entries";
 }
 
 /// Represents endpoints for an RCD Data Service

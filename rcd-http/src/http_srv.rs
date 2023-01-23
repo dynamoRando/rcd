@@ -133,6 +133,7 @@ pub async fn start() -> Result<(), rocket::Error> {
                 client::auth_for_token,
                 client::revoke_token,
                 client::get_settings,
+                client::logs::get_logs_by_last_entries,
                 client::database::new_database,
                 client::database::has_table,
                 client::database::post_get_databases,

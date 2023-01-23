@@ -10,6 +10,7 @@ pub mod contract;
 pub mod database;
 pub mod host;
 pub mod sql;
+pub mod logs;
 
 #[get("/client/status")]
 pub async fn status() -> &'static str {
