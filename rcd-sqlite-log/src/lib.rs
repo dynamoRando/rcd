@@ -21,6 +21,7 @@ pub struct SqliteLog {
     level: LevelFilter,
     database_name: String,
     output_to_stdout: bool,
+    root_dir: String,
 }
 
 impl SqliteLog {
@@ -29,6 +30,16 @@ impl SqliteLog {
             level,
             database_name,
             output_to_stdout: true,
+            root_dir: String::from(""),
+        }
+    }
+
+    pub fn new_at_dir(database_name: String, level: LevelFilter, root_dir: String) -> SqliteLog {
+        SqliteLog {
+            level,
+            database_name,
+            output_to_stdout: true,
+            root_dir,
         }
     }
 
@@ -97,8 +108,15 @@ impl SqliteLog {
     }
 
     pub fn get_db_location(&self) -> String {
-        let cwd = env::current_dir().unwrap();
-        let cwd = cwd.as_os_str();
+        let cwd: String;
+
+        if self.root_dir.is_empty() {
+            let x = env::current_dir().unwrap();
+            cwd = x.as_os_str().to_str().to_owned().unwrap().to_string();
+        } else {
+            cwd = self.root_dir.clone();
+        }
+
         Path::new(&cwd)
             .join(&self.database_name)
             .into_os_string()
@@ -119,6 +137,13 @@ impl SqliteLog {
     pub fn init(log_level: LevelFilter) -> Result<(), SetLoggerError> {
         set_max_level(log_level);
         let logger = SqliteLog::new(DEFAULT_DB_NAME.to_string(), log_level);
+        logger.configure();
+        log::set_boxed_logger(Box::new(logger))
+    }
+
+    pub fn init_at_dir(log_level: LevelFilter, root_dir: String) -> Result<(), SetLoggerError> {
+        set_max_level(log_level);
+        let logger = SqliteLog::new_at_dir(DEFAULT_DB_NAME.to_string(), log_level, root_dir);
         logger.configure();
         log::set_boxed_logger(Box::new(logger))
     }

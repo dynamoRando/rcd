@@ -1,4 +1,3 @@
-use env_logger::{Builder, Target};
 use log::info;
 use rcd_common::db::DbiConfigSqlite;
 use rcd_enum::database_type::DatabaseType;
@@ -14,19 +13,10 @@ use std::path::Path;
 #[path = "test_harness.rs"]
 mod test_harness;
 
-#[cfg(test)]
-/// Attempts to set the log builder for tests
-pub fn init() {
-    let mut builder = Builder::from_default_env();
-    builder.target(Target::Stdout);
-    let _init = builder.is_test(true).try_init();
-}
-
 #[test]
 /// Attempts to read settings from the Settings.toml
 fn read_settings_from_config() {
     // ARRANGE
-    init();
     let rcd_setting = RcdSettings {
         admin_un: String::from("tester"),
         admin_pw: String::from("123456"),
@@ -50,7 +40,6 @@ fn read_settings_from_config() {
 #[test]
 /// Attempts to set the backing RCD database name
 fn configure_backing_db() {
-    init();
     // to see the output, run the test with the following
     // cargo test -- --nocapture
     // RUST_LOG=debug cargo test -- --nocapture
@@ -88,7 +77,6 @@ fn configure_backing_db() {
 /// Attempts to validate the username and pw are hashing correctly
 fn hash() {
     // ARRANGE
-    init();
 
     info!("test_hash: running");
 
@@ -153,7 +141,6 @@ fn get_harness_value() {
 /// Attempts a negative test of hashing the un and pw to make sure that it can fail
 fn hash_negative() {
     // ARRANGE
-    init();
     info!("test_hash_false: running");
 
     let cwd = env::current_dir().unwrap();
@@ -212,7 +199,6 @@ fn hash_negative() {
 #[test]
 /// Attempts to read a value from the Settings.toml file
 fn read_settings_from_file() {
-    init();
     let service = get_service_from_config_file(None);
     let db_type = service.rcd_settings.database_type;
     assert_eq!(db_type, DatabaseType::Sqlite);

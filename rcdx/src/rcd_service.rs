@@ -1,4 +1,5 @@
 use config::Config;
+use log::LevelFilter;
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::dbi::Dbi;
@@ -8,7 +9,6 @@ use std::env;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use triggered::Listener;
-use log::{LevelFilter};
 
 use rcd_enum::database_type::DatabaseType;
 
@@ -128,7 +128,7 @@ impl RcdService {
 
                 self.db_interface = Some(config);
 
-                SqliteLog::init(LevelFilter::Trace).unwrap();
+                SqliteLog::init_at_dir(LevelFilter::Trace, root_dir.to_string()).unwrap();
             }
 
             DatabaseType::Mysql => unimplemented!(),
