@@ -1,16 +1,17 @@
 use crate::http_srv::Core;
 use rcd_common::defaults;
 use rcdproto::rcdp::{
-    AuthRequest, ChangeHostStatusReply, ChangeHostStatusRequest, RevokeReply, TestReply,
-    TestRequest, TokenReply, TryAuthAtParticipantRequest, TryAuthAtPartipantReply, GetSettingsRequest, GetSettingsReply,
+    AuthRequest, ChangeHostStatusReply, ChangeHostStatusRequest, GetSettingsReply,
+    GetSettingsRequest, RevokeReply, TestReply, TestRequest, TokenReply,
+    TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
 };
 use rocket::{get, http::Status, post, serde::json::Json, State};
 
 pub mod contract;
 pub mod database;
 pub mod host;
-pub mod sql;
 pub mod logs;
+pub mod sql;
 
 #[get("/client/status")]
 pub async fn status() -> &'static str {
@@ -99,7 +100,6 @@ pub async fn get_settings(
 
     (Status::Ok, Json(response))
 }
-
 
 #[post(
     "/client/token-revoke",

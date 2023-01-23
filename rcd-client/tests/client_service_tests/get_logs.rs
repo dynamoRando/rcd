@@ -245,7 +245,7 @@ pub mod http {
             .unwrap();
 
         client.has_table(db_name, "EMPLOYEE").await.unwrap();
-        
+
         let logs = client.get_last_log_entries(5).await.unwrap().logs;
         !logs.is_empty()
     }
