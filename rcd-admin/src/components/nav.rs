@@ -56,6 +56,12 @@ pub fn Nav() -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::CooperativeHosts}>
                     { "Cooperative Hosts" }
                     </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Settings}>
+                    { "Settings" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Logs}>
+                    { "Logs" }
+                    </Link<Route>>
                 </div>
             </div>
         </nav>

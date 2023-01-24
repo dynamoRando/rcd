@@ -8,3 +8,5 @@ pub mod host_info;
 pub mod page_not_found;
 pub mod participants;
 pub mod sql;
+pub mod settings;
+pub mod logs;

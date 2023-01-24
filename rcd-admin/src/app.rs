@@ -15,8 +15,10 @@ use crate::pages::coop_hosts::CooperativeHosts;
 use crate::pages::databases::db::Databases;
 use crate::pages::home::Home;
 use crate::pages::host_info::HostInfo;
+use crate::pages::logs::Logs;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::participants::Participants;
+use crate::pages::settings::Settings;
 use crate::pages::sql::sqlx::Sql;
 use crate::request::{get_status, get_token};
 
@@ -38,6 +40,10 @@ pub enum Route {
     Behaviors,
     #[at("/CooperativeHosts")]
     CooperativeHosts,
+    #[at("/Settings")]
+    Settings,
+    #[at("/Logs")]
+    Logs,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -158,6 +164,12 @@ fn switch(routes: Route) -> Html {
         }
         Route::CooperativeHosts => {
             html! { <CooperativeHosts /> }
+        }
+        Route::Settings => {
+            html! { <Settings /> }
+        }
+        Route::Logs => {
+            html! { <Logs /> }
         }
     }
 }

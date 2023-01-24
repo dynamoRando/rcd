@@ -13,3 +13,4 @@
 rcdx/log/*
 Test.toml
 *.sqlite
+*.sh
