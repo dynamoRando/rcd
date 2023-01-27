@@ -445,7 +445,7 @@ fn get_scalar_as_string(cmd: String, conn: &Connection) -> String {
     value
 }
 
-fn has_table(table_name: String, conn: &Connection) -> bool {
+fn has_table(table_name: &str, conn: &Connection) -> bool {
     let mut cmd = String::from(
         "SELECT count(*) AS TABLECOUNT FROM sqlite_master WHERE type='table' AND name=':table_name'",
     );

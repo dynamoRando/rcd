@@ -2452,6 +2452,7 @@ dependencies = [
  "serde_derive",
  "sodiumoxide",
  "substring",
+ "thiserror",
  "tokio",
  "tonic",
 ]

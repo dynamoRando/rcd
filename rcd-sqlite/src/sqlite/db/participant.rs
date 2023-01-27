@@ -343,13 +343,18 @@ pub fn get_participant_by_alias(
 pub fn get_participants_for_database(
     db_name: &str,
     config: &DbiConfigSqlite,
-) -> Vec<ParticipantStatus> {
+) -> Result<Vec<ParticipantStatus>> {
 
-    // if the table doesn't exist, we should return an error here
 
     let mut result: Vec<ParticipantStatus> = Vec::new();
 
     let conn = get_db_conn(config, db_name);
+
+
+    // if the table doesn't exist, we should return an error here
+    if !has_table("COOP_PARTICIPANT", &conn) {
+
+    }
 
     let cmd = "
     SELECT 
