@@ -239,9 +239,7 @@ pub async fn start_grpc_client_service_at_addr(
         .build()
         .unwrap();
 
-    println!(
-        "start_client_service_at_addr: sql client server listening on {addr}"
-    );
+    println!("start_client_service_at_addr: sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))
