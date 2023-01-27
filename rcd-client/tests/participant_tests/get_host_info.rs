@@ -34,7 +34,7 @@ pub mod grpc {
         .unwrap();
 
         let has_host_name = rx_main.try_recv().unwrap();
-        println!("has_host_name: got: {}", has_host_name);
+        println!("has_host_name: got: {has_host_name}");
 
         assert!(has_host_name);
     }
@@ -108,7 +108,7 @@ pub mod http {
         .unwrap();
 
         let has_host_info = rx_main.try_recv().unwrap();
-        println!("has_host_info: got: {}", has_host_info);
+        println!("has_host_info: got: {has_host_info}");
 
         assert!(has_host_info);
 

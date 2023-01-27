@@ -60,8 +60,7 @@ pub mod grpc {
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
         println!(
-            "send_participant_contract: got: {}",
-            sent_participant_contract
+            "send_participant_contract: got: {sent_participant_contract}"
         );
 
         assert!(sent_participant_contract);
@@ -75,8 +74,7 @@ pub mod grpc {
 
         let participant_got_contract = rx_participant.try_recv().unwrap();
         println!(
-            "participant_got_contract: got: {}",
-            participant_got_contract
+            "participant_got_contract: got: {participant_got_contract}"
         );
 
         assert!(participant_got_contract);
@@ -265,8 +263,7 @@ pub mod http {
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
         println!(
-            "send_participant_contract: got: {}",
-            sent_participant_contract
+            "send_participant_contract: got: {sent_participant_contract}"
         );
 
         assert!(sent_participant_contract);
@@ -280,8 +277,7 @@ pub mod http {
 
         let participant_got_contract = rx_participant.try_recv().unwrap();
         println!(
-            "participant_got_contract: got: {}",
-            participant_got_contract
+            "participant_got_contract: got: {participant_got_contract}"
         );
 
         assert!(participant_got_contract);

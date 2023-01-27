@@ -46,8 +46,8 @@ pub fn insert_data_into_partial_db(
     cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
-    println!("{:?}", row_id);
-    println!("{:?}", hash_value);
+    println!("{row_id:?}");
+    println!("{hash_value:?}");
 
     statement
         .execute(named_params! {":row": row_id, ":hash" : hash_value.to_ne_bytes() })

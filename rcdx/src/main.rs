@@ -23,7 +23,7 @@ pub mod rcd_service;
 #[tokio::main]
 async fn main() {
     let version_message = format!("rcdx version {}.", defaults::VERSION);
-    println!("{}", version_message);
+    println!("{version_message}");
     // set_default_logging();
     use_sqlite_logging();
 
@@ -146,7 +146,7 @@ fn process_cmd_args(args: Vec<String>) -> Option<String> {
 
 fn set_default_config() {
     let cwd = get_current_directory();
-    println!("cwd: {}", cwd);
+    println!("cwd: {cwd}");
     let default_settings_content = String::from(
         r#"
 debug = false
@@ -172,7 +172,7 @@ data_grpc_timeout_in_seconds = 5
             &path.to_str().unwrap()
         );
         let mut output = File::create(path).unwrap();
-        write!(output, "{}", default_settings_content).unwrap();
+        write!(output, "{default_settings_content}").unwrap();
     } else {
         println!("Settings.toml was found, skipping default settings");
     }

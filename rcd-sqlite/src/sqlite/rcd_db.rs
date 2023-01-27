@@ -232,15 +232,15 @@ pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection)
             "WARNING: check_database_name_for_contract_format no database named: ", db_name
         );
         warn!("{}", message);
-        println!("{}", message);
+        println!("{message}");
 
         if db_name.contains(".dbpart") {
             let message = "check_database_name_for_contract_format: renaming database name to contract version of database";
             info!("{}", message);
             db_name = db_name.replace(".dbpart", ".db");
-            let message = format!("New database name is: {}", db_name);
+            let message = format!("New database name is: {db_name}");
             info!("{}", message);
-            println!("{}", message)
+            println!("{message}")
         }
     }
 
@@ -395,7 +395,7 @@ pub fn change_host_status_by_name(host_name: &str, status: u32, config: &DbiConf
 }
 
 pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
-    println!("host_id: {}", host_id);
+    println!("host_id: {host_id}");
 
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
@@ -426,7 +426,7 @@ pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite
 }
 
 pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
-    println!("host_name: {}", host_name);
+    println!("host_name: {host_name}");
 
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(

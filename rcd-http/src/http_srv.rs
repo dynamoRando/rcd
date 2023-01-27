@@ -208,14 +208,14 @@ pub async fn start_http(core: Rcd, data: RcdData, addr: String, port: u16) {
 pub async fn shutdown_http() {
     let http_addr = get_addr().clone();
     let http_port = get_port();
-    let url = format!("http://{}:{}/shutdown", http_addr, http_port);
+    let url = format!("http://{http_addr}:{http_port}/shutdown");
     let _ = reqwest::get(url).await.unwrap();
 }
 
 pub async fn shutdown_http_addr(addr: String, port: u32) {
-    let url = format!("http://{}:{}/shutdown", addr, port);
+    let url = format!("http://{addr}:{port}/shutdown");
 
-    println!("Shutdown Request for http://{}:{}", addr, port);
+    println!("Shutdown Request for http://{addr}:{port}");
 
     let _ = reqwest::get(url).await.unwrap();
 }

@@ -131,7 +131,7 @@ impl RcdService {
                 let result = SqliteLog::init_at_dir(LevelFilter::Debug, root_dir.to_string());
 
                 if result.is_err() {
-                    println!("{}", result.err().unwrap().to_string());
+                    println!("{}", result.err().unwrap());
                 }
             }
 
@@ -305,7 +305,7 @@ pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSe
         .build()
         .expect(&error_message);
 
-    println!("Using settings file: {}", settings_location);
+    println!("Using settings file: {settings_location}");
 
     let i_database_type = settings.get_int(&String::from("database_type")).unwrap();
     let database_type = DatabaseType::from_i64(i_database_type);

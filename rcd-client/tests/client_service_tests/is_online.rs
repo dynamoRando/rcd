@@ -33,7 +33,7 @@ pub mod grpc {
         info!("sending request");
 
         let response = client.is_online(request).await.unwrap().into_inner();
-        println!("RESPONSE={:?}", response);
+        println!("RESPONSE={response:?}");
         info!("response back");
 
         String::from(&response.reply_echo_message)
@@ -45,7 +45,7 @@ pub mod grpc {
         let (tx, rx) = mpsc::channel();
 
         let root_dir = test_harness::get_test_temp_dir(test_message);
-        println!("{}", root_dir);
+        println!("{root_dir}");
 
         let mut service = get_service_from_config_file(None);
         let client_address_port = service.rcd_settings.grpc_client_service_addr_port.clone();
@@ -69,7 +69,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!("test_is_online: got: {} sent: {}", response, test_message);
+        println!("test_is_online: got: {response} sent: {test_message}");
 
         assert_eq!(response, test_message);
     }
@@ -110,7 +110,7 @@ pub mod http {
         let (tx, rx) = mpsc::channel();
 
         let root_dir = test_harness::get_test_temp_dir(test_message);
-        println!("{}", root_dir);
+        println!("{root_dir}");
 
         let mut service = get_service_from_config_file(None);
 
@@ -144,7 +144,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!("test_is_online: got: {} sent: {}", response, test_message);
+        println!("test_is_online: got: {response} sent: {test_message}");
 
         assert_eq!(response, test_message);
     }

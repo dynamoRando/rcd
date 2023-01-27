@@ -29,7 +29,7 @@ pub async fn send_contract_to_participant(
     request: Json<SendParticipantContractRequest>,
     state: &State<Core>,
 ) -> (Status, Json<SendParticipantContractReply>) {
-    println!("{:?}", request);
+    println!("{request:?}");
 
     let result = state
         .get_core()

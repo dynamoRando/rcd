@@ -221,8 +221,8 @@ pub async fn accept_pending_action_at_participant(
             .dbi()
             .accept_pending_action_at_participant(db_name, table_name, row_id);
 
-        println!("{:?}", data_result);
-        println!("is_local_update_successful: {}", is_local_update_successful);
+        println!("{data_result:?}");
+        println!("is_local_update_successful: {is_local_update_successful}");
 
         if data_result.is_successful {
             is_local_update_successful = true;
@@ -254,7 +254,7 @@ pub async fn accept_pending_action_at_participant(
                 .notify_host_of_updated_hash(&remote_host, &own_host_info, &data_info)
                 .await;
 
-            println!("notify_is_successful: {}", notify_is_successful);
+            println!("notify_is_successful: {notify_is_successful}");
 
             if notify_is_successful {
                 is_remote_update_successful = true;
@@ -483,7 +483,7 @@ pub async fn get_databases(core: &Rcd, request: GetDatabasesRequest) -> GetDatab
         let db_names = core.dbi().get_database_names();
         for name in &db_names {
             let db_schema = core.dbi().get_database_schema(name);
-            println!("{:?}", db_schema);
+            println!("{db_schema:?}");
             db_result.push(db_schema);
         }
     }

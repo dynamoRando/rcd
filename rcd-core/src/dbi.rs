@@ -1166,8 +1166,8 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                let x = sqlite::db::participant::get_participants_for_database(db_name, &settings);
-                x
+                
+                sqlite::db::participant::get_participants_for_database(db_name, &settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

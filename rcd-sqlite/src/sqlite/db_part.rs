@@ -182,7 +182,7 @@ pub fn create_partial_database_from_contract(
     contract: &Contract,
     config: &DbiConfigSqlite,
 ) -> bool {
-    println!("{:?}", config);
+    println!("{config:?}");
 
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();
     let _ = create_partial_database(&db_name, config);
@@ -289,13 +289,11 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
 
         let col_statement: String = if *last_column == column.column_name {
             format!(
-                " {} {} {} {} ",
-                col_name, col_type, col_length, col_nullable
+                " {col_name} {col_type} {col_length} {col_nullable} "
             )
         } else {
             format!(
-                " {} {} {} {} , ",
-                col_name, col_type, col_length, col_nullable
+                " {col_name} {col_type} {col_length} {col_nullable} , "
             )
         };
 
@@ -332,8 +330,8 @@ fn add_record_to_log_table(
 
     for name in &col_names_vec {
         let item = format!("{}{}", name, ",");
-        col_names = format!("{}{}", col_names, item);
-        original_col_names = format!("{}{}", original_col_names, item);
+        col_names = format!("{col_names}{item}");
+        original_col_names = format!("{original_col_names}{item}");
     }
 
     // remove the final comma from the list of original column names
@@ -382,7 +380,7 @@ fn add_record_to_log_table(
         col_vals = col_vals[0..col_vals.len() - 1].to_string();
         insert_cmd = insert_cmd.replace(":col_vals", &col_vals);
 
-        println!("{:?}", insert_cmd);
+        println!("{insert_cmd:?}");
 
         let row_id_val = row.get_ref_unwrap(total_cols).as_i64().unwrap().to_string();
 
@@ -390,7 +388,7 @@ fn add_record_to_log_table(
         insert_cmd = insert_cmd.replace(":action", action);
         insert_cmd = insert_cmd.replace(":ts_utc", &Utc::now().to_string());
 
-        println!("{:?}", insert_cmd);
+        println!("{insert_cmd:?}");
 
         execute_write(conn, &insert_cmd);
     }

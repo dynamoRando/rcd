@@ -33,7 +33,7 @@ pub fn remove_remote_row_reference_from_host(
     ;",
     );
 
-    println!("{}", cmd);
+    println!("{cmd}");
 
     cmd = cmd.replace(":table_name", &metadata_table_name);
 
@@ -41,7 +41,7 @@ pub fn remove_remote_row_reference_from_host(
 
     let rows = statement.execute(named_params! {":rid": row_id}).unwrap();
 
-    println!("total row_references_deleted: {}", rows);
+    println!("total row_references_deleted: {rows}");
 
     rows > 0
 }

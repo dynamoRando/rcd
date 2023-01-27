@@ -82,8 +82,7 @@ pub mod grpc {
         // main - setup contract
         let sent_participant_contract = rx_main.try_recv().unwrap();
         println!(
-            "send_participant_contract: got: {}",
-            sent_participant_contract
+            "send_participant_contract: got: {sent_participant_contract}"
         );
 
         assert!(sent_participant_contract);
@@ -98,8 +97,7 @@ pub mod grpc {
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
         println!(
-            "participant_accpeted_contract: got: {}",
-            participant_accepted_contract
+            "participant_accpeted_contract: got: {participant_accepted_contract}"
         );
 
         assert!(participant_accepted_contract);
@@ -289,7 +287,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        println!("{:?}", data);
+        println!("{data:?}");
 
         let value = data
             .rows
@@ -301,11 +299,11 @@ pub mod grpc {
             .value
             .clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         value == expected_value
     }
@@ -461,7 +459,7 @@ pub mod grpc {
             .execute_cooperative_write_at_host(db_name, update_statement, "participant", "ID = 999")
             .await;
 
-        println!("{:?}", update_result);
+        println!("{update_result:?}");
 
         assert!(update_result.unwrap());
 
@@ -476,11 +474,11 @@ pub mod grpc {
 
         let value = &row.values[1].value.clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "TESTER".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         *value == expected_value
     }
@@ -513,11 +511,11 @@ pub mod grpc {
 
         let value = &row.values[1].value.clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "TESTER".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         *value == expected_value
     }
@@ -609,8 +607,7 @@ pub mod http {
         // main - setup contract
         let sent_participant_contract = rx_main.try_recv().unwrap();
         println!(
-            "send_participant_contract: got: {}",
-            sent_participant_contract
+            "send_participant_contract: got: {sent_participant_contract}"
         );
 
         assert!(sent_participant_contract);
@@ -625,8 +622,7 @@ pub mod http {
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
         println!(
-            "participant_accpeted_contract: got: {}",
-            participant_accepted_contract
+            "participant_accpeted_contract: got: {participant_accepted_contract}"
         );
 
         assert!(participant_accepted_contract);
@@ -814,7 +810,7 @@ pub mod http {
             .await
             .unwrap();
 
-        println!("{:?}", data);
+        println!("{data:?}");
 
         let value = data
             .rows
@@ -826,11 +822,11 @@ pub mod http {
             .value
             .clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         value == expected_value
     }
@@ -986,7 +982,7 @@ pub mod http {
             .execute_cooperative_write_at_host(db_name, update_statement, "participant", "ID = 999")
             .await;
 
-        println!("{:?}", update_result);
+        println!("{update_result:?}");
 
         assert!(update_result.unwrap());
 
@@ -1001,11 +997,11 @@ pub mod http {
 
         let value = &row.values[1].value.clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "TESTER".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         *value == expected_value
     }
@@ -1038,11 +1034,11 @@ pub mod http {
 
         let value = &row.values[1].value.clone();
 
-        println!("{:?}", value);
+        println!("{value:?}");
 
         let expected_value = "TESTER".as_bytes().to_vec();
 
-        println!("{:?}", expected_value);
+        println!("{expected_value:?}");
 
         *value == expected_value
     }

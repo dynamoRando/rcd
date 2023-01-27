@@ -35,7 +35,7 @@ pub fn set_logical_storage_policy(
     config: DbiConfigSqlite,
 ) -> Result<bool, RcdDbError> {
     let conn = get_db_conn(&config, db_name);
-    if has_table(&table_name, &conn) {
+    if has_table(table_name, &conn) {
         // insert or update on the coop tables
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
@@ -81,7 +81,7 @@ pub fn set_logical_storage_policy(
 
         populate_data_host_tables(db_name, &conn);
     } else {
-        let error_message = format!("table {} not in {}", table_name, db_name);
+        let error_message = format!("table {table_name} not in {db_name}");
         let err = RcdDbError::TableNotFound(error_message);
         return Err(err);
     }
@@ -99,7 +99,7 @@ pub fn get_logical_storage_policy(
     let conn = get_db_conn(config, db_name);
     let policy;
 
-    if has_table(&table_name, &conn) {
+    if has_table(table_name, &conn) {
         // insert or update on the coop tables
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
@@ -126,7 +126,7 @@ pub fn get_logical_storage_policy(
             return Ok(LogicalStoragePolicy::None);
         }
     } else {
-        let error_message = format!("table {} not found in db {}", table_name, db_name);
+        let error_message = format!("table {table_name} not found in db {db_name}");
         let err = RcdDbError::TableNotFound(error_message);
         return Err(err);
     }

@@ -238,7 +238,7 @@ impl Rcd {
     pub fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
-        println!("is_online, requested echo: {}", item);
+        println!("is_online, requested echo: {item}");
 
         TestReply {
             reply_time_utc: Utc::now().to_rfc2822(),

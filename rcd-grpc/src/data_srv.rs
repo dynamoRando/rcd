@@ -137,7 +137,7 @@ impl DataService for DataServiceImpl {
             "update_row_data_hash_for_host: Request from {:?}",
             request.remote_addr()
         );
-        println! {"{:?}", request};
+        println! {"{request:?}"};
 
         let result = self
             .core()
@@ -196,7 +196,7 @@ pub async fn start_db_service(
         .build()
         .unwrap();
 
-    println!("data client server listening on {}", addr);
+    println!("data client server listening on {addr}");
 
     Server::builder()
         .add_service(DataServiceServer::new(data_client))

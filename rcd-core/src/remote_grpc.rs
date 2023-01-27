@@ -350,7 +350,7 @@ impl RemoteGrpc {
             host_info.ip4_address.clone()
         );
         info!("{}", message);
-        println!("{}", message);
+        println!("{message}");
 
         let client =
             get_client_with_addr_port(host_info.ip4_address.clone(), self.timeout_in_seconds);
@@ -401,7 +401,7 @@ async fn get_client_with_addr_port(
     timeout_in_seconds: u32,
 ) -> DataServiceClient<Channel> {
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
-    let message = format!("configuring to connect to rcd at: {}", addr_port);
+    let message = format!("configuring to connect to rcd at: {addr_port}");
     info!("{}", message);
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap())
@@ -419,7 +419,7 @@ async fn get_client(
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
 
-    println!("{}", http_addr_port);
+    println!("{http_addr_port}");
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap())
         .timeout(Duration::from_secs(timeout_in_seconds.into()));
@@ -433,11 +433,10 @@ async fn get_client_from_cds_host(host: &CdsHosts) -> DataServiceClient<Channel>
     let addr_port = host.ip4.clone();
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     println!(
-        "configuring to connect to rcd from cds host at: {}",
-        addr_port
+        "configuring to connect to rcd from cds host at: {addr_port}"
     );
 
-    println!("{}", http_addr_port);
+    println!("{http_addr_port}");
 
     let endpoint = tonic::transport::Channel::builder(http_addr_port.parse().unwrap());
     let channel = endpoint.connect().await.unwrap();

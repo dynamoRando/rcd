@@ -11,7 +11,7 @@ pub async fn accept_contract(
 ) -> ParticipantAcceptsContractResult {
     let debug_message_info = &request.message_info.as_ref().unwrap().clone();
 
-    println!("{:?}", debug_message_info);
+    println!("{debug_message_info:?}");
 
     let participant_message = request.participant.as_ref().unwrap().clone();
 

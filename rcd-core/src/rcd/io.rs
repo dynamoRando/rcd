@@ -398,7 +398,7 @@ pub async fn execute_cooperative_write_at_host(
                                 &internal_participant_id,
                             );
 
-                            println!("local update is successful: {}", local_update_is_successful);
+                            println!("local update is successful: {local_update_is_successful}");
 
                             if local_update_is_successful {
                                 is_remote_action_successful = true;
@@ -457,7 +457,7 @@ pub async fn execute_cooperative_write_at_host(
         total_rows_affected: 0,
     };
 
-    println!("{:?}", execute_write_reply);
+    println!("{execute_write_reply:?}");
 
     execute_write_reply
 }

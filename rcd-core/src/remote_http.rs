@@ -83,7 +83,7 @@ impl RemoteHttp {
 
             info!("sending request to rcd at: {}", addr_port);
 
-            let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_UPDATED_HASH);
+            let url = format!("http://{addr_port}{NOTIFY_HOST_OF_UPDATED_HASH}");
             let result = send_message(request_json, url).await;
             let reply: UpdateRowDataHashForHostResponse = serde_json::from_str(&result).unwrap();
 
@@ -106,7 +106,7 @@ impl RemoteHttp {
 
             info!("sending request to rcd at: {}", addr_port);
 
-            let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
+            let url = format!("http://{addr_port}{NOTIFY_HOST_OF_REMOVED_ROW}");
             let result = send_message(request_json, url).await;
             let reply: NotifyHostOfRemovedRowResponse = serde_json::from_str(&result).unwrap();
 
@@ -143,7 +143,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, GET_ROW_AT_PARTICIPANT);
+        let url = format!("http://{addr_port}{GET_ROW_AT_PARTICIPANT}");
         let result = send_message(request_json, url).await;
         let reply: GetRowFromPartialDatabaseResult = serde_json::from_str(&result).unwrap();
 
@@ -173,7 +173,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, INSERT_ROW_AT_PARTICIPANT);
+        let url = format!("http://{addr_port}{INSERT_ROW_AT_PARTICIPANT}");
         let result = send_message(request_json, url).await;
         let reply: InsertDataResult = serde_json::from_str(&result).unwrap();
 
@@ -205,7 +205,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, UPDATE_ROW_AT_PARTICIPANT);
+        let url = format!("http://{addr_port}{UPDATE_ROW_AT_PARTICIPANT}");
         let result = send_message(request_json, url).await;
         let reply: UpdateDataResult = serde_json::from_str(&result).unwrap();
 
@@ -228,7 +228,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, TRY_AUTH);
+        let url = format!("http://{addr_port}{TRY_AUTH}");
         let result = send_message(request_json, url).await;
         let reply: TryAuthResult = serde_json::from_str(&result).unwrap();
 
@@ -274,7 +274,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, NOTIFY_HOST_OF_REMOVED_ROW);
+        let url = format!("http://{addr_port}{NOTIFY_HOST_OF_REMOVED_ROW}");
         let result = send_message(request_json, url).await;
         let reply: NotifyHostOfRemovedRowResponse = serde_json::from_str(&result).unwrap();
 
@@ -306,7 +306,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, REMOVE_ROW_AT_PARTICIPANT);
+        let url = format!("http://{addr_port}{REMOVE_ROW_AT_PARTICIPANT}");
         let result = send_message(request_json, url).await;
         let reply: DeleteDataResult = serde_json::from_str(&result).unwrap();
 
@@ -352,7 +352,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, PARTICIPANT_ACCEPTS_CONTRACT);
+        let url = format!("http://{addr_port}{PARTICIPANT_ACCEPTS_CONTRACT}");
         let result = send_message(request_json, url).await;
         let reply: ParticipantAcceptsContractResult = serde_json::from_str(&result).unwrap();
 
@@ -389,7 +389,7 @@ impl RemoteHttp {
 
         info!("sending request to rcd at: {}", addr_port);
 
-        let url = format!("http://{}{}", addr_port, SAVE_CONTRACT);
+        let url = format!("http://{addr_port}{SAVE_CONTRACT}");
         let result = send_message(request_json, url).await;
         let reply: SaveContractResult = serde_json::from_str(&result).unwrap();
 
@@ -439,8 +439,8 @@ fn is_little_endian() -> bool {
 async fn send_message(json_message: String, url: String) -> String {
     let client = reqwest::Client::new();
 
-    println!("{}", json_message);
-    println!("{}", url);
+    println!("{json_message}");
+    println!("{url}");
 
     return client
         .post(url)

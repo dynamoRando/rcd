@@ -22,7 +22,7 @@ pub mod grpc {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{}", root_dir);
+        println!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
@@ -49,8 +49,7 @@ pub mod grpc {
         let response = rx.try_recv().unwrap();
 
         println!(
-            "create_db_enable_coop_read_write: got: is_error: {}",
-            response
+            "create_db_enable_coop_read_write: got: is_error: {response}"
         );
 
         assert!(!response);
@@ -154,7 +153,7 @@ pub mod http {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{}", root_dir);
+        println!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("127.0.0.1:"), port_num);
         let target_client_address_port = client_address_port.clone();
@@ -181,8 +180,7 @@ pub mod http {
         let response = rx.try_recv().unwrap();
 
         println!(
-            "create_db_enable_coop_read_write: got: is_error: {}",
-            response
+            "create_db_enable_coop_read_write: got: is_error: {response}"
         );
 
         assert!(!response);

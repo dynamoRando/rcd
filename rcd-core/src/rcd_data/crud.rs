@@ -76,8 +76,7 @@ pub async fn delete_command_into_table(
         match behavior {
             DeletesFromHostBehavior::Ignore => {
                 action_message = format!(
-                    "The participant does not allow updates for db {} table: {}",
-                    db_name, table_name
+                    "The participant does not allow updates for db {db_name} table: {table_name}"
                 );
             }
             DeletesFromHostBehavior::AllowRemoval => {
@@ -194,8 +193,7 @@ pub async fn update_command_into_table(
         match behavior {
             UpdatesFromHostBehavior::Ignore => {
                 action_message = format!(
-                    "The participant does not allow updates for db {} table: {}",
-                    db_name, table_name
+                    "The participant does not allow updates for db {db_name} table: {table_name}"
                 );
                 update_status = PartialDataStatus::to_u32(PartialDataStatus::Ignored);
             }

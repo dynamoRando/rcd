@@ -528,7 +528,7 @@ pub async fn start_client_service(
         .build()
         .unwrap();
 
-    println!("sql client server listening on {}", addr);
+    println!("sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))

@@ -26,7 +26,7 @@ impl RcdCommunication {
             0 => RcdCommunication::Unknown,
             1 => RcdCommunication::Grpc,
             2 => RcdCommunication::Http,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

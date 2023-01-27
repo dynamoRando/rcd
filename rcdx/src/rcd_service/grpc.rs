@@ -36,7 +36,7 @@ pub async fn start_client_service_at_addr_with_shutdown(
         .build()
         .unwrap();
 
-    println!("Client Service Starting At: {}", addr);
+    println!("Client Service Starting At: {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))
@@ -68,7 +68,7 @@ pub async fn start_db_service_at_addr_with_shutdown(
         .build()
         .unwrap();
 
-    println!("Database Service Starting At: {}", addr);
+    println!("Database Service Starting At: {addr}");
 
     Server::builder()
         .add_service(DataServiceServer::new(data_service))
@@ -196,7 +196,7 @@ pub async fn start_grpc_client_service_alt(
         .build()
         .unwrap();
 
-    println!("sql client server listening on {}", addr);
+    println!("sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))
@@ -240,8 +240,7 @@ pub async fn start_grpc_client_service_at_addr(
         .unwrap();
 
     println!(
-        "start_client_service_at_addr: sql client server listening on {}",
-        addr
+        "start_client_service_at_addr: sql client server listening on {addr}"
     );
 
     Server::builder()
