@@ -1,5 +1,4 @@
-#[derive(serde::Serialize, serde::Deserialize)]
-#[derive(Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RcdError {
     pub number: u32,
     pub message: String,

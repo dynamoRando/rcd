@@ -48,9 +48,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!(
-            "get_set_logical_storage_policy: got: policy_num: {response}"
-        );
+        println!("get_set_logical_storage_policy: got: policy_num: {response}");
 
         assert_eq!(i_policy, response);
 
@@ -203,9 +201,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!(
-            "get_set_logical_storage_policy: got: policy_num: {response}"
-        );
+        println!("get_set_logical_storage_policy: got: policy_num: {response}");
 
         assert_eq!(i_policy, response);
 

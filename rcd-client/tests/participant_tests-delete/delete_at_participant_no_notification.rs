@@ -68,9 +68,7 @@ pub mod grpc {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!(
-            "send_participant_contract: got: {sent_participant_contract}"
-        );
+        println!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -82,9 +80,7 @@ pub mod grpc {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!(
-            "participant_accpeted_contract: got: {participant_accepted_contract}"
-        );
+        println!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -463,9 +459,7 @@ pub mod http {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!(
-            "send_participant_contract: got: {sent_participant_contract}"
-        );
+        println!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -477,9 +471,7 @@ pub mod http {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!(
-            "participant_accpeted_contract: got: {participant_accepted_contract}"
-        );
+        println!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 

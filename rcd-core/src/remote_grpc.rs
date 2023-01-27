@@ -432,9 +432,7 @@ async fn get_client_from_cds_host(host: &CdsHosts) -> DataServiceClient<Channel>
     // let addr_port = format!("{}{}", host.ip4, host.port.to_string());
     let addr_port = host.ip4.clone();
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
-    println!(
-        "configuring to connect to rcd from cds host at: {addr_port}"
-    );
+    println!("configuring to connect to rcd from cds host at: {addr_port}");
 
     println!("{http_addr_port}");
 

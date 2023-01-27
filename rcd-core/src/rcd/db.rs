@@ -1,3 +1,4 @@
+use log::warn;
 use rcd_common::{data_info::DataInfo, host_info::HostInfo};
 
 use super::Rcd;
@@ -456,6 +457,12 @@ pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> Ge
                 participants_result = participants;
             }
             Err(e) => {
+                let message = format!(
+                    "{} - {}",
+                    e.to_string(),
+                    "Are cooperative functions enabled on this database?".to_string()
+                );
+                warn!("{}", message);
                 is_error = true;
                 error = Some(RcdError {
                     number: 0,

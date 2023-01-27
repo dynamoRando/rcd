@@ -11,4 +11,3 @@ pub enum RcdDbError {
     #[error("storage policy not defined for table `{0}`")]
     LogicalStoragePolicyNotSet(String),
 }
-

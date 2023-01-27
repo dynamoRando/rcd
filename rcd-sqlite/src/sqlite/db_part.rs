@@ -288,13 +288,9 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
         let last_column = &table_schema.columns.last().unwrap().column_name;
 
         let col_statement: String = if *last_column == column.column_name {
-            format!(
-                " {col_name} {col_type} {col_length} {col_nullable} "
-            )
+            format!(" {col_name} {col_type} {col_length} {col_nullable} ")
         } else {
-            format!(
-                " {col_name} {col_type} {col_length} {col_nullable} , "
-            )
+            format!(" {col_name} {col_type} {col_length} {col_nullable} , ")
         };
 
         cmd = cmd + &col_statement;

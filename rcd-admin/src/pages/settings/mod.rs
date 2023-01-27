@@ -1,15 +1,15 @@
 use rcd_http_common::url::client::GET_SETTINGS;
-use rcd_messages::client::{GetSettingsRequest, GetSettingsReply};
-use yew::{function_component, Html, use_state_eq, Callback, AttrValue, html};
+use rcd_messages::client::{GetSettingsReply, GetSettingsRequest};
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
-use crate::{request::{get_token, update_token_login_status, set_status, self}, log::log_to_console};
+use crate::{
+    log::log_to_console,
+    request::{self, get_token, set_status, update_token_login_status},
+};
 
 #[function_component]
 pub fn Settings() -> Html {
-
-    let settings = use_state_eq(move || {
-        String::from("")
-    });
+    let settings = use_state_eq(move || String::from(""));
 
     let onclick = {
         let settings = settings.clone();
@@ -17,7 +17,7 @@ pub fn Settings() -> Html {
             let settings = settings.clone();
             let token = get_token();
             let request = GetSettingsRequest {
-                authentication: Some(token.auth())
+                authentication: Some(token.auth()),
             };
 
             let url = format!("{}{}", token.addr, GET_SETTINGS);
@@ -53,7 +53,7 @@ pub fn Settings() -> Html {
                         <span class="mdi mdi-magnify">{" View Settings"}</span>
                     </button>
                     <p>
-                    <textarea class="textarea" rows="5" cols="60"  
+                    <textarea class="textarea" rows="5" cols="60"
                     id ="settings" placeholder="Settings Will Appear Here As Json" value={(*settings).clone()}/>
                     </p>
                 </div>

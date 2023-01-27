@@ -48,9 +48,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!(
-            "create_db_enable_coop_read_write: got: is_error: {response}"
-        );
+        println!("create_db_enable_coop_read_write: got: is_error: {response}");
 
         assert!(!response);
 
@@ -179,9 +177,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!(
-            "create_db_enable_coop_read_write: got: is_error: {response}"
-        );
+        println!("create_db_enable_coop_read_write: got: is_error: {response}");
 
         assert!(!response);
 

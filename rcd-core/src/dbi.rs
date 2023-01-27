@@ -1162,7 +1162,10 @@ impl Dbi {
         )
     }
 
-    pub fn get_participants_for_database(&self, db_name: &str) -> Result<Vec<ParticipantStatus>, RcdDbError> {
+    pub fn get_participants_for_database(
+        &self,
+        db_name: &str,
+    ) -> Result<Vec<ParticipantStatus>, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
