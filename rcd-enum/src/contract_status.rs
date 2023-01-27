@@ -23,7 +23,7 @@ impl ContractStatus {
             2 => ContractStatus::Pending,
             3 => ContractStatus::Accepted,
             4 => ContractStatus::Rejected,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 
@@ -34,7 +34,7 @@ impl ContractStatus {
             2 => ContractStatus::Pending,
             3 => ContractStatus::Accepted,
             4 => ContractStatus::Rejected,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

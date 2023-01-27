@@ -2342,6 +2342,7 @@ dependencies = [
  "sha2",
  "sodiumoxide",
  "substring",
+ "thiserror",
  "tokio",
  "tonic",
 ]
@@ -2352,6 +2353,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "substring",
+ "thiserror",
 ]
 
 [[package]]

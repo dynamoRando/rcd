@@ -53,7 +53,7 @@ impl Column {
     pub fn data_type_len(&self) -> u32 {
         let str_data_type: String = self.data_type.clone();
 
-        println!("{:?}", str_data_type);
+        println!("{str_data_type:?}");
 
         let idx_first_paren = str_data_type.find('(');
 
@@ -64,7 +64,7 @@ impl Column {
             let idx_last = str_data_type.find(')').unwrap();
             let str_length = str_data_type.substring(idx_first, idx_last);
 
-            println!("{:?}", str_length);
+            println!("{str_length:?}");
 
             let length: u32 = str_length.parse().unwrap();
             length

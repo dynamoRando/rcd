@@ -1162,11 +1162,12 @@ impl Dbi {
         )
     }
 
-    pub fn get_participants_for_database(&self, db_name: &str) -> Vec<ParticipantStatus> {
+    pub fn get_participants_for_database(&self, db_name: &str) -> Result<Vec<ParticipantStatus>, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db::participant::get_participants_for_database(db_name, &settings)
+                let x = sqlite::db::participant::get_participants_for_database(db_name, &settings);
+                x
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

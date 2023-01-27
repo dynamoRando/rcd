@@ -23,7 +23,7 @@ impl RemoteDeleteBehavior {
             1 => RemoteDeleteBehavior::Ignore,
             2 => RemoteDeleteBehavior::AutoDelete,
             3 => RemoteDeleteBehavior::UpdateStatusOnly,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 
@@ -33,7 +33,7 @@ impl RemoteDeleteBehavior {
             1 => RemoteDeleteBehavior::Ignore,
             2 => RemoteDeleteBehavior::AutoDelete,
             3 => RemoteDeleteBehavior::UpdateStatusOnly,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

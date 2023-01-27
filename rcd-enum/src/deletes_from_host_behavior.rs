@@ -23,7 +23,7 @@ impl DeletesFromHostBehavior {
             3 => DeletesFromHostBehavior::DeleteWithLog,
             4 => DeletesFromHostBehavior::Ignore,
             5 => DeletesFromHostBehavior::QueueForReviewAndLog,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

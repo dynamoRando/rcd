@@ -57,7 +57,7 @@ pub fn insert_metadata_into_host_db(
     let conn = get_db_conn(&config, db_name);
     let metadata_table_name = get_metadata_table_name(table_name);
 
-    if !has_table(metadata_table_name.clone(), &conn) {
+    if !has_table(&metadata_table_name, &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name);
@@ -85,7 +85,7 @@ pub fn delete_metadata_in_host_db(
     let conn = get_db_conn(&config, db_name);
     let metadata_table_name = get_metadata_table_name(table_name);
 
-    if !has_table(metadata_table_name.clone(), &conn) {
+    if !has_table(&metadata_table_name, &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name);
@@ -114,7 +114,7 @@ pub fn update_metadata_in_host_db(
     let conn = get_db_conn(&config, db_name);
     let metadata_table_name = get_metadata_table_name(table_name);
 
-    if !has_table(metadata_table_name.clone(), &conn) {
+    if !has_table(&metadata_table_name, &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name);

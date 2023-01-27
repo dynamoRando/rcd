@@ -15,7 +15,7 @@ impl DeletesToHostBehavior {
             0 => DeletesToHostBehavior::Unknown,
             1 => DeletesToHostBehavior::SendNotification,
             2 => DeletesToHostBehavior::DoNothing,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

@@ -51,6 +51,12 @@ service SQLClient {
 	rpc GetLogsByLastNumber (GetLogsByLastNumberRequest) returns (GetLogsByLastNumberReply);
 }
 
+message RcdError{
+	uint32 number = 1;
+	string message = 2;
+	string help = 3;
+}
+
 message RcdLogEntry {
 	string dt = 1;
 	string dt_utc = 2;
@@ -170,6 +176,8 @@ message GetParticipantsRequest {
 message GetParticipantsReply {
 	AuthResult authenticationResult = 1;
 	repeated ParticipantStatus participants = 2;
+	bool is_error = 3;
+	optional RcdError error = 4;
 }
 
 message GetDatabasesRequest {

@@ -15,7 +15,7 @@ impl PartialDataStatus {
             1 => PartialDataStatus::SucessOverwriteOrLog,
             2 => PartialDataStatus::Pending,
             3 => PartialDataStatus::Ignored,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

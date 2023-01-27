@@ -1,3 +1,11 @@
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq)]
+pub struct RcdError {
+    pub number: u32,
+    pub message: String,
+    pub help: String,
+}
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RcdLogEntry {
     pub dt: String,
@@ -133,6 +141,8 @@ pub struct GetParticipantsRequest {
 pub struct GetParticipantsReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     pub participants: Vec<ParticipantStatus>,
+    pub is_error: bool,
+    pub error: Option<RcdError>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]

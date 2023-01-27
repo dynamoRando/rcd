@@ -14,6 +14,6 @@ fn main() {
 
     for e in &entries {
         let message = format!("{} {} {} {}", e.dt, e.dt_utc, e.level, e.message);
-        println!("{}", message);
+        println!("{message}");
     }
 }

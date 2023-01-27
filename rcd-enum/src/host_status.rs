@@ -11,7 +11,7 @@ impl HostStatus {
             0 => HostStatus::Unknown,
             1 => HostStatus::Allow,
             2 => HostStatus::Deny,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

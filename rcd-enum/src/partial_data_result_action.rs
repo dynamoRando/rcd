@@ -13,7 +13,7 @@ impl PartialDataResultAction {
             1 => PartialDataResultAction::Insert,
             2 => PartialDataResultAction::Update,
             3 => PartialDataResultAction::Delete,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

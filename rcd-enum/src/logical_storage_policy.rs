@@ -28,7 +28,7 @@ impl LogicalStoragePolicy {
             2 => LogicalStoragePolicy::ParticpantOwned,
             3 => LogicalStoragePolicy::Shared,
             4 => LogicalStoragePolicy::Mirror,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 
@@ -39,7 +39,7 @@ impl LogicalStoragePolicy {
             2 => LogicalStoragePolicy::ParticpantOwned,
             3 => LogicalStoragePolicy::Shared,
             4 => LogicalStoragePolicy::Mirror,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

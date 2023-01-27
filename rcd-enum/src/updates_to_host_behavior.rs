@@ -15,7 +15,7 @@ impl UpdatesToHostBehavior {
             0 => UpdatesToHostBehavior::Unknown,
             1 => UpdatesToHostBehavior::SendDataHashChange,
             2 => UpdatesToHostBehavior::DoNothing,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

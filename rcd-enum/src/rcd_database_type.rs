@@ -21,7 +21,7 @@ impl RcdDatabaseType {
             1 => RcdDatabaseType::Rcd,
             2 => RcdDatabaseType::Host,
             3 => RcdDatabaseType::Partial,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

@@ -168,8 +168,8 @@ pub fn test_markdown_rows() {
 | Jimmy Tester Le    | More text goes here etc.  | 9999 Brooklyn St, New York City, NY 123456    |
 ";
 
-    println!("{}", md_table);
-    println!("{}", result_table);
+    println!("{md_table}");
+    println!("{result_table}");
 
     assert_eq!(md_table, result_table);
 }
@@ -189,7 +189,7 @@ pub fn test_host() {
 
     let table = formatter::markdown::host::host_to_markdown_table(&host);
 
-    println!("{}", table);
+    println!("{table}");
 
     let md_table = r#"| Key          | Value                                    |
 | ------------ | ---------------------------------------- |
@@ -292,7 +292,7 @@ pub fn test_database_schema() {
 
     let md = db::full_database_schema_to_tables(&ds);
 
-    println!("{}", md);
+    println!("{md}");
 
     let md_expect = r#"
 Tables: 
@@ -424,7 +424,7 @@ pub fn test_contract() {
 
     let md = contract::contract_to_markdown_table(&contract);
 
-    println!("{}", md);
+    println!("{md}");
 
     let md_expect = r#"Contract Details: 
 | Key          | Value                                 |

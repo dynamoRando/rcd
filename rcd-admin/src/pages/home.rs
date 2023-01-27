@@ -208,7 +208,7 @@ fn save_token(addr: String, auth_json: String, database_names: UseStateHandle<Ve
         }
     });
 
-    let url = format!("{}{}", address, AUTH_FOR_TOKEN);
+    let url = format!("{address}{AUTH_FOR_TOKEN}");
     request::post(url, auth_json, callback);
 }
 

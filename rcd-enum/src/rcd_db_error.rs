@@ -1,17 +1,14 @@
-use std::{error::Error, fmt};
+use thiserror::Error;
 
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum RcdDbError {
+    #[error("`{0}`")]
     General(String),
+    #[error("the database `{0}` does not exist")]
     DbNotFound(String),
+    #[error("the table `{0}` does not exist")]
     TableNotFound(String),
+    #[error("storage policy not defined for table `{0}`")]
     LogicalStoragePolicyNotSet(String),
 }
 
-impl Error for RcdDbError {}
-
-impl fmt::Display for RcdDbError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "RcdDbError")
-    }
-}

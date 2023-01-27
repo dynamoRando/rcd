@@ -31,7 +31,7 @@ impl ColumnType {
     }
 
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
-        println!("{:?}", desc);
+        println!("{desc:?}");
         let ct = ColumnType::try_parse(&desc).unwrap();
         ColumnType::to_u32(ct)
     }
@@ -45,7 +45,7 @@ impl ColumnType {
             let idx_first = idx_first_paren.unwrap();
             let idx_last = desc.find(')').unwrap();
             let str_length = desc.substring(idx_first + 1, idx_last);
-            println!("{}", str_length);
+            println!("{str_length}");
             let length: u32 = str_length.parse().unwrap();
             length
         }
@@ -113,7 +113,7 @@ impl ColumnType {
             7 => ColumnType::Binary,
             8 => ColumnType::Varbinary,
             9 => ColumnType::Text,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

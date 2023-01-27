@@ -16,7 +16,7 @@ fn main() {
         .out_dir("./src")
         //.compile(&[proto_file], &["."])
         .compile_with_config(config, &[proto_file], &["."])
-        .unwrap_or_else(|e| panic!("protobuf compile error: {}", e));
+        .unwrap_or_else(|e| panic!("protobuf compile error: {e}"));
 
-    println!("cargo:rerun-if-changed={}", proto_file);
+    println!("cargo:rerun-if-changed={proto_file}");
 }

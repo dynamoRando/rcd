@@ -1,5 +1,15 @@
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct RcdError {
+    #[prost(uint32, tag="1")]
+    pub number: u32,
+    #[prost(string, tag="2")]
+    pub message: ::prost::alloc::string::String,
+    #[prost(string, tag="3")]
+    pub help: ::prost::alloc::string::String,
+}
+#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct RcdLogEntry {
     #[prost(string, tag="1")]
     pub dt: ::prost::alloc::string::String,
@@ -192,6 +202,10 @@ pub struct GetParticipantsReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(message, repeated, tag="2")]
     pub participants: ::prost::alloc::vec::Vec<ParticipantStatus>,
+    #[prost(bool, tag="3")]
+    pub is_error: bool,
+    #[prost(message, optional, tag="4")]
+    pub error: ::core::option::Option<RcdError>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]

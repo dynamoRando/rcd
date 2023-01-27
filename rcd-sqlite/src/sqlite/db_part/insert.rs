@@ -35,7 +35,7 @@ pub fn insert_data_into_partial_db(
     // then we need to save the data hash along with the row id
     let metadata_table_name = get_metadata_table_name(table_name);
 
-    if !has_table(metadata_table_name.clone(), &conn) {
+    if !has_table(&metadata_table_name, &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name);

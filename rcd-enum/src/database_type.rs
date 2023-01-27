@@ -25,7 +25,7 @@ impl DatabaseType {
             2 => DatabaseType::Mysql,
             3 => DatabaseType::Postgres,
             4 => DatabaseType::Sqlserver,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 
@@ -36,7 +36,7 @@ impl DatabaseType {
             2 => DatabaseType::Mysql,
             3 => DatabaseType::Postgres,
             4 => DatabaseType::Sqlserver,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

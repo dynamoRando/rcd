@@ -158,7 +158,7 @@ impl log::Log for SqliteLog {
             let db_path = self.get_db_location();
             let level: String = record.level().to_string();
             let args = record.args();
-            let message = format!("{}", format_args!("{}", args));
+            let message = format!("{}", format_args!("{args}"));
             let message = demoji(message);
 
             let sql_message = message.clone();
@@ -191,7 +191,7 @@ fn log_sql(db_location: String, level: String, message: String) {
 
 fn log_stdout(level: String, message: String) {
     let message = format_message(&level, &message);
-    println!("{}", message)
+    println!("{message}")
 }
 
 fn format_message(level: &str, message: &str) -> String {

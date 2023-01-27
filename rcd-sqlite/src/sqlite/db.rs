@@ -26,7 +26,7 @@ pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connect
 #[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConfigSqlite) -> bool {
     let conn = get_db_conn(&config, db_name);
-    has_table(table_name.to_string(), &conn)
+    has_table(&table_name, &conn)
 }
 
 pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> bool {
@@ -280,7 +280,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
     println!("{:?}", conn);
 
     // if this is a host db
-    if has_table("COOP_DATA_HOST".to_string(), conn) {
+    if has_table(&"COOP_DATA_HOST", conn) {
         println!("get_db_schema for host_db");
         let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
         let db_id = get_scalar_as_string(cmd, conn);

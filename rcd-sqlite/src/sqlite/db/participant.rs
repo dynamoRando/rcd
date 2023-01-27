@@ -4,7 +4,7 @@ use rcd_common::{
     db::{get_metadata_table_name, DbiConfigSqlite},
     defaults,
 };
-use rcd_enum::contract_status::ContractStatus;
+use rcd_enum::{rcd_db_error::RcdDbError, contract_status::ContractStatus};
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
@@ -343,17 +343,16 @@ pub fn get_participant_by_alias(
 pub fn get_participants_for_database(
     db_name: &str,
     config: &DbiConfigSqlite,
-) -> Result<Vec<ParticipantStatus>> {
-
-
+) -> core::result::Result<Vec<ParticipantStatus>, RcdDbError> {
     let mut result: Vec<ParticipantStatus> = Vec::new();
 
     let conn = get_db_conn(config, db_name);
 
-
     // if the table doesn't exist, we should return an error here
     if !has_table("COOP_PARTICIPANT", &conn) {
-
+        return Err(RcdDbError::TableNotFound(
+            "COOP_PARTICIPANT".to_string(),
+        ));
     }
 
     let cmd = "
@@ -423,7 +422,7 @@ pub fn get_participants_for_database(
         result.push(p.unwrap());
     }
 
-    result
+    Ok(result)
 }
 
 pub fn get_participants_for_table(
@@ -437,7 +436,7 @@ pub fn get_participants_for_table(
     let conn = get_db_conn(&config, db_name);
     let metadata_table_name = get_metadata_table_name(table_name);
 
-    if !has_table(metadata_table_name.clone(), &conn) {
+    if !has_table(&metadata_table_name, &conn) {
         //  need to create table
         let mut cmd = sql_text::Coop::text_create_metadata_table();
         cmd = cmd.replace(":table_name", &metadata_table_name);

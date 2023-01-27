@@ -15,7 +15,7 @@ impl DmlType {
             2 => DmlType::Update,
             3 => DmlType::Delete,
             4 => DmlType::Select,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

@@ -35,7 +35,7 @@ pub fn set_logical_storage_policy(
     config: DbiConfigSqlite,
 ) -> Result<bool, RcdDbError> {
     let conn = get_db_conn(&config, db_name);
-    if has_table(table_name.to_string(), &conn) {
+    if has_table(&table_name, &conn) {
         // insert or update on the coop tables
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
@@ -99,7 +99,7 @@ pub fn get_logical_storage_policy(
     let conn = get_db_conn(config, db_name);
     let policy;
 
-    if has_table(table_name.to_string(), &conn) {
+    if has_table(&table_name, &conn) {
         // insert or update on the coop tables
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",

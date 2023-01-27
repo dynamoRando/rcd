@@ -23,7 +23,7 @@ impl UpdatesFromHostBehavior {
             3 => UpdatesFromHostBehavior::OverwriteWithLog,
             4 => UpdatesFromHostBehavior::Ignore,
             5 => UpdatesFromHostBehavior::QueueForReviewAndLog,
-            _ => panic!("Unknown value: {}", value),
+            _ => panic!("Unknown value: {value}"),
         }
     }
 

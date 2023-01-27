@@ -26,7 +26,7 @@ use rcdproto::rcdp::{
     GetParticipantsRequest, GetPendingActionsReply, GetPendingActionsRequest, GetReadRowIdsReply,
     GetReadRowIdsRequest, GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest,
     GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest, HasTableReply, HasTableRequest,
-    Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement,
+    Host, HostInfoReply, HostInfoStatus, ParticipantStatus, PendingStatement, RcdError,
 };
 
 pub async fn create_user_database(
@@ -444,17 +444,33 @@ pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> Ge
     let auth_result = core.verify_login(request.authentication.unwrap());
 
     let mut participants_result: Vec<ParticipantStatus> = Vec::new();
+    let mut is_error: bool = false;
+    let mut error: Option<RcdError> = None;
 
     if auth_result.0 {
-        let participants = core
+        let result = core
             .dbi()
             .get_participants_for_database(&request.database_name);
-        participants_result = participants;
+        match result {
+            Ok(participants) => {
+                participants_result = participants;
+            }
+            Err(e) => {
+                is_error = true;
+                error = Some(RcdError {
+                    number: 0,
+                    message: e.to_string(),
+                    help: "Are cooperative functions enabled on this database?".to_string(),
+                })
+            }
+        };
     }
 
     GetParticipantsReply {
         authentication_result: Some(auth_result.1),
         participants: participants_result,
+        is_error,
+        error,
     }
 }
 
