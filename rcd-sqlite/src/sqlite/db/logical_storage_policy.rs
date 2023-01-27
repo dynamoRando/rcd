@@ -81,8 +81,7 @@ pub fn set_logical_storage_policy(
 
         populate_data_host_tables(db_name, &conn);
     } else {
-        let error_message = format!("table {table_name} not in {db_name}");
-        let err = RcdDbError::TableNotFound(error_message);
+        let err = RcdDbError::TableNotFoundInDatabase(table_name.to_string(), db_name.to_string());
         return Err(err);
     }
     Ok(true)
@@ -126,8 +125,7 @@ pub fn get_logical_storage_policy(
             return Ok(LogicalStoragePolicy::None);
         }
     } else {
-        let error_message = format!("table {table_name} not found in db {db_name}");
-        let err = RcdDbError::TableNotFound(error_message);
+        let err = RcdDbError::TableNotFoundInDatabase(table_name.to_string(), db_name.to_string());
         return Err(err);
     }
 

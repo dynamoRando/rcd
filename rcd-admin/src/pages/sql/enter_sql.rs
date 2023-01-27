@@ -72,14 +72,23 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                         update_token_login_status(is_authenticated);
 
                         if is_authenticated {
-                            let participants = reply.participants;
+                            if !reply.is_error {
+                                let participants = reply.participants;
 
-                            let mut aliases: Vec<String> = Vec::new();
-                            for p in &participants {
-                                aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                                let mut aliases: Vec<String> = Vec::new();
+                                for p in &participants {
+                                    aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                                }
+
+                                participant_aliases.set(Some(aliases));
+                            } else {
+                                let message = format!(
+                                    "{} - {}",
+                                    reply.error.as_ref().unwrap().message,
+                                    reply.error.as_ref().unwrap().help
+                                );
+                                set_status(message);
                             }
-
-                            participant_aliases.set(Some(aliases));
                         }
                     } else {
                         let error_message = response.err().unwrap();

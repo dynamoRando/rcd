@@ -4,7 +4,7 @@ use rcd_common::{
     db::{get_metadata_table_name, DbiConfigSqlite},
     defaults,
 };
-use rcd_enum::{rcd_db_error::RcdDbError, contract_status::ContractStatus};
+use rcd_enum::{contract_status::ContractStatus, rcd_db_error::RcdDbError};
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
@@ -350,8 +350,9 @@ pub fn get_participants_for_database(
 
     // if the table doesn't exist, we should return an error here
     if !has_table("COOP_PARTICIPANT", &conn) {
-        return Err(RcdDbError::TableNotFound(
+        return Err(RcdDbError::TableNotFoundInDatabase(
             "COOP_PARTICIPANT".to_string(),
+            db_name.to_string(),
         ));
     }
 
