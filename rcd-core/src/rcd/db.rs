@@ -459,8 +459,7 @@ pub async fn get_participants(core: &Rcd, request: GetParticipantsRequest) -> Ge
             Err(e) => {
                 let message = format!(
                     "{} - {}",
-                    e,
-                    "Are cooperative functions enabled on this database?"
+                    e, "Are cooperative functions enabled on this database?"
                 );
                 warn!("{}", message);
                 is_error = true;
