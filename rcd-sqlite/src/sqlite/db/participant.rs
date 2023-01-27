@@ -344,6 +344,9 @@ pub fn get_participants_for_database(
     db_name: &str,
     config: &DbiConfigSqlite,
 ) -> Vec<ParticipantStatus> {
+
+    // if the table doesn't exist, we should return an error here
+
     let mut result: Vec<ParticipantStatus> = Vec::new();
 
     let conn = get_db_conn(config, db_name);
