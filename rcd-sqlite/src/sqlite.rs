@@ -453,6 +453,29 @@ fn has_table(table_name: &str, conn: &Connection) -> bool {
     has_any_rows(cmd, conn)
 }
 
+pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
+    let db_exists: bool;
+    let mut db_exists_as_regular_db = false;
+    let mut db_exists_as_partial_db = false;
+
+    if !db_name.ends_with(".db") {
+        let db = db_name.to_owned() + ".db";
+        let path = Path::new(&config.root_folder).join(db);
+        db_exists_as_regular_db = Path::exists(&path);
+    }
+
+    if !db_name.ends_with(".dbpart") {
+        let db = db_name.to_owned() + ".dbpart";
+        let path = Path::new(&config.root_folder).join(db);
+        db_exists_as_partial_db = Path::exists(&path);
+    }
+
+    let path = Path::new(&config.root_folder).join(db_name);
+    db_exists = Path::exists(&path);
+
+    db_exists || db_exists_as_regular_db || db_exists_as_partial_db
+}
+
 pub fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
     let db_path = Path::new(&config.root_folder).join(db_name);
     println!("{db_path:?}");
