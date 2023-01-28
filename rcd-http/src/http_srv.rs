@@ -215,7 +215,7 @@ pub async fn shutdown_http() {
 pub async fn shutdown_http_addr(addr: String, port: u32) {
     let url = format!("http://{addr}:{port}/shutdown");
 
-    println!("Shutdown Request for http://{addr}:{port}");
+    info!("Shutdown Request for http://{addr}:{port}");
 
     let _ = reqwest::get(url).await.unwrap();
 }

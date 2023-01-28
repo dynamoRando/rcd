@@ -1,8 +1,10 @@
+use log::debug;
 use rcd_core::rcd_data::RcdData;
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{data_service_server::DataService, data_service_server::DataServiceServer};
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
+
 
 #[derive(Default)]
 /// Implements the `DataService` definition from the protobuff file
@@ -25,7 +27,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<TestRequest>,
     ) -> Result<Response<TestReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let response = self.core().is_online(request.into_inner()).await;
         Ok(Response::new(response))
@@ -58,7 +60,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<InsertDataRequest>,
     ) -> Result<Response<InsertDataResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .insert_command_into_table(request.into_inner())
@@ -70,7 +72,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<UpdateDataRequest>,
     ) -> Result<Response<UpdateDataResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self
             .core()
@@ -84,7 +86,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<DeleteDataRequest>,
     ) -> Result<Response<DeleteDataResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self
             .core()
@@ -98,7 +100,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<GetRowFromPartialDatabaseRequest>,
     ) -> Result<Response<GetRowFromPartialDatabaseResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self
             .core()
@@ -112,7 +114,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<SaveContractRequest>,
     ) -> Result<Response<SaveContractResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self.core().save_contract(request.into_inner()).await;
         Ok(Response::new(result))
@@ -122,7 +124,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<ParticipantAcceptsContractRequest>,
     ) -> Result<Response<ParticipantAcceptsContractResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self.core().accept_contract(request.into_inner()).await;
 
@@ -133,11 +135,11 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<UpdateRowDataHashForHostRequest>,
     ) -> Result<Response<UpdateRowDataHashForHostResponse>, Status> {
-        println!(
+        debug!(
             "update_row_data_hash_for_host: Request from {:?}",
             request.remote_addr()
         );
-        println! {"{request:?}"};
+        debug! {"{request:?}"};
 
         let result = self
             .core()
@@ -151,7 +153,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<NotifyHostOfRemovedRowRequest>,
     ) -> Result<Response<NotifyHostOfRemovedRowResponse>, Status> {
-        println!(
+        debug!(
             "notify_host_of_removed_row: Request from {:?}",
             request.remote_addr()
         );
@@ -168,7 +170,7 @@ impl DataService for DataServiceImpl {
         &self,
         request: Request<TryAuthRequest>,
     ) -> Result<Response<TryAuthResult>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let result = self.core().try_auth(request.into_inner()).await;
 
@@ -196,7 +198,7 @@ pub async fn start_db_service(
         .build()
         .unwrap();
 
-    println!("data client server listening on {addr}");
+    debug!("data client server listening on {addr}");
 
     Server::builder()
         .add_service(DataServiceServer::new(data_client))

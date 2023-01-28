@@ -2368,6 +2368,7 @@ dependencies = [
 name = "rcd-grpc"
 version = "0.1.0"
 dependencies = [
+ "log",
  "rcd-core",
  "rcdproto",
  "rusqlite",

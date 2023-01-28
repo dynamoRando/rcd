@@ -1,6 +1,7 @@
 use crate::sqlite::{
     db_part::get_partial_db_connection, execute_write, get_scalar_as_u32, has_table, sql_text,
 };
+use log::debug;
 use rcd_common::db::*;
 use rcd_common::{
     crypt,
@@ -46,8 +47,8 @@ pub fn insert_data_into_partial_db(
     cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
-    println!("{row_id:?}");
-    println!("{hash_value:?}");
+    debug!("{row_id:?}");
+    debug!("{hash_value:?}");
 
     statement
         .execute(named_params! {":row": row_id, ":hash" : hash_value.to_ne_bytes() })

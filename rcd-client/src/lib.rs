@@ -1019,9 +1019,8 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
-                info!("response back");
-
+                debug!("RESPONSE={response:?}");
+            
                 Ok(response)
             }
             RcdClientType::Http => {
@@ -1101,9 +1100,8 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
-                info!("response back");
-
+                debug!("RESPONSE={response:?}");
+                
                 Ok(response.is_successful)
             }
             RcdClientType::Http => {
@@ -1144,8 +1142,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
-                info!("response back");
+                debug!("RESPONSE={response:?}");
 
                 Ok(response.is_successful)
             }
@@ -1180,7 +1177,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1288,9 +1285,8 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
-                info!("response back");
-
+                debug!("RESPONSE={response:?}");
+                
                 Ok(response.contracts)
             }
             RcdClientType::Http => {
@@ -1326,7 +1322,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1367,7 +1363,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_sent)
@@ -1412,7 +1408,7 @@ impl RcdClient {
                 let client = self.get_client();
 
                 let response = client.add_participant(request).await.unwrap().into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1456,7 +1452,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1492,7 +1488,7 @@ impl RcdClient {
                 let client = self.get_client();
 
                 let response = client.has_table(request).await.unwrap().into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.has_table)
@@ -1532,7 +1528,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
@@ -1577,7 +1573,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1622,7 +1618,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1666,7 +1662,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1744,7 +1740,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.results[0].clone())
@@ -1786,7 +1782,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.results[0].clone())
@@ -1824,7 +1820,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_successful)
@@ -1861,7 +1857,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                println!("RESPONSE={response:?}");
+                debug!("RESPONSE={response:?}");
                 info!("response back");
 
                 Ok(response.is_created)
@@ -1878,7 +1874,7 @@ impl RcdClient {
     }
 
     fn get_client(&mut self) -> &mut SqlClientClient<Channel> {
-        println!("get_client addr_port {}", self.grpc_client_addr_port);
+        debug!("get_client addr_port {}", self.grpc_client_addr_port);
         return self.grpc_client.as_mut().unwrap();
     }
 
@@ -1894,7 +1890,7 @@ impl RcdClient {
                 jwt: self.jwt.clone(),
             };
 
-            println!("{auth:?}");
+            debug!("{auth:?}");
 
             return auth;
         }
@@ -1915,8 +1911,8 @@ impl RcdClient {
     async fn send_http_message(&self, json_message: String, url: String) -> String {
         let client = self.http_client.as_ref().unwrap();
 
-        println!("{json_message}");
-        println!("{url}");
+        debug!("{json_message}");
+        debug!("{url}");
 
         return client
             .post(url)

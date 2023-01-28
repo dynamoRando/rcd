@@ -1,3 +1,4 @@
+use log::debug;
 use rcd_core::rcd::Rcd;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;
@@ -29,7 +30,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<TestRequest>,
     ) -> Result<Response<TestReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self.core().is_online(request.into_inner());
         Ok(Response::new(response))
     }
@@ -38,7 +39,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetLogsByLastNumberRequest>,
     ) -> Result<Response<GetLogsByLastNumberReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self.core().get_last_log_entries(request.into_inner()).await;
         Ok(Response::new(response))
     }
@@ -47,7 +48,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetSettingsRequest>,
     ) -> Result<Response<GetSettingsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self.core().get_settings(request.into_inner()).await;
         Ok(Response::new(response))
     }
@@ -56,7 +57,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetCooperativeHostsRequest>,
     ) -> Result<Response<GetCooperativeHostsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self
             .core()
             .get_cooperative_hosts(request.into_inner())
@@ -68,7 +69,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetUpdatesFromHostBehaviorRequest>,
     ) -> Result<Response<GetUpdatesFromHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self
             .core()
             .get_updates_from_host_behavior(request.into_inner())
@@ -80,7 +81,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetUpdatesToHostBehaviorRequest>,
     ) -> Result<Response<GetUpdatesToHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self
             .core()
             .get_updates_to_host_behavior(request.into_inner())
@@ -92,7 +93,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetDeletesFromHostBehaviorRequest>,
     ) -> Result<Response<GetDeletesFromHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self
             .core()
             .get_deletes_from_host_behavior(request.into_inner())
@@ -115,7 +116,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<VersionReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         // need to write an HTTP version as well
         todo!()
     }
@@ -124,7 +125,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<HostInfoReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self.core().get_host_info(request.into_inner()).await;
         Ok(Response::new(response))
     }
@@ -133,7 +134,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<RevokeReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let response = self.core().revoke_token(request.into_inner()).await;
         Ok(Response::new(response))
     }
@@ -142,7 +143,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<TokenReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self.core().auth_for_token(request.into_inner()).await;
         Ok(Response::new(result))
     }
@@ -151,7 +152,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetActiveContractRequest>,
     ) -> Result<Response<GetActiveContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self.core().get_active_contact(request.into_inner()).await;
         Ok(Response::new(result))
     }
@@ -160,7 +161,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetParticipantsRequest>,
     ) -> Result<Response<GetParticipantsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self.core().get_participants(request.into_inner()).await;
         Ok(Response::new(result))
     }
@@ -169,7 +170,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetDatabasesRequest>,
     ) -> Result<Response<GetDatabasesReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self.core().get_databases(request.into_inner()).await;
         Ok(Response::new(result))
     }
@@ -178,7 +179,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AcceptPendingActionRequest>,
     ) -> Result<Response<AcceptPendingActionReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .accept_pending_action_at_participant(request.into_inner())
@@ -190,7 +191,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetPendingActionsRequest>,
     ) -> Result<Response<GetPendingActionsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let pending_updates = self
             .core()
             .get_pending_actions_at_participant(request.into_inner())
@@ -202,7 +203,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetDataLogTableStatusRequest>,
     ) -> Result<Response<GetDataLogTableStatusReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         unimplemented!();
     }
 
@@ -210,7 +211,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<SetDataLogTableStatusRequest>,
     ) -> Result<Response<SetDataLogTableStatusReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         unimplemented!();
     }
 
@@ -218,7 +219,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GenerateHostInfoRequest>,
     ) -> Result<Response<GenerateHostInfoReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let generate_host_info_result = self.core().generate_host_info(request.into_inner()).await;
         Ok(Response::new(generate_host_info_result))
     }
@@ -227,7 +228,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<CreateUserDatabaseRequest>,
     ) -> Result<Response<CreateUserDatabaseReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let create_db_result = self.core().create_user_database(request.into_inner()).await;
         Ok(Response::new(create_db_result))
     }
@@ -236,7 +237,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<EnableCoooperativeFeaturesRequest>,
     ) -> Result<Response<EnableCoooperativeFeaturesReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let enable_cooperative_features_reply = self
             .core()
             .enable_coooperative_features(request.into_inner())
@@ -248,7 +249,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let execute_read_reply = self.core().execute_read_at_host(request.into_inner()).await;
         Ok(Response::new(execute_read_reply))
     }
@@ -257,7 +258,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ExecuteReadRequest>,
     ) -> Result<Response<ExecuteReadReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let execute_read_reply = self
             .core()
             .execute_read_at_participant(request.into_inner())
@@ -269,7 +270,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let execute_write_reply = self
             .core()
             .execute_write_at_host(request.into_inner())
@@ -281,7 +282,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ExecuteWriteRequest>,
     ) -> Result<Response<ExecuteWriteReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let execute_write_reply = self
             .core()
             .execute_write_at_participant(request.into_inner())
@@ -294,7 +295,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ExecuteCooperativeWriteRequest>,
     ) -> Result<Response<ExecuteCooperativeWriteReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let execute_write_reply = self
             .core()
             .execute_cooperative_write_at_host(request.into_inner())
@@ -306,7 +307,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<HasTableRequest>,
     ) -> Result<Response<HasTableReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let has_table_reply = self.core().has_table(request.into_inner()).await;
         Ok(Response::new(has_table_reply))
     }
@@ -315,7 +316,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<SetLogicalStoragePolicyRequest>,
     ) -> Result<Response<SetLogicalStoragePolicyReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let set_policy_reply = self
             .core()
             .set_logical_storage_policy(request.into_inner())
@@ -327,7 +328,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetLogicalStoragePolicyRequest>,
     ) -> Result<Response<GetLogicalStoragePolicyReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let get_policy_reply = self
             .core()
             .get_logical_storage_policy(request.into_inner())
@@ -339,7 +340,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GenerateContractRequest>,
     ) -> Result<Response<GenerateContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let generate_contract_reply = self.core().generate_contract(request.into_inner()).await;
         Ok(Response::new(generate_contract_reply))
     }
@@ -348,7 +349,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AddParticipantRequest>,
     ) -> Result<Response<AddParticipantReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let add_participant_reply = self.core().add_participant(request.into_inner()).await;
         Ok(Response::new(add_participant_reply))
     }
@@ -357,7 +358,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<SendParticipantContractRequest>,
     ) -> Result<Response<SendParticipantContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let send_participant_contract_reply = self
             .core()
             .send_participant_contract(request.into_inner())
@@ -369,7 +370,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ViewPendingContractsRequest>,
     ) -> Result<Response<ViewPendingContractsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let review_pending_contracts_reply = self
             .core()
             .review_pending_contracts(request.into_inner())
@@ -381,7 +382,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<AcceptPendingContractRequest>,
     ) -> Result<Response<AcceptPendingContractReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let accepted_reply = self
             .core()
             .accept_pending_contract(request.into_inner())
@@ -400,7 +401,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: tonic::Request<ChangeHostStatusRequest>,
     ) -> Result<tonic::Response<ChangeHostStatusReply>, tonic::Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self.core().change_host_status(request.into_inner()).await;
         Ok(Response::new(result))
     }
@@ -409,7 +410,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: tonic::Request<TryAuthAtParticipantRequest>,
     ) -> Result<tonic::Response<TryAuthAtPartipantReply>, tonic::Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
 
         let response = self
             .core()
@@ -423,7 +424,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ChangeUpdatesFromHostBehaviorRequest>,
     ) -> Result<Response<ChangesUpdatesFromHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .change_updates_from_host_behavior(request.into_inner())
@@ -435,7 +436,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ChangeDeletesFromHostBehaviorRequest>,
     ) -> Result<Response<ChangeDeletesFromHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .change_deletes_from_host_behavior(request.into_inner())
@@ -447,7 +448,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ChangeUpdatesToHostBehaviorRequest>,
     ) -> Result<Response<ChangeUpdatesToHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .change_updates_to_host_behavior(request.into_inner())
@@ -459,7 +460,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<ChangeDeletesToHostBehaviorRequest>,
     ) -> Result<Response<ChangeDeletesToHostBehaviorReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .change_deletes_to_host_behavior(request.into_inner())
@@ -471,7 +472,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetReadRowIdsRequest>,
     ) -> Result<Response<GetReadRowIdsReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .read_row_id_at_participant(request.into_inner())
@@ -483,7 +484,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .get_data_hash_at_host(request.into_inner())
@@ -495,7 +496,7 @@ impl SqlClient for SqlClientImpl {
         &self,
         request: Request<GetDataHashRequest>,
     ) -> Result<Response<GetDataHashReply>, Status> {
-        println!("Request from {:?}", request.remote_addr());
+        debug!("Request from {:?}", request.remote_addr());
         let result = self
             .core()
             .get_data_hash_at_participant(request.into_inner())
@@ -528,7 +529,7 @@ pub async fn start_client_service(
         .build()
         .unwrap();
 
-    println!("sql client server listening on {addr}");
+    debug!("sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))

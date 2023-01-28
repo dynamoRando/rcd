@@ -1,4 +1,5 @@
 use chrono::Utc;
+use log::debug;
 use rusqlite::named_params;
 
 use crate::sqlite::{
@@ -151,11 +152,11 @@ fn execute_delete(
         row_ids.push(id.unwrap());
     }
 
-    println!("{row_ids:?}");
+    debug!("{row_ids:?}");
 
     let total_rows = execute_write(&conn, original_cmd);
 
-    println!("total rows deleted: {total_rows}");
+    debug!("total rows deleted: {total_rows}");
 
     if total_rows != row_ids.len() {
         panic!("the delete statement did not match the expected count of affected rows");
@@ -169,7 +170,7 @@ fn execute_delete(
     for row in &row_ids {
         let mut statement = conn.prepare(&cmd).unwrap();
         statement.execute(named_params! {":rid" : row}).unwrap();
-        println!("{statement:?}");
+        debug!("{statement:?}");
     }
 
     let deleted_row_id = row_ids.first().unwrap();
@@ -182,7 +183,7 @@ fn execute_delete(
         action: Some(PartialDataResultAction::Delete),
     };
 
-    println!("{result:?}");
+    debug!("{result:?}");
 
     result
 }
