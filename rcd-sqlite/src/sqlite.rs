@@ -454,7 +454,7 @@ fn has_table(table_name: &str, conn: &Connection) -> bool {
 }
 
 pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
-    let db_exists: bool;
+    
     let mut db_exists_as_regular_db = false;
     let mut db_exists_as_partial_db = false;
 
@@ -471,7 +471,7 @@ pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
     }
 
     let path = Path::new(&config.root_folder).join(db_name);
-    db_exists = Path::exists(&path);
+    let db_exists: bool = Path::exists(&path);
 
     db_exists || db_exists_as_regular_db || db_exists_as_partial_db
 }
