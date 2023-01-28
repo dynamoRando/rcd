@@ -360,11 +360,11 @@ pub fn execute_read_at_participant(
 
                 table.add_row(data_row);
             }
+
+            Ok(table)
         }
         Err(e) => return Err(RcdDbError::General(e.to_string())),
     }
-
-    Ok(table)
 }
 
 pub fn execute_read_at_host(
