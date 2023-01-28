@@ -399,6 +399,8 @@ message ExecuteReadReply {
 	AuthResult authenticationResult = 1;
 	uint64 totalResultsets = 2;
 	repeated StatementResultset results = 3;
+	bool is_error = 4;
+	optional RcdError error = 5;
 }
 
 message ExecuteWriteRequest {

@@ -22,6 +22,8 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
 
     let db_name = request.database_name;
     let sql = request.sql_statement;
+    let mut is_error = false;
+    let mut error: Option<RcdError> = None;
 
     let mut result_table = Vec::new();
 
@@ -34,54 +36,66 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
     };
 
     if auth_result.0 {
-        if core.dbi().has_cooperative_tables(&db_name, &sql) {
-            // println!("cooperative tables found for {}", sql);
+        let result = core.dbi().has_cooperative_tables(&db_name, &sql);
+        match result {
+            Ok(has_cooperative_tables) => {
+                if has_cooperative_tables {
+                    let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
 
-            // we would need to get a list of participants for each of the cooperative tables
-            let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
+                    for ct in &cooperative_tables {
+                        let participants_for_table =
+                            core.dbi().get_participants_for_table(&db_name, ct.as_str());
+                        for participant in &participants_for_table {
+                            // we would need to get rows for that table from the participant
+                            let host_info = core.dbi().rcd_get_host_info();
+                            let remote_data_result = core
+                                .remote()
+                                .get_row_from_participant(participant.clone(), host_info)
+                                .await;
 
-            for ct in &cooperative_tables {
-                let participants_for_table =
-                    core.dbi().get_participants_for_table(&db_name, ct.as_str());
-                for participant in &participants_for_table {
-                    // we would need to get rows for that table from the participant
-                    let host_info = core.dbi().rcd_get_host_info();
-                    let remote_data_result = core
-                        .remote()
-                        .get_row_from_participant(participant.clone(), host_info)
-                        .await;
+                            let data_hash_for_row =
+                                remote_data_result.row.as_ref().unwrap().hash.clone();
 
-                    let data_hash_for_row = remote_data_result.row.as_ref().unwrap().hash.clone();
+                            let saved_hash_for_row =
+                                participant.row_data.first().unwrap().1.clone();
 
-                    let saved_hash_for_row = participant.row_data.first().unwrap().1.clone();
+                            if data_hash_for_row == saved_hash_for_row {
+                                let row = remote_data_result.row.as_ref().unwrap().clone();
+                                result_table.push(row);
+                                statement_result_set.is_error = false;
+                            } else {
+                                let row = remote_data_result.row.as_ref().unwrap().clone();
+                                result_table.push(row);
+                                statement_result_set.result_message = String::from(
+                                    "warning: data hashes for host and participant rows do not match!",
+                                );
+                            }
+                        }
+                    }
 
-                    if data_hash_for_row == saved_hash_for_row {
-                        let row = remote_data_result.row.as_ref().unwrap().clone();
-                        result_table.push(row);
+                    statement_result_set.rows = result_table;
+                } else {
+                    let query_result = core.dbi().execute_read_at_host(&db_name, &sql);
+
+                    if query_result.is_ok() {
+                        let result_rows = query_result.unwrap().to_cdata_rows();
+                        statement_result_set.number_of_rows_affected =
+                            u64::value_from(result_rows.len()).unwrap_ok();
+                        statement_result_set.rows = result_rows;
                         statement_result_set.is_error = false;
                     } else {
-                        let row = remote_data_result.row.as_ref().unwrap().clone();
-                        result_table.push(row);
-                        statement_result_set.result_message = String::from(
-                            "warning: data hashes for host and participant rows do not match!",
-                        );
+                        statement_result_set.execution_error_message =
+                            query_result.unwrap_err().to_string();
                     }
                 }
             }
-
-            statement_result_set.rows = result_table;
-        } else {
-            let query_result = core.dbi().execute_read_at_host(&db_name, &sql);
-
-            if query_result.is_ok() {
-                let result_rows = query_result.unwrap().to_cdata_rows();
-                statement_result_set.number_of_rows_affected =
-                    u64::value_from(result_rows.len()).unwrap_ok();
-                statement_result_set.rows = result_rows;
-                statement_result_set.is_error = false;
-            } else {
-                statement_result_set.execution_error_message =
-                    query_result.unwrap_err().to_string();
+            Err(e) => {
+                is_error = true;
+                error = Some(RcdError {
+                    number: 0,
+                    message: e.to_string(),
+                    help: String::from(""),
+                });
             }
         }
     }
@@ -93,6 +107,8 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
+        is_error: is_error,
+        error: error,
     }
 }
 
@@ -104,6 +120,8 @@ pub async fn execute_read_at_participant(
 
     let db_name = request.database_name;
     let sql = request.sql_statement;
+    let mut is_error = false;
+    let mut error: Option<RcdError> = None;
 
     let mut statement_result_set = StatementResultset {
         is_error: true,
@@ -116,14 +134,23 @@ pub async fn execute_read_at_participant(
     if auth_result.0 {
         let query_result = core.dbi().execute_read_at_participant(&db_name, &sql);
 
-        if query_result.is_ok() {
-            let result_rows = query_result.unwrap().to_cdata_rows();
-            statement_result_set.number_of_rows_affected =
-                u64::value_from(result_rows.len()).unwrap_ok();
-            statement_result_set.rows = result_rows;
-            statement_result_set.is_error = false;
-        } else {
-            statement_result_set.execution_error_message = query_result.unwrap_err().to_string();
+        match query_result {
+            Ok(_) => {
+                let result_rows = query_result.unwrap().to_cdata_rows();
+                statement_result_set.number_of_rows_affected =
+                    u64::value_from(result_rows.len()).unwrap_ok();
+                statement_result_set.rows = result_rows;
+                statement_result_set.is_error = false;
+            }
+            Err(e) => {
+                statement_result_set.execution_error_message = e.to_string().clone();
+                is_error = true;
+                error = Some(RcdError {
+                    number: 0,
+                    message: e.to_string(),
+                    help: String::from(""),
+                });
+            }
         }
     }
 
@@ -134,6 +161,8 @@ pub async fn execute_read_at_participant(
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
+        is_error: is_error,
+        error: error,
     }
 }
 

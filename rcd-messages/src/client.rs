@@ -432,20 +432,17 @@ pub struct CreateUserDatabaseReply {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteReadRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub sql_statement: String,
-
     pub database_type: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteReadReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub total_resultsets: u64,
-
     pub results: Vec<StatementResultset>,
+    pub is_error: bool,
+    pub error: Option<RcdError>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteWriteRequest {

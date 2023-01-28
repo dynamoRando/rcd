@@ -297,7 +297,11 @@ pub fn execute_read_at_participant(
     db_name: &str,
     cmd: &str,
     config: &DbiConfigSqlite,
-) -> rusqlite::Result<Table> {
+) -> Result<Table, RcdDbError> {
+    if !has_database(config, db_name) {
+        return Err(RcdDbError::DbNotFound(db_name.to_string()));
+    }
+
     let conn = get_partial_db_connection(db_name, &config.root_folder);
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
@@ -320,43 +324,45 @@ pub fn execute_read_at_participant(
         table.add_column(c);
     }
 
-    let mut rows = statement.query([])?;
+    let query_result = statement.query([]);
+    match query_result {
+        Ok(mut rows) => {
+            while let Some(row) = rows.next().ok() {
+                let row = row.unwrap();
+                let mut data_row = rcd_common::table::Row::new();
 
-    while let Some(row) = rows.next()? {
-        let mut data_row = rcd_common::table::Row::new();
+                for i in 0..total_columns {
+                    let dt = row.get_ref_unwrap(i).data_type();
 
-        for i in 0..total_columns {
-            let dt = row.get_ref_unwrap(i).data_type();
+                    let string_value: String = match dt {
+                        Type::Blob => String::from(""),
+                        Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                        Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                        Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                        _ => String::from(""),
+                    };
 
-            let string_value: String = match dt {
-                Type::Blob => String::from(""),
-                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                _ => String::from(""),
-            };
+                    let string_value = string_value;
+                    let col = table.get_column_by_index(i).unwrap();
 
-            let string_value = string_value;
-            let col = table.get_column_by_index(i).unwrap();
+                    let data_item = Data {
+                        data_string: string_value,
+                        data_byte: Vec::new(),
+                    };
 
-            let data_item = Data {
-                data_string: string_value,
-                data_byte: Vec::new(),
-            };
+                    let data_value = Value {
+                        data: Some(data_item),
+                        col,
+                    };
 
-            let data_value = Value {
-                data: Some(data_item),
-                col,
-            };
+                    data_row.add_value(data_value);
+                }
 
-            data_row.add_value(data_value);
+                table.add_row(data_row);
+            }
         }
-
-        table.add_row(data_row);
+        Err(e) => return Err(RcdDbError::General(e.to_string())),
     }
-
-    drop(rows);
-    drop(statement);
 
     Ok(table)
 }

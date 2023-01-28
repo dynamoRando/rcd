@@ -1090,7 +1090,7 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read_at_participant(&self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+    pub fn execute_read_at_participant(&self, db_name: &str, cmd: &str) -> Result<Table, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -1116,7 +1116,7 @@ impl Dbi {
         }
     }
 
-    pub fn has_cooperative_tables(&self, db_name: &str, cmd: &str) -> bool {
+    pub fn has_cooperative_tables(&self, db_name: &str, cmd: &str) -> Result<bool, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

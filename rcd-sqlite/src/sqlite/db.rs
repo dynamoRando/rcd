@@ -1,8 +1,8 @@
 use self::participant::create_participant_table;
 
 use super::{
-    execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table, has_table,
-    sql_text, DbiConfigSqlite,
+    execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table,
+    has_database, has_table, sql_text, DbiConfigSqlite,
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
@@ -10,6 +10,7 @@ use rcd_common::table::*;
 use rcd_enum::{
     column_type::ColumnType, database_type::DatabaseType,
     logical_storage_policy::LogicalStoragePolicy, rcd_database_type::RcdDatabaseType,
+    rcd_db_error::RcdDbError,
 };
 use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 use rusqlite::{named_params, Connection, Error, Result};
@@ -29,7 +30,16 @@ pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConf
     has_table(table_name, &conn)
 }
 
-pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite) -> bool {
+pub fn has_cooperative_tables(
+    db_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> Result<bool, RcdDbError> {
+    if !has_database(config, db_name) {
+        let e = RcdDbError::DbNotFound(db_name.to_string());
+        return Err(e)
+    }
+
     let mut has_cooperative_tables = false;
 
     let tables = rcd_query::query_parser::get_table_names(cmd, DatabaseType::Sqlite);
@@ -58,7 +68,7 @@ pub fn has_cooperative_tables(db_name: &str, cmd: &str, config: &DbiConfigSqlite
         }
     }
 
-    has_cooperative_tables
+    Ok(has_cooperative_tables)
 }
 
 pub fn get_cooperative_tables(db_name: &str, cmd: &str, config: DbiConfigSqlite) -> Vec<String> {
