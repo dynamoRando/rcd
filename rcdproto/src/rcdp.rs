@@ -1353,6 +1353,10 @@ pub struct DatabaseSchema {
     pub database_type: u32,
     #[prost(uint32, tag="5")]
     pub rcd_database_type: u32,
+    #[prost(bool, tag="6")]
+    pub cooperation_enabled: bool,
+    #[prost(bool, tag="7")]
+    pub has_participants: bool,
 }
 /// a message for describing the schema information of a table in a database 
 #[derive(serde::Serialize, serde::Deserialize)]

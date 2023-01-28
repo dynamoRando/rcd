@@ -285,6 +285,9 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
     debug!("get_db_schema");
     debug!("{db_name:?}");
 
+    let mut cooperation_enabled = false;
+    let mut db_has_participants = false;
+
     let conn = &get_db_conn(&config, db_name);
 
     debug!("{conn:?}");
@@ -294,12 +297,24 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
         let db_id = get_scalar_as_string(cmd, conn);
 
+        if let Ok(is_enabled) = has_enable_coooperative_features(db_name, &config) {
+            cooperation_enabled = is_enabled;
+        }
+
+        if cooperation_enabled {
+            if let Ok(x) = has_participants(db_name, &config) {
+                db_has_participants = x;
+            }
+        }
+
         let mut db_schema = DatabaseSchema {
             database_id: db_id.clone(),
             database_name: db_name.to_string(),
             tables: Vec::new(),
             database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
             rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Host),
+            cooperation_enabled: cooperation_enabled,
+            has_participants: db_has_participants,
         };
 
         cmd = String::from("SELECT TABLE_ID, TABLE_NAME FROM COOP_DATA_TABLES");
@@ -322,7 +337,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             tables_in_db.push(table.unwrap());
         }
 
-         trace!("tables_in_db: {:?}", tables_in_db);
+        trace!("tables_in_db: {:?}", tables_in_db);
 
         for t in &tables_in_db {
             let policy =
@@ -486,12 +501,24 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         return db_schema;
     }
 
+    if let Ok(is_enabled) = has_enable_coooperative_features(db_name, &config) {
+        cooperation_enabled = is_enabled;
+    }
+
+    if cooperation_enabled {
+        if let Ok(x) = has_participants(db_name, &config) {
+            db_has_participants = x;
+        }
+    }
+
     let mut db_schema = DatabaseSchema {
         database_id: String::from(""),
         database_name: db_name.to_string(),
         tables: Vec::new(),
         database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
         rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Partial),
+        cooperation_enabled: cooperation_enabled,
+        has_participants: db_has_participants,
     };
 
     let table_names = get_all_user_table_names_in_db(conn);
@@ -570,7 +597,35 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
     db_schema
 }
 
-pub fn enable_coooperative_features(db_name: &str, config: DbiConfigSqlite) {
+pub fn has_participants(db_name: &str, config: &DbiConfigSqlite) -> Result<bool, RcdDbError> {
+    if !has_database(&config, db_name) {
+        Err(RcdDbError::DbNotFound(db_name.to_string()))
+    } else {
+        let conn = get_db_conn(&config, db_name);
+        if has_table("COOP_PARTICIPANT", &conn) {
+            Ok(has_any_rows("COOP_PARTICIPANT".to_string(), &conn))
+        } else {
+            Err(RcdDbError::TableNotFoundInDatabase(
+                "COOP_PARTICIPANT".to_string(),
+                db_name.to_string(),
+            ))
+        }
+    }
+}
+
+pub fn has_enable_coooperative_features(
+    db_name: &str,
+    config: &DbiConfigSqlite,
+) -> Result<bool, RcdDbError> {
+    if !has_database(&config, db_name) {
+        Err(RcdDbError::DbNotFound(db_name.to_string()))
+    } else {
+        let conn = get_db_conn(&config, db_name);
+        Ok(has_table("COOP_REMOTES", &conn))
+    }
+}
+
+pub fn enable_coooperative_features(db_name: &str, config: &DbiConfigSqlite) {
     let conn = get_db_conn(&config, db_name);
 
     create_remotes_table(&conn);

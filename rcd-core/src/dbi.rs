@@ -1120,6 +1120,8 @@ impl Dbi {
         }
     }
 
+    /// Will scan the supplied SQL statement for table names and return 
+    /// if any of the found table names has a logical storage policy that is remote
     pub fn has_cooperative_tables(&self, db_name: &str, cmd: &str) -> Result<bool, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
@@ -1213,7 +1215,7 @@ impl Dbi {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
 
-                sqlite::db::enable_coooperative_features(db_name, settings);
+                sqlite::db::enable_coooperative_features(db_name, &settings);
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

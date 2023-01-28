@@ -1,6 +1,9 @@
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema};
 
-use crate::sqlite::{execute_write, get_scalar_as_string, has_any_rows};
+use crate::sqlite::{
+    db::{has_enable_coooperative_features, has_participants},
+    execute_write, get_scalar_as_string, has_any_rows,
+};
 
 use super::{get_rcd_conn, has_contract};
 use chrono::Utc;
@@ -356,12 +359,27 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             table_schema.push(ts);
         }
 
+        let mut cooperation_enabled = false;
+        let mut db_has_participants = false;
+
+        if let Ok(is_enabled) = has_enable_coooperative_features(&contract.database_name, config) {
+            cooperation_enabled = is_enabled;
+        }
+
+        if cooperation_enabled {
+            if let Ok(x) = has_participants(&contract.database_name, config) {
+                db_has_participants = x;
+            }
+        }
+
         let ds = DatabaseSchema {
             database_name: contract.database_name.clone(),
             database_id: contract.database_id.clone(),
             tables: table_schema,
             database_type: 0,
             rcd_database_type: 0,
+            cooperation_enabled: cooperation_enabled,
+            has_participants: db_has_participants,
         };
 
         db_schema.push(ds);

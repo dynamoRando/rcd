@@ -885,6 +885,8 @@ message DatabaseSchema {
 	repeated TableSchema tables = 3;
 	uint32 databaseType = 4;
 	uint32 rcdDatabaseType = 5;
+	bool cooperation_enabled = 6;
+	bool has_participants = 7;
 }
 
 // a message for describing the schema information of a table in a database 
