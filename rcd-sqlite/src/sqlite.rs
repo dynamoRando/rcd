@@ -1,7 +1,7 @@
 use self::db_part::get_partial_db_connection;
 use log::{debug, info};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
-use rcd_enum::{column_type::ColumnType,};
+use rcd_enum::column_type::ColumnType;
 use rcd_error::rcd_db_error::RcdDbError;
 use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
@@ -224,86 +224,7 @@ pub fn execute_read_on_connection_for_row(
     Ok(result)
 }
 
-pub fn execute_read_on_connection(cmd: String, conn: &Connection) -> rusqlite::Result<Table> {
-    let mut statement = conn.prepare(&cmd).unwrap();
-    let total_columns = statement.column_count();
-    let cols = statement.columns();
-    let mut table = Table::new();
-
-    for col in cols {
-        let col_idx = statement.column_index(col.name()).unwrap();
-        let empty_string = String::from("");
-        let col_type = match col.decl_type() {
-            Some(c) => c,
-            None => &empty_string,
-        };
-
-        let c = Column {
-            name: col.name().to_string(),
-            is_nullable: false,
-            idx: col_idx,
-            data_type: col_type.to_string(),
-            is_primary_key: false,
-        };
-
-        info!("adding col {}", c.name);
-
-        table.add_column(c);
-    }
-
-    // println!("execute_read_on_connection: statement: {:?}", statement);
-
-    let mut rows = statement.query([])?;
-
-    while let Some(row) = rows.next()? {
-        let mut data_row = rcd_common::table::Row::new();
-
-        for i in 0..total_columns {
-            let dt = row.get_ref_unwrap(i).data_type();
-
-            let string_value: String = match dt {
-                Type::Blob => String::from(""),
-                Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                _ => String::from(""),
-            };
-
-            let string_value = string_value;
-            let col = table.get_column_by_index(i).unwrap();
-
-            let data_item = Data {
-                data_string: string_value,
-                data_byte: Vec::new(),
-            };
-
-            let data_value = Value {
-                data: Some(data_item),
-                col,
-            };
-
-            data_row.add_value(data_value);
-        }
-
-        table.add_row(data_row);
-    }
-
-    drop(rows);
-    drop(statement);
-
-    Ok(table)
-}
-
-pub fn execute_read_at_participant(
-    db_name: &str,
-    cmd: &str,
-    config: &DbiConfigSqlite,
-) -> Result<Table, RcdDbError> {
-    if !has_database(config, db_name) {
-        return Err(RcdDbError::DbNotFound(db_name.to_string()));
-    }
-
-    let conn = get_partial_db_connection(db_name, &config.root_folder);
+pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let mut statement = conn.prepare(cmd).unwrap();
     let total_columns = statement.column_count();
     let cols = statement.columns();
@@ -373,8 +294,7 @@ pub fn execute_read_at_participant(
                         }
                     }
                     Err(e) => {
-                        let error = RcdDbError::General(e.to_string());
-                        return Err(error);
+                        return Err(e.into());
                     }
                 }
             }
@@ -383,6 +303,19 @@ pub fn execute_read_at_participant(
         }
         Err(e) => Err(RcdDbError::General(e.to_string())),
     }
+}
+
+pub fn execute_read_at_participant(
+    db_name: &str,
+    cmd: &str,
+    config: &DbiConfigSqlite,
+) -> Result<Table, RcdDbError> {
+    if !has_database(config, db_name) {
+        return Err(RcdDbError::DbNotFound(db_name.to_string()));
+    }
+
+    let conn = get_partial_db_connection(db_name, &config.root_folder);
+    execute_read(cmd, &conn)
 }
 
 pub fn execute_read_at_host(
@@ -587,11 +520,10 @@ pub fn get_table_col_names_with_data_type_as_string(
 /// 4. NotNull
 /// 5. defaultValue
 /// 6. IsPK
-pub fn get_schema_of_table(table_name: String, conn: &Connection) -> Result<Table> {
+pub fn get_schema_of_table(table_name: String, conn: &Connection) -> core::result::Result<Table, RcdDbError> {
     let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
     cmd = cmd.replace(":table_name", &table_name);
-
-    Ok(execute_read_on_connection(cmd, conn).unwrap())
+    execute_read(&cmd, conn)
 }
 
 pub fn get_table_col_names(table_name: String, conn: &Connection) -> Vec<String> {

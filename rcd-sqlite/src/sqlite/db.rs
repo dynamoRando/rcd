@@ -1,8 +1,8 @@
 use self::participant::create_participant_table;
 
 use super::{
-    execute_read_on_connection, get_db_conn, get_scalar_as_string, get_schema_of_table,
-    has_database, has_table, sql_text, DbiConfigSqlite,
+    get_db_conn, get_scalar_as_string, get_schema_of_table,
+    has_database, has_table, sql_text, DbiConfigSqlite, execute_read,
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
@@ -109,7 +109,7 @@ fn get_all_user_table_names_in_db(conn: &Connection) -> Vec<String> {
     let cmd = String::from(
         "SELECT name FROM sqlite_schema WHERE type ='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'COOP_%'",
     );
-    let names = execute_read_on_connection(cmd, conn).unwrap();
+    let names = execute_read(&cmd, conn).unwrap();
 
     for row in names.rows {
         for val in row.vals {

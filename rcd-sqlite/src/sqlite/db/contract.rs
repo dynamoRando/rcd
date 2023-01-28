@@ -13,7 +13,7 @@ use rcd_enum::{
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};
 
-use crate::sqlite::{execute_read_on_connection, execute_write, get_db_conn, has_any_rows};
+use crate::sqlite::{execute_write, get_db_conn, has_any_rows, execute_read};
 
 use super::logical_storage_policy::get_logical_storage_policy_for_all_user_tables;
 
@@ -265,7 +265,7 @@ pub fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract
         ",
     );
 
-    let table = execute_read_on_connection(cmd, conn).unwrap();
+    let table = execute_read(&cmd, conn).unwrap();
 
     for row in table.rows {
         for val in &row.vals {
