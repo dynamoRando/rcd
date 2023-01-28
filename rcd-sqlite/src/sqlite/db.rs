@@ -6,6 +6,7 @@ use super::{
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
+use log::{debug, trace};
 use rcd_common::table::*;
 use rcd_enum::{
     column_type::ColumnType, database_type::DatabaseType,
@@ -281,16 +282,15 @@ fn create_remotes_table(conn: &Connection) {
 }
 
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
-    println!("get_db_schema");
-    println!("{db_name:?}");
+    debug!("get_db_schema");
+    debug!("{db_name:?}");
 
     let conn = &get_db_conn(&config, db_name);
 
-    println!("{conn:?}");
+    debug!("{conn:?}");
 
     // if this is a host db
     if has_table("COOP_DATA_HOST", conn) {
-        println!("get_db_schema for host_db");
         let mut cmd = String::from("SELECT DATABASE_ID FROM COOP_DATA_HOST");
         let db_id = get_scalar_as_string(cmd, conn);
 
@@ -322,7 +322,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             tables_in_db.push(table.unwrap());
         }
 
-        // println!("tables_in_db: {:?}", tables_in_db);
+         trace!("tables_in_db: {:?}", tables_in_db);
 
         for t in &tables_in_db {
             let policy =
@@ -347,7 +347,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             // 5. defaultValue
             // 6. IsPK
 
-            // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
+            trace!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
 
             for row in schema.unwrap().rows {
                 let mut cs = ColumnSchema {
@@ -398,7 +398,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             db_schema.tables.push(ts);
         }
 
-        // println!("db_schema: {:?}", db_schema);
+        debug!("db_schema: {:?}", db_schema);
 
         // get all remaining tables that don't have a policy defined, because we may want to set them
         let table_names = get_all_user_table_names_in_db(conn);
@@ -431,8 +431,6 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
                 // 5. defaultValue
                 // 6. IsPK
 
-                // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
-
                 for row in schema.unwrap().rows {
                     let mut cs = ColumnSchema {
                         column_id: String::from(""),
@@ -446,7 +444,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
                     };
 
                     for val in row.vals {
-                        println!("{val:?}");
+                        debug!("{val:?}");
 
                         if val.col.name == "columnId" {
                             let item = val.data.clone().unwrap();
@@ -518,8 +516,6 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         // 5. defaultValue
         // 6. IsPK
 
-        // println!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
-
         for row in schema.unwrap().rows {
             let mut cs = ColumnSchema {
                 column_id: String::from(""),
@@ -533,7 +529,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             };
 
             for val in row.vals {
-                println!("{val:?}");
+                debug!("{val:?}");
 
                 if val.col.name == "columnId" {
                     let item = val.data.clone().unwrap();
