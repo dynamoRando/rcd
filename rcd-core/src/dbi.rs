@@ -1108,7 +1108,8 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read_at_host(&self, db_name: &str, cmd: &str) -> rusqlite::Result<Table> {
+    pub fn execute_read_at_host(&self, db_name: &str, cmd: &str) -> 
+    core::result::Result<Table, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
