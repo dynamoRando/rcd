@@ -232,7 +232,7 @@ pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection)
             "WARNING: check_database_name_for_contract_format no database named: ", db_name
         );
         warn!("{}", message);
-        
+
         if db_name.contains(".dbpart") {
             let message = "check_database_name_for_contract_format: renaming database name to contract version of database";
             info!("{}", message);

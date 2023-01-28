@@ -603,7 +603,10 @@ pub fn has_participants(db_name: &str, config: &DbiConfigSqlite) -> Result<bool,
     } else {
         let conn = get_db_conn(config, db_name);
         if has_table("COOP_PARTICIPANT", &conn) {
-            Ok(has_any_rows("SELECT COUNT(*) PARTICIPANTS FROM COOP_PARTICIPANT".to_string(), &conn))
+            Ok(has_any_rows(
+                "SELECT COUNT(*) PARTICIPANTS FROM COOP_PARTICIPANT".to_string(),
+                &conn,
+            ))
         } else {
             Err(RcdDbError::TableNotFoundInDatabase(
                 "COOP_PARTICIPANT".to_string(),

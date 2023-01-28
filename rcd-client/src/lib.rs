@@ -1020,7 +1020,7 @@ impl RcdClient {
                     .unwrap()
                     .into_inner();
                 debug!("RESPONSE={response:?}");
-            
+
                 Ok(response)
             }
             RcdClientType::Http => {
@@ -1101,7 +1101,7 @@ impl RcdClient {
                     .unwrap()
                     .into_inner();
                 debug!("RESPONSE={response:?}");
-                
+
                 Ok(response.is_successful)
             }
             RcdClientType::Http => {
@@ -1286,7 +1286,7 @@ impl RcdClient {
                     .unwrap()
                     .into_inner();
                 debug!("RESPONSE={response:?}");
-                
+
                 Ok(response.contracts)
             }
             RcdClientType::Http => {

@@ -5,7 +5,6 @@ use rcdproto::rcdp::{data_service_server::DataService, data_service_server::Data
 use rusqlite::Result;
 use tonic::{transport::Server, Request, Response, Status};
 
-
 #[derive(Default)]
 /// Implements the `DataService` definition from the protobuff file
 pub struct DataServiceImpl {

@@ -38,6 +38,5 @@ pub fn build_max_lengths_for_columns(rows: &[Row]) -> IndexMap<String, u32> {
         }
     }
 
-
     max_lengths
 }

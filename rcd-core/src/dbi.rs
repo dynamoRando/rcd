@@ -1120,7 +1120,7 @@ impl Dbi {
         }
     }
 
-    /// Will scan the supplied SQL statement for table names and return 
+    /// Will scan the supplied SQL statement for table names and return
     /// if any of the found table names has a logical storage policy that is remote
     pub fn has_cooperative_tables(&self, db_name: &str, cmd: &str) -> Result<bool, RcdDbError> {
         match self.db_type {
