@@ -37,7 +37,7 @@ pub fn has_cooperative_tables(
 ) -> Result<bool, RcdDbError> {
     if !has_database(config, db_name) {
         let e = RcdDbError::DbNotFound(db_name.to_string());
-        return Err(e)
+        return Err(e);
     }
 
     let mut has_cooperative_tables = false;
