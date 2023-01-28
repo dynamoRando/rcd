@@ -1,7 +1,7 @@
 use self::db_part::get_partial_db_connection;
 use log::{debug, info};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
-use rcd_enum::column_type::ColumnType;
+use rcd_enum::{column_type::ColumnType, rcd_db_error::RcdDbError};
 use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
@@ -454,7 +454,6 @@ fn has_table(table_name: &str, conn: &Connection) -> bool {
 }
 
 pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
-    
     let mut db_exists_as_regular_db = false;
     let mut db_exists_as_partial_db = false;
 
@@ -491,7 +490,11 @@ pub fn execute_write_on_connection_at_host(
     db_name: &str,
     cmd: &str,
     config: &DbiConfigSqlite,
-) -> Result<usize, String> {
+) -> Result<usize, RcdDbError> {
+    if !has_database(config, db_name) {
+        return Err(RcdDbError::DbNotFound(db_name.to_string()));
+    }
+
     let conn = get_db_conn(config, db_name);
 
     debug!("{:?}", conn);
@@ -501,21 +504,10 @@ pub fn execute_write_on_connection_at_host(
 
     let _ = conn.close();
 
-    if let Ok(x) = result {
-        Ok(x)
-    } else {
-        let err = result.expect_err("No error");
-        Err(err.to_string())
+    match result {
+        Ok(x) => Ok(x),
+        Err(e) => Err(RcdDbError::General(e.to_string())),
     }
-
-    /*
-    if result.is_ok() {
-        Ok(result.unwrap())
-    } else {
-        let err = result.expect_err("No error");
-        Err(err.to_string())
-    }
-    */
 }
 
 pub fn execute_write_on_connection_at_participant(

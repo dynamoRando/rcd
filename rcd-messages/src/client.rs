@@ -450,24 +450,18 @@ pub struct ExecuteReadReply {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteWriteRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub sql_statement: String,
-
     pub database_type: u32,
-
     pub where_clause: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteWriteReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub total_rows_affected: u32,
-
-    pub error_message: String,
+    pub is_error: bool,
+    pub error: Option<RcdError>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HasTableRequest {

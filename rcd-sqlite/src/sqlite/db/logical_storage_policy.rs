@@ -54,7 +54,7 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
-                return Err(RcdDbError::General(result.err().unwrap()));
+                return Err(result.err().unwrap());
             }
         } else {
             // then this is an insert
@@ -75,7 +75,7 @@ pub fn set_logical_storage_policy(
             cmd = cmd.replace(":policy", &LogicalStoragePolicy::to_u32(policy).to_string());
             let result = execute_write_on_connection_at_host(db_name, &cmd, &config);
             if result.is_err() {
-                return Err(RcdDbError::General(result.err().unwrap()));
+                return Err(result.err().unwrap());
             }
         }
 

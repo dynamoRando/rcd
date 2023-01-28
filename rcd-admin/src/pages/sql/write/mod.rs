@@ -46,9 +46,12 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
                 result_message += "\n";
                 result_message +=
                     &format!("Total rows affected: {}", write_reply.total_rows_affected);
-                result_message += "\n";
-                result_message += &format!("Error Message: {}", write_reply.error_message);
 
+                if write_reply.is_error {
+                    result_message += "\n";
+                    result_message += &format!("Error Message: {}", write_reply.error.unwrap().message);    
+                }
+                
                 let sql_table_text = result_message.clone();
 
                 state.set(Some(sql_table_text));

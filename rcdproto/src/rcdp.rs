@@ -599,8 +599,10 @@ pub struct ExecuteWriteReply {
     pub is_successful: bool,
     #[prost(uint32, tag="3")]
     pub total_rows_affected: u32,
-    #[prost(string, tag="4")]
-    pub error_message: ::prost::alloc::string::String,
+    #[prost(bool, tag="4")]
+    pub is_error: bool,
+    #[prost(message, optional, tag="5")]
+    pub error: ::core::option::Option<RcdError>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]

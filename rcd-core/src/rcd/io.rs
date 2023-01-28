@@ -2,6 +2,7 @@ use super::Rcd;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
+use log::warn;
 use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
@@ -13,6 +14,7 @@ use rcdproto::rcdp::ExecuteCooperativeWriteReply;
 use rcdproto::rcdp::ExecuteCooperativeWriteRequest;
 use rcdproto::rcdp::ExecuteWriteReply;
 use rcdproto::rcdp::ExecuteWriteRequest;
+use rcdproto::rcdp::RcdError;
 use rcdproto::rcdp::{ExecuteReadReply, ExecuteReadRequest, StatementResultset};
 
 pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> ExecuteReadReply {
@@ -270,7 +272,8 @@ pub async fn execute_write_at_participant(
         authentication_result: Some(auth_result.1),
         is_successful: is_overall_successful,
         total_rows_affected: rows_affected,
-        error_message: "".to_string(),
+        is_error: false,
+        error: None,
     }
 }
 
@@ -280,27 +283,37 @@ pub async fn execute_write_at_host(core: &Rcd, request: ExecuteWriteRequest) -> 
     let db_name = request.database_name;
     let statement = request.sql_statement;
     let mut is_sql_successful: bool = false;
-    let mut error_message = String::new();
+    let mut is_error = false;
+    let mut rcd_error: Option<RcdError> = None;
 
     if auth_result.0 {
-        // println!("{:?}", &statement);
         let sql_result = core.dbi().execute_write_at_host(&db_name, &statement);
-        if sql_result.is_ok() {
-            rows_affected = sql_result.unwrap() as u32;
-            is_sql_successful = true;
-        } else {
-            is_sql_successful = false;
-            error_message = sql_result.err().unwrap();
+
+        match sql_result {
+            Ok(_) => {
+                rows_affected = sql_result.unwrap() as u32;
+                is_sql_successful = true;
+            }
+            Err(e) => {
+                is_sql_successful = false;
+                is_error = true;
+                rcd_error = Some(RcdError {
+                    number: 0,
+                    message: e.to_string(),
+                    help: String::from(""),
+                });
+            }
         }
     } else {
-        println!("WARNING: execute_write_at_host not authenticated!");
+        warn!("WARNING: execute_write_at_host not authenticated!");
     }
 
     ExecuteWriteReply {
         authentication_result: Some(auth_result.1),
         is_successful: is_sql_successful,
         total_rows_affected: rows_affected,
-        error_message,
+        is_error,
+        error: rcd_error,
     }
 }
 
