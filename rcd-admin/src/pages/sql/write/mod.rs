@@ -49,9 +49,10 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
 
                 if write_reply.is_error {
                     result_message += "\n";
-                    result_message += &format!("Error Message: {}", write_reply.error.unwrap().message);    
+                    result_message +=
+                        &format!("Error Message: {}", write_reply.error.unwrap().message);
                 }
-                
+
                 let sql_table_text = result_message.clone();
 
                 state.set(Some(sql_table_text));
