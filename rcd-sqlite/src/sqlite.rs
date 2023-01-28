@@ -325,17 +325,16 @@ pub fn execute_read_at_participant(
     }
 
     let query_result = statement.query([]);
+
     match query_result {
         Ok(mut rows) => {
-            debug!("query_result has rows");
             loop {
                 let get_row_result = rows.next();
                 match get_row_result {
                     Ok(row) => {
                         if row.is_some() {
-                            debug!("query_result adding row");
                             let r = row.unwrap();
-                            debug!("query_result unwrap row");
+
                             let mut data_row = rcd_common::table::Row::new();
 
                             for i in 0..total_columns {
@@ -364,11 +363,9 @@ pub fn execute_read_at_participant(
                                     col,
                                 };
 
-                                debug!("query_result add value");
                                 data_row.add_value(data_value);
                             }
 
-                            debug!("query_result add row");
                             table.add_row(data_row);
                         } else {
                             break;
@@ -381,7 +378,6 @@ pub fn execute_read_at_participant(
                 }
             }
 
-            debug!("table: {:?}", table);
             Ok(table)
         }
         Err(e) => Err(RcdDbError::General(e.to_string())),
