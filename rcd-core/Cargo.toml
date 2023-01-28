@@ -11,6 +11,7 @@ rcd-sqlite = { path = "../rcd-sqlite" }
 rcd-sqlite-log = { path = "../rcd-sqlite-log" }
 rcd-common = { path = "../rcd-common" }
 rcd-enum = { path = "../rcd-enum" }
+rcd-error = { path = "../rcd-error" }
 rcd-query = { path = "../rcd-query" }
 rcd-http-common = { path = "../rcd-http-common" }
 serde = "1"

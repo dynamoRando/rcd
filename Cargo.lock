@@ -2329,6 +2329,7 @@ dependencies = [
  "prost",
  "rcd-common",
  "rcd-enum",
+ "rcd-error",
  "rcd-http-common",
  "rcd-query",
  "rcd-sqlite",
@@ -2349,6 +2350,15 @@ dependencies = [
 
 [[package]]
 name = "rcd-enum"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "substring",
+ "thiserror",
+]
+
+[[package]]
+name = "rcd-error"
 version = "0.1.0"
 dependencies = [
  "rusqlite",
@@ -2448,6 +2458,7 @@ dependencies = [
  "prost",
  "rcd-common",
  "rcd-enum",
+ "rcd-error",
  "rcd-query",
  "rcd-sqlite-log",
  "rcdproto",

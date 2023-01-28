@@ -2,7 +2,8 @@ use crate::sqlite::{
     execute_write_on_connection_at_host, get_db_conn, get_scalar_as_u32, has_any_rows, has_table,
 };
 use rcd_common::db::DbiConfigSqlite;
-use rcd_enum::{logical_storage_policy::LogicalStoragePolicy, rcd_db_error::RcdDbError};
+use rcd_enum::{logical_storage_policy::LogicalStoragePolicy};
+use rcd_error::rcd_db_error::RcdDbError;
 
 use super::{get_all_user_table_names_in_db, populate_data_host_tables};
 

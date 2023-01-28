@@ -37,4 +37,6 @@ members = [
     "rcd-sqlite-log", 
     # a breakout of formatting into markdown 
     "rcd-markdown",
+    # a library of errors
+    "rcd-error"
 ]

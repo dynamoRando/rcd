@@ -12,12 +12,13 @@ use rcd_enum::{
     contract_status::ContractStatus, database_type::DatabaseType,
     deletes_from_host_behavior::DeletesFromHostBehavior,
     deletes_to_host_behavior::DeletesToHostBehavior, logical_storage_policy::LogicalStoragePolicy,
-    rcd_db_error::RcdDbError, rcd_generate_contract_error::RcdGenerateContractError,
+    rcd_generate_contract_error::RcdGenerateContractError,
     remote_delete_behavior::RemoteDeleteBehavior,
     updates_from_host_behavior::UpdatesFromHostBehavior,
     updates_to_host_behavior::UpdatesToHostBehavior,
 };
 
+use rcd_error::rcd_db_error::RcdDbError;
 use rcd_sqlite::sqlite::{self};
 use rcd_sqlite_log::log_entry::LogEntry;
 use rcdproto::rcdp::{

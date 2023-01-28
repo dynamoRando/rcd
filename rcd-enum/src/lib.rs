@@ -9,7 +9,6 @@ pub mod logical_storage_policy;
 pub mod partial_data_result_action;
 pub mod partial_data_status;
 pub mod rcd_database_type;
-pub mod rcd_db_error;
 pub mod rcd_generate_contract_error;
 pub mod remote_delete_behavior;
 pub mod updates_from_host_behavior;

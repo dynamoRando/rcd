@@ -11,8 +11,8 @@ use rcd_common::table::*;
 use rcd_enum::{
     column_type::ColumnType, database_type::DatabaseType,
     logical_storage_policy::LogicalStoragePolicy, rcd_database_type::RcdDatabaseType,
-    rcd_db_error::RcdDbError,
 };
+use rcd_error::rcd_db_error::RcdDbError;
 use rcdproto::rcdp::{ColumnSchema, DatabaseSchema, TableSchema};
 use rusqlite::{named_params, Connection, Error, Result};
 

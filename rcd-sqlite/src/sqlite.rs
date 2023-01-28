@@ -1,7 +1,8 @@
 use self::db_part::get_partial_db_connection;
 use log::{debug, info};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
-use rcd_enum::{column_type::ColumnType, rcd_db_error::RcdDbError};
+use rcd_enum::{column_type::ColumnType,};
+use rcd_error::rcd_db_error::RcdDbError;
 use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};

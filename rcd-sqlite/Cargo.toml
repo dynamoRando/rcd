@@ -10,6 +10,7 @@ rcdproto = { path = "../rcdproto" }
 rcd-common = { path = "../rcd-common" }
 rcd-query = { path = "../rcd-query" }
 rcd-enum = { path = "../rcd-enum" }
+rcd-error = { path = "../rcd-error" }
 rcd-sqlite-log = { path = "../rcd-sqlite-log" }
 serde = "1"
 serde_derive = "1"

@@ -4,7 +4,8 @@ use rcd_common::{
     db::{get_metadata_table_name, DbiConfigSqlite},
     defaults,
 };
-use rcd_enum::{contract_status::ContractStatus, rcd_db_error::RcdDbError};
+use rcd_enum::{contract_status::ContractStatus};
+use rcd_error::rcd_db_error::RcdDbError;
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
 
