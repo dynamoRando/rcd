@@ -24,7 +24,6 @@ pub fn create_database(db_name: &str, config: DbiConfigSqlite) -> Result<Connect
     Ok(get_db_conn(&config, db_name))
 }
 
-#[allow(dead_code)]
 pub fn has_table_client_service(db_name: &str, table_name: &str, config: DbiConfigSqlite) -> bool {
     let conn = get_db_conn(&config, db_name);
     has_table(table_name, &conn)
