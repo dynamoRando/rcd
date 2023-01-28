@@ -474,7 +474,7 @@ pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
         let path = Path::new(&config.root_folder).join(db);
         db_exists_as_partial_db = Path::exists(&path);
 
-        if !db_exists_as_partial_db {
+        if !db_exists_as_partial_db && db_name.ends_with(".db") {
             let mut db_part_name = db_name.replace(".db", "");
             db_part_name = db_part_name.replace(".dbpart", "");
             db_part_name = format!("{}{}", db_part_name, String::from(".dbpart"));
