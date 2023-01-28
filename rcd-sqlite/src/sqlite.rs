@@ -363,7 +363,7 @@ pub fn execute_read_at_participant(
 
             Ok(table)
         }
-        Err(e) => return Err(RcdDbError::General(e.to_string())),
+        Err(e) => Err(RcdDbError::General(e.to_string())),
     }
 }
 
