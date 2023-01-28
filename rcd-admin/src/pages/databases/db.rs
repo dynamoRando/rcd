@@ -47,6 +47,29 @@ pub fn Databases() -> Html {
                         onclick={reload_db_onclick}>
                         <span class="mdi mdi-database-refresh">{" Reload"}</span>
                         </button>
+                        <h2 class="subtitle">{"Icon Key"}</h2>
+                        <div class="table-container">
+                            <table class="table is-narrow">
+                                <thead>
+                                    <tr>
+                                        <th>{"Icon"}</th>
+                                        <th>{"Value"}</th>
+                                    </tr>
+                                </thead>
+                                <tr>
+                                    <td><span class="mdi mdi-database"></span></td>
+                                    <td>{"Database"}</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="mdi mdi-handshake"></span></td>
+                                    <td>{"Cooperation Is Enabled"}</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="mdi mdi-account-multiple"></span></td>
+                                    <td>{"Has Participants"}</td>
+                                </tr>
+                            </table>
+                        </div>
                         <div class="content">
                             <ul>
                                 {
@@ -55,23 +78,61 @@ pub fn Databases() -> Html {
                                     let db_name = name.clone();
                                     let db = db_name.clone();
 
-                                    html!{<div key={db_name.clone()}>
-                                    <li onclick={
+                                    let databases = get_databases();
 
-                                        let selected_database = selected_database.clone();
+                                    let database = databases
+                                        .iter()
+                                        .find(|x| x.database_name.as_str() == db_name)
+                                        .unwrap()
+                                        .clone();
 
-                                        move |_| {
-                                                let databases = get_databases();
+                                    let cooperation_enabled = database.cooperation_enabled;
+                                    let has_participants = database.has_participants;
 
-                                                let database = databases
-                                                    .iter()
-                                                    .find(|x| x.database_name.as_str() == db_name)
-                                                    .unwrap()
-                                                    .clone();
+                                    html!{
+                                    <div key={db_name.clone()}>
+                                        <li onclick={
+                                            let selected_database = selected_database.clone();
 
-                                                selected_database.set(Some(database));
+                                            move |_| {
+                                                    let databases = get_databases();
+
+                                                    let database = databases
+                                                        .iter()
+                                                        .find(|x| x.database_name.as_str() == db_name)
+                                                        .unwrap()
+                                                        .clone();
+
+                                                    selected_database.set(Some(database));
+                                                }
+                                            }>
+                                            <span class="mdi mdi-database"></span>
+                                            {
+                                                if cooperation_enabled {
+                                                    html!{
+                                                        <span class="mdi mdi-handshake"></span>
+                                                    }
+                                                } else {
+                                                    html!{
+                                                        <a></a>
+                                                    }
+                                                }
                                             }
-                                        }><span class="mdi mdi-database"></span>{" "}{db.clone()}</li></div>
+                                            {
+                                                if has_participants {
+                                                    html!{
+                                                        <span class="mdi mdi-account-multiple"></span>
+                                                    }
+                                                } else {
+                                                    html!{
+                                                        <a></a>
+                                                    }
+                                                }
+                                            }
+                                            {" "}
+                                            {db.clone()}
+                                        </li>
+                                    </div>
                                 }
                                     }).collect::<Html>()
                                 }

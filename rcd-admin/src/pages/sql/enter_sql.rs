@@ -27,6 +27,8 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
         Some(list)
     });
 
+    let participant_dropdown_enabled = use_state_eq(move || false);
+
     for database in &databases {
         database_names.push(database.database_name.clone());
     }
@@ -42,64 +44,81 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
 
     let onclick_db = {
         let participant_aliases = participant_aliases.clone();
+        let participant_dropdown_enabled = participant_dropdown_enabled.clone();
         Callback::from(move |db_name: String| {
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
             } else {
-                let participant_aliases = participant_aliases.clone();
-                let token = get_token();
-                let auth = token.auth();
+                let list: Vec<String> = Vec::new();
+                participant_aliases.set(Some(list));
+                participant_dropdown_enabled.set(false);
+                let databases = get_databases();
 
-                let get_participants_request = GetParticipantsRequest {
-                    authentication: Some(auth),
-                    database_name: db_name.clone(),
-                };
+                let database = databases
+                    .iter()
+                    .find(|x| x.database_name.as_str() == db_name)
+                    .unwrap()
+                    .clone();
 
-                let request_json = serde_json::to_string(&get_participants_request).unwrap();
-                let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
+                let cooperation_enabled = database.cooperation_enabled;
+                let participant_dropdown_enabled = participant_dropdown_enabled.clone();
+                if cooperation_enabled {
+                    let participant_aliases = participant_aliases.clone();
+                    let token = get_token();
+                    let auth = token.auth();
 
-                let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if let Ok(ref x) = response {
-                        clear_status();
-                        log_to_console(x.to_string());
-                        let participant_aliases = participant_aliases.clone();
-                        let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
+                    let get_participants_request = GetParticipantsRequest {
+                        authentication: Some(auth),
+                        database_name: db_name.clone(),
+                    };
 
-                        let is_authenticated = reply
-                            .authentication_result
-                            .as_ref()
-                            .unwrap()
-                            .is_authenticated;
-                        update_token_login_status(is_authenticated);
+                    let request_json = serde_json::to_string(&get_participants_request).unwrap();
+                    let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
 
-                        if is_authenticated {
-                            if !reply.is_error {
-                                let participants = reply.participants;
+                    let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                        if let Ok(ref x) = response {
+                            clear_status();
+                            log_to_console(x.to_string());
+                            let participant_aliases = participant_aliases.clone();
+                            let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
 
-                                let mut aliases: Vec<String> = Vec::new();
-                                for p in &participants {
-                                    aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                            let is_authenticated = reply
+                                .authentication_result
+                                .as_ref()
+                                .unwrap()
+                                .is_authenticated;
+                            update_token_login_status(is_authenticated);
+
+                            if is_authenticated {
+                                if !reply.is_error {
+                                    let participants = reply.participants;
+
+                                    let mut aliases: Vec<String> = Vec::new();
+                                    for p in &participants {
+                                        aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                                    }
+
+                                    participant_dropdown_enabled.set(true);
+                                    participant_aliases.set(Some(aliases));
+                                } else {
+                                    let message = format!(
+                                        "{} - {}",
+                                        reply.error.as_ref().unwrap().message,
+                                        reply.error.as_ref().unwrap().help
+                                    );
+                                    set_status(message);
                                 }
-
-                                participant_aliases.set(Some(aliases));
-                            } else {
-                                let message = format!(
-                                    "{} - {}",
-                                    reply.error.as_ref().unwrap().message,
-                                    reply.error.as_ref().unwrap().help
-                                );
-                                set_status(message);
                             }
+                        } else {
+                            let error_message = response.err().unwrap();
+                            set_status(error_message);
                         }
-                    } else {
-                        let error_message = response.err().unwrap();
-                        set_status(error_message);
-                    }
-                });
+                    });
 
-                let message = format!("{}{}", "sending participant request for: ", &db_name);
-                log_to_console(message);
+                    let message = format!("{}{}", "sending participant request for: ", &db_name);
+                    log_to_console(message);
 
-                request::post(url, request_json, cb);
+                    request::post(url, request_json, cb);
+                }
             }
         })
     };
@@ -247,6 +266,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                         id="select_participant_for_execute"
                         ref={&ui_active_participant}
                         onchange={&onchange_participant}
+                        disabled={!*participant_dropdown_enabled}
                     >
                     <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
                     {
