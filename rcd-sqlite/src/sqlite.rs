@@ -327,7 +327,7 @@ pub fn execute_read_at_participant(
     let query_result = statement.query([]);
     match query_result {
         Ok(mut rows) => {
-            while let Some(row) = rows.next().ok() {
+            while let Ok(row) = rows.next() {
                 let row = row.unwrap();
                 let mut data_row = rcd_common::table::Row::new();
 

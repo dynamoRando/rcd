@@ -107,8 +107,8 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
-        is_error: is_error,
-        error: error,
+        is_error,
+        error,
     }
 }
 
@@ -143,7 +143,7 @@ pub async fn execute_read_at_participant(
                 statement_result_set.is_error = false;
             }
             Err(e) => {
-                statement_result_set.execution_error_message = e.to_string().clone();
+                statement_result_set.execution_error_message = e.to_string();
                 is_error = true;
                 error = Some(RcdError {
                     number: 0,
@@ -161,8 +161,8 @@ pub async fn execute_read_at_participant(
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
         results: statement_results,
-        is_error: is_error,
-        error: error,
+        is_error,
+        error,
     }
 }
 
