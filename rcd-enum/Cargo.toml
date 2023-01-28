@@ -9,3 +9,4 @@ edition = "2021"
 serde = "1"
 substring = "1.4.5"
 thiserror = "1"
+rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }

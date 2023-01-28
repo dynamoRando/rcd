@@ -11,3 +11,9 @@ pub enum RcdDbError {
     #[error("storage policy not defined for table `{0}`")]
     LogicalStoragePolicyNotSet(String),
 }
+
+impl From<rusqlite::Error> for RcdDbError {
+    fn from(error: rusqlite::Error) -> Self {
+        RcdDbError::General(error.to_string())
+    }
+}
