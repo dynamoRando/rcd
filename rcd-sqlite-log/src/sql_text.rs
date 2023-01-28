@@ -58,7 +58,7 @@ pub fn add_log(level: &str, message: &str) -> String {
     let dt: String = local.to_string();
     let dt_utc: String = utc.to_string();
 
-    let message = message.replace('\n', "");
+    let message = message.replace("\n", "");
     cmd = cmd.replace(":dt", &dt);
     cmd = cmd.replace(":utc", &dt_utc);
     cmd = cmd.replace(":level", level);
