@@ -327,40 +327,61 @@ pub fn execute_read_at_participant(
     let query_result = statement.query([]);
     match query_result {
         Ok(mut rows) => {
-            while let Ok(row) = rows.next() {
-                let row = row.unwrap();
-                let mut data_row = rcd_common::table::Row::new();
+            debug!("query_result has rows");
+            loop {
+                let get_row_result = rows.next();
+                match get_row_result {
+                    Ok(row) => {
+                        if row.is_some() {
+                            debug!("query_result adding row");
+                            let r = row.unwrap();
+                            debug!("query_result unwrap row");
+                            let mut data_row = rcd_common::table::Row::new();
 
-                for i in 0..total_columns {
-                    let dt = row.get_ref_unwrap(i).data_type();
+                            for i in 0..total_columns {
+                                let dt = r.get_ref_unwrap(i).data_type();
 
-                    let string_value: String = match dt {
-                        Type::Blob => String::from(""),
-                        Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                        Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                        Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                        _ => String::from(""),
-                    };
+                                let string_value: String = match dt {
+                                    Type::Blob => String::from(""),
+                                    Type::Integer => {
+                                        r.get_ref_unwrap(i).as_i64().unwrap().to_string()
+                                    }
+                                    Type::Real => r.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                                    Type::Text => r.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                                    _ => String::from(""),
+                                };
 
-                    let string_value = string_value;
-                    let col = table.get_column_by_index(i).unwrap();
+                                let string_value = string_value;
+                                let col = table.get_column_by_index(i).unwrap();
 
-                    let data_item = Data {
-                        data_string: string_value,
-                        data_byte: Vec::new(),
-                    };
+                                let data_item = Data {
+                                    data_string: string_value,
+                                    data_byte: Vec::new(),
+                                };
 
-                    let data_value = Value {
-                        data: Some(data_item),
-                        col,
-                    };
+                                let data_value = Value {
+                                    data: Some(data_item),
+                                    col,
+                                };
 
-                    data_row.add_value(data_value);
+                                debug!("query_result add value");
+                                data_row.add_value(data_value);
+                            }
+
+                            debug!("query_result add row");
+                            table.add_row(data_row);
+                        } else {
+                            break;
+                        }
+                    }
+                    Err(e) => {
+                        let error = RcdDbError::General(e.to_string());
+                        return Err(error);
+                    }
                 }
-
-                table.add_row(data_row);
             }
 
+            debug!("table: {:?}", table);
             Ok(table)
         }
         Err(e) => Err(RcdDbError::General(e.to_string())),
