@@ -288,6 +288,8 @@ pub fn test_database_schema() {
         tables: tv,
         database_type: 1,
         rcd_database_type: 2,
+        cooperation_enabled: false,
+        has_participants: false,
     };
 
     let md = db::full_database_schema_to_tables(&ds);
@@ -400,6 +402,8 @@ pub fn test_contract() {
         tables: tv,
         database_type: 1,
         rcd_database_type: 2,
+        cooperation_enabled: false,
+        has_participants: false,
     };
 
     let host = Host {
