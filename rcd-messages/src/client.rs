@@ -1036,14 +1036,12 @@ pub struct Host {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct DatabaseSchema {
     pub database_name: String,
-
     pub database_id: String,
-
     pub tables: Vec<TableSchema>,
-
     pub database_type: u32,
-
     pub rcd_database_type: u32,
+    pub cooperation_enabled: bool,
+    pub has_participants: bool,
 }
 /// a message for describing the schema information of a table in a database
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
