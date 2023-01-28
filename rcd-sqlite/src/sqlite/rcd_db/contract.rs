@@ -378,7 +378,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             tables: table_schema,
             database_type: 0,
             rcd_database_type: 0,
-            cooperation_enabled: cooperation_enabled,
+            cooperation_enabled,
             has_participants: db_has_participants,
         };
 

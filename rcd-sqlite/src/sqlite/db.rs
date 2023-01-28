@@ -313,7 +313,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             tables: Vec::new(),
             database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
             rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Host),
-            cooperation_enabled: cooperation_enabled,
+            cooperation_enabled,
             has_participants: db_has_participants,
         };
 
@@ -517,7 +517,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
         tables: Vec::new(),
         database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
         rcd_database_type: RcdDatabaseType::to_u32(RcdDatabaseType::Partial),
-        cooperation_enabled: cooperation_enabled,
+        cooperation_enabled,
         has_participants: db_has_participants,
     };
 
@@ -598,10 +598,10 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
 }
 
 pub fn has_participants(db_name: &str, config: &DbiConfigSqlite) -> Result<bool, RcdDbError> {
-    if !has_database(&config, db_name) {
+    if !has_database(config, db_name) {
         Err(RcdDbError::DbNotFound(db_name.to_string()))
     } else {
-        let conn = get_db_conn(&config, db_name);
+        let conn = get_db_conn(config, db_name);
         if has_table("COOP_PARTICIPANT", &conn) {
             Ok(has_any_rows("COOP_PARTICIPANT".to_string(), &conn))
         } else {
@@ -617,16 +617,16 @@ pub fn has_enable_coooperative_features(
     db_name: &str,
     config: &DbiConfigSqlite,
 ) -> Result<bool, RcdDbError> {
-    if !has_database(&config, db_name) {
+    if !has_database(config, db_name) {
         Err(RcdDbError::DbNotFound(db_name.to_string()))
     } else {
-        let conn = get_db_conn(&config, db_name);
+        let conn = get_db_conn(config, db_name);
         Ok(has_table("COOP_REMOTES", &conn))
     }
 }
 
 pub fn enable_coooperative_features(db_name: &str, config: &DbiConfigSqlite) {
-    let conn = get_db_conn(&config, db_name);
+    let conn = get_db_conn(config, db_name);
 
     create_remotes_table(&conn);
     create_participant_table(&conn);
