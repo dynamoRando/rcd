@@ -344,7 +344,7 @@ pub fn test_contract() {
         is_primary_key: false,
     };
 
-    let mut cv1: Vec<ColumnSchema> = vec![cs11, cs12];
+    let cv1: Vec<ColumnSchema> = vec![cs11, cs12];
 
     let ts1 = TableSchema {
         table_name: "EMPLOYEE".to_string(),
