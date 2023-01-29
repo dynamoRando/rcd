@@ -49,7 +49,7 @@ impl SqliteLog {
         // PRAGMA journal_mode=WAL
         connection
             .pragma_update(
-                Some(rusqlite::DatabaseName::Attached(DEFAULT_DB_NAME)),
+                None,
                 "journal_mode",
                 "WAL",
             )
