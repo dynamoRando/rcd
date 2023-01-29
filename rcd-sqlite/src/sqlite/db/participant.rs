@@ -4,7 +4,7 @@ use rcd_common::{
     db::{get_metadata_table_name, DbiConfigSqlite},
     defaults,
 };
-use rcd_enum::{contract_status::ContractStatus};
+use rcd_enum::contract_status::ContractStatus;
 use rcd_error::rcd_db_error::RcdDbError;
 use rcdproto::rcdp::{Participant, ParticipantStatus};
 use rusqlite::{named_params, Connection, Result};
@@ -532,7 +532,7 @@ pub fn has_participant_at_conn(alias: &str, conn: &Connection) -> bool {
 pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
     let conn = &get_db_conn(&config, db_name);
     let mut cmd =
-        String::from("_PARTICIPANT WHERE ALIAS = ':alias'");
+        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
     has_any_rows(cmd, conn)
 }
