@@ -256,63 +256,54 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
         table.add_column(c);
     }
 
-    let query_result = statement.query([]);
+    let mut rows = statement.query([])?;
 
-    match query_result {
-        Ok(mut rows) => {
-            loop {
-                let get_row_result = rows.next();
-                match get_row_result {
-                    Ok(row) => {
-                        if row.is_some() {
-                            let r = row.unwrap();
+    loop {
+        let get_row_result = rows.next();
+        match get_row_result {
+            Ok(row) => {
+                if let Some(r) = row {
+                    let mut data_row = rcd_common::table::Row::new();
 
-                            let mut data_row = rcd_common::table::Row::new();
+                    for i in 0..total_columns {
+                        let dt = r.get_ref_unwrap(i).data_type();
 
-                            for i in 0..total_columns {
-                                let dt = r.get_ref_unwrap(i).data_type();
+                        let string_value: String = match dt {
+                            Type::Blob => String::from(""),
+                            Type::Integer => r.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                            Type::Real => r.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                            Type::Text => r.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                            _ => String::from(""),
+                        };
 
-                                let string_value: String = match dt {
-                                    Type::Blob => String::from(""),
-                                    Type::Integer => {
-                                        r.get_ref_unwrap(i).as_i64().unwrap().to_string()
-                                    }
-                                    Type::Real => r.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                                    Type::Text => r.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                                    _ => String::from(""),
-                                };
+                        let string_value = string_value;
+                        let col = table.get_column_by_index(i).unwrap();
 
-                                let string_value = string_value;
-                                let col = table.get_column_by_index(i).unwrap();
+                        let data_item = Data {
+                            data_string: string_value,
+                            data_byte: Vec::new(),
+                        };
 
-                                let data_item = Data {
-                                    data_string: string_value,
-                                    data_byte: Vec::new(),
-                                };
+                        let data_value = Value {
+                            data: Some(data_item),
+                            col,
+                        };
 
-                                let data_value = Value {
-                                    data: Some(data_item),
-                                    col,
-                                };
-
-                                data_row.add_value(data_value);
-                            }
-
-                            table.add_row(data_row);
-                        } else {
-                            break;
-                        }
+                        data_row.add_value(data_value);
                     }
-                    Err(e) => {
-                        return Err(e.into());
-                    }
+
+                    table.add_row(data_row);
+                } else {
+                    break;
                 }
             }
-
-            Ok(table)
+            Err(e) => {
+                return Err(e.into());
+            }
         }
-        Err(e) => Err(RcdDbError::General(e.to_string())),
     }
+
+    Ok(table)
 }
 
 pub fn execute_read_at_participant(
@@ -333,7 +324,6 @@ pub fn execute_read_at_host(
     cmd: &str,
     config: DbiConfigSqlite,
 ) -> core::result::Result<Table, RcdDbError> {
-
     if !has_database(&config, db_name) {
         return Err(RcdDbError::DbNotFound(db_name.to_string()));
     }
@@ -476,7 +466,10 @@ pub fn get_table_col_names_with_data_type_as_string(
 /// 4. NotNull
 /// 5. defaultValue
 /// 6. IsPK
-pub fn get_schema_of_table(table_name: String, conn: &Connection) -> core::result::Result<Table, RcdDbError> {
+pub fn get_schema_of_table(
+    table_name: String,
+    conn: &Connection,
+) -> core::result::Result<Table, RcdDbError> {
     let mut cmd = String::from("PRAGMA table_info(\":table_name\")");
     cmd = cmd.replace(":table_name", &table_name);
     execute_read(&cmd, conn)
