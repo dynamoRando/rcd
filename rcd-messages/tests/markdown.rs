@@ -142,10 +142,7 @@ pub fn test_markdown_rows() {
         string_value: "9999 Brooklyn St, New York City, NY 123456".to_string(),
     };
 
-    let mut values: Vec<RowValue> = Vec::new();
-    values.push(rv3_name);
-    values.push(rv3_text);
-    values.push(rv3_address);
+    let values: Vec<RowValue> = vec![rv3_name, rv3_text, rv3_address];
 
     let rv_3 = Row {
         database_name: "Example".to_string(),
@@ -230,10 +227,8 @@ pub fn test_database_schema() {
         is_primary_key: false,
     };
 
-    let mut cv1: Vec<ColumnSchema> = Vec::new();
-    cv1.push(cs11);
-    cv1.push(cs12);
-
+    let cv1: Vec<ColumnSchema> = vec![cs11, cs12];
+    
     let ts1 = TableSchema {
         table_name: "EMPLOYEE".to_string(),
         table_id: "EMPLOYEE".to_string(),
@@ -265,10 +260,8 @@ pub fn test_database_schema() {
         is_primary_key: false,
     };
 
-    let mut cv2: Vec<ColumnSchema> = Vec::new();
-    cv2.push(cs21);
-    cv2.push(cs22);
-
+    let cv2: Vec<ColumnSchema> = vec![cs21, cs22];
+    
     let ts2 = TableSchema {
         table_name: "ADDRESS".to_string(),
         table_id: "ADDRESS".to_string(),
@@ -278,10 +271,8 @@ pub fn test_database_schema() {
         logical_storage_policy: 2,
     };
 
-    let mut tv: Vec<TableSchema> = Vec::new();
-    tv.push(ts1);
-    tv.push(ts2);
-
+    let tv: Vec<TableSchema> = vec![ts1, ts2];
+    
     let ds = DatabaseSchema {
         database_name: "TEST".to_string(),
         database_id: "TEST".to_string(),
