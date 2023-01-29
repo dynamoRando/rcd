@@ -99,7 +99,7 @@ pub fn test_markdown_rows() {
         string_value: "5678 Main Street, Tucson, AZ 54321".to_string(),
     };
 
-    let values: Vec<RowValue> = vec![rv2_name, rv2_address, rv2_text];
+    let values: Vec<RowValue> = vec![rv2_name, rv2_text, rv2_address];
 
     let rv_2 = Row {
         database_name: "Example".to_string(),
