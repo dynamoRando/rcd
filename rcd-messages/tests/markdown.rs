@@ -64,10 +64,7 @@ pub fn test_markdown_rows() {
         string_value: "1234 Main Street, Yuma, AZ 12345".to_string(),
     };
 
-    let mut values: Vec<RowValue> = Vec::new();
-    values.push(rv1_name);
-    values.push(rv1_text);
-    values.push(rv1_address);
+    let values: Vec<RowValue> = vec![rv1_name, rv1_text, rv1_address];
 
     let rv_1 = Row {
         database_name: "Example".to_string(),
@@ -102,10 +99,7 @@ pub fn test_markdown_rows() {
         string_value: "5678 Main Street, Tucson, AZ 54321".to_string(),
     };
 
-    let mut values: Vec<RowValue> = Vec::new();
-    values.push(rv2_name);
-    values.push(rv2_text);
-    values.push(rv2_address);
+    let values: Vec<RowValue> = vec![rv2_name, rv2_address, rv2_text];
 
     let rv_2 = Row {
         database_name: "Example".to_string(),
