@@ -45,6 +45,16 @@ impl SqliteLog {
 
     pub fn configure(&self) {
         let connection = self.get_db_conn();
+
+        // PRAGMA journal_mode=WAL
+        connection
+            .pragma_update(
+                Some(rusqlite::DatabaseName::Attached(DEFAULT_DB_NAME)),
+                "journal_mode",
+                "WAL",
+            )
+            .unwrap();
+
         connection.execute(&create_log_table(), []).unwrap();
     }
 
@@ -217,11 +227,9 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
-
     println!("sqlite log path: {:?}", db_location);
 
     let conn = Connection::open(db_location).unwrap();
-
     let cmd = String::from(
         "
     INSERT INTO log (
