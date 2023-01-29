@@ -230,14 +230,24 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let cols = statement.columns();
     let mut table = Table::new();
 
+    debug!("{:?}", cmd);
+
     for col in cols {
         let col_idx = statement.column_index(col.name()).unwrap();
+
+        debug!("{:?}", col);
+        let mut data_type = String::from("");
+
+        let col_type = col.decl_type();
+        if let Some(dt) = col_type {
+            data_type = dt.to_string();
+        };
 
         let c = Column {
             name: col.name().to_string(),
             is_nullable: false,
             idx: col_idx,
-            data_type: col.decl_type().unwrap().to_string(),
+            data_type: data_type,
             is_primary_key: false,
         };
 
