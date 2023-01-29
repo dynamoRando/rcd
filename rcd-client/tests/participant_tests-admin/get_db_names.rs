@@ -328,6 +328,7 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_get_databases(participant_client_addr: ServiceAddr) -> bool {
+        use log::{warn, debug};
         use rcd_client::RcdClient;
 
         let has_all_databases = true;
@@ -363,7 +364,7 @@ pub mod grpc {
             "part_example.db",
             "part_example2.db",
             "part_example3.db",
-            "get_db_names_grpc.dbpart",
+            "get_db_names_gprc.dbpart",
             "rcd.db"
         ];
 
@@ -372,8 +373,12 @@ pub mod grpc {
             println!("{name}");
         }
 
+        debug!("actual: {:?}", actual_db_names);
+        debug!("expected: {:?}", expected_db_names);
+
         for name in &expected_db_names {
-            if !actual_db_names.contains(&(*name).to_string()) {
+            if ! actual_db_names.iter().any(|n| n == name) {
+                warn!("missing database: {:?}", name);
                 return false;
             }
         }
@@ -413,7 +418,7 @@ pub mod grpc {
         [
             "get_db_names2.db",
             "get_db_names3.db",
-            "get_db_names_grpc.db",
+            "get_db_names_gprc.db",
             "rcd.db"
         ];
         
@@ -795,7 +800,7 @@ pub mod http {
         [
             "part_example.db",
             "part_example2.db",
-            "part_eample3.db",
+            "part_example3.db",
             "get_db_names_http.dbpart",
             "rcd.db"
         ];
