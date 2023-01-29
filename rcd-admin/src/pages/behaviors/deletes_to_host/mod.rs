@@ -10,7 +10,7 @@ use crate::{
         common::{select_database::SelectDatabase, select_table::SelectTable},
     },
     request::{
-        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+        self, clear_status, get_token, set_status, update_token_login_status, get_database,
     },
 };
 
@@ -34,14 +34,7 @@ pub fn DeletesToHost() -> Html {
     let onclick_db = {
         let table_names = table_names;
         Callback::from(move |db_name: String| {
-            let databases = get_databases();
-
-            let database = databases
-                .iter()
-                .find(|x| x.database_name.as_str() == db_name)
-                .unwrap()
-                .clone();
-
+            let database = get_database(&db_name);
             let mut names: Vec<String> = Vec::new();
 
             for table in &database.tables {

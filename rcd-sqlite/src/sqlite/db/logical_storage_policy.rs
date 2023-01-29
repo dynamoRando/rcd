@@ -101,6 +101,11 @@ pub fn get_logical_storage_policy(
 
     if has_table(table_name, &conn) {
         // insert or update on the coop tables
+
+        if !has_table("COOP_REMOTES", &conn) {
+            return Ok(LogicalStoragePolicy::None); 
+        }
+
         let mut cmd = String::from(
             "SELECT COUNT(*) TOTALCOUNT FROM COOP_REMOTES WHERE TABLENAME = ':table_name';",
         );

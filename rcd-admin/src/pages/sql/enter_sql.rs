@@ -5,7 +5,7 @@ use crate::{
         sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
     request::{
-        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+        self, clear_status, get_databases, get_token, set_status, update_token_login_status, get_database,
     },
 };
 use rcd_http_common::url::client::{
@@ -51,14 +51,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 let list: Vec<String> = Vec::new();
                 participant_aliases.set(Some(list));
                 participant_dropdown_enabled.set(false);
-                let databases = get_databases();
-
-                let database = databases
-                    .iter()
-                    .find(|x| x.database_name.as_str() == db_name)
-                    .unwrap()
-                    .clone();
-
+                let database = get_database(&db_name);
                 let cooperation_enabled = database.cooperation_enabled;
                 let participant_dropdown_enabled = participant_dropdown_enabled.clone();
                 if cooperation_enabled {

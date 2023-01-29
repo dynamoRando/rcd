@@ -9,7 +9,8 @@ use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
     request::{
-        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+        self, clear_status, get_database, get_token, set_status,
+        update_token_login_status,
     },
 };
 
@@ -26,14 +27,8 @@ pub fn Active() -> Html {
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
             } else {
                 active_contract_text.set(String::from(""));
-                let databases = get_databases();
 
-                let database = databases
-                    .iter()
-                    .find(|x| x.database_name.as_str() == db_name)
-                    .unwrap()
-                    .clone();
-
+                let database = get_database(&db_name);
                 let cooperation_enabled = database.cooperation_enabled;
 
                 if cooperation_enabled {

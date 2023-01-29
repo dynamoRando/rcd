@@ -63,6 +63,15 @@ pub fn set_databases(dbs: Vec<DatabaseSchema>) {
     SessionStorage::set(DATABASES, dbs_json).expect("failed to set");
 }
 
+pub fn get_database(db_name: &str) -> DatabaseSchema {
+    let databases = get_databases();
+    databases
+        .iter()
+        .find(|x| x.database_name.as_str() == db_name)
+        .unwrap()
+        .clone()
+}
+
 /// Gets the RCD instance's Database Schemas from Session Storage
 pub fn get_databases() -> Vec<DatabaseSchema> {
     let databases = SessionStorage::get(DATABASES).unwrap_or_else(|_| String::from(""));

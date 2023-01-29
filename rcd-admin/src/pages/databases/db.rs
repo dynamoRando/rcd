@@ -3,7 +3,7 @@ use crate::{
         databases::{add::Create, enable_coop::EnableCoop, tables::Tables},
         home,
     },
-    request::get_databases,
+    request::{get_databases, get_database},
 };
 use rcd_messages::client::DatabaseSchema;
 
@@ -78,13 +78,7 @@ pub fn Databases() -> Html {
                                     let db_name = name.clone();
                                     let db = db_name.clone();
 
-                                    let databases = get_databases();
-
-                                    let database = databases
-                                        .iter()
-                                        .find(|x| x.database_name.as_str() == db_name)
-                                        .unwrap()
-                                        .clone();
+                                    let database = get_database(&db_name);
 
                                     let cooperation_enabled = database.cooperation_enabled;
                                     let has_participants = database.has_participants;
@@ -95,14 +89,7 @@ pub fn Databases() -> Html {
                                             let selected_database = selected_database.clone();
 
                                             move |_| {
-                                                    let databases = get_databases();
-
-                                                    let database = databases
-                                                        .iter()
-                                                        .find(|x| x.database_name.as_str() == db_name)
-                                                        .unwrap()
-                                                        .clone();
-
+                                                    let database = get_database(&db_name);
                                                     selected_database.set(Some(database));
                                                 }
                                             }>

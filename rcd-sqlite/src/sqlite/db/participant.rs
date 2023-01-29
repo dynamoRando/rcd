@@ -532,7 +532,7 @@ pub fn has_participant_at_conn(alias: &str, conn: &Connection) -> bool {
 pub fn has_participant(db_name: &str, alias: &str, config: DbiConfigSqlite) -> bool {
     let conn = &get_db_conn(&config, db_name);
     let mut cmd =
-        String::from("SELECT COUNT(*) TOTALCOUNT FROM COOP_PARTICIPANT WHERE ALIAS = ':alias'");
+        String::from("_PARTICIPANT WHERE ALIAS = ':alias'");
     cmd = cmd.replace(":alias", alias);
     has_any_rows(cmd, conn)
 }
