@@ -259,47 +259,39 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let mut rows = statement.query([])?;
 
     loop {
-        let get_row_result = rows.next();
-        match get_row_result {
-            Ok(row) => {
-                if let Some(r) = row {
-                    let mut data_row = rcd_common::table::Row::new();
+        if let Some(row) = rows.next()? {
+            let mut data_row = rcd_common::table::Row::new();
 
-                    for i in 0..total_columns {
-                        let dt = r.get_ref_unwrap(i).data_type();
+            for i in 0..total_columns {
+                let dt = row.get_ref_unwrap(i).data_type();
 
-                        let string_value: String = match dt {
-                            Type::Blob => String::from(""),
-                            Type::Integer => r.get_ref_unwrap(i).as_i64().unwrap().to_string(),
-                            Type::Real => r.get_ref_unwrap(i).as_f64().unwrap().to_string(),
-                            Type::Text => r.get_ref_unwrap(i).as_str().unwrap().to_string(),
-                            _ => String::from(""),
-                        };
+                let string_value: String = match dt {
+                    Type::Blob => String::from(""),
+                    Type::Integer => row.get_ref_unwrap(i).as_i64().unwrap().to_string(),
+                    Type::Real => row.get_ref_unwrap(i).as_f64().unwrap().to_string(),
+                    Type::Text => row.get_ref_unwrap(i).as_str().unwrap().to_string(),
+                    _ => String::from(""),
+                };
 
-                        let string_value = string_value;
-                        let col = table.get_column_by_index(i).unwrap();
+                let string_value = string_value;
+                let col = table.get_column_by_index(i).unwrap();
 
-                        let data_item = Data {
-                            data_string: string_value,
-                            data_byte: Vec::new(),
-                        };
+                let data_item = Data {
+                    data_string: string_value,
+                    data_byte: Vec::new(),
+                };
 
-                        let data_value = Value {
-                            data: Some(data_item),
-                            col,
-                        };
+                let data_value = Value {
+                    data: Some(data_item),
+                    col,
+                };
 
-                        data_row.add_value(data_value);
-                    }
-
-                    table.add_row(data_row);
-                } else {
-                    break;
-                }
+                data_row.add_value(data_value);
             }
-            Err(e) => {
-                return Err(e.into());
-            }
+
+            table.add_row(data_row);
+        } else {
+            break;
         }
     }
 
