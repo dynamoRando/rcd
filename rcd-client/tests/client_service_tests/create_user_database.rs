@@ -66,7 +66,7 @@ pub mod grpc {
             addr_port,
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
         )
         .await;
         return client.create_user_database(db_name).await.unwrap();
