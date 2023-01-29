@@ -28,6 +28,7 @@ pub fn Contracts() -> Html {
                 database schema, allowing intent and use to be inferred."}</p>
                 <p>{"From this page you can view the contract on a database, generate a contract for a database, or view/accept/reject
                 contracts that have been sent to you."}</p>
+                <p>{"Note: if a database does not show an active contract, it may be because it does not have cooperative features enabled."}</p>
                 < Active />
                 < Accepted />
                 < Generate />

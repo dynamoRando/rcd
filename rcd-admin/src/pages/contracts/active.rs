@@ -8,7 +8,9 @@ use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 use crate::{
     log::log_to_console,
     pages::common::select_database::SelectDatabase,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{
+        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+    },
 };
 
 #[function_component]
@@ -23,48 +25,61 @@ pub fn Active() -> Html {
 
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
             } else {
-                let token = get_token();
-                let auth = token.auth();
+                active_contract_text.set(String::from(""));
+                let databases = get_databases();
 
-                let get_active_contract_request = GetActiveContractRequest {
-                    authentication: Some(auth),
-                    database_name: db_name.clone(),
-                };
+                let database = databases
+                    .iter()
+                    .find(|x| x.database_name.as_str() == db_name)
+                    .unwrap()
+                    .clone();
 
-                let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
-                let url = format!("{}{}", token.addr, GET_ACTIVE_CONTRACT);
+                let cooperation_enabled = database.cooperation_enabled;
 
-                let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
-                        clear_status();
+                if cooperation_enabled {
+                    let token = get_token();
+                    let auth = token.auth();
 
-                        let reply: GetActiveContractReply = serde_json::from_str(x).unwrap();
+                    let get_active_contract_request = GetActiveContractRequest {
+                        authentication: Some(auth),
+                        database_name: db_name.clone(),
+                    };
 
-                        let is_authenticated = reply
-                            .authentication_result
-                            .as_ref()
-                            .unwrap()
-                            .is_authenticated;
-                        update_token_login_status(is_authenticated);
+                    let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
+                    let url = format!("{}{}", token.addr, GET_ACTIVE_CONTRACT);
 
-                        if is_authenticated {
-                            let contract = reply.contract.unwrap();
-                            let contract_text =
-                                formatter::markdown::contract::contract_to_markdown_table(
-                                    &contract,
-                                );
-                            active_contract_text.set(contract_text);
+                    let cb = Callback::from(move |response: Result<AttrValue, String>| {
+                        if let Ok(ref x) = response {
+                            log_to_console(x.to_string());
+                            clear_status();
+
+                            let reply: GetActiveContractReply = serde_json::from_str(x).unwrap();
+
+                            let is_authenticated = reply
+                                .authentication_result
+                                .as_ref()
+                                .unwrap()
+                                .is_authenticated;
+                            update_token_login_status(is_authenticated);
+
+                            if is_authenticated {
+                                let contract = reply.contract.unwrap();
+                                let contract_text =
+                                    formatter::markdown::contract::contract_to_markdown_table(
+                                        &contract,
+                                    );
+                                active_contract_text.set(contract_text);
+                            }
+                        } else {
+                            set_status(response.err().unwrap());
                         }
-                    } else {
-                        set_status(response.err().unwrap());
-                    }
-                });
+                    });
 
-                let message = format!("{}{}", "sending active contract request for: ", db_name);
-                log_to_console(message);
+                    let message = format!("{}{}", "sending active contract request for: ", db_name);
+                    log_to_console(message);
 
-                request::post(url, request_json, cb);
+                    request::post(url, request_json, cb);
+                }
             }
         })
     };
