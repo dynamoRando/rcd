@@ -225,7 +225,7 @@ pub fn execute_read_on_connection_for_row(
 }
 
 pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
-    let mut statement = conn.prepare(cmd).unwrap();
+    let mut statement = conn.prepare(cmd)?;
     let total_columns = statement.column_count();
     let cols = statement.columns();
     let mut table = Table::new();
@@ -233,7 +233,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     debug!("{:?}", cmd);
 
     for col in cols {
-        let col_idx = statement.column_index(col.name()).unwrap();
+        let col_idx = statement.column_index(col.name())?;
 
         debug!("{:?}", col);
         let mut data_type = String::from("");
