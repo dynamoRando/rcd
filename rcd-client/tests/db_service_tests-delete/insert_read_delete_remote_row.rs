@@ -122,7 +122,7 @@ pub mod grpc {
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
         )
         .await;
 
@@ -185,7 +185,7 @@ pub mod grpc {
             main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
         )
         .await;
 
@@ -261,7 +261,7 @@ pub mod grpc {
             participant_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
         )
         .await;
 
@@ -402,7 +402,7 @@ pub mod http {
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
             main_client_addr.ip4_addr,
             main_client_addr.port,
         );
@@ -464,7 +464,7 @@ pub mod http {
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
             "127.0.0.1".to_string(),
             main_client_addr.port,
         );
@@ -540,7 +540,7 @@ pub mod http {
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
             participant_client_addr.ip4_addr,
             participant_client_addr.port,
         );
