@@ -812,6 +812,8 @@ pub mod http {
     #[tokio::main]
 
     async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
+        use std::array;
+
         let has_all_databases = true;
 
         let mut client = RcdClient::new_http_client(
@@ -837,11 +839,12 @@ pub mod http {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let mut expected_db_names: Vec<String> = Vec::new();
-        expected_db_names.push("get_db_names2.db".to_string());
-        expected_db_names.push("get_db_names3.db".to_string());
-        expected_db_names.push("get_db_names_http.db".to_string());
-        expected_db_names.push("rcd.db".to_string());
+        let expected_db_names: [&str; 4] = [
+            "get_db_names2.db",
+            "get_db_names3.db",
+            "get_db_names_http.db",
+            "rcd.db",
+        ];
 
         println!("expected names");
         for name in &expected_db_names {
@@ -849,7 +852,7 @@ pub mod http {
         }
 
         for name in &expected_db_names {
-            if !actual_db_names.contains(name) {
+            if !actual_db_names.contains(&(*name).to_string()) {
                 return false;
             }
         }
