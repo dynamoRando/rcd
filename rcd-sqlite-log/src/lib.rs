@@ -5,7 +5,7 @@ use log::{set_max_level, LevelFilter, Metadata, Record};
 use log_entry::LogEntry;
 use rcd_markdown::markdown_kv_table::build_table;
 use regex::Regex;
-use rusqlite::{Connection, Result};
+use rusqlite::{named_params, Connection, Result};
 use sql_text::{create_log_table, get_last_x_logs};
 use std::env;
 use std::path::Path;
@@ -182,11 +182,42 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
-    // println!("{}", db_location);
     let conn = Connection::open(db_location).unwrap();
-    let cmd = sql_text::add_log(&level, &message);
-    conn.execute(&cmd, []).unwrap();
-    conn.close().unwrap();
+
+    let cmd = String::from(
+        "
+    INSERT INTO log (
+        log_dt,
+        log_dt_utc,
+        log_level,
+        log_message
+    )
+    VALUES
+    (
+        :dt,
+        :utc,
+        :level,
+        :message
+    )
+    ;",
+    );
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+
+    let utc: DateTime<Utc> = Utc::now();
+    let local: DateTime<Local> = Local::now();
+
+    let dt: String = local.to_string();
+    let dt_utc: String = utc.to_string();
+
+    statement
+        .execute(named_params! {
+            ":dt" : dt,
+            ":utc" : dt_utc,
+            ":level" : level,
+            ":message" : message
+        })
+        .unwrap();
 }
 
 fn log_stdout(level: String, message: String) {

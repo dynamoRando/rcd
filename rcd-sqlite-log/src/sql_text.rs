@@ -1,5 +1,3 @@
-use chrono::{DateTime, Local, Utc};
-
 pub fn create_log_table() -> String {
     String::from(
         "
@@ -33,35 +31,3 @@ pub fn get_last_x_logs(x: u32) -> String {
     result
 }
 
-pub fn add_log(level: &str, message: &str) -> String {
-    let mut cmd = String::from(
-        "
-    INSERT INTO log (
-        log_dt,
-        log_dt_utc,
-        log_level,
-        log_message
-    )
-    VALUES
-    (
-        ':dt',
-        ':utc',
-        ':level',
-        ':message'
-    )
-    ;",
-    );
-
-    let utc: DateTime<Utc> = Utc::now();
-    let local: DateTime<Local> = Local::now();
-
-    let dt: String = local.to_string();
-    let dt_utc: String = utc.to_string();
-
-    let message = message.replace("\n", "");
-    cmd = cmd.replace(":dt", &dt);
-    cmd = cmd.replace(":utc", &dt_utc);
-    cmd = cmd.replace(":level", level);
-    cmd = cmd.replace(":message", &message);
-    cmd
-}
