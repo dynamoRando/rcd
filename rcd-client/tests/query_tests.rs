@@ -8,10 +8,7 @@ pub mod sqlite {
             let insert_statement = "INSERT INTO test_table ( col1, col2 ) VALUES (1, 'abcd');";
             let values = get_values_from_insert_statement(insert_statement);
 
-            let mut test_values: Vec<String> = Vec::new();
-
-            test_values.push(String::from("1"));
-            test_values.push(String::from("'abcd'"));
+            let test_values: Vec<String> = vec!["1".to_string(), "abcd".to_string()];
 
             assert_eq!(test_values, values);
         }

@@ -358,12 +358,14 @@ pub mod grpc {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let mut expected_db_names: Vec<String> = Vec::new();
-        expected_db_names.push("part_example.db".to_string());
-        expected_db_names.push("part_example2.db".to_string());
-        expected_db_names.push("part_example3.db".to_string());
-        expected_db_names.push("get_db_names_gprc.dbpart".to_string());
-        expected_db_names.push("rcd.db".to_string());
+        let expected_db_names: [&str; 5] = 
+        [
+            "part_example.db",
+            "part_example2.db",
+            "part_example3.db",
+            "get_db_names_grpc.dbpart",
+            "rcd.db"
+        ];
 
         println!("expected names");
         for name in &expected_db_names {
@@ -371,7 +373,7 @@ pub mod grpc {
         }
 
         for name in &expected_db_names {
-            if !actual_db_names.contains(name) {
+            if !actual_db_names.contains(&(*name).to_string()) {
                 return false;
             }
         }
@@ -407,19 +409,21 @@ pub mod grpc {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let mut expected_db_names: Vec<String> = Vec::new();
-        expected_db_names.push("get_db_names2.db".to_string());
-        expected_db_names.push("get_db_names3.db".to_string());
-        expected_db_names.push("get_db_names_gprc.db".to_string());
-        expected_db_names.push("rcd.db".to_string());
-
+        let expected_db_names: [&str; 4] = 
+        [
+            "get_db_names2.db",
+            "get_db_names3.db",
+            "get_db_names_grpc.db",
+            "rcd.db"
+        ];
+        
         println!("expected names");
         for name in &expected_db_names {
             println!("{name}");
         }
 
         for name in &expected_db_names {
-            if !actual_db_names.contains(name) {
+            if !actual_db_names.contains(&(*name).to_string()) {
                 return false;
             }
         }
@@ -787,12 +791,14 @@ pub mod http {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let mut expected_db_names: Vec<String> = Vec::new();
-        expected_db_names.push("part_example.db".to_string());
-        expected_db_names.push("part_example2.db".to_string());
-        expected_db_names.push("part_example3.db".to_string());
-        expected_db_names.push("get_db_names_http.dbpart".to_string());
-        expected_db_names.push("rcd.db".to_string());
+        let expected_db_names: [&str; 5] = 
+        [
+            "part_example.db",
+            "part_example2.db",
+            "part_eample3.db",
+            "get_db_names_http.dbpart",
+            "rcd.db"
+        ];
 
         println!("expected names");
         for name in &expected_db_names {
@@ -800,7 +806,7 @@ pub mod http {
         }
 
         for name in &expected_db_names {
-            if !actual_db_names.contains(name) {
+            if !actual_db_names.contains(&(*name).to_string()) {
                 return false;
             }
         }
@@ -812,7 +818,7 @@ pub mod http {
     #[tokio::main]
 
     async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
-        use std::array;
+        
 
         let has_all_databases = true;
 
