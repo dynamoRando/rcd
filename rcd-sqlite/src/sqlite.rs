@@ -247,7 +247,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
             name: col.name().to_string(),
             is_nullable: false,
             idx: col_idx,
-            data_type: data_type,
+            data_type,
             is_primary_key: false,
         };
 
