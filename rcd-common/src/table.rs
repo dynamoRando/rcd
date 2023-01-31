@@ -136,7 +136,7 @@ impl Table {
         let mut result: Vec<rcdproto::rcdp::Row> = Vec::new();
         let mut idx = 0;
 
-        for t_row in &self.rows {
+        for (_, t_row) in self.rows.iter().enumerate() {
             let mut c_values: Vec<rcdproto::rcdp::RowValue> = Vec::new();
 
             for t_val in &t_row.vals {
@@ -165,7 +165,7 @@ impl Table {
 
                 let c_val: rcdproto::rcdp::RowValue = rcdproto::rcdp::RowValue {
                     column: Some(c_col_schema_item),
-                    is_null_value: !(!c_bd.is_empty()),
+                    is_null_value: c_bd.is_empty(),
                     value: c_bd,
                     string_value: c_str_data.clone(),
                 };
