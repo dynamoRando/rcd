@@ -351,13 +351,12 @@ impl Rcd {
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
-        let is_authenticated: bool;
-
-        if !request.jwt.is_empty() {
-            is_authenticated = self.dbi().verify_token(request.jwt);
+        
+        let is_authenticated: bool = if !request.jwt.is_empty() {
+            self.dbi().verify_token(request.jwt)
         } else {
-            is_authenticated = self.dbi().verify_login(&request.user_name, &request.pw);
-        }
+            self.dbi().verify_login(&request.user_name, &request.pw)
+        };
 
         let auth_response = AuthResult {
             is_authenticated,

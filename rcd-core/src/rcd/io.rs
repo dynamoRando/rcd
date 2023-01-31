@@ -154,9 +154,8 @@ pub async fn execute_read_at_participant(
         }
     }
 
-    let mut statement_results = Vec::new();
-    statement_results.push(statement_result_set);
-
+    let statement_results = vec![statement_result_set];
+    
     ExecuteReadReply {
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,
@@ -467,13 +466,11 @@ pub async fn execute_cooperative_write_at_host(
                     .await;
 
                 if remote_delete_result.is_successful {
-                    let row_id: u32;
-
-                    if remote_delete_result.rows.is_empty() {
-                        row_id = 0;
+                    let row_id: u32 = if remote_delete_result.rows.is_empty() {
+                        0
                     } else {
-                        row_id = remote_delete_result.rows.first().unwrap().rowid;
-                    }
+                        remote_delete_result.rows.first().unwrap().rowid
+                    };
 
                     let internal_participant_id = db_participant_reference.internal_id.to_string();
 

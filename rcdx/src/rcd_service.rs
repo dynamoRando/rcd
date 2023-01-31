@@ -275,24 +275,20 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
 pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSettings {
     let wd = env::current_dir().unwrap();
     let cwd = wd.to_str().unwrap();
-
-    let filename: String;
-
-    if settings_filename.is_none() {
-        filename = String::from("Settings.toml")
+    
+    let filename: String = if settings_filename.is_none() {
+        String::from("Settings.toml")
     } else {
-        filename = settings_filename.unwrap();
-    }
+        settings_filename.unwrap()
+    };
 
     let settings_in_cwd = Path::new(cwd).join(filename.clone());
 
-    let settings_location;
-
-    if Path::exists(&settings_in_cwd) {
-        settings_location = settings_in_cwd.to_str().unwrap();
+    let settings_location = if Path::exists(&settings_in_cwd) {
+        settings_in_cwd.to_str().unwrap()
     } else {
-        settings_location = "src/Settings";
-    }
+        "src/Settings"
+    };
 
     let error_message = format!(
         "{}{}{}{}",

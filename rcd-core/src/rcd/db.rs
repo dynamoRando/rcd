@@ -102,10 +102,8 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
         host_info = Some(core.dbi().rcd_get_host_info());
     }
 
-    let host: Host;
-
-    if host_info.is_some() {
-        host = Host {
+    let host = if host_info.is_some() {
+        Host {
             host_guid: host_info.as_ref().unwrap().id.clone(),
             host_name: host_info.as_ref().unwrap().name.clone(),
             ip4_address: "".to_string(),
@@ -114,9 +112,9 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
             token: Vec::new(),
             http_addr: "".to_string(),
             http_port: 0,
-        };
+        }
     } else {
-        host = Host {
+        Host {
             host_guid: "".to_string(),
             host_name: "".to_string(),
             ip4_address: "".to_string(),
@@ -126,7 +124,7 @@ pub async fn get_host_info(core: &Rcd, request: AuthRequest) -> HostInfoReply {
             http_addr: "".to_string(),
             http_port: 0,
         }
-    }
+    };
 
     HostInfoReply {
         authentication_result: Some(auth_result.1),
