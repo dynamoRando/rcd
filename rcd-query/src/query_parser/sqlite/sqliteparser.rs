@@ -7,7 +7,7 @@
 #![allow(unused_mut)]
 #![allow(unused_braces)]
 #![allow(unknown_lints)]
-#![allow(clippy)]
+#![allow(clippy::all)]
 use super::sqlitelistener::*;
 use antlr_rust::atn::{ATN, INVALID_ALT};
 use antlr_rust::atn_deserializer::ATNDeserializer;
