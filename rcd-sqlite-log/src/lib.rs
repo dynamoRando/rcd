@@ -45,6 +45,16 @@ impl SqliteLog {
 
     pub fn configure(&self) {
         let connection = self.get_db_conn();
+
+        // PRAGMA journal_mode=WAL
+        connection
+            .pragma_update(
+                None,
+                "journal_mode",
+                "WAL",
+            )
+            .unwrap();
+
         connection.execute(&create_log_table(), []).unwrap();
     }
 
@@ -68,6 +78,43 @@ impl SqliteLog {
             .into_os_string()
             .into_string()
             .unwrap()
+    }
+
+    pub fn get_last_x_logs(x: u32, root_dir: &str) -> Vec<LogEntry> {
+        let cmd = get_last_x_logs(x);
+
+        let db_path = Path::new(&root_dir).join(DEFAULT_DB_NAME);
+        let conn = Connection::open(db_path).unwrap();
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        let mut result_entries: Vec<LogEntry> = Vec::new();
+
+        let row_to_entry =
+            |dt: String, dt_utc: String, level: String, message: String| -> Result<LogEntry> {
+                Ok(LogEntry {
+                    dt,
+                    dt_utc,
+                    level,
+                    message,
+                })
+            };
+
+        let entries = statement
+            .query_and_then([], |row| {
+                row_to_entry(
+                    row.get(0).unwrap(),
+                    row.get(1).unwrap(),
+                    row.get(2).unwrap(),
+                    row.get(3).unwrap(),
+                )
+            })
+            .unwrap();
+
+        for e in entries {
+            result_entries.push(e.unwrap());
+        }
+
+        result_entries
     }
 
     pub fn default_get_last_x_logs(x: u32) -> Vec<LogEntry> {
@@ -172,9 +219,7 @@ impl log::Log for SqliteLog {
                 });
             }
 
-            thread::spawn(move || {
-                log_sql(db_path, sql_level, sql_message);
-            });
+            log_sql(db_path, sql_level, sql_message);
         }
     }
 
@@ -182,8 +227,9 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
-    let conn = Connection::open(db_location).unwrap();
+    println!("sqlite log path: {:?}", db_location);
 
+    let conn = Connection::open(db_location).unwrap();
     let cmd = String::from(
         "
     INSERT INTO log (

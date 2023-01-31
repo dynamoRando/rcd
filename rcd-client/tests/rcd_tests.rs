@@ -24,8 +24,8 @@ fn read_settings_from_config() {
         backing_database_name: String::from(""),
         grpc_client_service_addr_port: String::from("[::1]:50051"),
         grpc_data_service_addr_port: String::from(""),
-        data_grpc_timeout_in_seconds: 5,
-        client_grpc_timeout_in_seconds: 5,
+        data_grpc_timeout_in_seconds: 60,
+        client_grpc_timeout_in_seconds: 60,
         http_addr: "".to_string(),
         http_port: 0,
     };
@@ -52,8 +52,8 @@ fn configure_backing_db() {
         backing_database_name: String::from("rcd_test.db"),
         grpc_client_service_addr_port: String::from("[::1]:50051"),
         grpc_data_service_addr_port: String::from(""),
-        data_grpc_timeout_in_seconds: 5,
-        client_grpc_timeout_in_seconds: 5,
+        data_grpc_timeout_in_seconds: 60,
+        client_grpc_timeout_in_seconds: 60,
         http_addr: "".to_string(),
         http_port: 0,
     };

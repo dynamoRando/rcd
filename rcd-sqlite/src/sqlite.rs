@@ -12,8 +12,8 @@ pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
 
-pub fn get_last_log_entries(number_of_entries: u32) -> Vec<LogEntry> {
-    SqliteLog::default_get_last_x_logs(number_of_entries)
+pub fn get_last_log_entries(number_of_entries: u32, config: &DbiConfigSqlite) -> Vec<LogEntry> {
+    SqliteLog::get_last_x_logs(number_of_entries, &config.root_folder)
 }
 
 /// Takes a SELECT COUNT(*) SQL statement and returns if the result is > 0. Usually used to see if a table that has been

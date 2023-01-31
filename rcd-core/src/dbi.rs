@@ -82,7 +82,10 @@ impl Dbi {
     pub fn get_last_log_entries(&self, number_of_entries: u32) -> Vec<LogEntry> {
         self.delete_expired_tokens();
         match self.db_type {
-            DatabaseType::Sqlite => rcd_sqlite::sqlite::get_last_log_entries(number_of_entries),
+            DatabaseType::Sqlite => rcd_sqlite::sqlite::get_last_log_entries(
+                number_of_entries,
+                &self.get_sqlite_settings(),
+            ),
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
             DatabaseType::Postgres => unimplemented!(),
@@ -1108,8 +1111,11 @@ impl Dbi {
         }
     }
 
-    pub fn execute_read_at_host(&self, db_name: &str, cmd: &str) -> 
-    core::result::Result<Table, RcdDbError> {
+    pub fn execute_read_at_host(
+        &self,
+        db_name: &str,
+        cmd: &str,
+    ) -> core::result::Result<Table, RcdDbError> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

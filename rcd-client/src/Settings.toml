@@ -8,5 +8,5 @@ http_addr = "127.0.0.1"
 http_port = "50055"
 admin_un = "tester"
 admin_pw = "123456"
-client_grpc_timeout_in_seconds = 5
-data_grpc_timeout_in_seconds = 5
+client_grpc_timeout_in_seconds = 60
+data_grpc_timeout_in_seconds = 60

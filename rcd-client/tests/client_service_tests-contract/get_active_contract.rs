@@ -71,7 +71,7 @@ pub mod grpc {
             addr_port,
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
         )
         .await;
 
@@ -185,7 +185,7 @@ pub mod http {
         let mut client = RcdClient::new_http_client(
             String::from("tester"),
             String::from("123456"),
-            5,
+            60,
             "127.0.0.1".to_string(),
             port_num,
         );
