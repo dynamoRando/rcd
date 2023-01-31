@@ -181,7 +181,7 @@ impl Table {
                 };
 
             let c_row = rcdproto::rcdp::Row {
-                row_id: idx,
+                row_id: idx as u32,
                 table_name: self.name.clone(),
                 database_name: String::from(""),
                 values: c_values,
@@ -191,8 +191,6 @@ impl Table {
             };
 
             result.push(c_row);
-
-            idx += 1;
         }
 
         result
