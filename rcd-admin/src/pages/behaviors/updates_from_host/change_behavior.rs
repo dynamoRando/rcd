@@ -55,57 +55,59 @@ pub fn ChangeBehavior(
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
-                    let database = database.clone();
-                    let table = table.clone();
-                    clear_status();
-                    let response = response.unwrap();
-                    log_to_console(response.to_string());
+                match response {
+                    Ok(response) => {
+                        let database = database.clone();
+                        let table = table.clone();
+                        clear_status();
 
-                    let reply: ChangesUpdatesFromHostBehaviorReply =
-                        serde_json::from_str(&response).unwrap();
-                    let is_authenticated = reply
-                        .authentication_result
-                        .as_ref()
-                        .unwrap()
-                        .is_authenticated;
-                    update_token_login_status(is_authenticated);
+                        log_to_console(response.to_string());
 
-                    if is_authenticated {
-                        if reply.is_successful {
-                            let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
-                            let behavior = behavior.as_string();
+                        let reply: ChangesUpdatesFromHostBehaviorReply =
+                            serde_json::from_str(&response).unwrap();
+                        let is_authenticated = reply
+                            .authentication_result
+                            .as_ref()
+                            .unwrap()
+                            .is_authenticated;
+                        update_token_login_status(is_authenticated);
 
-                            let message = format!(
-                                "{}{}{}{}{}{}",
-                                "Behavior Updated For: ",
-                                (*database),
-                                " table: ",
-                                (*table),
-                                " behavior to: ",
-                                behavior
-                            );
-                            set_status(message);
-                        } else {
-                            let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
-                            let behavior = behavior.as_string();
+                        if is_authenticated {
+                            if reply.is_successful {
+                                let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
+                                let behavior = behavior.as_string();
 
-                            let message = format!(
-                                "{}{}{}{}{}{}",
-                                "Behavior Updated FAILED For: ",
-                                (*database),
-                                " table: ",
-                                (*table),
-                                " behavior to: ",
-                                behavior
-                            );
-                            set_status(message);
+                                let message = format!(
+                                    "{}{}{}{}{}{}",
+                                    "Behavior Updated For: ",
+                                    (*database),
+                                    " table: ",
+                                    (*table),
+                                    " behavior to: ",
+                                    behavior
+                                );
+                                set_status(message);
+                            } else {
+                                let behavior = UpdatesFromHostBehavior::from_u32(behavior_value);
+                                let behavior = behavior.as_string();
+
+                                let message = format!(
+                                    "{}{}{}{}{}{}",
+                                    "Behavior Updated FAILED For: ",
+                                    (*database),
+                                    " table: ",
+                                    (*table),
+                                    " behavior to: ",
+                                    behavior
+                                );
+                                set_status(message);
+                            }
                         }
                     }
-                } else {
-                    let error_message = response.err().unwrap();
-                    set_status(error_message);
-                }
+                    Err(error_message) => {
+                        set_status(error_message);
+                    }
+                };
             });
 
             request::post(url, body, cb);

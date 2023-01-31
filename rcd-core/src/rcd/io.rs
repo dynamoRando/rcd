@@ -100,8 +100,7 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
         }
     }
 
-    let mut statement_results = Vec::new();
-    statement_results.push(statement_result_set);
+    let statement_results = vec![statement_result_set];
 
     ExecuteReadReply {
         authentication_result: Some(auth_result.1),
