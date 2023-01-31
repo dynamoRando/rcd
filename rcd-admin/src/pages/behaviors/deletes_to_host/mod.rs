@@ -9,9 +9,7 @@ use crate::{
         behaviors::deletes_to_host::change_behavior::ChangeBehavior,
         common::{select_database::SelectDatabase, select_table::SelectTable},
     },
-    request::{
-        self, clear_status, get_token, set_status, update_token_login_status, get_database,
-    },
+    request::{self, clear_status, get_database, get_token, set_status, update_token_login_status},
 };
 
 mod change_behavior;
@@ -64,32 +62,33 @@ pub fn DeletesToHost() -> Html {
                 let body = serde_json::to_string(&request).unwrap();
                 let url = format!("{}{}", token.addr, GET_DELETES_TO_HOST_BEHAVIOR);
 
-                let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if response.is_ok() {
-                        let response = response.unwrap();
-                        log_to_console(response.to_string());
-                        clear_status();
+                let cb =
+                    Callback::from(move |response: Result<AttrValue, String>| match response {
+                        Ok(response) => {
+                            log_to_console(response.to_string());
+                            clear_status();
 
-                        let reply: GetDeletesToHostBehaviorReply =
-                            serde_json::from_str(&response).unwrap();
+                            let reply: GetDeletesToHostBehaviorReply =
+                                serde_json::from_str(&response).unwrap();
 
-                        let is_authenticated = reply
-                            .authentication_result
-                            .as_ref()
-                            .unwrap()
-                            .is_authenticated;
-                        update_token_login_status(is_authenticated);
+                            let is_authenticated = reply
+                                .authentication_result
+                                .as_ref()
+                                .unwrap()
+                                .is_authenticated;
+                            update_token_login_status(is_authenticated);
 
-                        if is_authenticated {
-                            let behavior = reply.behavior;
-                            let behavior_val =
-                                DeletesToHostBehavior::from_u32(behavior).as_string();
-                            behavior_type_state.set(behavior_val);
+                            if is_authenticated {
+                                let behavior = reply.behavior;
+                                let behavior_val =
+                                    DeletesToHostBehavior::from_u32(behavior).as_string();
+                                behavior_type_state.set(behavior_val);
+                            }
                         }
-                    } else {
-                        set_status(response.err().unwrap());
-                    }
-                });
+                        Err(error_message) => {
+                            set_status(error_message);
+                        }
+                    });
 
                 request::post(url, body, cb);
             }

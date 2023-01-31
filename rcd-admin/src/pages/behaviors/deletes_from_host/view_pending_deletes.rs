@@ -100,10 +100,9 @@ pub fn ViewPendingDeletes(
 
             let body = serde_json::to_string(&request).unwrap();
 
-            let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+            let cb = Callback::from(move |response: Result<AttrValue, String>| match response {
+                Ok(response) => {
                     clear_status();
-                    let response = response.unwrap();
                     log_to_console(response.to_string());
 
                     let reply: AcceptPendingActionReply = serde_json::from_str(&response).unwrap();
@@ -117,8 +116,8 @@ pub fn ViewPendingDeletes(
                     if is_authenticated {
                         todo!("We should write the status out somewhere")
                     }
-                } else {
-                    let error_message = response.err().unwrap();
+                }
+                Err(error_message) => {
                     set_status(error_message);
                 }
             });
@@ -146,10 +145,10 @@ pub fn ViewPendingDeletes(
 
             let body = serde_json::to_string(&request).unwrap();
 
-            let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                if response.is_ok() {
+            let cb = Callback::from(move |response: Result<AttrValue, String>| match response {
+                Ok(response) => {
                     clear_status();
-                    let response = response.unwrap();
+
                     log_to_console(response.to_string());
 
                     let reply: GetPendingActionsReply = serde_json::from_str(&response).unwrap();
@@ -164,8 +163,8 @@ pub fn ViewPendingDeletes(
                         let actions = reply.pending_statements;
                         pending_actions.set(actions);
                     }
-                } else {
-                    let error_message = response.err().unwrap();
+                }
+                Err(error_message) => {
                     set_status(error_message);
                 }
             });
