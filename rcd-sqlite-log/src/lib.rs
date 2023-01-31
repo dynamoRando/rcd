@@ -227,7 +227,7 @@ impl log::Log for SqliteLog {
 }
 
 fn log_sql(db_location: String, level: String, message: String) {
-    println!("sqlite log path: {:?}", db_location);
+    println!("sqlite log path: {db_location:?}");
 
     let conn = Connection::open(db_location).unwrap();
     let cmd = String::from(

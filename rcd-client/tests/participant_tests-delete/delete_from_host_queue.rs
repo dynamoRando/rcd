@@ -509,8 +509,7 @@ pub mod http {
         let custom_contract_description = String::from("insert read remote row");
 
         let delete_statement = "DELETE FROM EMPLOYEE WHERE Id = 999";
-        let delete_statement2 = delete_statement.clone();
-
+        
         let where_clause = "Id = 999";
 
         let (tx_main, rx_main) = mpsc::channel();
@@ -633,7 +632,7 @@ pub mod http {
             let res = participant_get_and_approve_pending_deletion(
                 &main_db_name_,
                 pa3,
-                delete_statement2,
+                delete_statement,
             );
             tx_p_accept_delete.send(res).unwrap();
         })

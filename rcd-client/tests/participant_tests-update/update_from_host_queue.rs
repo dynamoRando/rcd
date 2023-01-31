@@ -536,8 +536,6 @@ pub mod http {
         let custom_contract_description = String::from("insert read remote row");
 
         let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
-        let update_statement2 = update_statement.clone();
-        let update_statement3 = update_statement.clone();
 
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
@@ -646,7 +644,7 @@ pub mod http {
 
         // main - attempts to execute update but does not get requested value back (this is intentional)
         thread::spawn(move || {
-            let res = main_read_updated_row_should_fail(&db_name_copy, ma2, update_statement2);
+            let res = main_read_updated_row_should_fail(&db_name_copy, ma2, update_statement);
             tx_h_can_read_fail.send(res).unwrap();
         })
         .join()
@@ -661,7 +659,7 @@ pub mod http {
                 &pdn2,
                 "EMPLOYEE",
                 pa3,
-                update_statement3,
+                update_statement,
             );
             tx_p_has_update.send(res).unwrap();
         })
