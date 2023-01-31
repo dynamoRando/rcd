@@ -134,9 +134,8 @@ impl Table {
 
     pub fn to_cdata_rows(&self) -> Vec<rcdproto::rcdp::Row> {
         let mut result: Vec<rcdproto::rcdp::Row> = Vec::new();
-        let mut idx = 0;
-
-        for (_, t_row) in self.rows.iter().enumerate() {
+        
+        for (idx, t_row) in self.rows.iter().enumerate() {
             let mut c_values: Vec<rcdproto::rcdp::RowValue> = Vec::new();
 
             for t_val in &t_row.vals {
