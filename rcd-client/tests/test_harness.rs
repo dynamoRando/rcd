@@ -113,12 +113,11 @@ pub fn sleep_test() {
     sleep_test_for_seconds(1);
 }
 
-#[allow(dead_code)]
 pub fn sleep_instance() {
     sleep_test_for_seconds(2);
 }
 
-#[allow(dead_code)]
+
 pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -> Sender<bool> {
     let (tx_main, rx_main) = mpsc::channel();
 
