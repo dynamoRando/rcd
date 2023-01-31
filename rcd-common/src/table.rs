@@ -80,6 +80,12 @@ pub struct Table {
     pub rows: Vec<Row>,
 }
 
+impl Default for Table {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Table {
     pub fn new() -> Self {
         Self {
@@ -134,7 +140,7 @@ impl Table {
 
     pub fn to_cdata_rows(&self) -> Vec<rcdproto::rcdp::Row> {
         let mut result: Vec<rcdproto::rcdp::Row> = Vec::new();
-        
+
         for (idx, t_row) in self.rows.iter().enumerate() {
             let mut c_values: Vec<rcdproto::rcdp::RowValue> = Vec::new();
 
