@@ -19934,6 +19934,8 @@ where
     I: TokenStream<'input, TF = LocalTokenFactory<'input>> + TidAble<'input>,
     H: ErrorStrategy<'input, BaseParserType<'input, I>>,
 {
+    #![allow(unknown_lints)]
+    #![allow(clippy::all)]
     pub fn trigger_name(&mut self) -> Result<Rc<Trigger_nameContextAll<'input>>, ANTLRError> {
         let mut recog = self;
         let _parentctx = recog.ctx.take();
@@ -20030,6 +20032,8 @@ where
     I: TokenStream<'input, TF = LocalTokenFactory<'input>> + TidAble<'input>,
     H: ErrorStrategy<'input, BaseParserType<'input, I>>,
 {
+    #![allow(unknown_lints)]
+    #![allow(clippy::all)]
     pub fn view_name(&mut self) -> Result<Rc<View_nameContextAll<'input>>, ANTLRError> {
         let mut recog = self;
         let _parentctx = recog.ctx.take();
@@ -20126,6 +20130,8 @@ where
     I: TokenStream<'input, TF = LocalTokenFactory<'input>> + TidAble<'input>,
     H: ErrorStrategy<'input, BaseParserType<'input, I>>,
 {
+    #![allow(unknown_lints)]
+    #![allow(clippy::all)]
     pub fn module_name(&mut self) -> Result<Rc<Module_nameContextAll<'input>>, ANTLRError> {
         let mut recog = self;
         let _parentctx = recog.ctx.take();
