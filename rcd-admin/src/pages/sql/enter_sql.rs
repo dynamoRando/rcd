@@ -59,7 +59,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                     let participant_aliases = participant_aliases.clone();
                     let token = get_token();
                     //
-                    let client = get_client();
+                    let mut client = get_client();
                     spawn_local(async move {
                         let reply = client.get_participants(token.auth(), &db_name).await;
 

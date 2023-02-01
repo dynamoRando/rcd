@@ -104,7 +104,7 @@ pub fn Connect() -> Html {
             let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
             let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-            let client = RcdClient::new(ip_val, port_val.parse::<u32>().unwrap());
+            let mut client = RcdClient::new(ip_val, port_val.parse::<u32>().unwrap());
             set_client(&client);
 
             let u = un_val.clone();
