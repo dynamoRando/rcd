@@ -3,7 +3,7 @@ use crate::token::Token;
 use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_PARTICIPANTS};
 use rcd_messages::client::{AuthRequest, GetParticipantsReply, GetParticipantsRequest, TokenReply};
 
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
@@ -20,7 +20,7 @@ impl RcdClient {
     }
 
     pub async fn get_participants(
-        &self,
+        &mut self,
         authentication: AuthRequest,
         database_name: &str,
     ) -> Option<GetParticipantsReply> {
@@ -29,21 +29,14 @@ impl RcdClient {
             database_name: database_name.to_string(),
         };
 
-        let body = serde_json::to_string(&request).unwrap();
-        let address = &self.addr;
-        let url = format!("{address}{GET_PARTICIPANTS}");
-        let json_data = post(&url, &body).await;
+        let url = self.get_http_url(GET_PARTICIPANTS);
+        let result: GetParticipantsReply = self.get_http_result(url, request).await;
 
-        if !json_data.is_empty() {
-            let reply: GetParticipantsReply = serde_json::from_str(&json_data).unwrap();
-            return Some(reply);
-        }
-
-        None
+        Some(result)
     }
 
-    pub async fn auth_for_token(&self, un: &str, pw: &str) -> Option<Token> {
-        let auth_request = AuthRequest {
+    pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Option<Token> {
+        let request = AuthRequest {
             user_name: un.to_string(),
             pw: pw.to_string(),
             pw_hash: Vec::new(),
@@ -51,25 +44,37 @@ impl RcdClient {
             jwt: String::from(""),
         };
 
-        let body = serde_json::to_string(&auth_request).unwrap();
+        let url = self.get_http_url(AUTH_FOR_TOKEN);
+        let result: TokenReply = self.get_http_result(url, request).await;
+
+        Some(Token {
+            jwt: result.jwt,
+            jwt_exp: result.expiration_utc,
+            addr: self.addr.clone(),
+            is_logged_in: true,
+        })
+    }
+
+    async fn get_http_result<
+        'a,
+        'b,
+        T: de::DeserializeOwned + std::clone::Clone,
+        U: de::DeserializeOwned + serde::Serialize + std::clone::Clone,
+    >(
+        &mut self,
+        url: String,
+        request: U,
+    ) -> T {
+        let body = serde_json::to_string(&request).unwrap();
+        let result_json: String = post(&url, &body).await;
+        let value: T = serde_json::from_str(&result_json).unwrap();
+        value
+    }
+
+    fn get_http_url(&self, action_url: &str) -> String {
         let address = &self.addr;
-        let url = format!("{address}{AUTH_FOR_TOKEN}");
-        let json_data = post(&url, &body).await;
-
-        if !json_data.is_empty() {
-            let token_reply: TokenReply = serde_json::from_str(&json_data).unwrap();
-
-            let token: Token = Token {
-                jwt: token_reply.jwt,
-                jwt_exp: token_reply.expiration_utc,
-                addr: address.clone(),
-                is_logged_in: true,
-            };
-
-            return Some(token);
-        }
-
-        None
+        let url = format!("{address}{action_url}");
+        url
     }
 }
 
