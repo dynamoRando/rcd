@@ -1,8 +1,8 @@
 use rcd_messages::client::AuthRequest;
-use yew::Properties;
+
 
 /// Represents a JWT granted from an RCD instance
-#[derive(Clone, Debug, Eq, PartialEq, Properties, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Token {
     /// The JWT
     pub jwt: String,

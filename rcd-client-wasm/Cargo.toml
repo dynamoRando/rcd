@@ -1,5 +1,5 @@
 [package]
-name = "rcd-admin"
+name = "rcd-client-wasm"
 version = "0.1.0"
 edition = "2021"
 
@@ -9,28 +9,30 @@ edition = "2021"
 rcd-messages = { path = "../rcd-messages" }
 rcd-http-common = { path = "../rcd-http-common" }
 rcd-enum = { path = "../rcd-enum" }
-rcd-client-wasm = { path = "../rcd-client-wasm" }
 yew = { version = "0.20", features = ["csr"] }
 gloo = "0.8"
-strum = "0.24"
-strum_macros = "0.24"
 serde = "1"
 serde_derive = "1"
 wasm-bindgen = "0.2.83"
 serde_json = "1"
-wasm-bindgen-futures = "0.4"
+wasm-bindgen-futures = "0.4.33"
 reqwasm = "0.5"
 yew-router = "0.17"
 serde_path_to_error = "0.1"
 js-sys = "0.3"
 futures-util = "0.3"
+reqwest-wasm = { version = "0.11", features = ["blocking"]}
+futures = {version = "0.3", features = ["executor"] }
+async_runtime = { version = "^0.3", default-features = false, package = "naja_async_runtime" }
 
 
 [dependencies.web-sys]
-version = "0.3"
+version = "0.3.4"
 features = [
-	"HtmlInputElement",
-    "HtmlSelectElement",
-    "console",
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
 ]
-

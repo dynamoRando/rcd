@@ -38,5 +38,7 @@ members = [
     # a breakout of formatting into markdown 
     "rcd-markdown",
     # a library of errors
-    "rcd-error"
+    "rcd-error",
+    # a client library for wasm projects (uses yew)
+    "rcd-client-wasm"
 ]

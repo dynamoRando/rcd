@@ -112,7 +112,7 @@ pub struct RevokeReply {
     pub is_successful: bool,
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct TokenReply {
     pub is_successful: bool,
     pub expiration_utc: String,

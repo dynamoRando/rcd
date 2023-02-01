@@ -2,15 +2,17 @@ use gloo::{
     net::http::{Method, Request},
     storage::{SessionStorage, Storage},
 };
+use rcd_client_wasm::{client::RcdClient, token::Token};
 use rcd_messages::client::{DatabaseSchema, ParticipantStatus};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
-use crate::{log::log_to_console, token::Token};
+use crate::{log::log_to_console};
 
 const KEY: &str = "rcdadmin.key.instance";
 const DATABASES: &str = "rcdadmin.key.databases";
 const PARTICIPANTS: &str = "rcdadmin.key.participants";
 const STATUS: &str = "rcdadmin.key.status";
+const CLIENT: &str = "rcdadmin.key.client";
 
 /// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON if successful,
 /// otherwise a string describing the error that occurred
@@ -37,6 +39,23 @@ pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, Stri
                 }
             }
         });
+    }
+}
+
+
+pub fn set_client(client: &RcdClient) {
+    let client_json = serde_json::to_string(&client).unwrap();
+    SessionStorage::set(CLIENT, &client_json).expect("failed to set");
+}
+
+
+pub fn get_client() -> RcdClient {
+    let client = SessionStorage::get(CLIENT).unwrap_or_else(|_| String::from(""));
+    if client.is_empty() {
+        RcdClient::new(String::from(""), 0)
+    } else {
+        let client: RcdClient = serde_json::from_str(&client).unwrap();
+        client
     }
 }
 

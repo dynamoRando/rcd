@@ -1,20 +1,21 @@
 use crate::{
-    log::log_to_console,
     pages::{
         common::select_database::SelectDatabase,
         sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
     request::{
-        self, clear_status, get_databases, get_token, set_status, update_token_login_status, get_database,
+        clear_status, get_client, get_database, get_databases, get_token, set_status,
+        update_token_login_status,
     },
 };
 use rcd_http_common::url::client::{
-    COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT,
-    WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
+    COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
+    WRITE_SQL_AT_PARTICIPANT,
 };
-use rcd_messages::client::{GetParticipantsReply, GetParticipantsRequest};
+
+use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
-use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
+use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
 
 #[function_component]
 pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
@@ -57,24 +58,16 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 if cooperation_enabled {
                     let participant_aliases = participant_aliases.clone();
                     let token = get_token();
-                    let auth = token.auth();
+                    //
+                    let client = get_client();
+                    spawn_local(async move {
+                        let reply = client.get_participants(token.auth(), &db_name).await;
 
-                    let get_participants_request = GetParticipantsRequest {
-                        authentication: Some(auth),
-                        database_name: db_name.clone(),
-                    };
-
-                    let request_json = serde_json::to_string(&get_participants_request).unwrap();
-                    let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
-
-                    let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                        if let Ok(ref x) = response {
+                        if let Some(response) = reply {
                             clear_status();
-                            log_to_console(x.to_string());
                             let participant_aliases = participant_aliases.clone();
-                            let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
 
-                            let is_authenticated = reply
+                            let is_authenticated = response
                                 .authentication_result
                                 .as_ref()
                                 .unwrap()
@@ -82,8 +75,8 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                             update_token_login_status(is_authenticated);
 
                             if is_authenticated {
-                                if !reply.is_error {
-                                    let participants = reply.participants;
+                                if !response.is_error {
+                                    let participants = response.participants;
 
                                     let mut aliases: Vec<String> = Vec::new();
                                     for p in &participants {
@@ -95,22 +88,15 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                                 } else {
                                     let message = format!(
                                         "{} - {}",
-                                        reply.error.as_ref().unwrap().message,
-                                        reply.error.as_ref().unwrap().help
+                                        response.error.as_ref().unwrap().message,
+                                        response.error.as_ref().unwrap().help
                                     );
                                     set_status(message);
                                 }
                             }
-                        } else {
-                            let error_message = response.err().unwrap();
-                            set_status(error_message);
                         }
                     });
-
-                    let message = format!("{}{}", "sending participant request for: ", &db_name);
-                    log_to_console(message);
-
-                    request::post(url, request_json, cb);
+                    //
                 }
             }
         })

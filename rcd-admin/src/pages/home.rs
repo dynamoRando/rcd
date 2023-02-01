@@ -1,17 +1,16 @@
-use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_DATABASES, REVOKE_TOKEN};
-use rcd_messages::client::{
-    AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, RevokeReply, TokenReply,
-};
+use rcd_client_wasm::{client::RcdClient, token::Token};
+use rcd_http_common::url::client::{GET_DATABASES, REVOKE_TOKEN};
+use rcd_messages::client::{DatabaseSchema, GetDatabasesReply, GetDatabasesRequest, RevokeReply};
+use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 use crate::{
     log::log_to_console,
     request::{
-        self, clear_status, get_token, set_databases, set_participants, set_status, set_token,
-        update_token_login_status,
+        self, clear_status, get_token, set_client, set_databases, set_participants, set_status,
+        set_token, update_token_login_status,
     },
-    token::Token,
 };
 
 #[function_component]
@@ -105,18 +104,21 @@ pub fn Connect() -> Html {
             let ip_val = ip.cast::<HtmlInputElement>().unwrap().value();
             let port_val = port.cast::<HtmlInputElement>().unwrap().value();
 
-            let base_address = format!("{}{}{}{}", "http://", ip_val, ":", port_val);
+            let client = RcdClient::new(ip_val, port_val.parse::<u32>().unwrap());
+            set_client(&client);
 
-            let auth_request = AuthRequest {
-                user_name: un_val,
-                pw: pw_val,
-                pw_hash: Vec::new(),
-                token: Vec::new(),
-                jwt: String::from(""),
-            };
+            let u = un_val.clone();
+            let p = pw_val.clone();
 
-            let auth_json = serde_json::to_string(&auth_request).unwrap();
-            save_token(base_address, auth_json, database_names);
+            spawn_local(async move {
+                let result = client.auth_for_token(&u, &p).await;
+                match result {
+                    Some(token) => {
+                        save_token(token, database_names);
+                    }
+                    None => log_to_console("no_token".to_string()),
+                };
+            })
         })
     };
 
@@ -177,39 +179,9 @@ pub fn Connect() -> Html {
 /// Takes the http address of an RCD instance and a AuthRequest seralized to JSON
 /// and attempts to get a JWT from the RCD instance. If successfully authenticated,
 /// it will save the JWT to Session Storage
-fn save_token(addr: String, auth_json: String, database_names: UseStateHandle<Vec<String>>) {
-    let addr = addr;
-    let address = addr.clone();
-    let database_names = database_names;
-
-    let callback = Callback::from(move |response: Result<AttrValue, String>| {
-        if let Ok(ref x) = response {
-            log_to_console(x.to_string());
-            clear_status();
-
-            let database_names = database_names.clone();
-
-            let response: TokenReply = serde_json::from_str(x).unwrap();
-            if response.is_successful {
-                let jwt = response.jwt;
-
-                let token = Token {
-                    jwt,
-                    jwt_exp: response.expiration_utc,
-                    addr: addr.clone(),
-                    is_logged_in: true,
-                };
-
-                set_token(token);
-                databases(database_names);
-            }
-        } else {
-            set_status(response.err().unwrap());
-        }
-    });
-
-    let url = format!("{address}{AUTH_FOR_TOKEN}");
-    request::post(url, auth_json, callback);
+fn save_token(token: Token, database_names: UseStateHandle<Vec<String>>) {
+    set_token(token);
+    databases(database_names);
 }
 
 pub fn databases(database_names: UseStateHandle<Vec<String>>) {
