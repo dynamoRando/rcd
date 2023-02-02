@@ -71,6 +71,28 @@ impl RcdClient {
         value
     }
 
+    async fn get_http_result_error<
+        'a,
+        'b,
+        T: de::DeserializeOwned + std::clone::Clone,
+        U: de::DeserializeOwned + serde::Serialize + std::clone::Clone,
+    >(
+        &mut self,
+        url: String,
+        request: U,
+    ) -> Result<T, String> {
+        let body = serde_json::to_string(&request).unwrap();
+        let result = post_result(&url, &body).await;
+
+        match result {
+            Ok(r) => {
+                let value: T = serde_json::from_str(&r).unwrap();
+                return Ok(value);
+            }
+            Err(e) => return Err(e),
+        }
+    }
+
     fn get_http_url(&self, action_url: &str) -> String {
         let address = &self.addr;
         let url = format!("{address}{action_url}");
@@ -101,7 +123,48 @@ pub async fn post(url: &str, body: &str) -> String {
     let resp: Response = resp_value.dyn_into().unwrap();
 
     let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
-    
 
     JsValue::as_string(&json).unwrap()
+}
+
+pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.mode(RequestMode::Cors);
+    opts.body(Some(&JsValue::from_str(body)));
+
+    let request = Request::new_with_str_and_init(url, &opts);
+
+    match request {
+        Ok(r) => {
+            r.headers().set("Content-Type", "application/json").unwrap();
+
+            let window = web_sys::window().unwrap();
+            let resp_value_result = JsFuture::from(window.fetch_with_request(&r)).await;
+            match resp_value_result {
+                Ok(result) => {
+                    assert!(result.is_instance_of::<Response>());
+                    let resp: Response = result.dyn_into().unwrap();
+
+                    let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
+
+                    return Ok(JsValue::as_string(&json).unwrap());
+                }
+                Err(e) => {
+                    if JsValue::is_string(&e) {
+                        return Err(JsValue::as_string(&e).unwrap());
+                    } else {
+                        return Err("Unable to connect".to_string());
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            if JsValue::is_string(&e) {
+                return Err(JsValue::as_string(&e).unwrap());
+            } else {
+                return Err("Unable to connect".to_string());
+            }
+        }
+    };
 }
