@@ -15,3 +15,4 @@ Test.toml
 *.sqlite
 *.sh
 *.ps1
+tracking/target

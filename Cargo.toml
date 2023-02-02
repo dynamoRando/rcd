@@ -40,5 +40,7 @@ members = [
     # a library of errors
     "rcd-error",
     # a client library for wasm projects (uses yew)
-    "rcd-client-wasm"
+    "rcd-client-wasm", 
+    # an example app that will use the wasm client 
+    "tracking"
 ]

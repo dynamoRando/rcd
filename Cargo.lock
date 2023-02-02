@@ -3633,6 +3633,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracking"
+version = "0.1.0"
+dependencies = [
+ "gloo",
+ "js-sys",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "web-sys",
+ "yew",
+]
+
+[[package]]
 name = "triggered"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
