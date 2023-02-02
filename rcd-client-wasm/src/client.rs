@@ -23,19 +23,23 @@ impl RcdClient {
         &mut self,
         authentication: AuthRequest,
         database_name: &str,
-    ) -> Option<GetParticipantsReply> {
+    ) -> Result<GetParticipantsReply, String> {
         let request = GetParticipantsRequest {
             authentication: Some(authentication),
             database_name: database_name.to_string(),
         };
 
         let url = self.get_http_url(GET_PARTICIPANTS);
-        let result: GetParticipantsReply = self.get_http_result(url, request).await;
+        let result: Result<GetParticipantsReply, String> =
+            self.get_http_result_error(url, request).await;
 
-        Some(result)
+        match result {
+            Ok(r) => Ok(r),
+            Err(e) => Err(e),
+        }
     }
 
-    pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Option<Token> {
+    pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Result<Token, String> {
         let request = AuthRequest {
             user_name: un.to_string(),
             pw: pw.to_string(),
@@ -45,16 +49,20 @@ impl RcdClient {
         };
 
         let url = self.get_http_url(AUTH_FOR_TOKEN);
-        let result: TokenReply = self.get_http_result(url, request).await;
+        let result: Result<TokenReply, String> = self.get_http_result_error(url, request).await;
 
-        Some(Token {
-            jwt: result.jwt,
-            jwt_exp: result.expiration_utc,
-            addr: self.addr.clone(),
-            is_logged_in: true,
-        })
+        match result {
+            Ok(r) => Ok(Token {
+                jwt: r.jwt,
+                jwt_exp: r.expiration_utc,
+                addr: self.addr.clone(),
+                is_logged_in: true,
+            }),
+            Err(e) => Err(e),
+        }
     }
 
+    /*
     async fn get_http_result<
         'a,
         'b,
@@ -70,6 +78,7 @@ impl RcdClient {
         let value: T = serde_json::from_str(&result_json).unwrap();
         value
     }
+    */
 
     async fn get_http_result_error<
         'a,
@@ -100,6 +109,7 @@ impl RcdClient {
     }
 }
 
+/*
 #[wasm_bindgen]
 pub async fn post(url: &str, body: &str) -> String {
     let mut opts = RequestInit::new();
@@ -126,6 +136,7 @@ pub async fn post(url: &str, body: &str) -> String {
 
     JsValue::as_string(&json).unwrap()
 }
+*/
 
 pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
     let mut opts = RequestInit::new();
@@ -151,6 +162,9 @@ pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
                     Ok(JsValue::as_string(&json).unwrap())
                 }
                 Err(e) => {
+                    // let m = format!("{:?}", e);
+                    // log_to_console(m);
+
                     if JsValue::is_string(&e) {
                         Err(JsValue::as_string(&e).unwrap())
                     } else {

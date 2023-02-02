@@ -113,10 +113,10 @@ pub fn Connect() -> Html {
             spawn_local(async move {
                 let result = client.auth_for_token(&u, &p).await;
                 match result {
-                    Some(token) => {
+                    Ok(token) => {
                         save_token(token, database_names);
                     }
-                    None => log_to_console("no_token".to_string()),
+                    Err(e) => log_to_console(e),
                 };
             })
         })

@@ -63,40 +63,46 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                     spawn_local(async move {
                         let reply = client.get_participants(token.auth(), &db_name).await;
 
-                        if let Some(response) = reply {
-                            clear_status();
-                            let participant_aliases = participant_aliases.clone();
+                        match reply {
+                            Ok(response) => {
+                                clear_status();
+                                let participant_aliases = participant_aliases.clone();
 
-                            let is_authenticated = response
-                                .authentication_result
-                                .as_ref()
-                                .unwrap()
-                                .is_authenticated;
-                            update_token_login_status(is_authenticated);
+                                let is_authenticated = response
+                                    .authentication_result
+                                    .as_ref()
+                                    .unwrap()
+                                    .is_authenticated;
+                                update_token_login_status(is_authenticated);
 
-                            if is_authenticated {
-                                if !response.is_error {
-                                    let participants = response.participants;
+                                if is_authenticated {
+                                    if !response.is_error {
+                                        let participants = response.participants;
 
-                                    let mut aliases: Vec<String> = Vec::new();
-                                    for p in &participants {
-                                        aliases.push(p.participant.as_ref().unwrap().alias.clone());
+                                        let mut aliases: Vec<String> = Vec::new();
+                                        for p in &participants {
+                                            aliases.push(
+                                                p.participant.as_ref().unwrap().alias.clone(),
+                                            );
+                                        }
+
+                                        participant_dropdown_enabled.set(true);
+                                        participant_aliases.set(Some(aliases));
+                                    } else {
+                                        let message = format!(
+                                            "{} - {}",
+                                            response.error.as_ref().unwrap().message,
+                                            response.error.as_ref().unwrap().help
+                                        );
+                                        set_status(message);
                                     }
-
-                                    participant_dropdown_enabled.set(true);
-                                    participant_aliases.set(Some(aliases));
-                                } else {
-                                    let message = format!(
-                                        "{} - {}",
-                                        response.error.as_ref().unwrap().message,
-                                        response.error.as_ref().unwrap().help
-                                    );
-                                    set_status(message);
                                 }
+                            }
+                            Err(e) => {
+                                set_status(e);
                             }
                         }
                     });
-                    //
                 }
             }
         })
