@@ -87,9 +87,9 @@ impl RcdClient {
         match result {
             Ok(r) => {
                 let value: T = serde_json::from_str(&r).unwrap();
-                return Ok(value);
+                Ok(value)
             }
-            Err(e) => return Err(e),
+            Err(e) => Err(e),
         }
     }
 
@@ -148,23 +148,23 @@ pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
 
                     let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
 
-                    return Ok(JsValue::as_string(&json).unwrap());
+                    Ok(JsValue::as_string(&json).unwrap())
                 }
                 Err(e) => {
                     if JsValue::is_string(&e) {
-                        return Err(JsValue::as_string(&e).unwrap());
+                        Err(JsValue::as_string(&e).unwrap())
                     } else {
-                        return Err("Unable to connect".to_string());
+                        Err("Unable to connect".to_string())
                     }
                 }
             }
         }
         Err(e) => {
             if JsValue::is_string(&e) {
-                return Err(JsValue::as_string(&e).unwrap());
+                Err(JsValue::as_string(&e).unwrap())
             } else {
-                return Err("Unable to connect".to_string());
+                Err("Unable to connect".to_string())
             }
         }
-    };
+    }
 }
