@@ -20,7 +20,7 @@ pub fn EnterEvent(SharkEventProps { events }: &SharkEventProps) -> Html {
         let event_date_ui = event_date_ui.clone();
         let event_type_ui = event_type_ui.clone();
         let event_notes_ui = event_notes_ui.clone();
-        let events = events.clone();
+        let events = events;
         Callback::from(move |_| {
             let event_date = event_date_ui.cast::<HtmlInputElement>().unwrap().value();
             let event_type = event_type_ui.cast::<HtmlInputElement>().unwrap().value();

@@ -45,7 +45,7 @@ pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, Stri
 
 pub fn set_client(client: &RcdClient) {
     let client_json = serde_json::to_string(&client).unwrap();
-    SessionStorage::set(CLIENT, &client_json).expect("failed to set");
+    SessionStorage::set(CLIENT, client_json).expect("failed to set");
 }
 
 

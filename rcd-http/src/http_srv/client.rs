@@ -86,7 +86,7 @@ pub async fn auth_for_token(
 
     let response = core.auth_for_token(request.into_inner()).await;
 
-    println!("{:?}", response);
+    println!("{response:?}");
 
     (Status::Ok, Json(response))
 }

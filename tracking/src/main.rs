@@ -1,5 +1,5 @@
 use yew::prelude::*;
-use crate::{enter_event::EnterEvent, view_events::ViewEvents, event_props::SharkEventProps, event::SharkEvent};
+use crate::{enter_event::EnterEvent, view_events::ViewEvents, event::SharkEvent};
 
 pub mod enter_event;
 pub mod event;

@@ -4,7 +4,7 @@ const KEY: &str = "shark.key.storage";
 
 pub fn get_events() -> Vec<SharkEvent> {
     let events_json = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
-    if events_json == "" {
+    if events_json.is_empty() {
         let x: Vec<SharkEvent> = Vec::new();
         return x;
     }

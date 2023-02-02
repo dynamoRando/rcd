@@ -107,8 +107,8 @@ pub fn Connect() -> Html {
             let mut client = RcdClient::new(ip_val, port_val.parse::<u32>().unwrap());
             set_client(&client);
 
-            let u = un_val.clone();
-            let p = pw_val.clone();
+            let u = un_val;
+            let p = pw_val;
 
             spawn_local(async move {
                 let result = client.auth_for_token(&u, &p).await;

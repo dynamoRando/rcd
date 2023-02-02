@@ -15,7 +15,7 @@ pub struct RcdClient {
 
 impl RcdClient {
     pub fn new(ip: String, port: u32) -> Self {
-        let addr = format!("{}{}{}{}", "http://", ip, ":", port.to_string());
+        let addr = format!("{}{}{}{}", "http://", ip, ":", port);
         RcdClient { addr }
     }
 
@@ -85,7 +85,7 @@ pub async fn post(url: &str, body: &str) -> String {
     opts.mode(RequestMode::Cors);
     opts.body(Some(&JsValue::from_str(body)));
 
-    let request = Request::new_with_str_and_init(&url, &opts).unwrap();
+    let request = Request::new_with_str_and_init(url, &opts).unwrap();
 
     request
         .headers()
@@ -101,7 +101,7 @@ pub async fn post(url: &str, body: &str) -> String {
     let resp: Response = resp_value.dyn_into().unwrap();
 
     let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
-    let json_text = JsValue::as_string(&json).unwrap();
+    
 
-    json_text
+    JsValue::as_string(&json).unwrap()
 }
