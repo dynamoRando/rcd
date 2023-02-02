@@ -385,9 +385,7 @@ impl RcdClient {
                 info!("sending request");
 
                 let url = self.get_http_url(REVOKE_TOKEN);
-                let request_json = serde_json::to_string(&auth).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: RevokeReply = serde_json::from_str(&result_json).unwrap();
+                let result = self.get_http_result(url, auth).await;
 
                 Ok(result)
             }
@@ -423,9 +421,7 @@ impl RcdClient {
                 info!("sending request");
 
                 let url = self.get_http_url(AUTH_FOR_TOKEN);
-                let request_json = serde_json::to_string(&auth).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: TokenReply = serde_json::from_str(&result_json).unwrap();
+                let result: TokenReply = self.get_http_result(url, auth).await;
 
                 if result.is_successful {
                     let x = result.clone();
@@ -480,9 +476,7 @@ impl RcdClient {
                 };
 
                 let url = self.get_http_url(ACCEPT_PENDING_ACTION);
-                let request_json = serde_json::to_string(&request).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: AcceptPendingActionReply = serde_json::from_str(&result_json).unwrap();
+                let result = self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -494,9 +488,9 @@ impl RcdClient {
     ) -> Result<GetCooperativeHostsReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetCooperativeHostsRequest {
+        let request = GetCooperativeHostsRequest {
             authentication: Some(auth),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -506,7 +500,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_cooperative_hosts(request)
+                    .get_cooperative_hosts(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -516,9 +510,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_COOP_HOSTS);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetCooperativeHostsReply = serde_json::from_str(&result_json).unwrap();
+                let result = self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -531,10 +523,10 @@ impl RcdClient {
     ) -> Result<GetParticipantsReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetParticipantsRequest {
+        let request = GetParticipantsRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -544,7 +536,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_participants(request)
+                    .get_participants(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -554,9 +546,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_PARTICIPANTS);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetParticipantsReply = serde_json::from_str(&result_json).unwrap();
+                let result = self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -571,12 +561,12 @@ impl RcdClient {
     ) -> Result<GetPendingActionsReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetPendingActionsRequest {
+        let request = GetPendingActionsRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             action: action.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -586,7 +576,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_pending_actions_at_participant(request)
+                    .get_pending_actions_at_participant(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -596,9 +586,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_PENDING_ACTIONS);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetPendingActionsReply = serde_json::from_str(&result_json).unwrap();
+                let result = self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -613,12 +601,12 @@ impl RcdClient {
     ) -> Result<Vec<u32>, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetReadRowIdsRequest {
+        let request = GetReadRowIdsRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             where_clause: where_clause.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -628,7 +616,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .read_row_id_at_participant(request)
+                    .read_row_id_at_participant(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -638,9 +626,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_ROW_AT_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetReadRowIdsReply = serde_json::from_str(&result_json).unwrap();
+                let result: GetReadRowIdsReply = self.get_http_result(url, request).await;
 
                 Ok(result.row_ids)
             }
@@ -655,12 +641,12 @@ impl RcdClient {
     ) -> Result<u64, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetDataHashRequest {
+        let request = GetDataHashRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             row_id,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -670,7 +656,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_data_hash_at_participant(request)
+                    .get_data_hash_at_participant(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -680,9 +666,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_DATA_HASH_AT_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetDataHashReply = serde_json::from_str(&result_json).unwrap();
+                let result: GetDataHashReply = self.get_http_result(url, request).await;
 
                 Ok(result.data_hash)
             }
@@ -697,12 +681,12 @@ impl RcdClient {
     ) -> Result<u64, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetDataHashRequest {
+        let request = GetDataHashRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             row_id,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -712,7 +696,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_data_hash_at_host(request)
+                    .get_data_hash_at_host(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -722,9 +706,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_DATA_HASH_AT_HOST);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetDataHashReply = serde_json::from_str(&result_json).unwrap();
+                let result: GetDataHashReply = self.get_http_result(url, request).await;
 
                 Ok(result.data_hash)
             }
@@ -737,12 +719,11 @@ impl RcdClient {
         table_name: &str,
     ) -> Result<GetDeletesToHostBehaviorReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(GetDeletesToHostBehaviorRequest {
+        let request = GetDeletesToHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -752,7 +733,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_deletes_to_host_behavior(request)
+                    .get_deletes_to_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -762,12 +743,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_DELETES_TO_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: GetDeletesToHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -782,12 +759,12 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ChangeDeletesToHostBehaviorRequest {
+        let request = ChangeDeletesToHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             behavior: DeletesToHostBehavior::to_u32(behavior),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -797,7 +774,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .change_deletes_to_host_behavior(request)
+                    .change_deletes_to_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -807,13 +784,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_DELETES_TO_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: ChangeDeletesToHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
-
+                    self.get_http_result(url, request).await;
                 Ok(result.is_successful)
             }
         }
@@ -825,12 +797,11 @@ impl RcdClient {
         table_name: &str,
     ) -> Result<GetUpdatesToHostBehaviorReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(GetUpdatesToHostBehaviorRequest {
+        let request = GetUpdatesToHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -840,7 +811,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_updates_to_host_behavior(request)
+                    .get_updates_to_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -850,12 +821,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_UPDATES_TO_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: GetUpdatesToHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -870,12 +837,12 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ChangeUpdatesToHostBehaviorRequest {
+        let request = ChangeUpdatesToHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             behavior: UpdatesToHostBehavior::to_u32(behavior),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -885,7 +852,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .change_updates_to_host_behavior(request)
+                    .change_updates_to_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -895,12 +862,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_UPDATES_TO_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: ChangeUpdatesToHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -914,11 +877,11 @@ impl RcdClient {
     ) -> Result<GetDeletesFromHostBehaviorReply, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetDeletesFromHostBehaviorRequest {
+        let request = GetDeletesFromHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -928,7 +891,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .get_deletes_from_host_behavior(request)
+                    .get_deletes_from_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -938,12 +901,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_DELETES_FROM_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: GetDeletesFromHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result)
             }
@@ -958,12 +917,12 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ChangeDeletesFromHostBehaviorRequest {
+        let request = ChangeDeletesFromHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             behavior: DeletesFromHostBehavior::to_u32(behavior),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -973,7 +932,7 @@ impl RcdClient {
                     .grpc_client
                     .as_mut()
                     .unwrap()
-                    .change_deletes_from_host_behavior(request)
+                    .change_deletes_from_host_behavior(tonic::Request::new(request))
                     .await
                     .unwrap()
                     .into_inner();
@@ -983,13 +942,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_DELETES_FROM_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: ChangeDeletesFromHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
-
+                    self.get_http_result(url, request).await;
                 Ok(result.is_successful)
             }
         }
@@ -1038,13 +992,12 @@ impl RcdClient {
         behavior: UpdatesFromHostBehavior,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(ChangeUpdatesFromHostBehaviorRequest {
+        let request = ChangeUpdatesFromHostBehaviorRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             behavior: UpdatesFromHostBehavior::to_u32(behavior),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1063,12 +1016,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_UPDATES_FROM_HOST_BEHAVIOR);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
                 let result: ChangesUpdatesFromHostBehaviorReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1081,13 +1030,12 @@ impl RcdClient {
         status: u32,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(ChangeHostStatusRequest {
+        let request = ChangeHostStatusRequest {
             authentication: Some(auth),
             host_alias: String::from(""),
             host_id: host_id.to_string(),
             status,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1106,11 +1054,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_HOST_STATUS_ID);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
-                let result: ChangeHostStatusReply = serde_json::from_str(&result_json).unwrap();
+                let result: ChangesUpdatesFromHostBehaviorReply =
+                    self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1123,13 +1068,12 @@ impl RcdClient {
         status: u32,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(ChangeHostStatusRequest {
+        let request = ChangeHostStatusRequest {
             authentication: Some(auth),
             host_alias: host_name.to_string(),
             host_id: String::from(""),
             status,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1148,11 +1092,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(CHANGE_HOST_STATUS_NAME);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-
-                let result_json = self.send_http_message(request_json, url).await;
-
-                let result: ChangeHostStatusReply = serde_json::from_str(&result_json).unwrap();
+                let result: ChangeHostStatusReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1161,11 +1101,10 @@ impl RcdClient {
 
     pub async fn generate_host_info(&mut self, host_name: &str) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
-
-        let request = tonic::Request::new(GenerateHostInfoRequest {
+        let request = GenerateHostInfoRequest {
             authentication: Some(auth),
             host_name: host_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1184,9 +1123,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GENERATE_HOST_INFO);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GenerateHostInfoReply = serde_json::from_str(&result_json).unwrap();
+                let result: GenerateHostInfoReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1213,10 +1150,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_DATABASES);
-                let request_json = serde_json::to_string(&request).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetDatabasesReply = serde_json::from_str(&result_json).unwrap();
-
+                let result = self.get_http_result(url, request).await;
                 Ok(result)
             }
         }
@@ -1258,10 +1192,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(COOPERATIVE_WRITE_SQL_AT_HOST);
-                let request_json = serde_json::to_string(&request).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ExecuteCooperativeWriteReply =
-                    serde_json::from_str(&result_json).unwrap();
+                let result: ExecuteCooperativeWriteReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1271,9 +1202,10 @@ impl RcdClient {
     pub async fn view_pending_contracts(&mut self) -> Result<Vec<Contract>, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ViewPendingContractsRequest {
+        let request = ViewPendingContractsRequest {
             authentication: Some(auth),
-        });
+        };
+
         match self.client_type {
             RcdClientType::Grpc => {
                 info!("sending request");
@@ -1291,9 +1223,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(VIEW_PENDING_CONTRACTS);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ViewPendingContractsReply = serde_json::from_str(&result_json).unwrap();
+                let result: ViewPendingContractsReply = self.get_http_result(url, request).await;
 
                 Ok(result.contracts)
             }
@@ -1306,10 +1236,10 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(AcceptPendingContractRequest {
+        let request = AcceptPendingContractRequest {
             authentication: Some(auth),
             host_alias: host_alias.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1329,10 +1259,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(ACCEPT_PENDING_CONTRACT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: AcceptPendingContractReply =
-                    serde_json::from_str(&result_json).unwrap();
+                let result: AcceptPendingContractReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1346,11 +1273,11 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(SendParticipantContractRequest {
+        let request = SendParticipantContractRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             participant_alias: participant_alias.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1370,10 +1297,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(SEND_CONTRACT_TO_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: SendParticipantContractReply =
-                    serde_json::from_str(&result_json).unwrap();
+                let result: SendParticipantContractReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_sent)
             }
@@ -1391,7 +1315,7 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(AddParticipantRequest {
+        let request = AddParticipantRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             alias: participant_alias.to_string(),
@@ -1399,7 +1323,7 @@ impl RcdClient {
             port: participant_db_port,
             http_addr: participant_http_addr,
             http_port: participant_http_port as u32,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1415,9 +1339,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(ADD_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: AddParticipantReply = serde_json::from_str(&result_json).unwrap();
+                let result: AddParticipantReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1433,13 +1355,13 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GenerateContractRequest {
+        let request = GenerateContractRequest {
             authentication: Some(auth),
             host_name: host_name.to_string(),
             description: desc.to_string(),
             database_name: db_name.to_string(),
             remote_delete_behavior: RemoteDeleteBehavior::to_u32(remote_delete_behavior),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1459,9 +1381,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GENERATE_CONTRACT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GenerateContractReply = serde_json::from_str(&result_json).unwrap();
+                let result: GenerateContractReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1475,11 +1395,11 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(HasTableRequest {
+        let request = HasTableRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1495,9 +1415,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(HAS_TABLE);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: HasTableReply = serde_json::from_str(&result_json).unwrap();
+                let result: HasTableReply = self.get_http_result(url, request).await;
 
                 Ok(result.has_table)
             }
@@ -1511,11 +1429,11 @@ impl RcdClient {
     ) -> Result<LogicalStoragePolicy, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(GetLogicalStoragePolicyRequest {
+        let request = GetLogicalStoragePolicyRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1537,10 +1455,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(GET_POLICY);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: GetLogicalStoragePolicyReply =
-                    serde_json::from_str(&result_json).unwrap();
+                let result: GetLogicalStoragePolicyReply = self.get_http_result(url, request).await;
 
                 Ok(LogicalStoragePolicy::from_i64(result.policy_mode as i64))
             }
@@ -1555,12 +1470,12 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(SetLogicalStoragePolicyRequest {
+        let request = SetLogicalStoragePolicyRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             table_name: table_name.to_string(),
             policy_mode: LogicalStoragePolicy::to_u32(policy),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1580,10 +1495,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(SET_POLICY);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: SetLogicalStoragePolicyReply =
-                    serde_json::from_str(&result_json).unwrap();
+                let result: SetLogicalStoragePolicyReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1599,13 +1511,13 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ExecuteWriteRequest {
+        let request = ExecuteWriteRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
             where_clause: where_clause.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1625,9 +1537,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(WRITE_SQL_AT_HOST);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ExecuteWriteReply = serde_json::from_str(&result_json).unwrap();
+                let result: ExecuteWriteReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1643,13 +1553,13 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ExecuteWriteRequest {
+        let request = ExecuteWriteRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
             where_clause: where_clause.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1669,9 +1579,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(WRITE_SQL_AT_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ExecuteWriteReply = serde_json::from_str(&result_json).unwrap();
+                let result: ExecuteWriteReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1681,12 +1589,12 @@ impl RcdClient {
     pub async fn try_auth_at_participant(&mut self, alias: &str, id: &str, db_name: &str) -> bool {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(TryAuthAtParticipantRequest {
+        let request = TryAuthAtParticipantRequest {
             authentication: Some(auth),
             participant_id: id.to_string(),
             participant_alias: alias.to_string(),
             db_name: db_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1705,9 +1613,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(TRY_AUTH_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: TryAuthAtPartipantReply = serde_json::from_str(&result_json).unwrap();
+                let result: TryAuthAtPartipantReply = self.get_http_result(url, request).await;
 
                 result.is_successful
             }
@@ -1722,12 +1628,12 @@ impl RcdClient {
     ) -> Result<StatementResultset, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ExecuteReadRequest {
+        let request = ExecuteReadRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1747,9 +1653,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(READ_SQL_AT_PARTICIPANT);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ExecuteReadReply = serde_json::from_str(&result_json).unwrap();
+                let result: ExecuteReadReply = self.get_http_result(url, request).await;
 
                 Ok(result.results[0].clone())
             }
@@ -1764,12 +1668,12 @@ impl RcdClient {
     ) -> Result<StatementResultset, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(ExecuteReadRequest {
+        let request = ExecuteReadRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
             sql_statement: sql_statement.to_string(),
             database_type: db_type,
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1789,9 +1693,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(READ_SQL_AT_HOST);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: ExecuteReadReply = serde_json::from_str(&result_json).unwrap();
+                let result: ExecuteReadReply = self.get_http_result(url, request).await;
 
                 Ok(result.results[0].clone())
             }
@@ -1804,10 +1706,10 @@ impl RcdClient {
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(EnableCoooperativeFeaturesRequest {
+        let request = EnableCoooperativeFeaturesRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1827,10 +1729,8 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(ENABLE_COOPERATIVE_FEATURES);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
                 let result: EnableCoooperativeFeaturesReply =
-                    serde_json::from_str(&result_json).unwrap();
+                    self.get_http_result(url, request).await;
 
                 Ok(result.is_successful)
             }
@@ -1840,10 +1740,10 @@ impl RcdClient {
     pub async fn create_user_database(&mut self, db_name: &str) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
-        let request = tonic::Request::new(CreateUserDatabaseRequest {
+        let request = CreateUserDatabaseRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
-        });
+        };
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1864,9 +1764,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let url = self.get_http_url(NEW_DATABASE);
-                let request_json = serde_json::to_string(&request.into_inner()).unwrap();
-                let result_json = self.send_http_message(request_json, url).await;
-                let result: CreateUserDatabaseReply = serde_json::from_str(&result_json).unwrap();
+                let result: CreateUserDatabaseReply = self.get_http_result(url, request).await;
 
                 Ok(result.is_created)
             }
