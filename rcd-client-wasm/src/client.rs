@@ -62,24 +62,6 @@ impl RcdClient {
         }
     }
 
-    /*
-    async fn get_http_result<
-        'a,
-        'b,
-        T: de::DeserializeOwned + std::clone::Clone,
-        U: de::DeserializeOwned + serde::Serialize + std::clone::Clone,
-    >(
-        &mut self,
-        url: String,
-        request: U,
-    ) -> T {
-        let body = serde_json::to_string(&request).unwrap();
-        let result_json: String = post(&url, &body).await;
-        let value: T = serde_json::from_str(&result_json).unwrap();
-        value
-    }
-    */
-
     async fn get_http_result_error<
         'a,
         'b,
@@ -108,35 +90,6 @@ impl RcdClient {
         url
     }
 }
-
-/*
-#[wasm_bindgen]
-pub async fn post(url: &str, body: &str) -> String {
-    let mut opts = RequestInit::new();
-    opts.method("POST");
-    opts.mode(RequestMode::Cors);
-    opts.body(Some(&JsValue::from_str(body)));
-
-    let request = Request::new_with_str_and_init(url, &opts).unwrap();
-
-    request
-        .headers()
-        .set("Content-Type", "application/json")
-        .unwrap();
-
-    let window = web_sys::window().unwrap();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request))
-        .await
-        .unwrap();
-
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
-
-    let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
-
-    JsValue::as_string(&json).unwrap()
-}
-*/
 
 pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
     let mut opts = RequestInit::new();
