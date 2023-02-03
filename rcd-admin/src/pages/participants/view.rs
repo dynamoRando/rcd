@@ -1,9 +1,9 @@
-use rcd_http_common::url::client::{GET_PARTICIPANTS, SEND_CONTRACT_TO_PARTICIPANT};
+use rcd_http_common::url::client::SEND_CONTRACT_TO_PARTICIPANT;
 use rcd_messages::client::{
-    GetParticipantsReply, GetParticipantsRequest, ParticipantStatus, SendParticipantContractReply,
-    SendParticipantContractRequest,
+    ParticipantStatus, SendParticipantContractReply, SendParticipantContractRequest,
 };
 
+use wasm_bindgen_futures::spawn_local;
 use yew::{
     function_component, html, use_state_eq, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
@@ -11,7 +11,7 @@ use yew::{
 use crate::{
     log::log_to_console,
     pages::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{self, clear_status, get_client, get_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -36,41 +36,31 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             if !db_name.is_empty() && db_name != "SELECT DATABASE" {
                 let participant_details = participant_details.clone();
 
+                let mut client = get_client();
                 let token = get_token();
-                let auth = token.auth();
+                spawn_local(async move {
+                    let reply = client.get_participants(token.auth(), &db_name).await;
 
-                let get_participants_request = GetParticipantsRequest {
-                    authentication: Some(auth),
-                    database_name: db_name,
-                };
+                    match reply {
+                        Ok(reply) => {
+                            clear_status();
 
-                let request_json = serde_json::to_string(&get_participants_request).unwrap();
-                let url = format!("{}{}", token.addr, GET_PARTICIPANTS);
+                            let is_authenticated = reply
+                                .authentication_result
+                                .as_ref()
+                                .unwrap()
+                                .is_authenticated;
+                            update_token_login_status(is_authenticated);
 
-                let cb = Callback::from(move |response: Result<AttrValue, String>| {
-                    if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
-                        clear_status();
-
-                        let participant_details = participant_details.clone();
-                        let reply: GetParticipantsReply = serde_json::from_str(x).unwrap();
-
-                        let is_authenticated = reply
-                            .authentication_result
-                            .as_ref()
-                            .unwrap()
-                            .is_authenticated;
-                        update_token_login_status(is_authenticated);
-
-                        if is_authenticated {
-                            participant_details.set(reply.participants);
+                            if is_authenticated {
+                                participant_details.set(reply.participants);
+                            }
                         }
-                    } else {
-                        set_status(response.err().unwrap());
+                        Err(e) => {
+                            set_status(e);
+                        }
                     }
                 });
-
-                request::post(url, request_json, cb);
             }
         })
     };
