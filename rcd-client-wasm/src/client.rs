@@ -1,7 +1,10 @@
 use crate::token::Token;
 
-use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_PARTICIPANTS};
-use rcd_messages::client::{AuthRequest, GetParticipantsReply, GetParticipantsRequest, TokenReply};
+use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_PARTICIPANTS, READ_SQL_AT_HOST};
+use rcd_messages::client::{
+    AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetParticipantsReply,
+    GetParticipantsRequest, StatementResultset, TokenReply,
+};
 
 use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{prelude::*, JsCast};
@@ -17,6 +20,30 @@ impl RcdClient {
     pub fn new(ip: String, port: u32) -> Self {
         let addr = format!("{}{}{}{}", "http://", ip, ":", port);
         RcdClient { addr }
+    }
+
+    pub async fn execute_read_at_host(
+        &mut self,
+        authentication: AuthRequest,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<StatementResultset, String> {
+        let request = ExecuteReadRequest {
+            authentication: Some(authentication),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        };
+
+        let url = self.get_http_url(READ_SQL_AT_HOST);
+        let result: Result<ExecuteReadReply, String> =
+            self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(r) => Ok(r.results[0].clone()),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn get_participants(
