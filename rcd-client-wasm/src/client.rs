@@ -1,8 +1,13 @@
 use crate::token::Token;
 
-use rcd_http_common::url::client::{AUTH_FOR_TOKEN, GET_PARTICIPANTS, READ_SQL_AT_HOST};
+use rcd_enum::database_type::DatabaseType;
+use rcd_http_common::url::client::{
+    AUTH_FOR_TOKEN, COOPERATIVE_WRITE_SQL_AT_HOST, GET_PARTICIPANTS, READ_SQL_AT_HOST,
+    READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST, WRITE_SQL_AT_PARTICIPANT,
+};
 use rcd_messages::client::{
-    AuthRequest, ExecuteReadReply, ExecuteReadRequest, GetParticipantsReply,
+    AuthRequest, ExecuteCooperativeWriteReply, ExecuteCooperativeWriteRequest, ExecuteReadReply,
+    ExecuteReadRequest, ExecuteWriteReply, ExecuteWriteRequest, GetParticipantsReply,
     GetParticipantsRequest, StatementResultset, TokenReply,
 };
 
@@ -20,6 +25,114 @@ impl RcdClient {
     pub fn new(ip: String, port: u32) -> Self {
         let addr = format!("{}{}{}{}", "http://", ip, ":", port);
         RcdClient { addr }
+    }
+
+    pub async fn execute_cooperative_write_at_host(
+        &mut self,
+        authentication: AuthRequest,
+        db_name: &str,
+        cmd: &str,
+        participant_alias: &str,
+        where_clause: &str,
+    ) -> Result<bool, String> {
+        let request = ExecuteCooperativeWriteRequest {
+            authentication: Some(authentication),
+            database_name: db_name.to_string(),
+            sql_statement: cmd.to_string(),
+            database_type: DatabaseType::to_u32(DatabaseType::Sqlite),
+            alias: participant_alias.to_string(),
+            participant_id: String::from(""),
+            where_clause: where_clause.to_string(),
+        };
+
+        let url = self.get_http_url(COOPERATIVE_WRITE_SQL_AT_HOST);
+
+        let result: Result<ExecuteCooperativeWriteReply, String> =
+            self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(r) => Ok(r.is_successful),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn execute_write_at_participant(
+        &mut self,
+        authentication: AuthRequest,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+        where_clause: &str,
+    ) -> Result<bool, String> {
+        let request = ExecuteWriteRequest {
+            authentication: Some(authentication),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+            where_clause: where_clause.to_string(),
+        };
+
+        let url = self.get_http_url(WRITE_SQL_AT_PARTICIPANT);
+
+        let result: Result<ExecuteWriteReply, String> =
+            self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(r) => Ok(r.is_successful),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn execute_write_at_host(
+        &mut self,
+        authentication: AuthRequest,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+        where_clause: &str,
+    ) -> Result<bool, String> {
+        let request = ExecuteWriteRequest {
+            authentication: Some(authentication),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+            where_clause: where_clause.to_string(),
+        };
+
+        let url = self.get_http_url(WRITE_SQL_AT_HOST);
+
+        let result: Result<ExecuteWriteReply, String> =
+            self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(r) => Ok(r.is_successful),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn execute_read_at_participant(
+        &mut self,
+        authentication: AuthRequest,
+        db_name: &str,
+        sql_statement: &str,
+        db_type: u32,
+    ) -> Result<StatementResultset, String> {
+        let request = ExecuteReadRequest {
+            authentication: Some(authentication),
+            database_name: db_name.to_string(),
+            sql_statement: sql_statement.to_string(),
+            database_type: db_type,
+        };
+
+        let url = self.get_http_url(READ_SQL_AT_PARTICIPANT);
+
+        let result: Result<ExecuteReadReply, String> =
+            self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(r) => Ok(r.results[0].clone()),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn execute_read_at_host(
