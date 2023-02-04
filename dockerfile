@@ -16,8 +16,13 @@ COPY ./rcdproto ./rcdproto
 COPY ./rcdt ./rcdt
 COPY ./rcd-admin ./rcd-admin
 COPY ./rcd-common ./rcd-common
+COPY ./rcd-client-wasm ./rcd-client-wasm
 COPY ./rcd-enum ./rcd-enum
+COPY ./tracking ./tracking
 COPY ./rcd-core ./rcd-core
+COPY ./rcd-error ./rcd-error
+COPY ./rcd-sqlite-log ./rcd-sqlite-log
+COPY ./rcd-markdown ./rcd-markdown
 COPY ./rcd-http-common ./rcd-http-common
 COPY ./rcd-query ./rcd-query
 COPY ./rcd-http-common ./rcd-http-common
