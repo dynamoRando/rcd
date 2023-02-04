@@ -3638,6 +3638,7 @@ version = "0.1.0"
 dependencies = [
  "gloo",
  "js-sys",
+ "regex",
  "serde",
  "serde_derive",
  "serde_json",
