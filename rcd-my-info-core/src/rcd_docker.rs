@@ -20,6 +20,19 @@ impl RcdDocker {
                     println!("{:?}", image.repo_tags);
                 }
             }
+            Err(e) => eprintln!("Something bad happened! {e}"),
+        }
+    }
+
+    async fn list_docker_containers(&self) {
+        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
+    
+        match docker.containers().list(&Default::default()).await {
+            Ok(containers) => {
+                for container in containers {
+                    println!("{:?}", container.names.unwrap());
+                }
+            }
             Err(e) => eprintln!("Something bad happened! {}", e),
         }
     }

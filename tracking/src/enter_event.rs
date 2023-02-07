@@ -83,7 +83,7 @@ pub fn EnterEvent(SharkEventProps { events }: &SharkEventProps) -> Html {
             </p>
 
             {
-                if (*form_is_invalid).clone(){
+                if *form_is_invalid {
                     html!(
                         <div>
                             <div class="notification is-warning">
