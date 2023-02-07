@@ -24,7 +24,7 @@ impl RcdDocker {
         }
     }
 
-    async fn list_docker_containers(&self) {
+    pub async fn list_docker_containers(&self) {
         let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
     
         match docker.containers().list(&Default::default()).await {
