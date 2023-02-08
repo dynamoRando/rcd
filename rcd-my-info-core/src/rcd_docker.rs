@@ -1,3 +1,4 @@
+use anyhow::Result;
 use docker_api::opts::ContainerCreateOpts;
 
 #[derive(Debug)]
@@ -22,13 +23,23 @@ impl RcdDocker {
             let result = docker.containers().create(&opts).await;
             match result {
                 Ok(_container) => Ok(true),
-                Err(err) => {
-                    return Err(format!("Something bad happened! {err}"))
-                }
+                Err(err) => return Err(format!("Something bad happened! {err}")),
             }
         } else {
             Ok(false)
         }
+    }
+
+    pub async fn get_docker_images(&self) -> Result<Vec<String>> {
+        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
+        let images = docker.images().list(&Default::default()).await?;
+        let mut image_names: Vec<String> = Vec::new();
+        for image in images {
+            let name = format!("{:?}", image.repo_tags);
+            image_names.push(name);
+        }
+
+        Ok(image_names)
     }
 
     pub async fn list_docker_images(&self) {
