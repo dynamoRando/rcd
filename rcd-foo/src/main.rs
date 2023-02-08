@@ -5,6 +5,23 @@ use rcd_my_info_core::rcd_docker::RcdDocker;
 // use rcd_sqlite_log::SqliteLog;
 
 fn main() {
+    thread::spawn(move || {
+        let _ = docker_up();
+    })
+    .join()
+    .unwrap();
+}
+
+#[tokio::main]
+async fn docker_up() {
+    println!("connecting");
+    let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
+    docker.list_docker_containers().await;
+    docker.list_docker_images().await;
+}
+
+#[allow(dead_code)]
+fn log_test() {
     // SqliteLog::init(LevelFilter::Trace).unwrap();
 
     // debug!("this is a debug");
@@ -19,18 +36,4 @@ fn main() {
     //     let message = format!("{} {} {} {}", e.dt, e.dt_utc, e.level, e.message);
     //     println!("{message}");
     // }
-
-    thread::spawn(move || {
-        let _ = docker_up();
-    })
-    .join()
-    .unwrap();
-}
-
-#[tokio::main]
-async fn docker_up() {
-    println!("connecting");
-    let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
-    docker.list_docker_containers().await;
-    docker.list_docker_images().await;
 }
