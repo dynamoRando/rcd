@@ -3,6 +3,7 @@ use std::thread;
 use rcd_my_info_core::rcd_docker::RcdDocker;
 
 #[test]
+#[ignore = "need to have docker running"]
 fn test_get_containers() {
     thread::spawn(move || {
         get_names();
