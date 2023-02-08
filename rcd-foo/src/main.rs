@@ -6,7 +6,7 @@ use rcd_my_info_core::rcd_docker::RcdDocker;
 
 fn main() {
     thread::spawn(move || {
-        let _ = docker_up();
+        docker_up();
     })
     .join()
     .unwrap();
@@ -18,6 +18,7 @@ async fn docker_up() {
     let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
     docker.list_docker_containers().await;
     docker.list_docker_images().await;
+    let _ = docker.new_rcd_container(&"test".to_string()).await;
 }
 
 #[allow(dead_code)]
