@@ -33,6 +33,7 @@ COPY ./rcd-grpc ./rcd-grpc
 COPY ./rcd-sqlite ./rcd-sqlite
 COPY ./rcdcli ./rcdcli
 COPY ./rcd-foo ./rcd-foo
+COPY ./rcd-my-info-core ./rcd-my-info-core
 
 # Build for release.
 # RUN rm ./target/release/*
