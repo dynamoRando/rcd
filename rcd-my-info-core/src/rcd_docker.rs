@@ -11,6 +11,10 @@ impl RcdDocker {
         }
     }
 
+    pub async fn new_rcd_container(&self, name: &str) {
+        todo!()
+    }
+
     pub async fn list_docker_images(&self) {
         let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
     
@@ -22,6 +26,24 @@ impl RcdDocker {
             }
             Err(e) => eprintln!("Something bad happened! {e}"),
         }
+    }
+
+    pub async fn has_container(&self, name: &String) -> Result<bool, String> {
+
+        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
+    
+        match docker.containers().list(&Default::default()).await {
+            Ok(containers) => {
+                for container in containers {
+                    let names = container.names.unwrap();
+
+                    return Ok(names.contains(name))
+                }
+            }
+            Err(e) => eprintln!("Something bad happened! {}", e),
+        }
+
+        todo!()
     }
 
     pub async fn list_docker_containers(&self) {
