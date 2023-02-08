@@ -2771,7 +2771,9 @@ name = "rcd-foo"
 version = "0.1.0"
 dependencies = [
  "log",
+ "rcd-my-info-core",
  "rcd-sqlite-log",
+ "tokio",
 ]
 
 [[package]]

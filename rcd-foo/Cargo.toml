@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 rcd-sqlite-log = { path = "../rcd-sqlite-log" }
+rcd-my-info-core = { path = "../rcd-my-info-core" }
 log = "0.4"
+tokio = { version = "1.18.0", features = ["full"] }
