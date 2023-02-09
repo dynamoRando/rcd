@@ -7,7 +7,7 @@ use std::thread;
 // brew install socat
 
 #[test]
-fn test_get_containers() {
+fn get_containers() {
     thread::spawn(move || {
         let _ = get_names();
     })
