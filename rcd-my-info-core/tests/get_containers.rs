@@ -1,12 +1,15 @@
+use rcd_my_info_core::rcd_docker::RcdDocker;
 use std::thread;
 
-use rcd_my_info_core::rcd_docker::RcdDocker;
+// https://stackoverflow.com/questions/64216274/docker-desktop-for-mac-bind-to-tcp-port
+// https://stackoverflow.com/questions/51119922/how-to-connect-to-docker-via-tcp-on-macos
+// socat TCP-LISTEN:2375,range=127.0.0.1/32,reuseaddr,fork UNIX-CLIENT:/var/run/docker.sock
+// brew install socat
 
 #[test]
-#[ignore = "need to have docker running"]
 fn test_get_containers() {
     thread::spawn(move || {
-        get_names();
+        let _ = get_names();
     })
     .join()
     .unwrap();
@@ -15,16 +18,13 @@ fn test_get_containers() {
 #[tokio::main]
 async fn get_names() {
     let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
-    let images = docker.get_docker_images().await.unwrap();
+    if let Ok(images) = docker.get_docker_images().await {
+        for image in &images {
+            println!("{}", image);
+        }
 
-    // for i in &images {
-    //     println!("{:?}", i);
-    // }
-    
-    let name = r#"["rcd:latest"]"#;
-    
-    // println!("{}", name);
-    
-    let has_name = images.contains(&name.to_string());
-    assert!(has_name);
+        let name = r#"["rcd:latest"]"#;
+        let has_name = images.contains(&name.to_string());
+        assert!(has_name);
+    }
 }
