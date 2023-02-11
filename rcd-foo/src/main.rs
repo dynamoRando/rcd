@@ -15,10 +15,17 @@ fn main() {
 #[tokio::main]
 async fn docker_up() {
     println!("connecting");
-    let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string()).unwrap();
-    docker.list_docker_containers().await;
-    docker.list_docker_images().await;
-    let _ = docker.new_rcd_container(&"test".to_string()).await;
+    let result = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
+    match result {
+        Ok(docker) => {
+            docker.list_docker_containers().await;
+            docker.list_docker_images().await;
+            let _ = docker.new_rcd_container(&"test".to_string()).await;
+        }
+        Err(e) => {
+            println!("{e}")
+        }
+    }
 }
 
 #[allow(dead_code)]

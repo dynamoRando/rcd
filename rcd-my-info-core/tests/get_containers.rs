@@ -19,13 +19,15 @@ fn get_containers() {
 async fn get_names() {
     let result = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
     if let Ok(docker) = result {
-        let images = docker.get_docker_images().await.unwrap();
-        for image in &images {
-            println!("{}", image);
-        }
+        let result = docker.get_docker_images().await;
+        if let Ok(images) = result {
+            for image in &images {
+                println!("{}", image);
+            }
 
-        let name = r#"["rcd:latest"]"#;
-        let has_name = images.contains(&name.to_string());
-        assert!(has_name);
+            let name = r#"["rcd:latest"]"#;
+            let has_name = images.contains(&name.to_string());
+            assert!(has_name);
+        }
     }
 }

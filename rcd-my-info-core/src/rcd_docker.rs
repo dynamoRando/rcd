@@ -48,9 +48,7 @@ impl RcdDocker {
     }
 
     pub async fn list_docker_images(&self) {
-        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
-
-        match docker.images().list(&Default::default()).await {
+        match self.docker.images().list(&Default::default()).await {
             Ok(images) => {
                 for image in images {
                     println!("{:?}", image.repo_tags);
@@ -61,9 +59,7 @@ impl RcdDocker {
     }
 
     pub async fn has_container(&self, name: &String) -> Result<bool, String> {
-        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
-
-        match docker.containers().list(&Default::default()).await {
+        match self.docker.containers().list(&Default::default()).await {
             Ok(containers) => {
                 for container in containers {
                     let names = container.names.unwrap();
