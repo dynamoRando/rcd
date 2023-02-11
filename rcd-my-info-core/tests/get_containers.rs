@@ -17,8 +17,9 @@ fn get_containers() {
 
 #[tokio::main]
 async fn get_names() {
-    let docker = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
-    if let Ok(images) = docker.get_docker_images().await {
+    let result = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
+    if let Ok(docker) = result {
+        let images = docker.get_docker_images().await.unwrap();
         for image in &images {
             println!("{}", image);
         }

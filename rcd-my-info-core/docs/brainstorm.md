@@ -9,6 +9,7 @@ Expecations:
     duplicate functionality here between rcd-admin and rcd-my-info. rcd-my-info is the SaaS that
     allows multiple users to create data accounts (implemented via rcd). rcd-admin is the software
     that allows users to actually manage their own instance of rcd.
+    - do we need to leverage `nginx` to dynamically allocate domains to users?
 
 Setup:
     - Verify that the container "rcd:latest" is available

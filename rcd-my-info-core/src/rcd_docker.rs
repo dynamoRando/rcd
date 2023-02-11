@@ -1,26 +1,32 @@
 use anyhow::Result;
-use docker_api::opts::ContainerCreateOpts;
+use docker_api::{opts::ContainerCreateOpts, Docker};
 
 #[derive(Debug)]
 pub struct RcdDocker {
     docker_ip: String,
+    docker: Docker,
 }
 
 impl RcdDocker {
-    pub fn new(ip_addr_port: String) -> Self {
-        RcdDocker {
-            docker_ip: ip_addr_port,
+    pub fn new(ip_addr_port: String) -> Result<Self, String> {
+        let docker = docker_api::Docker::new(&ip_addr_port);
+        if let Ok(docker) = docker {
+            Ok(RcdDocker {
+                docker_ip: ip_addr_port,
+                docker: docker,
+            })
+        } else {
+            return Err("could not connect to docker".to_string());
         }
     }
 
     pub async fn new_rcd_container(&self, name: &String) -> Result<bool, String> {
         if !self.has_container(name).await.unwrap() {
-            let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
             let opts = ContainerCreateOpts::builder()
                 .name(name)
                 .image("rcd:latest")
                 .build();
-            let result = docker.containers().create(&opts).await;
+            let result = self.docker.containers().create(&opts).await;
             match result {
                 Ok(_container) => Ok(true),
                 Err(err) => return Err(format!("Something bad happened! {err}")),
@@ -31,8 +37,7 @@ impl RcdDocker {
     }
 
     pub async fn get_docker_images(&self) -> Result<Vec<String>> {
-        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
-        let images = docker.images().list(&Default::default()).await?;
+        let images = self.docker.images().list(&Default::default()).await?;
         let mut image_names: Vec<String> = Vec::new();
         for image in images {
             let name = format!("{:?}", image.repo_tags);
