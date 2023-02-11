@@ -43,6 +43,6 @@ members = [
     "rcd-client-wasm", 
     # an example app that will use the wasm client 
     "tracking", 
-    # core lib for managing docker containers
+    # core lib for managing containers: docker or k8s
     "rcd-my-info-core"
 ]

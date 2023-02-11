@@ -12,6 +12,8 @@
     - ability to start/stop either client and/or data service
 - report warning if default password has not been changed
 - implement encryption key for rcd for encrypting data in database
+- need to add "export" function to allow users to download their data either as a raw copy of the Sqlite database, or
+some other text format: JSON, CSV, etc. 
 
 # Deployment
 ## Docker 
