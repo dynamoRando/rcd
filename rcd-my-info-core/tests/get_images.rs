@@ -1,11 +1,9 @@
+use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
 use rcd_my_info_core::rcd_docker::RcdDocker;
 use std::thread;
-use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
-
 
 #[path = "test_harness.rs"]
 mod test_harness;
-
 
 // https://stackoverflow.com/questions/64216274/docker-desktop-for-mac-bind-to-tcp-port
 // https://stackoverflow.com/questions/51119922/how-to-connect-to-docker-via-tcp-on-macos

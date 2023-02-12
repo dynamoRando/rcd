@@ -75,7 +75,7 @@ impl RcdDocker {
                     let names = container.names.unwrap();
                     // println!("{:?}", names);
                     let n = format!("{}", name);
-                    
+
                     for x in names {
                         if x == n {
                             return Ok(true);
@@ -90,7 +90,12 @@ impl RcdDocker {
     }
 
     pub async fn get_container_id(&self, name: &String) -> Result<Option<String>, String> {
-        match self.docker.containers().list(&ContainerListOptsBuilder::default().all(true).build()).await {
+        match self
+            .docker
+            .containers()
+            .list(&ContainerListOptsBuilder::default().all(true).build())
+            .await
+        {
             Ok(containers) => {
                 for container in containers {
                     let names = container.names.as_ref().unwrap();
@@ -117,9 +122,7 @@ impl RcdDocker {
 
             let result = self.docker.containers().get(id).delete().await;
             match result {
-                Ok(_) => {
-                    Ok(true)
-                }
+                Ok(_) => Ok(true),
                 Err(err) => return Err(format!("Error: {err}")),
             }
         } else {
