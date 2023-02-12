@@ -1,5 +1,11 @@
 use rcd_my_info_core::rcd_docker::RcdDocker;
 use std::thread;
+use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
+
+
+#[path = "test_harness.rs"]
+mod test_harness;
+
 
 // https://stackoverflow.com/questions/64216274/docker-desktop-for-mac-bind-to-tcp-port
 // https://stackoverflow.com/questions/51119922/how-to-connect-to-docker-via-tcp-on-macos
@@ -7,16 +13,16 @@ use std::thread;
 // brew install socat
 
 #[test]
-fn get_containers() {
+fn test() {
     thread::spawn(move || {
-        let _ = get_names();
+        let _ = get_images();
     })
     .join()
     .unwrap();
 }
 
 #[tokio::main]
-async fn get_names() {
+async fn get_images() {
     let result = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
     if let Ok(docker) = result {
         let result = docker.get_docker_images().await;
@@ -28,6 +34,8 @@ async fn get_names() {
             let name = r#"["rcd:latest"]"#;
             let has_name = images.contains(&name.to_string());
             assert!(has_name);
+        } else {
+            println!("{}", DOCKER_NOT_RUNNING_MESSAGE);
         }
     }
 }

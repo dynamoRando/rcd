@@ -1,7 +1,11 @@
 use anyhow::Result;
-use docker_api::{opts::ContainerCreateOpts, Docker};
+use docker_api::{
+    opts::{ContainerCreateOpts, ContainerListOptsBuilder},
+    Docker,
+};
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct RcdDocker {
     docker_ip: String,
     docker: Docker,
@@ -16,7 +20,7 @@ impl RcdDocker {
                 docker: docker,
             })
         } else {
-            return Err("could not connect to docker".to_string());
+            return Err("Error: could not connect to docker".to_string());
         }
     }
 
@@ -29,7 +33,7 @@ impl RcdDocker {
             let result = self.docker.containers().create(&opts).await;
             match result {
                 Ok(_container) => Ok(true),
-                Err(err) => return Err(format!("Something bad happened! {err}")),
+                Err(err) => return Err(format!("Error: {err}")),
             }
         } else {
             Ok(false)
@@ -54,35 +58,88 @@ impl RcdDocker {
                     println!("{:?}", image.repo_tags);
                 }
             }
-            Err(e) => eprintln!("Something bad happened! {e}"),
+            Err(e) => eprintln!("Error: {e}"),
         }
     }
 
     pub async fn has_container(&self, name: &String) -> Result<bool, String> {
-        match self.docker.containers().list(&Default::default()).await {
+        let containers = self
+            .docker
+            .containers()
+            .list(&ContainerListOptsBuilder::default().all(true).build())
+            .await;
+
+        match containers {
             Ok(containers) => {
                 for container in containers {
                     let names = container.names.unwrap();
-
-                    return Ok(names.contains(name));
+                    // println!("{:?}", names);
+                    let n = format!("{}", name);
+                    
+                    for x in names {
+                        if x == n {
+                            return Ok(true);
+                        }
+                    }
                 }
             }
-            Err(e) => eprintln!("Something bad happened! {e}"),
+            Err(e) => eprintln!("Error: {e}"),
         }
 
         Ok(false)
     }
 
-    pub async fn list_docker_containers(&self) {
-        let docker = docker_api::Docker::new(&self.docker_ip).unwrap();
+    pub async fn get_container_id(&self, name: &String) -> Result<Option<String>, String> {
+        match self.docker.containers().list(&ContainerListOptsBuilder::default().all(true).build()).await {
+            Ok(containers) => {
+                for container in containers {
+                    let names = container.names.as_ref().unwrap();
 
-        match docker.containers().list(&Default::default()).await {
+                    for n in names {
+                        if n == name {
+                            // println!("found container id {:?}", &container);
+                            return Ok(Some(container.id.unwrap()));
+                        }
+                    }
+
+                    return Ok(None);
+                }
+            }
+            Err(e) => eprintln!("Error: {e}"),
+        }
+
+        Ok(None)
+    }
+
+    pub async fn remove_container(&self, name: &String) -> Result<bool, String> {
+        if self.has_container(name).await.unwrap() {
+            let id = self.get_container_id(name).await.unwrap().unwrap();
+
+            let result = self.docker.containers().get(id).delete().await;
+            match result {
+                Ok(_) => {
+                    Ok(true)
+                }
+                Err(err) => return Err(format!("Error: {err}")),
+            }
+        } else {
+            Ok(false)
+        }
+    }
+
+    pub async fn list_docker_containers(&self) {
+        match self
+            .docker
+            .containers()
+            .list(&ContainerListOptsBuilder::default().all(true).build())
+            .await
+        {
             Ok(containers) => {
                 for container in containers {
                     println!("{:?}", container.names.unwrap());
                 }
             }
-            Err(e) => eprintln!("Something bad happened! {e}"),
+            Err(e) => eprintln!("Error: {e}"),
         }
     }
 }
