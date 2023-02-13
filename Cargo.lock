@@ -2847,6 +2847,7 @@ dependencies = [
  "rcd-sqlite",
  "rusqlite",
  "simple_logger",
+ "thiserror",
  "tokio",
 ]
 

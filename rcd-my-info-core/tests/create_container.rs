@@ -32,7 +32,7 @@ async fn create_container() {
         let result = docker.new_rcd_container(&container_name).await;
         match result {
             Ok(create_result) => {
-                assert!(create_result);
+                assert!(create_result.len() > 0);
             }
             Err(e) => {
                 println!("{e}");

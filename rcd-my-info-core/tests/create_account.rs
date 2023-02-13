@@ -7,7 +7,7 @@ mod test_harness;
 
 #[test]
 pub fn create_account() {
-    SimpleLogger::new().init().unwrap();
+    SimpleLogger::new().with_level(log::LevelFilter::Info).init().unwrap();
 
     let admin = Admin::new(DbType::Sqlite, get_test_temp_dir("CREATE_ACCOUNT"));
     let email = "tester@test.com";

@@ -4,6 +4,8 @@ use docker_api::{
     Docker,
 };
 
+use crate::{container_error::CreateContainerError};
+
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct RcdDocker {
@@ -24,7 +26,7 @@ impl RcdDocker {
         }
     }
 
-    pub async fn new_rcd_container(&self, name: &String) -> Result<bool, String> {
+    pub async fn new_rcd_container(&self, name: &String) -> Result<String, CreateContainerError> {
         if !self.has_container(name).await.unwrap() {
             let opts = ContainerCreateOpts::builder()
                 .name(name)
@@ -32,11 +34,11 @@ impl RcdDocker {
                 .build();
             let result = self.docker.containers().create(&opts).await;
             match result {
-                Ok(_container) => Ok(true),
-                Err(err) => return Err(format!("Error: {err}")),
+                Ok(container) => Ok(container.id().to_string()),
+                Err(err) => return Err(CreateContainerError::DockerError(format!("{err}"))),
             }
         } else {
-            Ok(false)
+            Err(CreateContainerError::ContainerAlreadyExists)
         }
     }
 

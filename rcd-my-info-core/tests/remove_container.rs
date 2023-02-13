@@ -1,5 +1,7 @@
 use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
+use log::info;
 use rcd_my_info_core::rcd_docker::RcdDocker;
+use simple_logger::SimpleLogger;
 use std::thread;
 
 #[path = "test_harness.rs"]
@@ -12,6 +14,9 @@ mod test_harness;
 
 #[test]
 fn test() {
+    // SimpleLogger::new().env().init().unwrap();
+    SimpleLogger::new().with_level(log::LevelFilter::Info).init().unwrap();
+
     thread::spawn(move || {
         remove_container();
     })
@@ -33,9 +38,10 @@ async fn remove_container() {
         let result = docker.new_rcd_container(&container_name).await;
         match result {
             Ok(create_result) => {
-                assert!(create_result);
+                info!("{create_result}");
+                assert!(create_result.len() > 0);
 
-                if create_result {
+                if create_result.len() > 0 {
                     let remove_result = docker.remove_container(&container_name).await;
                     match remove_result {
                         Ok(result) => {

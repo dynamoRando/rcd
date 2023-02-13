@@ -14,3 +14,4 @@ rcd-common = { path = "../rcd-common" }
 rcd-sqlite = { path = "../rcd-sqlite" }
 log = "0.4"
 simple_logger = "4"
+thiserror = "1"

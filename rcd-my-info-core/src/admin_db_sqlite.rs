@@ -100,7 +100,10 @@ impl SqliteDb {
 
     fn create_account_table(&self) {
         let cmd =
-            "CREATE TABLE IF NOT EXISTS ACCOUNTS (EMAIL VARCHAR(50) NOT NULL, HASH BLOB NOT NULL);";
+            "CREATE TABLE IF NOT EXISTS ACCOUNTS (
+                    EMAIL VARCHAR(50) NOT NULL, 
+                    HASH BLOB NOT NULL,
+                    CONTAINER_ID TEXT);";
         let conn = self.get_db_conn();
         conn.execute(cmd, []).unwrap();
     }
