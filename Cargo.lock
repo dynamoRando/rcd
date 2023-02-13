@@ -2831,6 +2831,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "docker-api",
+ "log",
+ "rcd-common",
+ "rcd-sqlite",
  "rusqlite",
  "tokio",
 ]
