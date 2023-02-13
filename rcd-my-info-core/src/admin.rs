@@ -1,4 +1,4 @@
-use std::{path::Path};
+use std::path::Path;
 
 use crate::{admin_db::DbType, admin_db_sqlite::SqliteDb};
 
@@ -6,7 +6,7 @@ use crate::{admin_db::DbType, admin_db_sqlite::SqliteDb};
 pub struct Admin {
     db_type: DbType,
     root_dir: String,
-    sqlite: Option<SqliteDb>
+    sqlite: Option<SqliteDb>,
 }
 
 impl Admin {
@@ -15,10 +15,23 @@ impl Admin {
             DbType::Sqlite => {
                 let path = Path::new(&root_dir).join("my_info.db");
                 let db = SqliteDb::new(path.to_str().unwrap().to_string());
-                let admin =  Admin { db_type: DbType::Sqlite, root_dir, sqlite: Some(db) };
+                let admin = Admin {
+                    db_type: DbType::Sqlite,
+                    root_dir,
+                    sqlite: Some(db),
+                };
                 return admin;
+            }
+            DbType::MySql => todo!(),
+            DbType::Postgres => todo!(),
+        }
+    }
 
-            },
+    pub fn verify_login(&self, email: &str, pw: &str) -> Result<bool, String> {
+        match self.db_type {
+            DbType::Sqlite => {
+                return self.sqlite.as_ref().unwrap().validate_login(email, pw);
+            }
             DbType::MySql => todo!(),
             DbType::Postgres => todo!(),
         }
@@ -27,8 +40,8 @@ impl Admin {
     pub fn register_user(&self, email: &str, pw: &str) -> Result<bool, String> {
         match self.db_type {
             DbType::Sqlite => {
-                self.sqlite.as_ref().unwrap().save_account(email, pw)
-            },
+                return self.sqlite.as_ref().unwrap().save_account(email, pw);
+            }
             DbType::MySql => todo!(),
             DbType::Postgres => todo!(),
         }

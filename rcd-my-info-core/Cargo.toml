@@ -13,3 +13,4 @@ rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bund
 rcd-common = { path = "../rcd-common" }
 rcd-sqlite = { path = "../rcd-sqlite" }
 log = "0.4"
+simple_logger = "4"
