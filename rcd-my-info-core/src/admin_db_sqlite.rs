@@ -24,7 +24,7 @@ impl SqliteDb {
             let pw = hash(pw);
             let cmd = "INSERT INTO ACCOUNTS (EMAIL, HASH) VALUES (:email, :hash);";
             let conn = self.get_db_conn();
-            let mut statement = conn.prepare(&cmd).unwrap();
+            let mut statement = conn.prepare(cmd).unwrap();
             let result = statement.execute(named_params! { ":email": email, ":hash": pw.0 });
 
             match result {
@@ -33,16 +33,16 @@ impl SqliteDb {
                     if account_created {
                         info!("account {email} created");
                     }
-                    return Ok(account_created);
+                    Ok(account_created)
                 }
                 Err(e) => {
                     error!("{e}");
-                    return Err(e.to_string());
+                    Err(e.to_string())
                 }
             }
         } else {
             warn!("account {email} already exists, will not create a second account");
-            return Ok(false);
+            Ok(false)
         }
     }
 

@@ -13,7 +13,7 @@ mod test_harness;
 #[test]
 fn test() {
     thread::spawn(move || {
-        let _ = get_images();
+        get_images();
     })
     .join()
     .unwrap();

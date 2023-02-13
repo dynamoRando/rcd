@@ -17,10 +17,10 @@ impl RcdDocker {
         if let Ok(docker) = docker {
             Ok(RcdDocker {
                 docker_ip: ip_addr_port,
-                docker: docker,
+                docker,
             })
         } else {
-            return Err("Error: could not connect to docker".to_string());
+            Err("Error: could not connect to docker".to_string())
         }
     }
 
@@ -74,7 +74,7 @@ impl RcdDocker {
                 for container in containers {
                     let names = container.names.unwrap();
                     // println!("{:?}", names);
-                    let n = format!("{}", name);
+                    let n = name.to_string();
 
                     for x in names {
                         if x == n {

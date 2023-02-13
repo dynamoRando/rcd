@@ -12,7 +12,7 @@ mod test_harness;
 #[test]
 fn test() {
     thread::spawn(move || {
-        let _ = create_container();
+        create_container();
     })
     .join()
     .unwrap();
