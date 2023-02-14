@@ -1,4 +1,6 @@
+use log::info;
 use rcd_my_info_core::rcd_docker::RcdDocker;
+use simple_logger::SimpleLogger;
 use std::thread;
 
 #[path = "test_harness.rs"]
@@ -11,6 +13,8 @@ mod test_harness;
 
 #[test]
 fn test() {
+    SimpleLogger::new().with_level(log::LevelFilter::Info).init().unwrap(); 
+    
     thread::spawn(move || {
         create_container();
     })
@@ -25,7 +29,7 @@ async fn create_container() {
         let container_name = "/create_container".to_string();
 
         if docker.has_container(&container_name).await.unwrap() {
-            println!("container {container_name} already exists");
+            info!("container {container_name} already exists");
             docker.remove_container(&container_name).await.unwrap();
         }
 
