@@ -3,6 +3,7 @@ use docker_api::{
     opts::{ContainerCreateOpts, ContainerListOptsBuilder},
     Docker,
 };
+use log::debug;
 
 use crate::{container_error::CreateContainerError};
 
@@ -104,7 +105,7 @@ impl RcdDocker {
 
                     for n in names {
                         if n == name {
-                            // println!("found container id {:?}", &container);
+                            debug!("found container id {:?}", &container);
                             return Ok(Some(container.id.unwrap()));
                         }
                     }

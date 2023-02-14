@@ -16,6 +16,7 @@ impl SqliteDb {
     pub fn new(db_path: String) -> Self {
         let db = SqliteDb { db_path };
         db.create_account_table();
+        db.create_admin_port_table();
         db
     }
 
@@ -99,11 +100,22 @@ impl SqliteDb {
     }
 
     fn create_account_table(&self) {
-        let cmd =
-            "CREATE TABLE IF NOT EXISTS ACCOUNTS (
+        let cmd = "CREATE TABLE IF NOT EXISTS ACCOUNTS (
                     EMAIL VARCHAR(50) NOT NULL, 
                     HASH BLOB NOT NULL,
-                    CONTAINER_ID TEXT);";
+                    CONTAINER_ID TEXT,
+                    CLIENT_PORT INT,
+                    DATA_PORT INT,
+                    HTTP_PORT INT);";
+        let conn = self.get_db_conn();
+        conn.execute(cmd, []).unwrap();
+    }
+
+    fn create_admin_port_table(&self) {
+        let cmd = "CREATE TABLE IF NOT EXISTS PORT_CONFIG (
+            START INT,
+            LAST_ASSIGNED INT
+        );";
         let conn = self.get_db_conn();
         conn.execute(cmd, []).unwrap();
     }
