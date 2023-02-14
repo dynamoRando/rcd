@@ -1,11 +1,15 @@
 use anyhow::Result;
 use docker_api::{
-    opts::{ContainerCreateOpts, ContainerListOptsBuilder},
+    opts::{ContainerCreateOpts, ContainerListOptsBuilder, PublishPort},
     Docker,
 };
 use log::debug;
 
-use crate::{container_error::CreateContainerError};
+use crate::{container_error::CreateContainerError, port_setup::PortSetup};
+
+const CLIENT_PORT: u32 = 50051;
+const DATA_PORT: u32 = 50052;
+const HTTP_PORT: u32 = 50055;
 
 #[derive(Debug)]
 #[allow(dead_code)]
@@ -32,6 +36,33 @@ impl RcdDocker {
             let opts = ContainerCreateOpts::builder()
                 .name(name)
                 .image("rcd:latest")
+                .build();
+            let result = self.docker.containers().create(&opts).await;
+            match result {
+                Ok(container) => Ok(container.id().to_string()),
+                Err(err) => return Err(CreateContainerError::DockerError(format!("{err}"))),
+            }
+        } else {
+            Err(CreateContainerError::ContainerAlreadyExists)
+        }
+    }
+
+    pub async fn new_rcd_container_with_ports(
+        &self,
+        name: &String,
+        port_settings: PortSetup,
+    ) -> Result<String, CreateContainerError> {
+        if !self.has_container(name).await.unwrap() {
+            let cpp = PublishPort::tcp(CLIENT_PORT);
+            let dpp = PublishPort::tcp(DATA_PORT);
+            let hpp = PublishPort::tcp(HTTP_PORT);
+
+            let opts = ContainerCreateOpts::builder()
+                .name(name)
+                .image("rcd:latest")
+                .expose(cpp, port_settings.client)
+                .expose(dpp, port_settings.data)
+                .expose(hpp, port_settings.http)
                 .build();
             let result = self.docker.containers().create(&opts).await;
             match result {
