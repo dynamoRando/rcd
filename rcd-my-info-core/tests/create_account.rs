@@ -38,7 +38,7 @@ pub fn create_account_with_container() {
     let docker_ip = "tcp://127.0.0.1:2375";
     let admin = Admin::new(DbType::Sqlite, get_test_temp_dir("CREATE_CONTAINER")).set_docker_ip(docker_ip);
     admin.register_user(email, pw).unwrap();
-    admin.provision_container_for_user(email);
+    admin.provision_container_for_user(email).unwrap();
 
 
     todo!()
