@@ -1,6 +1,6 @@
 use log::{debug, error, info, warn};
 use rcd_common::crypt::{self, hash};
-use rcd_sqlite::sqlite::has_any_rows;
+use rcd_sqlite::sqlite::{has_any_rows, get_scalar_as_u32};
 use rusqlite::{named_params, Connection};
 use std::path::Path;
 
@@ -91,6 +91,17 @@ impl SqliteDb {
             warn!("account {email} already exists, will not create a second account");
             Ok(false)
         }
+    }
+
+    pub fn get_last_used_port(&self) -> u32 {
+        let cmd = "SELECT LAST_ASSIGNED FROM PORT_CONFIG";
+        get_scalar_as_u32(cmd.to_string(), &self.get_db_conn())
+    }
+
+    pub fn update_last_used_port(&self, port_num: u32) {
+        let cmd = "UPDATE PORT_CONFIG SET LAST_ASSIGNED = :num";
+        let cmd = cmd.replace(":port_num", &port_num.to_string());
+        self.get_db_conn().execute(&cmd, []).unwrap();
     }
 
     fn get_db_conn(&self) -> Connection {

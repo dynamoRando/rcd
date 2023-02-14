@@ -27,3 +27,18 @@ pub fn create_account() {
         }
     }
 }
+
+#[test]
+#[ignore = "code not finished"]
+pub fn create_account_with_container() {
+    SimpleLogger::new().with_level(log::LevelFilter::Info).init().unwrap();
+
+    let email = "tester@test.com";
+    let pw = "dontlook";
+    let docker_ip = "tcp://127.0.0.1:2375";
+    let admin = Admin::new(DbType::Sqlite, get_test_temp_dir("CREATE_CONTAINER")).set_docker_ip(docker_ip);
+    admin.register_user(email, pw).unwrap();
+
+
+    todo!()
+}

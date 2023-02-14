@@ -1,12 +1,13 @@
 use std::path::Path;
 
-use crate::{admin_db::DbType, admin_db_sqlite::SqliteDb};
+use crate::{admin_db::DbType, admin_db_sqlite::SqliteDb, rcd_docker::RcdDocker};
 
 #[allow(dead_code)]
 pub struct Admin {
     db_type: DbType,
     root_dir: String,
     sqlite: Option<SqliteDb>,
+    docker: Option<RcdDocker>,
 }
 
 impl Admin {
@@ -19,12 +20,19 @@ impl Admin {
                     db_type: DbType::Sqlite,
                     root_dir,
                     sqlite: Some(db),
+                    docker: None,
                 };
                 return admin;
             }
             DbType::MySql => todo!(),
             DbType::Postgres => todo!(),
         }
+    }
+
+    pub fn set_docker_ip(mut self, docker_ip: &str) -> Self {
+        let docker = RcdDocker::new(docker_ip.to_string()).unwrap();
+        self.docker = Some(docker);
+        self
     }
 
     pub fn verify_login(&self, email: &str, pw: &str) -> Result<bool, String> {
@@ -41,6 +49,17 @@ impl Admin {
         match self.db_type {
             DbType::Sqlite => {
                 return self.sqlite.as_ref().unwrap().save_account(email, pw);
+            }
+            DbType::MySql => todo!(),
+            DbType::Postgres => todo!(),
+        }
+    }
+
+    #[allow(unused_variables)]
+    pub fn provision_container_for_user(&self, email: &str) {
+        match self.db_type {
+            DbType::Sqlite => {
+                todo!()
             }
             DbType::MySql => todo!(),
             DbType::Postgres => todo!(),
