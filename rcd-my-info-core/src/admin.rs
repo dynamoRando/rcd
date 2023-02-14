@@ -56,9 +56,20 @@ impl Admin {
     }
 
     #[allow(unused_variables)]
-    pub fn provision_container_for_user(&self, email: &str) {
+    pub fn provision_container_for_user(&self, email: &str) -> Result<bool, String> {
         match self.db_type {
             DbType::Sqlite => {
+                let client_port = self.sqlite.as_ref().unwrap().get_last_used_port() + 1;
+                let data_port = client_port + 1;
+                let http_port = data_port + 1;
+
+                // we need to create a docker instance, exposing 50051, 50052, 50055 
+                // to the previously determined ports
+
+                // if that provision works, then we will update the users' account
+                // with these port numbers 
+
+                // finally we should update the last port used for the next account that is provisioned
                 todo!()
             }
             DbType::MySql => todo!(),
