@@ -118,5 +118,8 @@ impl SqliteDb {
         );";
         let conn = self.get_db_conn();
         conn.execute(cmd, []).unwrap();
+
+        let cmd = "INSERT INTO PORT_CONFIG (START, LAST_ASSIGNED) VALUES (10000, 10000);";
+        conn.execute(cmd, []).unwrap();
     }
 }
