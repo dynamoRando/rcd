@@ -1,10 +1,14 @@
 #[path = "test_harness.rs"]
 mod test_harness;
 
+use std::thread;
+
 use crate::test_harness::get_test_temp_dir;
+use crate::test_harness::remove_container_if_exists;
 use log::error;
 use rcd_my_info_core::{admin::Admin, admin_db::DbType};
 use simple_logger::SimpleLogger;
+use std::sync::Arc;
 
 #[test]
 #[ignore = "code not finished"]
@@ -14,20 +18,32 @@ pub fn create_account_with_container() {
         .init()
         .unwrap();
 
+    let test_name = "CREATE_CONTAINER";
     let email = "tester@test.com";
+    let docker_ip = Arc::new("tcp://127.0.0.1:2375");
     let pw = "dontlook";
-    let docker_ip = "tcp://127.0.0.1:2375";
+
+    {
+        let container_name = format!("{}{}", "/", email);
+        let docker_ip = docker_ip.clone();
+        thread::spawn(move || {
+            test_setup(&docker_ip, &container_name);
+        })
+        .join()
+        .unwrap();
+    }
+
     let admin =
-        Admin::new(DbType::Sqlite, get_test_temp_dir("CREATE_CONTAINER")).set_docker_ip(docker_ip);
-    let is_registered_result = admin.register_user(email, pw);
+        Admin::new(DbType::Sqlite, get_test_temp_dir(test_name)).set_docker_ip(&docker_ip);
+    let is_registered_result = admin.register_user(&email, pw);
 
     match is_registered_result {
         Ok(_) => {
-            let is_provisioned_result = admin.provision_container_for_user(email);
+            let is_provisioned_result = admin.provision_container_for_user(&email);
             match is_provisioned_result {
                 Ok(is_provisioned) => {
                     todo!()
-                },
+                }
                 Err(e) => {
                     error!("{e}");
                 }
@@ -37,4 +53,9 @@ pub fn create_account_with_container() {
             error!("{e}");
         }
     }
+}
+
+#[tokio::main]
+async fn test_setup(docker_ip: &str, container_name: &str) {
+    remove_container_if_exists(docker_ip, &container_name).await;
 }
