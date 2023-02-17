@@ -3,7 +3,7 @@ use docker_api::{
     opts::{ContainerCreateOpts, ContainerListOptsBuilder, PublishPort},
     Docker,
 };
-use log::debug;
+use log::{debug, error};
 
 use crate::{container_error::CreateContainerError, port_setup::PortSetup};
 
@@ -117,7 +117,10 @@ impl RcdDocker {
                     }
                 }
             }
-            Err(e) => eprintln!("Error: {e}"),
+            Err(e) => {
+                error!("{e}");
+                return Err(e.to_string());
+            }
         }
 
         Ok(false)

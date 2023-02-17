@@ -1,4 +1,4 @@
-use std::{env, path::Path, fs};
+use std::{env, fs, path::Path};
 
 use log::info;
 use rcd_my_info_core::rcd_docker::RcdDocker;
@@ -7,7 +7,7 @@ use rcd_my_info_core::rcd_docker::RcdDocker;
 pub const DOCKER_NOT_RUNNING_MESSAGE: &str = "docker not running - test skipped";
 
 #[allow(dead_code)]
-/// Returns a blank directory in the $TMPDIR under the `RCD_MY_INFO` folder. If the 
+/// Returns a blank directory in the $TMPDIR under the `RCD_MY_INFO` folder. If the
 /// directory already exists, it will delete it and create it.
 pub fn get_test_temp_dir(test_name: &str) -> String {
     let dir = env::temp_dir();
@@ -29,9 +29,28 @@ pub async fn remove_container_if_exists(docker_ip: &str, container_name: &str) {
     let result = RcdDocker::new(docker_ip.to_string());
     if let Ok(docker) = result {
         let container_name = container_name.to_string();
-        if docker.has_container(&container_name).await.unwrap() {
-            info!("container {container_name} already exists");
-            docker.remove_container(&container_name).await.unwrap();
+        let has_container = docker.has_container(&container_name).await;
+        if let Ok(has_container) = has_container {
+            if has_container {
+                info!("container {container_name} already exists");
+                docker.remove_container(&container_name).await.unwrap();
+            }
         }
+    }
+}
+
+#[allow(dead_code)]
+#[tokio::main]
+pub async fn is_docker_running(docker_ip: &str) -> bool {
+    let result = RcdDocker::new(docker_ip.to_string());
+    if let Ok(docker) = result {
+        let container_name = "/test_harness".to_string();
+        let has_container = docker.has_container(&container_name).await;
+        match has_container {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    } else {
+        false
     }
 }

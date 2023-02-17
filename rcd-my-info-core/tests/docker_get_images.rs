@@ -1,4 +1,5 @@
 use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
+use log::info;
 use rcd_my_info_core::rcd_docker::RcdDocker;
 use std::thread;
 
@@ -11,7 +12,7 @@ mod test_harness;
 // brew install socat
 
 #[test]
-fn test() {
+fn docker_get_images() {
     thread::spawn(move || {
         get_images();
     })
@@ -33,7 +34,7 @@ async fn get_images() {
             let has_name = images.contains(&name.to_string());
             assert!(has_name);
         } else {
-            println!("{}", DOCKER_NOT_RUNNING_MESSAGE);
+            info!("{}", DOCKER_NOT_RUNNING_MESSAGE);
         }
     }
 }
