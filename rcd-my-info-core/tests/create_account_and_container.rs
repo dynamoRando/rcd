@@ -33,14 +33,13 @@ pub fn create_account_with_container() {
         .unwrap();
     }
 
-    let admin =
-        Admin::new(DbType::Sqlite, get_test_temp_dir(test_name)).set_docker_ip(&docker_ip);
-    let is_registered_result = admin.register_user(&email, pw);
+    let admin = Admin::new(DbType::Sqlite, get_test_temp_dir(test_name)).set_docker_ip(&docker_ip);
+    let is_registered = admin.register_user(&email, pw);
 
-    match is_registered_result {
+    match is_registered {
         Ok(_) => {
-            let is_provisioned_result = admin.provision_container_for_user(&email);
-            match is_provisioned_result {
+            let is_provisioned = admin.provision_container_for_user(&email);
+            match is_provisioned {
                 Ok(is_provisioned) => {
                     todo!()
                 }
