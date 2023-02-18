@@ -34,7 +34,7 @@ pub mod grpc {
         info!("starting client service");
 
         thread::spawn(move || {
-            let _service = service.start_grpc_client_service_at_addr(client_address_port, root_dir);
+            service.start_grpc_client_service_at_addr(client_address_port, root_dir).unwrap();
         });
 
         test_harness::sleep_test();
