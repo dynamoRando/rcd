@@ -67,7 +67,7 @@ pub fn docker_create_account_with_container() {
             Ok(_) => {
                 let is_provisioned = admin.provision_container_for_user(&email);
                 match is_provisioned {
-                    Ok(is_provisioned) => {
+                    Ok(_is_provisioned) => {
                         todo!()
                     }
                     Err(e) => {
