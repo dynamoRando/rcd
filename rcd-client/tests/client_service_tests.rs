@@ -1,20 +1,35 @@
 #[path = "test_harness.rs"]
 mod test_harness;
 
-#[path = "client_service_tests/enable_cooperative_features.rs"]
-mod enable_cooperative_features;
+#[path = "client_service_tests/enable_cooperative_features_grpc.rs"]
+mod enable_cooperative_features_grpc;
+
+#[path = "client_service_tests/enable_cooperative_features_http.rs"]
+mod enable_cooperative_features_http;
 
 #[path = "client_service_tests/get_set_logical_storage_policy.rs"]
 mod get_set_logical_storage_policy;
-#[path = "client_service_tests/has_table.rs"]
-mod has_table;
-#[path = "client_service_tests/host_only.rs"]
-mod host_only;
+
+#[path = "client_service_tests/has_table_grpc.rs"]
+mod has_table_grpc;
+
+#[path = "client_service_tests/has_table_http.rs"]
+mod has_table_http;
+
+#[path = "client_service_tests/host_only_grpc.rs"]
+mod host_only_grpc;
+
+#[path = "client_service_tests/host_only_http.rs"]
+mod host_only_http;
+
 #[path = "client_service_tests/is_online.rs"]
 mod is_online;
 
-#[path = "client_service_tests/get_settings.rs"]
-mod get_settings;
+#[path = "client_service_tests/get_settings_grpc.rs"]
+mod get_settings_grpc;
+
+#[path = "client_service_tests/get_settings_http.rs"]
+mod get_settings_http;
 
 #[path = "client_service_tests/create_db_enable_coop_read_write_grpc.rs"]
 mod create_db_enable_coop_read_write_grpc;

@@ -27,6 +27,7 @@ pub mod grpc {
         debug!("{:?}", &service);
 
         service.start_at_dir(&root_dir);
+        service.enable_internal_logging(&root_dir, log::LevelFilter::Debug);
 
         info!("starting client at {}", &client_address_port);
         info!("starting client service");

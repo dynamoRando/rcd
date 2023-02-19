@@ -1,6 +1,7 @@
 use core::time;
 use lazy_static::lazy_static;
 use log::debug;
+use log::error;
 use log::info;
 use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
@@ -125,7 +126,7 @@ pub fn sleep_instance() {
 pub fn init_log_to_screen(level: LevelFilter) {
     let res_log = SimpleLogger::new().with_level(level).init();
     if let Err(e) = res_log {
-        debug!("{e}");
+        error!("{e}");
     }
 }
 

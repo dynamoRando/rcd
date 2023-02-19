@@ -1,5 +1,5 @@
 use config::Config;
-use log::{LevelFilter, error, info};
+use log::{error, info, LevelFilter};
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::dbi::Dbi;
@@ -127,18 +127,19 @@ impl RcdService {
                 };
 
                 self.db_interface = Some(config);
-
-                let result = SqliteLog::init_at_dir(LevelFilter::Debug, root_dir.to_string());
-
-                if result.is_err() {
-                    error!("{}", result.err().unwrap());
-                }
             }
 
             DatabaseType::Mysql => unimplemented!(),
             DatabaseType::Postgres => unimplemented!(),
             DatabaseType::Sqlserver => unimplemented!(),
             _ => panic!("Unknown db type"),
+        }
+    }
+
+    pub fn enable_internal_logging(&self, root_dir: &str, log_level: LevelFilter) {
+        let result = SqliteLog::init_at_dir(log_level, root_dir.to_string());
+        if result.is_err() {
+            error!("{}", result.err().unwrap());
         }
     }
 
@@ -275,7 +276,7 @@ pub fn get_service_from_config(config: RcdSettings) -> RcdService {
 pub fn get_config_from_settings_file(settings_filename: Option<String>) -> RcdSettings {
     let wd = env::current_dir().unwrap();
     let cwd = wd.to_str().unwrap();
-    
+
     let filename: String = if settings_filename.is_none() {
         String::from("Settings.toml")
     } else {

@@ -1,17 +1,17 @@
-
-pub mod http {
-
     use log::{info, debug};
-    use rcdx::rcd_service::{get_service_from_config_file, RcdService};
+    use rcdx::rcd_service::get_service_from_config_file;
     extern crate futures;
     extern crate tokio;
     use crate::test_harness;
+    use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
     use std::sync::mpsc;
     use std::thread;
 
     #[test]
     pub fn test() {
-        let test_name = "get_logs_http";
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
+        let test_name = "get_settings_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
         let port_num = test_harness::TEST_SETTINGS
@@ -27,20 +27,18 @@ pub mod http {
         debug!("{:?}", &service);
 
         service.start_at_dir(&root_dir);
-        service.enable_internal_logging(&root_dir, log::LevelFilter::Debug);
 
         info!("starting client at {}", &client_address_port);
         info!("starting client service");
 
         thread::spawn(move || {
-            service.start_http_at_addr_and_dir("127.0.0.1".to_string(), port_num as u16, root_dir);
-            test_harness::sleep_test();
-        })
-        .join()
-        .unwrap();
+            service.start_grpc_client_service_at_addr(client_address_port, root_dir).unwrap();
+        });
+
+        test_harness::sleep_test();
 
         thread::spawn(move || {
-            let res = client(&test_db_name, &target_client_address_port, port_num);
+            let res = client(&test_db_name, &target_client_address_port);
             tx.send(res).unwrap();
         })
         .join()
@@ -48,36 +46,33 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        debug!("has logs: got: {response}");
+        debug!("has table: got: {response}");
 
         assert!(response);
 
         test_harness::release_port(port_num);
-        RcdService::shutdown_http("127.0.0.1".to_string(), port_num);
     }
 
     #[cfg(test)]
     #[tokio::main]
-    async fn client(db_name: &str, addr_port: &str, port: u32) -> bool {
+    async fn client(db_name: &str, addr_port: &str) -> bool {
         #[allow(unused_imports)]
         use log::Log;
         use rcd_client::RcdClient;
-
-        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
         use rcd_enum::database_type::DatabaseType;
         use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
-        use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
+        let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
         let addr_port = format!("{}{}", String::from("http://"), addr_port);
         info!("has_table attempting to connect {}", addr_port);
 
-        let mut client = RcdClient::new_http_client(
+        let mut client = RcdClient::new_grpc_client(
+            addr_port,
             String::from("tester"),
             String::from("123456"),
             60,
-            "127.0.0.1".to_string(),
-            port,
-        );
+        )
+        .await;
 
         client.create_user_database(db_name).await.unwrap();
         client.enable_cooperative_features(db_name).await.unwrap();
@@ -123,7 +118,7 @@ pub mod http {
 
         client.has_table(db_name, "EMPLOYEE").await.unwrap();
 
-        let logs = client.get_last_log_entries(5).await.unwrap().logs;
-        !logs.is_empty()
+        let settings = client.get_settings().await.unwrap().settings_json;
+
+        !settings.is_empty()
     }
-}
