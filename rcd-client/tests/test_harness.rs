@@ -307,6 +307,8 @@ pub struct TestSettings {
 }
 
 impl TestSettings {
+    /// tracks the next defined port available in the collection
+    /// note: this will sleep the thread for 1 second
     pub fn get_next_avail_port(&mut self) -> u32 {
         sleep_test_for_seconds(1);
 
