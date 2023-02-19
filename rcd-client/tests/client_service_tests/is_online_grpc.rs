@@ -56,7 +56,7 @@ fn test() {
     info!("starting client service");
 
     thread::spawn(move || {
-        let _service = service.start_grpc_client_service_alt();
+        service.start_grpc_client_service_alt().unwrap();
     });
 
     test_harness::sleep_test();

@@ -1,4 +1,3 @@
-
 use log::{debug, info};
 use rcd_client::RcdClient;
 
