@@ -1,9 +1,9 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     #[test]
     fn test() {
@@ -22,70 +22,54 @@ pub mod grpc {
         let (tx_participant, rx_participant) = mpsc::channel();
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
-        let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
+        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
+        test_harness::sleep_test();
 
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
-
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
-
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name;
-
-        thread::spawn(move || {
-            let res = main_service_client(
-                &main_db_name,
-                main_addrs.0,
-                participant_addrs.1,
-                main_contract_desc,
-            );
-            tx_main.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let main_db_name = test_db_name;
+            let main_test_config = main_test_config.clone();
+            let main_contract_desc = custom_contract_description.clone();
+            let participant_test_config = participant_test_config.clone();
+            thread::spawn(move || {
+                let res = main_service_client(
+                    &main_db_name,
+                    main_test_config.client_address,
+                    participant_test_config.database_address,
+                    main_contract_desc,
+                );
+                tx_main.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
         debug!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let participant_contract_desc = custom_contract_description;
+            let participant_test_config = participant_test_config.clone();
+            thread::spawn(move || {
+                let res =
+                    participant_service_client(participant_test_config.client_address, 
+                        participant_contract_desc);
+                tx_participant.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let participant_got_contract = rx_participant.try_recv().unwrap();
         debug!("participant_got_contract: got: {participant_got_contract}");
 
         assert!(participant_got_contract);
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
-
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        test_harness::shutdown_test(main_test_config, participant_test_config);
     }
 
     #[cfg(test)]
@@ -202,14 +186,14 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use std::sync::mpsc;
     use std::{thread, time};
 
     #[test]
     fn test() {
         test_harness::init_log_to_screen(log::LevelFilter::Info);
-        
+
         /*
             We will need to kick off two services, the host and the participant
             and we will need to also kick off two clients, one for each
@@ -223,7 +207,7 @@ pub mod http {
         let (tx_participant, rx_participant) = mpsc::channel();
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -231,7 +215,7 @@ pub mod http {
         // let ma1 = main_addrs.clone();
         let ma2 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;

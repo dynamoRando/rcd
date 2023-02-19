@@ -1,4 +1,3 @@
-
 use crate::test_harness::{self, ServiceAddr};
 use log::{debug, info};
 use std::sync::mpsc;
@@ -45,36 +44,40 @@ fn test() {
 
     test_harness::sleep_test();
 
-    let main_contract_desc = custom_contract_description.clone();
-    let participant_contract_desc = custom_contract_description;
-    let main_db_name = test_db_name;
-
-    thread::spawn(move || {
-        let res = main_service_client(
-            &main_db_name,
-            main_test_config.client_address,
-            participant_test_config.database_address,
-            main_contract_desc,
-        );
-        tx_main.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
+    {
+        let main_client_addr = main_test_config.client_address.clone();
+        let participant_db_addr = participant_test_config.database_address.clone();
+        let main_contract_desc = custom_contract_description.clone();
+        let main_db_name = test_db_name.clone();
+        thread::spawn(move || {
+            let res = main_service_client(
+                &main_db_name,
+                &main_client_addr,
+                &participant_db_addr,
+                &main_contract_desc,
+            );
+            tx_main.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
+    }
 
     let sent_participant_contract = rx_main.try_recv().unwrap();
     debug!("send_participant_contract: got: {sent_participant_contract}");
 
     assert!(sent_participant_contract);
 
-    thread::spawn(move || {
-        let res = participant_service_client(
-            participant_test_config.client_address,
-            participant_contract_desc,
-        );
-        tx_participant.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
+    {
+        let participant_contract_desc = custom_contract_description.clone();
+        let participant_client_addr = participant_test_config.client_address.clone();
+        thread::spawn(move || {
+            let res =
+                participant_service_client(&participant_client_addr, &participant_contract_desc);
+            tx_participant.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
+    }
 
     let participant_accepted_contract = rx_participant.try_recv().unwrap();
     debug!("participant_accpeted_contract: got: {participant_accepted_contract}");
@@ -88,9 +91,9 @@ fn test() {
 #[tokio::main]
 async fn main_service_client(
     db_name: &str,
-    main_client_addr: ServiceAddr,
-    participant_db_addr: ServiceAddr,
-    contract_desc: String,
+    main_client_addr: &ServiceAddr,
+    participant_db_addr: &ServiceAddr,
+    contract_desc: &str,
 ) -> bool {
     use rcd_client::RcdClient;
     use rcd_enum::database_type::DatabaseType;
@@ -161,8 +164,8 @@ async fn main_service_client(
 #[cfg(test)]
 #[tokio::main]
 async fn participant_service_client(
-    participant_client_addr: ServiceAddr,
-    contract_desc: String,
+    participant_client_addr: &ServiceAddr,
+    contract_desc: &str,
 ) -> bool {
     use rcd_client::RcdClient;
     let mut has_contract = false;

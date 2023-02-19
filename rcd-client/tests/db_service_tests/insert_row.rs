@@ -33,7 +33,9 @@ pub mod grpc {
 
         {
             let main_contract_desc = custom_contract_description.clone();
-            let main_db_name = test_db_name;
+            let main_db_name = test_db_name.clone();
+            let main_test_config = main_test_config.clone();
+            let participant_test_config = participant_test_config.clone();
             thread::spawn(move || {
                 let res = main_service_client(
                     &main_db_name,
@@ -54,6 +56,7 @@ pub mod grpc {
 
         {
             let participant_contract_desc = custom_contract_description;
+            let participant_test_config = participant_test_config.clone();
             thread::spawn(move || {
                 let res = participant_service_client(
                     participant_test_config.client_address,
@@ -72,6 +75,7 @@ pub mod grpc {
 
         {
             let main_db_name = test_db_name.clone();
+            let main_test_config = main_test_config.clone();
             thread::spawn(move || {
                 let res = main_execute_coop_write(&main_db_name, main_test_config.client_address);
                 tx_main_write.send(res).unwrap();
