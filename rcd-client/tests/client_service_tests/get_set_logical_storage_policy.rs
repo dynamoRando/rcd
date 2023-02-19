@@ -1,6 +1,6 @@
 pub mod grpc {
 
-    use log::info;
+    use log::{info, debug};
     use rcdx::rcd_service::get_service_from_config_file;
     extern crate futures;
     extern crate tokio;
@@ -22,11 +22,11 @@ pub mod grpc {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{root_dir}");
+        debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
         let policy = LogicalStoragePolicy::ParticpantOwned;
         let i_policy = LogicalStoragePolicy::to_u32(policy);
 
@@ -50,7 +50,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!("get_set_logical_storage_policy: got: policy_num: {response}");
+        debug!("get_set_logical_storage_policy: got: policy_num: {response}");
 
         assert_eq!(i_policy, response);
 
@@ -148,7 +148,7 @@ pub mod grpc {
 
 pub mod http {
 
-    use log::info;
+    use log::{info, debug};
 
     use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
 
@@ -170,11 +170,11 @@ pub mod http {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{root_dir}");
+        debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
         let policy = LogicalStoragePolicy::ParticpantOwned;
         let i_policy = LogicalStoragePolicy::to_u32(policy);
 
@@ -203,7 +203,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!("get_set_logical_storage_policy: got: policy_num: {response}");
+        debug!("get_set_logical_storage_policy: got: policy_num: {response}");
 
         assert_eq!(i_policy, response);
 

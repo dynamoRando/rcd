@@ -1,6 +1,7 @@
 use antlr_rust::{
     common_token_stream::CommonTokenStream, token_factory::CommonTokenFactory, InputStream,
 };
+use log::trace;
 use rcd_enum::dml_type::DmlType;
 
 use self::{
@@ -63,7 +64,7 @@ pub fn get_table_name(cmd: &str) -> String {
 pub fn determine_statement_type(sql_text: String) -> DmlType {
     let text = sql_text.as_str();
 
-    // println!("{}", sql_text);
+    trace!("{}", sql_text);
 
     let tf = CommonTokenFactory::default();
     let input = InputStream::new(text);

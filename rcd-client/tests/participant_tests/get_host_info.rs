@@ -1,7 +1,7 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, debug};
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -34,7 +34,7 @@ pub mod grpc {
         .unwrap();
 
         let has_host_name = rx_main.try_recv().unwrap();
-        println!("has_host_name: got: {has_host_name}");
+        debug!("has_host_name: got: {has_host_name}");
 
         assert!(has_host_name);
     }
@@ -70,7 +70,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, debug};
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -108,7 +108,7 @@ pub mod http {
         .unwrap();
 
         let has_host_info = rx_main.try_recv().unwrap();
-        println!("has_host_info: got: {has_host_info}");
+        debug!("has_host_info: got: {has_host_info}");
 
         assert!(has_host_info);
 

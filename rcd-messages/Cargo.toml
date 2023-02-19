@@ -10,3 +10,4 @@ serde = "1"
 serde_derive = "1"
 indexmap = "1.9.1"
 rcd-markdown = { path = "../rcd-markdown" }
+log = "0.4"

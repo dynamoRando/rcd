@@ -1,5 +1,6 @@
 use core::time;
 use lazy_static::lazy_static;
+use log::debug;
 use log::info;
 use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
@@ -76,16 +77,16 @@ pub fn start_service_with_http(
         addr_type: AddrType::Client,
     };
 
-    println!("{:?}", &service);
-    println!("{:?}", &root_dir);
+    debug!("{:?}", &service);
+    debug!("{:?}", &root_dir);
 
     service.start_at_dir(root_dir.as_str());
 
     let cwd = service.cwd();
     delete_test_database(test_db_name, &cwd);
 
-    println!("{:?}", &test_db_name);
-    println!("{:?}", &cwd);
+    debug!("{:?}", &test_db_name);
+    debug!("{:?}", &cwd);
 
     service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
 
@@ -124,7 +125,7 @@ pub fn sleep_instance() {
 pub fn init_log_to_screen(level: LevelFilter) {
     let res_log = SimpleLogger::new().with_level(level).init();
     if let Err(e) = res_log {
-        println!("{e}");
+        debug!("{e}");
     }
 }
 
@@ -217,8 +218,8 @@ pub fn start_service_with_grpc(
         addr_type: AddrType::Database,
     };
 
-    println!("{:?}", &service);
-    println!("{:?}", &root_dir);
+    debug!("{:?}", &service);
+    debug!("{:?}", &root_dir);
 
     service.start_at_dir(root_dir.as_str());
 

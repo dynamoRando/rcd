@@ -107,7 +107,7 @@ impl RcdDocker {
             Ok(containers) => {
                 for container in containers {
                     let names = container.names.unwrap();
-                    // println!("{:?}", names);
+                    debug!("{:?}", names);
                     let n = name.to_string();
 
                     for x in names {

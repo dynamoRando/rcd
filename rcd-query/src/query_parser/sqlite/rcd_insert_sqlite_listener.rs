@@ -1,4 +1,5 @@
 use antlr_rust::{parser_rule_context::ParserRuleContext, tree::ParseTreeListener};
+use log::trace;
 
 use super::{
     sqlitelistener::SQLiteListener,
@@ -20,7 +21,7 @@ pub struct InsertData {
 
 impl<'input> ParseTreeListener<'input, SQLiteParserContextType> for RcdInsertSqliteListener {
     fn enter_every_rule(&mut self, ctx: &dyn SQLiteParserContext<'input>) {
-        println!(
+        trace!(
             "rule entered {}",
             sqliteparser::ruleNames
                 .get(ctx.get_rule_index())
@@ -115,8 +116,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     }
 
     fn enter_delete_stmt(&mut self, _ctx: &sqliteparser::Delete_stmtContext<'input>) {
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED DELETE STATEMENT");
+        trace!("RCDSQLITELISTNER ENTERED DELETE STATEMENT");
     }
 
     fn exit_delete_stmt(&mut self, _ctx: &sqliteparser::Delete_stmtContext<'input>) {}
@@ -166,8 +166,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     }
 
     fn enter_insert_stmt(&mut self, _ctx: &sqliteparser::Insert_stmtContext<'input>) {
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED INSERT STATEMENT");
+        trace!("RCDSQLITELISTNER ENTERED INSERT STATEMENT");
     }
 
     fn exit_insert_stmt(&mut self, _ctx: &sqliteparser::Insert_stmtContext<'input>) {}
@@ -198,8 +197,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     fn exit_simple_select_stmt(&mut self, _ctx: &sqliteparser::Simple_select_stmtContext<'input>) {}
 
     fn enter_select_stmt(&mut self, _ctx: &sqliteparser::Select_stmtContext<'input>) {
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED SELECT STATEMENT");
+        trace!("RCDSQLITELISTNER ENTERED SELECT STATEMENT");
     }
 
     fn exit_select_stmt(&mut self, _ctx: &sqliteparser::Select_stmtContext<'input>) {}
@@ -209,8 +207,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     fn exit_select_or_values(&mut self, _ctx: &sqliteparser::Select_or_valuesContext<'input>) {}
 
     fn enter_update_stmt(&mut self, _ctx: &sqliteparser::Update_stmtContext<'input>) {
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED UPDATE STATEMENT");
+        trace!("RCDSQLITELISTNER ENTERED UPDATE STATEMENT");
     }
 
     fn exit_update_stmt(&mut self, _ctx: &sqliteparser::Update_stmtContext<'input>) {}
@@ -248,7 +245,7 @@ impl<'input> SQLiteListener<'input> for RcdInsertSqliteListener {
     fn exit_conflict_clause(&mut self, _ctx: &sqliteparser::Conflict_clauseContext<'input>) {}
 
     fn enter_expr(&mut self, _ctx: &sqliteparser::ExprContext<'input>) {
-        // println!("{:?}", _ctx.start().text.to_string());
+        // trace!("{:?}", _ctx.start().text.to_string());
     }
 
     fn exit_expr(&mut self, _ctx: &sqliteparser::ExprContext<'input>) {}

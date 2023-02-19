@@ -1,4 +1,5 @@
 use crate::{client::Row, formatter::build_max_lengths_for_columns};
+use log::trace;
 
 /// takes a Vec of rows and formats a table similiar to Markdown
 pub fn rows_to_string_markdown_table(rows: &[Row]) -> String {
@@ -42,8 +43,8 @@ pub fn rows_to_string_markdown_table(rows: &[Row]) -> String {
             let max_length = *col_max.1;
             markdown_table = markdown_table + " " + &value.string_value.clone();
 
-            // println!("max_length: {:?}", max_length);
-            // println!("max_length: {:?}", value.string_value.len());
+            trace!("max_length: {:?}", max_length);
+            trace!("max_length: {:?}", value.string_value.len());
 
             // let pad_length = max_length - *&value.string_value.len() as u32 - 1;
             let pad_length = max_length - value.string_value.len() as u32;

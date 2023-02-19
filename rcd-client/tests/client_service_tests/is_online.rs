@@ -1,6 +1,6 @@
 pub mod grpc {
 
-    use log::info;
+    use log::{info, debug};
     use rcdproto::rcdp::sql_client_client::SqlClientClient;
     use rcdproto::rcdp::TestRequest;
     use rcdx::rcd_service::get_service_from_config_file;
@@ -33,7 +33,7 @@ pub mod grpc {
         info!("sending request");
 
         let response = client.is_online(request).await.unwrap().into_inner();
-        println!("RESPONSE={response:?}");
+        debug!("RESPONSE={response:?}");
         info!("response back");
 
         String::from(&response.reply_echo_message)
@@ -47,11 +47,11 @@ pub mod grpc {
         let (tx, rx) = mpsc::channel();
 
         let root_dir = test_harness::get_test_temp_dir(test_message);
-        println!("{root_dir}");
+        debug!("{root_dir}");
 
         let mut service = get_service_from_config_file(None);
         let client_address_port = service.rcd_settings.grpc_client_service_addr_port.clone();
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
         service.start_at_dir(&root_dir);
 
         info!("starting client service");
@@ -71,7 +71,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!("test_is_online: got: {response} sent: {test_message}");
+        debug!("test_is_online: got: {response} sent: {test_message}");
 
         assert_eq!(response, test_message);
     }
@@ -79,7 +79,7 @@ pub mod grpc {
 
 pub mod http {
 
-    use log::info;
+    use log::{info, debug};
     use rcd_client::RcdClient;
 
     use rcdx::rcd_service::get_service_from_config_file;
@@ -112,7 +112,7 @@ pub mod http {
         let (tx, rx) = mpsc::channel();
 
         let root_dir = test_harness::get_test_temp_dir(test_message);
-        println!("{root_dir}");
+        debug!("{root_dir}");
 
         let mut service = get_service_from_config_file(None);
 
@@ -122,7 +122,7 @@ pub mod http {
         let addr1 = http_addr.clone();
         let addr2 = http_addr;
 
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
         service.start_at_dir(&root_dir);
 
         info!("starting client service");
@@ -146,7 +146,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!("test_is_online: got: {response} sent: {test_message}");
+        debug!("test_is_online: got: {response} sent: {test_message}");
 
         assert_eq!(response, test_message);
     }

@@ -1,6 +1,6 @@
 pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, debug};
     use std::sync::mpsc;
     use std::thread;
 
@@ -54,7 +54,7 @@ pub mod grpc {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        debug!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -66,7 +66,7 @@ pub mod grpc {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accepted_contract: got: {participant_accepted_contract}");
+        debug!("participant_accepted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -234,7 +234,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, debug};
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -291,7 +291,7 @@ pub mod http {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        debug!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -303,7 +303,7 @@ pub mod http {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accepted_contract: got: {participant_accepted_contract}");
+        debug!("participant_accepted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 

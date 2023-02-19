@@ -1,10 +1,11 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, trace};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::thread;
+
 
     /*
     # Test Description
@@ -66,7 +67,7 @@ pub mod grpc {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        trace!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -78,7 +79,7 @@ pub mod grpc {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accepted_contract: got: {participant_accepted_contract}");
+        trace!("participant_accepted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -247,7 +248,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        println!("{data:?}");
+        trace!("{data:?}");
 
         let value = data
             .rows
@@ -259,11 +260,11 @@ pub mod grpc {
             .value
             .clone();
 
-        println!("{value:?}");
+        trace!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{expected_value:?}");
+        trace!("{expected_value:?}");
 
         value == expected_value
     }
@@ -333,7 +334,7 @@ pub mod grpc {
 
         let has_all_databases = true;
 
-        println!(
+        trace!(
             "participant_get_databases attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
         );
@@ -352,10 +353,10 @@ pub mod grpc {
 
         let mut actual_db_names: Vec<String> = Vec::new();
 
-        println!("actual names");
+        trace!("actual names");
 
         for db in &dbs_reply.databases {
-            println!("{}", db.database_name.clone());
+            trace!("{}", db.database_name.clone());
             actual_db_names.push(db.database_name.clone());
         }
 
@@ -368,9 +369,9 @@ pub mod grpc {
             "rcd.db"
         ];
 
-        println!("expected names");
+        trace!("expected names");
         for name in &expected_db_names {
-            println!("{name}");
+            trace!("{name}");
         }
 
         debug!("actual: {:?}", actual_db_names);
@@ -399,7 +400,7 @@ pub mod grpc {
         )
         .await;
 
-        println!("main_get_databases");
+        trace!("main_get_databases");
 
         let result = client.get_databases().await;
 
@@ -407,10 +408,10 @@ pub mod grpc {
 
         let mut actual_db_names: Vec<String> = Vec::new();
 
-        println!("actual names");
+        trace!("actual names");
 
         for db in &dbs_reply.databases {
-            println!("{}", db.database_name.clone());
+            trace!("{}", db.database_name.clone());
             actual_db_names.push(db.database_name.clone());
         }
 
@@ -422,9 +423,9 @@ pub mod grpc {
             "rcd.db"
         ];
         
-        println!("expected names");
+        trace!("expected names");
         for name in &expected_db_names {
-            println!("{name}");
+            trace!("{name}");
         }
 
         for name in &expected_db_names {
@@ -440,7 +441,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, trace};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
@@ -506,7 +507,7 @@ pub mod http {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        trace!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -518,7 +519,7 @@ pub mod http {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accepted_contract: got: {participant_accepted_contract}");
+        trace!("participant_accepted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -685,7 +686,7 @@ pub mod http {
             .await
             .unwrap();
 
-        println!("{data:?}");
+        trace!("{data:?}");
 
         let value = data
             .rows
@@ -697,11 +698,11 @@ pub mod http {
             .value
             .clone();
 
-        println!("{value:?}");
+        trace!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{expected_value:?}");
+        trace!("{expected_value:?}");
 
         value == expected_value
     }
@@ -770,7 +771,7 @@ pub mod http {
 
         let has_all_databases = true;
 
-        println!(
+        trace!(
             "participant_get_databases attempting to connect {}",
             participant_client_addr.to_full_string_with_http()
         );
@@ -789,10 +790,10 @@ pub mod http {
 
         let mut actual_db_names: Vec<String> = Vec::new();
 
-        println!("actual names");
+        trace!("actual names");
 
         for db in &dbs_reply.databases {
-            println!("{}", db.database_name.clone());
+            trace!("{}", db.database_name.clone());
             actual_db_names.push(db.database_name.clone());
         }
 
@@ -805,9 +806,9 @@ pub mod http {
             "rcd.db"
         ];
 
-        println!("expected names");
+        trace!("expected names");
         for name in &expected_db_names {
-            println!("{name}");
+            trace!("{name}");
         }
 
         for name in &expected_db_names {
@@ -835,7 +836,7 @@ pub mod http {
             main_client_addr.port,
         );
 
-        println!("main_get_databases");
+        trace!("main_get_databases");
 
         let result = client.get_databases().await;
 
@@ -843,10 +844,10 @@ pub mod http {
 
         let mut actual_db_names: Vec<String> = Vec::new();
 
-        println!("actual names");
+        trace!("actual names");
 
         for db in &dbs_reply.databases {
-            println!("{}", db.database_name.clone());
+            trace!("{}", db.database_name.clone());
             actual_db_names.push(db.database_name.clone());
         }
 
@@ -857,9 +858,9 @@ pub mod http {
             "rcd.db",
         ];
 
-        println!("expected names");
+        trace!("expected names");
         for name in &expected_db_names {
-            println!("{name}");
+            trace!("{name}");
         }
 
         for name in &expected_db_names {

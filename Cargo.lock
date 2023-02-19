@@ -2832,6 +2832,7 @@ name = "rcd-messages"
 version = "0.1.0"
 dependencies = [
  "indexmap",
+ "log",
  "rcd-markdown",
  "serde",
  "serde_derive",

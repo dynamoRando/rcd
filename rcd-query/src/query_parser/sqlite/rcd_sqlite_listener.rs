@@ -1,4 +1,5 @@
 use antlr_rust::{parser_rule_context::ParserRuleContext, tree::ParseTreeListener};
+use log::trace;
 
 use super::{
     sqlitelistener::SQLiteListener,
@@ -20,7 +21,7 @@ pub struct DmlData {
 
 impl<'input> ParseTreeListener<'input, SQLiteParserContextType> for RcdSqliteListener {
     fn enter_every_rule(&mut self, ctx: &dyn SQLiteParserContext<'input>) {
-        println!(
+        trace!(
             "rule entered {}",
             sqliteparser::ruleNames
                 .get(ctx.get_rule_index())
@@ -116,8 +117,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_delete_stmt(&mut self, _ctx: &sqliteparser::Delete_stmtContext<'input>) {
         self.statement_type.data = DmlType::Delete;
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED DELETE STATEMENT");
+        trace!("RCDSQLITELISTNER ENTERED DELETE STATEMENT");
     }
 
     fn exit_delete_stmt(&mut self, _ctx: &sqliteparser::Delete_stmtContext<'input>) {}
@@ -168,8 +168,8 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_insert_stmt(&mut self, _ctx: &sqliteparser::Insert_stmtContext<'input>) {
         self.statement_type.data = DmlType::Insert;
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED INSERT STATEMENT");
+        // trace!("{:?}", self.statement_type);
+        // trace!("RCDSQLITELISTNER ENTERED INSERT STATEMENT");
     }
 
     fn exit_insert_stmt(&mut self, _ctx: &sqliteparser::Insert_stmtContext<'input>) {}
@@ -201,8 +201,8 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_select_stmt(&mut self, _ctx: &sqliteparser::Select_stmtContext<'input>) {
         self.statement_type.data = DmlType::Select;
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED SELECT STATEMENT");
+        // trace!("{:?}", self.statement_type);
+        // trace!("RCDSQLITELISTNER ENTERED SELECT STATEMENT");
     }
 
     fn exit_select_stmt(&mut self, _ctx: &sqliteparser::Select_stmtContext<'input>) {}
@@ -213,8 +213,8 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_update_stmt(&mut self, _ctx: &sqliteparser::Update_stmtContext<'input>) {
         self.statement_type.data = DmlType::Update;
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED UPDATE STATEMENT");
+        // trace!("{:?}", self.statement_type);
+        // trace!("RCDSQLITELISTNER ENTERED UPDATE STATEMENT");
     }
 
     fn exit_update_stmt(&mut self, _ctx: &sqliteparser::Update_stmtContext<'input>) {}
@@ -252,7 +252,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     fn exit_conflict_clause(&mut self, _ctx: &sqliteparser::Conflict_clauseContext<'input>) {}
 
     fn enter_expr(&mut self, _ctx: &sqliteparser::ExprContext<'input>) {
-        // println!("{:?}", _ctx.start().text.to_string());
+        // trace!("{:?}", _ctx.start().text.to_string());
     }
 
     fn exit_expr(&mut self, _ctx: &sqliteparser::ExprContext<'input>) {}
@@ -332,8 +332,8 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
 
     fn enter_select_core(&mut self, _ctx: &sqliteparser::Select_coreContext<'input>) {
         self.statement_type.data = DmlType::Select;
-        // println!("{:?}", self.statement_type);
-        // println!("RCDSQLITELISTNER ENTERED SELECT CORE STATEMENT");
+        // trace!("{:?}", self.statement_type);
+        // trace!("RCDSQLITELISTNER ENTERED SELECT CORE STATEMENT");
     }
 
     fn exit_select_core(&mut self, _ctx: &sqliteparser::Select_coreContext<'input>) {}
@@ -347,7 +347,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     fn exit_signed_number(&mut self, _ctx: &sqliteparser::Signed_numberContext<'input>) {}
 
     fn enter_literal_value(&mut self, _ctx: &sqliteparser::Literal_valueContext<'input>) {
-        // println!("{:?}", _ctx.start().text.to_string());
+        // trace!("{:?}", _ctx.start().text.to_string());
     }
 
     fn exit_literal_value(&mut self, _ctx: &sqliteparser::Literal_valueContext<'input>) {}
@@ -402,7 +402,7 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     }
 
     fn enter_table_name(&mut self, _ctx: &sqliteparser::Table_nameContext<'input>) {
-        // println!("SQLiteListener ENTERED TABLE NAME");
+        // trace!("SQLiteListener ENTERED TABLE NAME");
         self.statement_type.table_name = _ctx.start().text.to_string();
         self.statement_type
             .table_name_collection
@@ -428,8 +428,8 @@ impl<'input> SQLiteListener<'input> for RcdSqliteListener {
     fn exit_new_table_name(&mut self, _ctx: &sqliteparser::New_table_nameContext<'input>) {}
 
     fn enter_column_name(&mut self, _ctx: &sqliteparser::Column_nameContext<'input>) {
-        // println!("SQLiteListener ENTERED COLUMN NAME");
-        // println!("{:?}", _ctx.start().text);
+        // trace!("SQLiteListener ENTERED COLUMN NAME");
+        // trace!("{:?}", _ctx.start().text);
     }
 
     fn exit_column_name(&mut self, _ctx: &sqliteparser::Column_nameContext<'input>) {}

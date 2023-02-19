@@ -1,5 +1,6 @@
 use chrono::{TimeZone, Utc};
 use guid_create::GUID;
+use log::trace;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, db::DbiConfigSqlite, defaults,
@@ -39,7 +40,7 @@ pub fn generate_contract(
        and retire it, then generate the current one.
     */
 
-    // println!("generate contract: start for {}", db_name);
+    // trace!("generate contract: start for {}", db_name);
 
     let conn = &get_db_conn(&config, db_name);
     let policies = get_logical_storage_policy_for_all_user_tables(db_name, config);
@@ -63,7 +64,7 @@ pub fn generate_contract(
     let cmd = String::from("SELECT COUNT(*) TOTALCONTRACTS FROM COOP_DATABASE_CONTRACT");
     if !has_any_rows(cmd, conn) {
         // this is the first contract
-        // println!("generate contract: first_contract");
+        // trace!("generate contract: first_contract");
         let contract = CoopDatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
@@ -77,19 +78,19 @@ pub fn generate_contract(
         // there are other contracts, we need to find the active one and retire it
         // then generate a new contract
         let contracts = get_all_database_contracts(conn);
-        // println!("generate contract: retire contracts");
-        println!(
+        // trace!("generate contract: retire contracts");
+        trace!(
             "generate contract: retire contracts count: {}",
             contracts.len()
         );
         for con in contracts {
             if !con.is_retired() {
-                println!(
+                trace!(
                     "generate contract: retire contract {}",
                     &con.contract_id.to_string()
                 );
                 retire_contract(con.version_id, conn);
-                // println!(
+                // trace!(
                 //     "generate contract: save retired contract {}",
                 //     &con.contract_id.to_string()
                 // );
@@ -97,7 +98,7 @@ pub fn generate_contract(
             }
         }
 
-        println!("generate contract: retired. create new contract");
+        trace!("generate contract: retired. create new contract");
         let new_contract = CoopDatabaseContract {
             contract_id: GUID::rand(),
             generated_date: Utc::now(),
@@ -223,7 +224,7 @@ pub fn save_contract_at_connection(contract: CoopDatabaseContract, conn: &Connec
             );
 
             cmd = cmd.replace(":cid", &contract.contract_id.to_string());
-            println!("{}", &contract.generated_date);
+            trace!("{}", &contract.generated_date);
             cmd = cmd.replace(":gen_date", &contract.generated_date.to_string());
             cmd = cmd.replace(":desc", &contract.description);
             cmd = cmd.replace(":vid", &contract.version_id.to_string());
@@ -285,7 +286,7 @@ pub fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract
 
             if val.col.name == "GENERATED_DATE_UTC" {
                 let vgen_date = val.data.as_ref().unwrap().data_string.clone();
-                // println!("{}", vgen_date);
+                // trace!("{}", vgen_date);
                 let tgen_date =
                     Utc::datetime_from_str(&Utc, &vgen_date, defaults::DATETIME_STRING_FORMAT);
                 gen_date = tgen_date.unwrap();
@@ -302,7 +303,7 @@ pub fn get_all_database_contracts(conn: &Connection) -> Vec<CoopDatabaseContract
                 } else {
                     let vret_date = val.data.as_ref().unwrap().data_string.clone();
                     if !vret_date.is_empty() {
-                        // println!("{}", vret_date);
+                        // trace!("{}", vret_date);
                         let tret_date = Utc::datetime_from_str(
                             &Utc,
                             &vret_date,

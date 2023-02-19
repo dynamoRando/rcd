@@ -1,6 +1,6 @@
 pub mod grpc {
 
-    use log::info;
+    use log::{info, debug};
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
     use std::thread;
@@ -18,11 +18,11 @@ pub mod grpc {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{root_dir}");
+        debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
 
         service.start_at_dir(&root_dir);
 
@@ -47,7 +47,7 @@ pub mod grpc {
 
         let response = rx.try_recv().unwrap();
 
-        println!("auth_token_grpc: got: {response}");
+        debug!("auth_token_grpc: got: {response}");
 
         assert!(response);
 
@@ -107,7 +107,7 @@ pub mod grpc {
 
         let result = client.auth_for_token().await.unwrap();
 
-        println!("{result:?}");
+        debug!("{result:?}");
 
         if result.is_successful {
             client.send_jwt_if_available(true);
@@ -121,7 +121,7 @@ pub mod grpc {
 
 pub mod http {
 
-    use log::info;
+    use log::{info, debug};
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
     use std::thread;
@@ -139,11 +139,11 @@ pub mod http {
             .get_next_avail_port();
 
         let root_dir = test_harness::get_test_temp_dir(test_name);
-        println!("{root_dir}");
+        debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
         let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
         let target_client_address_port = client_address_port.clone();
-        println!("{:?}", &service);
+        debug!("{:?}", &service);
 
         service.start_at_dir(&root_dir);
 
@@ -168,7 +168,7 @@ pub mod http {
 
         let response = rx.try_recv().unwrap();
 
-        println!("auth_token_http: got: {response}");
+        debug!("auth_token_http: got: {response}");
 
         assert!(response);
 
@@ -227,7 +227,7 @@ pub mod http {
 
         let result = client.auth_for_token().await.unwrap();
 
-        println!("{result:?}");
+        debug!("{result:?}");
 
         if result.is_successful {
             client.send_jwt_if_available(true);
