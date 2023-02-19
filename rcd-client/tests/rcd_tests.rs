@@ -81,7 +81,7 @@ fn hash() {
     info!("test_hash: running");
 
     let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
+    let backing_database_name = String::from("test_positive_hash.db");
     let db_path = Path::new(&cwd).join(&backing_database_name);
 
     if db_path.exists() {
@@ -144,7 +144,7 @@ fn hash_negative() {
     info!("test_hash_false: running");
 
     let cwd = env::current_dir().unwrap();
-    let backing_database_name = String::from("test.db");
+    let backing_database_name = String::from("test_negative_hash.db");
     let db_path = Path::new(&cwd).join(&backing_database_name);
 
     if db_path.exists() {
