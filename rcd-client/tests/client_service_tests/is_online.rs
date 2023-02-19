@@ -41,6 +41,8 @@ pub mod grpc {
 
     #[test]
     fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
         let test_message: &str = "is_online_grpc";
         let (tx, rx) = mpsc::channel();
 

@@ -10,6 +10,8 @@ pub mod grpc {
 
     #[test]
     pub fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
         let test_name = "has_table_gprc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();

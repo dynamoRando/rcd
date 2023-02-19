@@ -1,10 +1,12 @@
 use core::time;
 use lazy_static::lazy_static;
 use log::info;
+use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
 use rcdx::rcd_service::get_service_from_config_file;
 use rcdx::rcd_service::RcdService;
+use simple_logger::SimpleLogger;
 use std::env;
 use std::fs;
 use std::sync::mpsc;
@@ -117,6 +119,14 @@ pub fn sleep_instance() {
     sleep_test_for_seconds(2);
 }
 
+/// overrides RCD's default logger to log to screen for the specified logging level
+#[allow(dead_code)]
+pub fn init_log_to_screen(level: LevelFilter) {
+    let res_log = SimpleLogger::new().with_level(level).init();
+    if let Err(e) = res_log {
+        println!("{e}");
+    }
+}
 
 pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -> Sender<bool> {
     let (tx_main, rx_main) = mpsc::channel();

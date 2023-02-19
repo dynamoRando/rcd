@@ -2679,6 +2679,7 @@ dependencies = [
  "reqwest",
  "serde",
  "serde_json",
+ "simple_logger",
  "tokio",
  "tonic",
  "tonic-build",

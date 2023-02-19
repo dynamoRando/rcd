@@ -18,10 +18,12 @@ use std::sync::Arc;
 #[test]
 #[ignore = "code not finished"]
 pub fn docker_create_account_with_container() {
-    SimpleLogger::new()
+    let res_log = SimpleLogger::new()
         .with_level(log::LevelFilter::Info)
-        .init()
-        .unwrap();
+        .init();
+    if let Err(e) = res_log {
+        println!("{e}");
+    }
 
     let test_name = "CREATE_CONTAINER";
     let email = "tester@test.com";

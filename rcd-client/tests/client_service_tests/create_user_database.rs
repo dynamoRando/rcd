@@ -10,6 +10,8 @@ pub mod grpc {
 
     #[test]
     fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
         let test_name = "create_user_database_positive_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
