@@ -13,3 +13,4 @@ guid-create = "0.3.0"
 substring = "1.4.5"
 rcdproto = { path = "../rcdproto" }
 rcd-enum = { path = "../rcd-enum" }
+log = "0.4"

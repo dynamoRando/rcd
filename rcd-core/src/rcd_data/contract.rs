@@ -4,6 +4,7 @@ use rcdproto::rcdp::{
 };
 
 use super::RcdData;
+use log::trace;
 
 pub async fn accept_contract(
     core: &RcdData,
@@ -11,7 +12,7 @@ pub async fn accept_contract(
 ) -> ParticipantAcceptsContractResult {
     let debug_message_info = &request.message_info.as_ref().unwrap().clone();
 
-    println!("{debug_message_info:?}");
+    trace!("{debug_message_info:?}");
 
     let participant_message = request.participant.as_ref().unwrap().clone();
 

@@ -10,6 +10,7 @@ This 'core' will handle most client actions by way of the defined proto types.
 */
 
 use chrono::Utc;
+use log::trace;
 use rcd_common::defaults;
 use rcd_common::rcd_settings::RcdSettings;
 use rcdproto::rcdp::{
@@ -238,7 +239,7 @@ impl Rcd {
     pub fn is_online(&self, request: TestRequest) -> TestReply {
         let item = request.request_echo_message;
 
-        println!("is_online, requested echo: {item}");
+        trace!("is_online, requested echo: {item}");
 
         TestReply {
             reply_time_utc: Utc::now().to_rfc2822(),

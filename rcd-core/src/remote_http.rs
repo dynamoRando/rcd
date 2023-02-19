@@ -7,7 +7,7 @@ Represents a HTTP client talking to a remote Data Service endpoint.
 use chrono::Utc;
 use endianness::{read_i32, ByteOrder};
 use guid_create::GUID;
-use log::info;
+use log::{info, trace};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
@@ -439,8 +439,8 @@ fn is_little_endian() -> bool {
 async fn send_message(json_message: String, url: String) -> String {
     let client = reqwest::Client::new();
 
-    println!("{json_message}");
-    println!("{url}");
+    trace!("{json_message}");
+    trace!("{url}");
 
     return client
         .post(url)

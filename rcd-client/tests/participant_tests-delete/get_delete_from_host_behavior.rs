@@ -1,7 +1,7 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
@@ -67,7 +67,7 @@ pub mod grpc {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        trace!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -79,7 +79,7 @@ pub mod grpc {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accpeted_contract: got: {participant_accepted_contract}");
+        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -228,7 +228,7 @@ pub mod grpc {
             .await
             .unwrap();
 
-        println!("{data:?}");
+        trace!("{data:?}");
 
         let value = data
             .rows
@@ -240,11 +240,11 @@ pub mod grpc {
             .value
             .clone();
 
-        println!("{value:?}");
+        trace!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{expected_value:?}");
+        trace!("{expected_value:?}");
 
         value == expected_value
     }
@@ -337,7 +337,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::info;
+    use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
@@ -403,7 +403,7 @@ pub mod http {
         .unwrap();
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
-        println!("send_participant_contract: got: {sent_participant_contract}");
+        trace!("send_participant_contract: got: {sent_participant_contract}");
 
         assert!(sent_participant_contract);
 
@@ -415,7 +415,7 @@ pub mod http {
         .unwrap();
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        println!("participant_accpeted_contract: got: {participant_accepted_contract}");
+        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
@@ -562,7 +562,7 @@ pub mod http {
             .await
             .unwrap();
 
-        println!("{data:?}");
+        trace!("{data:?}");
 
         let value = data
             .rows
@@ -574,11 +574,11 @@ pub mod http {
             .value
             .clone();
 
-        println!("{value:?}");
+        trace!("{value:?}");
 
         let expected_value = "999".as_bytes().to_vec();
 
-        println!("{expected_value:?}");
+        trace!("{expected_value:?}");
 
         value == expected_value
     }

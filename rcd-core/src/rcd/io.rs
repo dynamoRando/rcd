@@ -2,7 +2,7 @@ use super::Rcd;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use log::warn;
+use log::{warn, info, trace};
 use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
@@ -276,7 +276,7 @@ pub async fn execute_write_at_participant(
                             }
                         }
                         DeletesToHostBehavior::DoNothing => {
-                            println!("configured to not notify host on local delete");
+                            info!("configured to not notify host on local delete");
                             if delete_result.is_successful {
                                 is_overall_successful = true;
                                 rows_affected = 1;
@@ -438,7 +438,7 @@ pub async fn execute_cooperative_write_at_host(
                                 &internal_participant_id,
                             );
 
-                            println!("local update is successful: {local_update_is_successful}");
+                            trace!("local update is successful: {local_update_is_successful}");
 
                             if local_update_is_successful {
                                 is_remote_action_successful = true;
@@ -495,7 +495,7 @@ pub async fn execute_cooperative_write_at_host(
         total_rows_affected: 0,
     };
 
-    println!("{execute_write_reply:?}");
+    trace!("{execute_write_reply:?}");
 
     execute_write_reply
 }

@@ -1,6 +1,7 @@
 use guid_create::GUID;
 use rcd_enum::column_type::ColumnType;
 use substring::Substring;
+use log::trace;
 
 #[derive(Debug, Clone)]
 pub struct Data {
@@ -59,7 +60,7 @@ impl Column {
     pub fn data_type_len(&self) -> u32 {
         let str_data_type: String = self.data_type.clone();
 
-        println!("{str_data_type:?}");
+        trace!("{str_data_type:?}");
 
         let idx_first_paren = str_data_type.find('(');
 
@@ -70,7 +71,7 @@ impl Column {
             let idx_last = str_data_type.find(')').unwrap();
             let str_length = str_data_type.substring(idx_first, idx_last);
 
-            println!("{str_length:?}");
+            trace!("{str_length:?}");
 
             let length: u32 = str_length.parse().unwrap();
             length
@@ -134,13 +135,13 @@ impl Table {
     pub fn debug(&self) {
         for row in &self.rows {
             for val in &row.vals {
-                print!(
+                trace!(
                     "Col: {} Value {} ",
                     val.col.name,
                     &val.data.as_ref().unwrap().data_string
                 );
             }
-            println!();
+            trace!();
         }
     }
 

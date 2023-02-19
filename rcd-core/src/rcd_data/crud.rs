@@ -11,6 +11,7 @@ use rcdproto::rcdp::{
     NotifyHostOfRemovedRowRequest, NotifyHostOfRemovedRowResponse, Row, RowInfo, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest, UpdateRowDataHashForHostResponse,
 };
+use log::trace;
 
 pub async fn insert_command_into_table(
     core: &RcdData,
@@ -328,7 +329,7 @@ pub async fn update_row_data_hash_for_host(
     let auth_result = core.authenticate_participant(authentication, &request.database_name);
 
     if auth_result.0 {
-        println!("is authenticated");
+        trace!("is authenticated");
         let db_name = request.database_name.clone();
         let table_name = request.table_name.clone();
         let row_id = request.row_id;
@@ -348,7 +349,7 @@ pub async fn update_row_data_hash_for_host(
             &internal_participant_id.to_string(),
         );
     } else {
-        println!("not authenticated!");
+        trace!("not authenticated!");
     }
 
     UpdateRowDataHashForHostResponse {
@@ -366,7 +367,7 @@ pub async fn notify_host_of_removed_row(
     let mut is_successful = false;
 
     if auth_result.0 {
-        println!("is authenticated");
+        trace!("is authenticated");
         let db_name = request.database_name.clone();
         let table_name = request.table_name.clone();
         let row_id = request.row_id;
@@ -375,7 +376,7 @@ pub async fn notify_host_of_removed_row(
             core.dbi()
                 .remove_remote_row_reference_from_host(&db_name, &table_name, row_id);
     } else {
-        println!("not authenticated!");
+        trace!("not authenticated!");
     }
 
     NotifyHostOfRemovedRowResponse {

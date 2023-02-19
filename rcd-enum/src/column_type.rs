@@ -1,4 +1,5 @@
 use substring::Substring;
+use log::trace;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ColumnType {
@@ -31,7 +32,7 @@ impl ColumnType {
     }
 
     pub fn data_type_to_enum_u32(desc: String) -> u32 {
-        println!("{desc:?}");
+        trace!("{desc:?}");
         let ct = ColumnType::try_parse(&desc).unwrap();
         ColumnType::to_u32(ct)
     }
@@ -45,7 +46,7 @@ impl ColumnType {
             let idx_first = idx_first_paren.unwrap();
             let idx_last = desc.find(')').unwrap();
             let str_length = desc.substring(idx_first + 1, idx_last);
-            println!("{str_length}");
+            trace!("{str_length}");
             let length: u32 = str_length.parse().unwrap();
             length
         }
