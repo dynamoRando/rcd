@@ -1,7 +1,10 @@
 pub mod test_harness;
 
-#[path = "db_service_tests/accept_contract.rs"]
-mod accept_contract;
+#[path = "db_service_tests/accept_contract_grpc.rs"]
+mod accept_contract_grpc;
+
+#[path = "db_service_tests/accept_contract_http.rs"]
+mod accept_contract_http;
 
 #[path = "db_service_tests/insert_row.rs"]
 mod insert_row;

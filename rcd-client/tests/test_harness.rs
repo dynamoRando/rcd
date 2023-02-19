@@ -22,17 +22,33 @@ use triggered::Trigger;
 // we want to increment for all tests the ports used
 // so that way we can run multiple client/servers
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum AddrType {
     Client,
     Database,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ServiceAddr {
     pub ip4_addr: String,
     pub port: u32,
     pub addr_type: AddrType,
+}
+
+#[derive(Debug, Clone)]
+pub struct TestConfig {
+    pub client_address: ServiceAddr,
+    pub database_address: ServiceAddr,
+    pub client_service_shutdown_trigger: Trigger,
+    pub database_service_shutdown_trigger: Trigger,
+    pub client_keep_alive: Sender<bool>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TestDirectoryConfig {
+    pub root_dir: String,
+    pub main_dir: String,
+    pub participant_dir: String,
 }
 
 impl ServiceAddr {
@@ -183,18 +199,7 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_grpc(
-    test_db_name: &str,
-    root_dir: String,
-) -> (
-    ServiceAddr,
-    ServiceAddr,
-    u32,
-    u32,
-    Trigger,
-    Trigger,
-    Sender<bool>,
-) {
+pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConfig {
     let (client_trigger, client_listener) = triggered::trigger();
     let (db_trigger, db_listener) = triggered::trigger();
 
@@ -247,15 +252,13 @@ pub fn start_service_with_grpc(
 
     sleep_instance();
 
-    (
-        client_addr,
-        db_addr,
-        client_port_num,
-        db_port_num,
-        client_trigger,
-        db_trigger,
-        keep_alive,
-    )
+    TestConfig {
+        client_address: client_addr,
+        database_address: db_addr,
+        client_service_shutdown_trigger: client_trigger,
+        database_service_shutdown_trigger: db_trigger,
+        client_keep_alive: keep_alive,
+    }
 }
 
 #[allow(dead_code)]
@@ -276,7 +279,7 @@ pub fn get_test_temp_dir(test_name: &str) -> String {
 #[allow(dead_code)]
 /// returns a tuple for the root directory, the "main" directory, and the "participant" directory
 /// in the temp folder
-pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, String, String) {
+pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> TestDirectoryConfig {
     let root_dir = get_test_temp_dir(test_name);
 
     let main_path = Path::new(&root_dir).join("main");
@@ -299,7 +302,11 @@ pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> (String, Strin
 
     let participant_dir = participant_path.as_os_str().to_str().unwrap();
 
-    (root_dir, main_dir.to_string(), participant_dir.to_string())
+    TestDirectoryConfig {
+        root_dir,
+        main_dir: main_dir.to_string(),
+        participant_dir: participant_dir.to_string(),
+    }
 }
 
 pub struct TestSettings {
@@ -346,4 +353,20 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
     if db_path.exists() {
         fs::remove_file(&db_path).unwrap();
     }
+}
+
+#[allow(dead_code)]
+pub fn shutdown_test(main: TestConfig, participant: TestConfig) {
+    main.client_keep_alive.send(false).unwrap();
+    participant.client_keep_alive.send(false).unwrap();
+
+    release_port(main.client_address.port);
+    release_port(main.database_address.port);
+    release_port(participant.client_address.port);
+    release_port(participant.client_address.port);
+
+    main.client_service_shutdown_trigger.trigger();
+    main.database_service_shutdown_trigger.trigger();
+    participant.client_service_shutdown_trigger.trigger();
+    participant.database_service_shutdown_trigger.trigger();
 }
