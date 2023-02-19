@@ -9,6 +9,8 @@ pub mod grpc {
 
     #[test]
     pub fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+
         let test_name = "auth_token_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
@@ -130,6 +132,7 @@ pub mod http {
 
     #[test]
     pub fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
         let test_name = "auth_token_http";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();

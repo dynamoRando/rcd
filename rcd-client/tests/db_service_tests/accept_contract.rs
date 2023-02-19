@@ -29,6 +29,8 @@ pub mod grpc {
 
     #[test]
     fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+
         let test_name = "sa_contract_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let custom_contract_description = String::from("This is a custom description from test");
@@ -231,6 +233,8 @@ pub mod http {
 
     #[test]
     fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
         let test_name = "sa_contract_http";
         let test_db_name = format!("{}{}", test_name, ".db");
         let custom_contract_description = String::from("This is a custom description from test");

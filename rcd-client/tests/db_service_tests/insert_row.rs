@@ -8,6 +8,8 @@ pub mod grpc {
 
     #[test]
     fn test() {
+        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        
         /*
             We will need to kick off two services, the host and the participant
             and we will need to also kick off two clients, one for each
