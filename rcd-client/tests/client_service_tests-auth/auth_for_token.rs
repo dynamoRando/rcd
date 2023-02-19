@@ -20,7 +20,7 @@ pub mod grpc {
         let root_dir = test_harness::get_test_temp_dir(test_name);
         debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
+        let client_address_port = format!("{}{}", String::from("127.0.0.1:"), port_num);
         let target_client_address_port = client_address_port.clone();
         debug!("{:?}", &service);
 
@@ -141,7 +141,7 @@ pub mod http {
         let root_dir = test_harness::get_test_temp_dir(test_name);
         debug!("{root_dir}");
         let mut service = get_service_from_config_file(None);
-        let client_address_port = format!("{}{}", String::from("[::1]:"), port_num);
+        let client_address_port = format!("{}{}", String::from("127.0.0.1:"), port_num);
         let target_client_address_port = client_address_port.clone();
         debug!("{:?}", &service);
 

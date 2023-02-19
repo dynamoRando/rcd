@@ -93,7 +93,7 @@ https://stackoverflow.com/questions/47764448/how-to-test-grpc-apis
 
 ## Defualt Variables
 ```rust
-let default_addr_port = "http://[::1]:50051";
+let default_addr_port = "http://127.0.0.1:50051";
 ```
 
 ## Random Imports

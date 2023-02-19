@@ -202,18 +202,18 @@ pub fn start_service_with_grpc(
 
     let mut service = get_service_from_config_file(None);
 
-    let client_address_port = format!("{}{}", String::from("[::1]:"), client_port_num);
+    let client_address_port = format!("{}{}", String::from("127.0.0.1:"), client_port_num);
 
     let client_addr = ServiceAddr {
-        ip4_addr: "[::1]:".to_string(),
+        ip4_addr: "127.0.0.1:".to_string(),
         port: client_port_num,
         addr_type: AddrType::Client,
     };
 
-    let db_address_port = format!("{}{}", String::from("[::1]:"), db_port_num);
+    let db_address_port = format!("{}{}", String::from("127.0.0.1:"), db_port_num);
 
     let db_addr = ServiceAddr {
-        ip4_addr: "[::1]:".to_string(),
+        ip4_addr: "127.0.0.1:".to_string(),
         port: db_port_num,
         addr_type: AddrType::Database,
     };

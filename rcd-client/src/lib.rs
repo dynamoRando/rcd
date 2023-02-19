@@ -61,7 +61,7 @@ pub mod client_type;
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct RcdClient {
-    /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://[::1]:50051`
+    /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://127.0.0.1:50051`
     grpc_client_addr_port: String,
     /// The user name you will identify yourself to the `rcd` instance
     user_name: String,
