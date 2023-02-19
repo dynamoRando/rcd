@@ -3,7 +3,7 @@ pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
     use log::{debug, info};
     use rcd_client::RcdClient;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     #[test]
@@ -27,13 +27,17 @@ pub mod grpc {
         let participant_test_config =
             test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
+
         test_harness::sleep_test();
 
         {
             let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
             let main_contract_desc = custom_contract_description.clone();
+            let main_client_addr = main_client_addr.clone();
+            
             thread::spawn(move || {
                 let res = main_service_client(
                     &main_db_name,
@@ -53,11 +57,10 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         {
-            let participant_client_addr = participant_test_config.client_address.clone();
             let participant_contract_desc = custom_contract_description.clone();
             thread::spawn(move || {
                 let res =
-                    participant_service_client(participant_client_addr, participant_contract_desc);
+                    participant_service_client(&participant_client_addr, participant_contract_desc);
                 tx_participant.send(res).unwrap();
             })
             .join()
@@ -70,8 +73,8 @@ pub mod grpc {
         assert!(participant_accepted_contract);
 
         {
-            let main_client_addr = main_test_config.client_address.clone();
             let main_db_name = test_db_name.clone();
+            let main_client_addr = main_client_addr.clone();
             thread::spawn(move || {
                 let res = main_execute_coop_write_and_read(&main_db_name, &main_client_addr);
                 tx_main_write.send(res).unwrap();
@@ -223,7 +226,7 @@ pub mod grpc {
     #[tokio::main]
 
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         contract_desc: String,
     ) -> bool {
         use log::info;
@@ -270,7 +273,7 @@ pub mod http {
     use log::{debug, info};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::thread;
 
     #[test]
     fn test() {
@@ -317,9 +320,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
@@ -388,7 +391,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

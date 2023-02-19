@@ -4,7 +4,7 @@ pub mod grpc {
     use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -61,12 +61,14 @@ pub mod grpc {
         let participant_test_config =
             test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
+
         test_harness::sleep_test();
 
         {
             let (tx, rx) = mpsc::channel();
             let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
             let main_contract_desc = custom_contract_description.clone();
 
@@ -90,7 +92,6 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
-            let participant_client_addr = participant_test_config.client_address.clone();
             let custom_contract_description = custom_contract_description.clone();
 
             thread::spawn(move || {
@@ -112,7 +113,6 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
 
             thread::spawn(move || {
                 let res = main_execute_coop_write_and_read(&test_db_name, &main_client_addr);
@@ -130,12 +130,11 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
                 let res = participant_changes_update_behavior(
                     &test_db_name,
-                    participant_client_addr,
+                    &participant_client_addr,
                     new_behavior,
                 );
                 tx.send(res).unwrap();
@@ -150,7 +149,6 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
 
             thread::spawn(move || {
                 let res = main_read_updated_row_should_succeed(&test_db_name, &main_client_addr);
@@ -168,10 +166,9 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
-                let res = get_row_id_at_participant(&test_db_name, participant_client_addr);
+                let res = get_row_id_at_participant(&test_db_name, &participant_client_addr);
                 tx.send(res).unwrap();
             })
             .join()
@@ -185,12 +182,11 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_participant(
                     &test_db_name,
-                    participant_client_addr,
+                    &participant_client_addr,
                     participant_row_id,
                 );
                 tx.send(res).unwrap();
@@ -206,12 +202,11 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_host(
                     &test_db_name,
-                    participant_client_addr,
+                    &participant_client_addr,
                     participant_row_id,
                 );
                 tx.send(res).unwrap();
@@ -226,10 +221,9 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
-                let res = get_data_logs_at_participant(&test_db_name, participant_client_addr);
+                let res = get_data_logs_at_participant(&test_db_name, &participant_client_addr);
                 tx.send(res).unwrap();
             })
             .join()
@@ -427,7 +421,7 @@ pub mod grpc {
 
     async fn participant_changes_update_behavior(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         behavior: UpdatesFromHostBehavior,
     ) -> bool {
         use log::info;
@@ -457,7 +451,10 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
 
-    async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
+    async fn get_row_id_at_participant(
+        db_name: &str,
+        participant_client_addr: &ServiceAddr,
+    ) -> u32 {
         use log::info;
 
         use rcd_client::RcdClient;
@@ -489,7 +486,7 @@ pub mod grpc {
 
     async fn get_data_hash_for_changed_row_at_participant(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
@@ -522,7 +519,7 @@ pub mod grpc {
 
     async fn get_data_hash_for_changed_row_at_host(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
@@ -598,7 +595,7 @@ pub mod grpc {
     #[tokio::main]
     async fn get_data_logs_at_participant(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
@@ -718,7 +715,8 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
+        let participant_addrs =
+            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;

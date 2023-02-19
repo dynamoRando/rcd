@@ -6,7 +6,6 @@ pub mod grpc {
     use std::sync::mpsc;
     use std::thread;
 
-
     /*
     # Test Description
     */
@@ -26,20 +25,8 @@ pub mod grpc {
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
-
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
-
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
         test_harness::sleep_test();
 
@@ -48,11 +35,6 @@ pub mod grpc {
         let main_db_name = test_db_name;
 
         let main_db_name_write = main_db_name.clone();
-
-        let addr_1 = participant_addrs.0.clone();
-
-        let main_srv_addr = main_addrs.0.clone();
-        let addr = main_srv_addr.clone();
 
         {
             let main_db_name = test_db_name.clone();
@@ -77,60 +59,68 @@ pub mod grpc {
 
         assert!(sent_participant_contract);
 
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let participant_client_addr = participant_test_config.client_address.clone();
+
+            thread::spawn(move || {
+                let res =
+                    participant_service_client(participant_client_addr, participant_contract_desc);
+                tx_participant.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let participant_accepted_contract = rx_participant.try_recv().unwrap();
         trace!("participant_accepted_contract: got: {participant_accepted_contract}");
 
         assert!(participant_accepted_contract);
 
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let main_client_addr = main_test_config.client_address.clone();
+
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&main_db_name_write, main_client_addr);
+                tx_main_write.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
 
         assert!(write_and_read_is_successful);
 
-        thread::spawn(move || {
-            let res = participant_get_databases(addr_1);
-            tx_p_has_dbs.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let participant_client_addr = participant_test_config.client_address.clone();
+            thread::spawn(move || {
+                let res = participant_get_databases(participant_client_addr);
+                tx_p_has_dbs.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let p_has_all_dbs = rx_p_has_dbs.try_recv().unwrap();
 
         assert!(p_has_all_dbs);
 
-        thread::spawn(move || {
-            let res = main_get_databases(addr);
-            tx_h_has_dbs.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let main_client_addr = main_test_config.client_address.clone();
+
+            thread::spawn(move || {
+                let res = main_get_databases(main_client_addr);
+                tx_h_has_dbs.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let h_has_all_dbs = rx_h_has_dbs.try_recv().unwrap();
 
         assert!(h_has_all_dbs);
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
-
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -335,7 +325,7 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_get_databases(participant_client_addr: ServiceAddr) -> bool {
-        use log::{warn, debug};
+        use log::{debug, warn};
         use rcd_client::RcdClient;
 
         let has_all_databases = true;
@@ -366,13 +356,12 @@ pub mod grpc {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let expected_db_names: [&str; 5] = 
-        [
+        let expected_db_names: [&str; 5] = [
             "part_example.db",
             "part_example2.db",
             "part_example3.db",
             "get_db_names_gprc.dbpart",
-            "rcd.db"
+            "rcd.db",
         ];
 
         trace!("expected names");
@@ -384,7 +373,7 @@ pub mod grpc {
         debug!("expected: {:?}", expected_db_names);
 
         for name in &expected_db_names {
-            if ! actual_db_names.iter().any(|n| n == name) {
+            if !actual_db_names.iter().any(|n| n == name) {
                 warn!("missing database: {:?}", name);
                 return false;
             }
@@ -421,14 +410,13 @@ pub mod grpc {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let expected_db_names: [&str; 4] = 
-        [
+        let expected_db_names: [&str; 4] = [
             "get_db_names2.db",
             "get_db_names3.db",
             "get_db_names_gprc.db",
-            "rcd.db"
+            "rcd.db",
         ];
-        
+
         trace!("expected names");
         for name in &expected_db_names {
             trace!("{name}");
@@ -450,7 +438,7 @@ pub mod http {
     use log::{info, trace};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     /*
     # Test Description
@@ -499,9 +487,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
@@ -799,13 +787,12 @@ pub mod http {
             actual_db_names.push(db.database_name.clone());
         }
 
-        let expected_db_names: [&str; 5] = 
-        [
+        let expected_db_names: [&str; 5] = [
             "part_example.db",
             "part_example2.db",
             "part_example3.db",
             "get_db_names_http.dbpart",
-            "rcd.db"
+            "rcd.db",
         ];
 
         trace!("expected names");
@@ -826,8 +813,6 @@ pub mod http {
     #[tokio::main]
 
     async fn main_get_databases(main_client_addr: ServiceAddr) -> bool {
-        
-
         let has_all_databases = true;
 
         let mut client = RcdClient::new_http_client(
