@@ -43,7 +43,7 @@ async fn create_container() {
         let docker_ip = docker_ip.clone();
         thread::spawn(move || {
             let mut data = docker_status.lock().unwrap();
-            let is_running = is_docker_running(&docker_ip);
+            let is_running = is_docker_running(docker_ip);
             debug!("is docker running: {is_running}");
             *data = is_running;
         })
@@ -66,7 +66,7 @@ async fn create_container() {
             let result = docker.new_rcd_container(&container_name).await;
             match result {
                 Ok(create_result) => {
-                    assert!(create_result.len() > 0);
+                    assert!(!create_result.is_empty());
                 }
                 Err(e) => {
                     error!("{e}");

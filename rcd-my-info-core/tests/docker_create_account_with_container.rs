@@ -61,11 +61,11 @@ pub fn docker_create_account_with_container() {
 
         let admin =
             Admin::new(DbType::Sqlite, get_test_temp_dir(test_name)).set_docker_ip(&docker_ip);
-        let is_registered = admin.register_user(&email, pw);
+        let is_registered = admin.register_user(email, pw);
 
         match is_registered {
             Ok(_) => {
-                let is_provisioned = admin.provision_container_for_user(&email);
+                let is_provisioned = admin.provision_container_for_user(email);
                 match is_provisioned {
                     Ok(_is_provisioned) => {
                         todo!()
@@ -86,5 +86,5 @@ pub fn docker_create_account_with_container() {
 
 #[tokio::main]
 async fn test_setup(docker_ip: &str, container_name: &str) {
-    remove_container_if_exists(docker_ip, &container_name).await;
+    remove_container_if_exists(docker_ip, container_name).await;
 }

@@ -16,13 +16,13 @@ impl Admin {
             DbType::Sqlite => {
                 let path = Path::new(&root_dir).join("my_info.db");
                 let db = SqliteDb::new(path.to_str().unwrap().to_string());
-                let admin = Admin {
+                
+                Admin {
                     db_type: DbType::Sqlite,
                     root_dir,
                     sqlite: Some(db),
                     docker: None,
-                };
-                return admin;
+                }
             }
             DbType::MySql => todo!(),
             DbType::Postgres => todo!(),

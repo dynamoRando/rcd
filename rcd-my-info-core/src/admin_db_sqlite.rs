@@ -25,7 +25,7 @@ impl SqliteDb {
         if self.has_account(email) {
             let conn = self.get_db_conn();
             let cmd = "SELECT EMAIL, HASH FROM ACCOUNTS WHERE EMAIL = :email";
-            let mut statement = conn.prepare(&cmd).unwrap();
+            let mut statement = conn.prepare(cmd).unwrap();
 
             let user_iter = statement
                 .query_map([email], |row| {

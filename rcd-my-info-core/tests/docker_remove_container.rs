@@ -45,7 +45,7 @@ async fn remove_container() {
         let docker_ip = docker_ip.clone();
         thread::spawn(move || {
             let mut data = docker_status.lock().unwrap();
-            let is_running = is_docker_running(&docker_ip);
+            let is_running = is_docker_running(docker_ip);
             debug!("is docker running: {is_running}");
             *data = is_running;
         })
@@ -69,9 +69,9 @@ async fn remove_container() {
             match result {
                 Ok(create_result) => {
                     info!("{create_result}");
-                    assert!(create_result.len() > 0);
+                    assert!(!create_result.is_empty());
 
-                    if create_result.len() > 0 {
+                    if !create_result.is_empty() {
                         let remove_result = docker.remove_container(&container_name).await;
                         match remove_result {
                             Ok(result) => {
