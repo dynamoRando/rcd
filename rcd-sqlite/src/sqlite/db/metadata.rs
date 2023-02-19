@@ -1,6 +1,6 @@
 use rcd_common::db::{get_metadata_table_name, DbiConfigSqlite};
 use rusqlite::named_params;
-
+use log::trace;
 use crate::sqlite::{execute_write, get_db_conn, get_scalar_as_u64, has_table, sql_text};
 
 pub fn get_data_hash_at_host(
@@ -33,7 +33,7 @@ pub fn remove_remote_row_reference_from_host(
     ;",
     );
 
-    println!("{cmd}");
+    trace!("{cmd}");
 
     cmd = cmd.replace(":table_name", &metadata_table_name);
 
@@ -41,7 +41,7 @@ pub fn remove_remote_row_reference_from_host(
 
     let rows = statement.execute(named_params! {":rid": row_id}).unwrap();
 
-    println!("total row_references_deleted: {rows}");
+    trace!("total row_references_deleted: {rows}");
 
     rows > 0
 }

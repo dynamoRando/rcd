@@ -3,7 +3,7 @@ use rcdproto::rcdp::{
     SendParticipantContractReply, SendParticipantContractRequest,
 };
 use rocket::{http::Status, post, serde::json::Json, State};
-
+use log::trace;
 use crate::http_srv::Core;
 
 #[post(
@@ -29,7 +29,7 @@ pub async fn send_contract_to_participant(
     request: Json<SendParticipantContractRequest>,
     state: &State<Core>,
 ) -> (Status, Json<SendParticipantContractReply>) {
-    println!("{request:?}");
+    trace!("{request:?}");
 
     let result = state
         .get_core()

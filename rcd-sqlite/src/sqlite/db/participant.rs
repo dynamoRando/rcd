@@ -74,7 +74,7 @@ pub fn save_participant(participant: CoopDatabaseParticipant, conn: Connection) 
     } else {
         // this is an insert
 
-        // println!("{:?}", &self);
+        // trace!("{:?}", &self);
 
         let cmd = String::from(
             "
@@ -277,8 +277,8 @@ pub fn get_participant_by_alias(
     );
     // cmd = cmd.replace(":alias", &alias);
 
-    // println!("{:?}", cmd);
-    // println!("{}", alias);
+    // trace!("{:?}", cmd);
+    // trace!("{}", alias);
 
     let row_to_participant = |internal_id: String,
                               alias: String,

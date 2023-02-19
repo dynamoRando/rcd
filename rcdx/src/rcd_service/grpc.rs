@@ -10,7 +10,7 @@ use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::
 use std::{env, thread};
 use tonic::transport::Server;
 use triggered::Listener;
-
+use log::info;
 use super::RcdService;
 
 #[tokio::main]
@@ -36,7 +36,7 @@ pub async fn start_client_service_at_addr_with_shutdown(
         .build()
         .unwrap();
 
-    println!("Client Service Starting At: {addr}");
+    info!("Client Service Starting At: {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))
@@ -68,7 +68,7 @@ pub async fn start_db_service_at_addr_with_shutdown(
         .build()
         .unwrap();
 
-    println!("Database Service Starting At: {addr}");
+    info!("Database Service Starting At: {addr}");
 
     Server::builder()
         .add_service(DataServiceServer::new(data_service))
@@ -196,7 +196,7 @@ pub async fn start_grpc_client_service_alt(
         .build()
         .unwrap();
 
-    println!("sql client server listening on {addr}");
+    info!("sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))
@@ -213,7 +213,7 @@ pub async fn start_grpc_client_service_at_addr(
     address_port: String,
     root_folder: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    println!("start_client_service_at_addr: {}", &address_port);
+    info!("start_client_service_at_addr: {}", &address_port);
 
     let addr = address_port.parse().unwrap();
     let database_name = &service.rcd_settings.backing_database_name;
@@ -239,7 +239,7 @@ pub async fn start_grpc_client_service_at_addr(
         .build()
         .unwrap();
 
-    println!("start_client_service_at_addr: sql client server listening on {addr}");
+    info!("start_client_service_at_addr: sql client server listening on {addr}");
 
     Server::builder()
         .add_service(SqlClientServer::new(sql_client))

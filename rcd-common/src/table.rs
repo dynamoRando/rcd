@@ -141,7 +141,6 @@ impl Table {
                     &val.data.as_ref().unwrap().data_string
                 );
             }
-            trace!();
         }
     }
 

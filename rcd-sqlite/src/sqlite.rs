@@ -1,5 +1,5 @@
 use self::db_part::get_partial_db_connection;
-use log::{debug, info};
+use log::{debug, info, trace};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
 use rcd_enum::column_type::ColumnType;
 use rcd_error::rcd_db_error::RcdDbError;
@@ -95,7 +95,7 @@ pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
 }
 
 pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
-    println!("get_scalar_as_bool: {cmd:?}");
+    trace!("get_scalar_as_bool: {cmd:?}");
 
     let mut value: bool = false;
     let mut statement = conn.prepare(&cmd).unwrap();
@@ -111,8 +111,8 @@ pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
 }
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
-    println!("{cmd}");
-    println!("{conn:?}");
+    trace!("{cmd}");
+    trace!("{conn:?}");
     conn.execute(cmd, []).unwrap()
 }
 
@@ -376,7 +376,7 @@ pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
 
 pub fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
     let db_path = Path::new(&config.root_folder).join(db_name);
-    println!("{db_path:?}");
+    trace!("{db_path:?}");
     Connection::open(db_path).unwrap()
 }
 

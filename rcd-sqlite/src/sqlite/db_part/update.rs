@@ -151,7 +151,7 @@ fn execute_update_overwrite(
         row_ids.push(id.unwrap());
     }
 
-    // println!("{:?}", row_ids);
+    // trace!("{:?}", row_ids);
 
     let total_rows = execute_write(&conn, original_cmd);
 
@@ -173,18 +173,18 @@ fn execute_update_overwrite(
     }
 
     let completed_col_name_list = &col_name_list[0..&col_name_list.len() - 1];
-    // println!("{}", completed_col_name_list);
+    // trace!("{}", completed_col_name_list);
 
     cmd = cmd.replace(":col_names", completed_col_name_list);
 
-    // println!("{:?}", cmd);
+    // trace!("{:?}", cmd);
 
     let mut row_hashes: Vec<(u32, u64)> = Vec::new();
 
     for id in &row_ids {
         let sql = cmd.replace(":rid", &id.to_string());
 
-        // println!("{:?}", sql);
+        // trace!("{:?}", sql);
 
         let mut stmt = conn.prepare(&sql).unwrap();
         let mut rows = stmt.query([]).unwrap();

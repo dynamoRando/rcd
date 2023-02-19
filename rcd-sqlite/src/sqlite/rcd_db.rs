@@ -5,7 +5,7 @@ use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::DateTime;
 use chrono::Utc;
 use guid_create::GUID;
-use log::{info, warn};
+use log::{info, warn, trace};
 use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;
@@ -393,7 +393,7 @@ pub fn change_host_status_by_name(host_name: &str, status: u32, config: &DbiConf
 }
 
 pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
-    println!("host_id: {host_id}");
+    trace!("host_id: {host_id}");
 
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
@@ -424,7 +424,7 @@ pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite
 }
 
 pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
-    println!("host_name: {host_name}");
+    trace!("host_name: {host_name}");
 
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(

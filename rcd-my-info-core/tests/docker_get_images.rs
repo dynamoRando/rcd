@@ -27,7 +27,7 @@ async fn get_images() {
         let result = docker.get_docker_images().await;
         if let Ok(images) = result {
             for image in &images {
-                println!("{}", image);
+                info!("{}", image);
             }
 
             let name = r#"["rcd:latest"]"#;

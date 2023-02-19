@@ -92,7 +92,7 @@ impl RcdDocker {
                     println!("{:?}", image.repo_tags);
                 }
             }
-            Err(e) => eprintln!("Error: {e}"),
+            Err(e) => error!("Error: {e}"),
         }
     }
 
@@ -179,7 +179,7 @@ impl RcdDocker {
                     println!("{:?}", container.names.unwrap());
                 }
             }
-            Err(e) => eprintln!("Error: {e}"),
+            Err(e) => error!("Error: {e}"),
         }
     }
 }

@@ -4,7 +4,7 @@ use rcd_my_info_core::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::thread;
 
-use log::{debug, info};
+use log::{debug, info, warn, error};
 
 use std::sync::{Arc, Mutex};
 
@@ -61,7 +61,7 @@ async fn remove_container() {
             let container_name = "/remove_container".to_string();
 
             if docker.has_container(&container_name).await.unwrap() {
-                println!("container {container_name} already exists");
+                warn!("container {container_name} already exists");
                 docker.remove_container(&container_name).await.unwrap();
             }
 
@@ -78,18 +78,18 @@ async fn remove_container() {
                                 assert!(result);
                             }
                             Err(e) => {
-                                println!("{e}")
+                                error!("{e}")
                             }
                         }
                     }
                 }
                 Err(e) => {
-                    println!("{e}");
-                    println!("{}", DOCKER_NOT_RUNNING_MESSAGE);
+                    error!("{e}");
+                    error!("{}", DOCKER_NOT_RUNNING_MESSAGE);
                 }
             }
         }
     } else {
-        info!("{}", DOCKER_NOT_RUNNING_MESSAGE);
+        error!("{}", DOCKER_NOT_RUNNING_MESSAGE);
     }
 }

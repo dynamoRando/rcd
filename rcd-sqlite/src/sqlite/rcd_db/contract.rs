@@ -434,7 +434,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
 pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, String) {
     let conn = get_rcd_conn(config);
 
-    // println!("save_contract called with {:?}", contract);
+    // trace!("save_contract called with {:?}", contract);
 
     if !has_contract(&contract.contract_guid, &conn) {
         save_contract_metadata(&contract, &conn);
@@ -449,7 +449,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, Str
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES
 fn save_contract_table_data(contract: &Contract, conn: &Connection) {
-    // println!("save_contract_table_data: connection: {:?}", conn);
+    // trace!("save_contract_table_data: connection: {:?}", conn);
 
     let cmd = String::from(
         "INSERT INTO CDS_CONTRACTS_TABLES

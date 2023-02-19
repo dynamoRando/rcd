@@ -4,6 +4,7 @@ use super::{
     get_table_col_names, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use chrono::Utc;
+use log::trace;
 use rcd_common::db::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
     PartialDataResult,
@@ -182,7 +183,7 @@ pub fn create_partial_database_from_contract(
     contract: &Contract,
     config: &DbiConfigSqlite,
 ) -> bool {
-    println!("{config:?}");
+    trace!("{config:?}");
 
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();
     let _ = create_partial_database(&db_name, config);
@@ -376,7 +377,7 @@ fn add_record_to_log_table(
         col_vals = col_vals[0..col_vals.len() - 1].to_string();
         insert_cmd = insert_cmd.replace(":col_vals", &col_vals);
 
-        println!("{insert_cmd:?}");
+        trace!("{insert_cmd:?}");
 
         let row_id_val = row.get_ref_unwrap(total_cols).as_i64().unwrap().to_string();
 
@@ -384,7 +385,7 @@ fn add_record_to_log_table(
         insert_cmd = insert_cmd.replace(":action", action);
         insert_cmd = insert_cmd.replace(":ts_utc", &Utc::now().to_string());
 
-        println!("{insert_cmd:?}");
+        trace!("{insert_cmd:?}");
 
         execute_write(conn, &insert_cmd);
     }

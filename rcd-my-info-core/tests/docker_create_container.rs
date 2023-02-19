@@ -1,4 +1,4 @@
-use log::{debug, info};
+use log::{debug, info, error};
 use rcd_my_info_core::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::{
@@ -69,7 +69,7 @@ async fn create_container() {
                     assert!(create_result.len() > 0);
                 }
                 Err(e) => {
-                    println!("{e}");
+                    error!("{e}");
                 }
             }
         }

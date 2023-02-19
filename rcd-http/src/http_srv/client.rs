@@ -12,6 +12,7 @@ pub mod database;
 pub mod host;
 pub mod logs;
 pub mod sql;
+use log::trace;
 
 #[get("/client/status")]
 pub async fn status() -> &'static str {
@@ -86,7 +87,7 @@ pub async fn auth_for_token(
 
     let response = core.auth_for_token(request.into_inner()).await;
 
-    println!("{response:?}");
+    trace!("{response:?}");
 
     (Status::Ok, Json(response))
 }

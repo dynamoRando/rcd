@@ -1,6 +1,6 @@
 use std::thread;
 
-// use log::{debug, error, info, trace, warn, LevelFilter};
+use log::{debug, error};
 use rcd_my_info_core::rcd_docker::RcdDocker;
 // use rcd_sqlite_log::SqliteLog;
 
@@ -14,7 +14,7 @@ fn main() {
 
 #[tokio::main]
 async fn docker_up() {
-    println!("connecting");
+    debug!("connecting");
     let result = RcdDocker::new("tcp://127.0.0.1:2375".to_string());
     match result {
         Ok(docker) => {
@@ -23,7 +23,7 @@ async fn docker_up() {
             let _ = docker.new_rcd_container(&"test".to_string()).await;
         }
         Err(e) => {
-            println!("{e}")
+            error!("{e}")
         }
     }
 }
@@ -42,6 +42,6 @@ fn log_test() {
 
     // for e in &entries {
     //     let message = format!("{} {} {} {}", e.dt, e.dt_utc, e.level, e.message);
-    //     println!("{message}");
+    //     debug!("{message}");
     // }
 }
