@@ -28,17 +28,17 @@ pub mod grpc {
 
         test_harness::sleep_test();
 
-        {
-            let main_db_name = test_db_name;
-            let main_test_config = main_test_config.clone();
+         {
+            let main_db_name = test_db_name.clone();
+            let main_client_addr = main_test_config.client_address.clone();
+            let participant_db_addr = participant_test_config.database_address.clone();
             let main_contract_desc = custom_contract_description.clone();
-            let participant_test_config = participant_test_config.clone();
             thread::spawn(move || {
                 let res = main_service_client(
                     &main_db_name,
-                    main_test_config.client_address,
-                    participant_test_config.database_address,
-                    main_contract_desc,
+                    &main_client_addr,
+                    &participant_db_addr,
+                    &main_contract_desc,
                 );
                 tx_main.send(res).unwrap();
             })
@@ -76,9 +76,9 @@ pub mod grpc {
     #[tokio::main]
     async fn main_service_client(
         db_name: &str,
-        main_client_addr: ServiceAddr,
-        participant_db_addr: ServiceAddr,
-        contract_desc: String,
+        main_client_addr: &ServiceAddr,
+        participant_db_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
@@ -188,7 +188,7 @@ pub mod http {
     use crate::test_harness::{self, ServiceAddr};
     use log::{debug, info};
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     #[test]
     fn test() {
@@ -223,11 +223,7 @@ pub mod http {
         let pa1 = participant_addrs.clone();
         let pa2 = participant_addrs.clone();
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+        test_harness::sleep_test();
 
         let main_contract_desc = custom_contract_description.clone();
         let participant_contract_desc = custom_contract_description;
@@ -236,9 +232,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
@@ -275,9 +271,9 @@ pub mod http {
     #[tokio::main]
     async fn main_service_client(
         db_name: &str,
-        main_client_addr: ServiceAddr,
-        participant_db_addr: ServiceAddr,
-        contract_desc: String,
+        main_client_addr: &ServiceAddr,
+        participant_db_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
@@ -295,7 +291,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

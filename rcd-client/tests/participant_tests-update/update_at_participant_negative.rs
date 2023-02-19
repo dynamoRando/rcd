@@ -64,7 +64,7 @@ pub mod grpc {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
+        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
         let m_keep_alive = main_addrs.6;
 
         let main_addr_client_port = main_addrs.2;
@@ -73,7 +73,7 @@ pub mod grpc {
         let main_client_shutdown_trigger = main_addrs.4;
         let main_db_shutdown_triger = main_addrs.5;
 
-        let participant_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.2);
+        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
         let p_keep_alive = participant_addrs.6;
 
         let part_addr_client_port = participant_addrs.2;
@@ -105,17 +105,23 @@ pub mod grpc {
         let p_addr = addr_1.clone();
         let p_addr2 = p_addr.clone();
 
-        thread::spawn(move || {
-            let res = main_service_client(
-                &main_db_name,
-                main_addrs.0,
-                participant_addrs.1,
-                main_contract_desc,
-            );
-            tx_main.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let main_db_name = test_db_name.clone();
+            let main_client_addr = main_test_config.client_address.clone();
+            let participant_db_addr = participant_test_config.database_address.clone();
+            let main_contract_desc = custom_contract_description.clone();
+            thread::spawn(move || {
+                let res = main_service_client(
+                    &main_db_name,
+                    &main_client_addr,
+                    &participant_db_addr,
+                    &main_contract_desc,
+                );
+                tx_main.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let sent_participant_contract = rx_main.try_recv().unwrap();
         trace!("send_participant_contract: got: {sent_participant_contract}");
@@ -199,18 +205,7 @@ pub mod grpc {
 
         assert_ne!(p_data_hash, h_data_hash);
 
-        let _ = m_keep_alive.send(false);
-        let _ = p_keep_alive.send(false);
-
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
-
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -218,9 +213,9 @@ pub mod grpc {
 
     async fn main_service_client(
         db_name: &str,
-        main_client_addr: ServiceAddr,
-        participant_db_addr: ServiceAddr,
-        contract_desc: String,
+        main_client_addr: &ServiceAddr,
+        participant_db_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;
@@ -785,9 +780,9 @@ pub mod http {
 
     async fn main_service_client(
         db_name: &str,
-        main_client_addr: ServiceAddr,
-        participant_db_addr: ServiceAddr,
-        contract_desc: String,
+        main_client_addr: &ServiceAddr,
+        participant_db_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use rcd_client::RcdClient;
         use rcd_enum::database_type::DatabaseType;

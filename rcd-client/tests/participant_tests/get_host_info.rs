@@ -1,9 +1,9 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::thread;
 
     /*
     # Test Description
@@ -16,22 +16,21 @@ pub mod grpc {
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx_main, rx_main) = mpsc::channel();
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
-        let main_addrs = test_harness::start_service_with_grpc(&test_db_name, dirs.1);
+        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
 
-        let time = time::Duration::from_secs(1);
-
-        info!("sleeping for 1 seconds...");
-
-        thread::sleep(time);
+        test_harness::sleep_test();
 
         let main_db_name = test_db_name;
 
-        thread::spawn(move || {
-            let res = main_service_client(&main_db_name, main_addrs.0);
-            tx_main.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let main_client_addr = main_test_config.client_address.clone();
+            thread::spawn(move || {
+                let res = main_service_client(&main_db_name, main_client_addr);
+                tx_main.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+        }
 
         let has_host_name = rx_main.try_recv().unwrap();
         debug!("has_host_name: got: {has_host_name}");
@@ -70,7 +69,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use std::sync::mpsc;
     use std::{thread, time};
 
@@ -88,7 +87,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
