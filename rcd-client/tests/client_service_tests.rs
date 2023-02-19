@@ -1,8 +1,6 @@
 #[path = "test_harness.rs"]
 mod test_harness;
 
-#[path = "client_service_tests/create_user_database.rs"]
-mod create_user_database;
 #[path = "client_service_tests/enable_cooperative_features.rs"]
 mod enable_cooperative_features;
 
@@ -23,6 +21,12 @@ mod create_db_enable_coop_read_write_grpc;
 
 #[path = "client_service_tests/create_db_enable_coop_read_write_http.rs"]
 mod create_db_enable_coop_read_write_http;
+
+#[path = "client_service_tests/create_user_database_grpc.rs"]
+mod create_user_database_grpc;
+
+#[path = "client_service_tests/create_user_database_http.rs"]
+mod create_user_database_http;
 
 #[test]
 fn get_harness_value() {
