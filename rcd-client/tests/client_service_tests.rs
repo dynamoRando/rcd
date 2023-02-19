@@ -22,8 +22,11 @@ mod host_only_grpc;
 #[path = "client_service_tests/host_only_http.rs"]
 mod host_only_http;
 
-#[path = "client_service_tests/is_online.rs"]
-mod is_online;
+#[path = "client_service_tests/is_online_grpc.rs"]
+mod is_online_grpc;
+
+#[path = "client_service_tests/is_online_http.rs"]
+mod is_online_http;
 
 #[path = "client_service_tests/get_settings_grpc.rs"]
 mod get_settings_grpc;
