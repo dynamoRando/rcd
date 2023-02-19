@@ -69,7 +69,7 @@ pub mod grpc {
 
         assert!(participant_got_contract);
 
-        test_harness::shutdown_test(main_test_config, participant_test_config);
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]

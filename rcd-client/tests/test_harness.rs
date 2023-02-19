@@ -356,7 +356,7 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code)]
-pub fn shutdown_test(main: TestConfig, participant: TestConfig) {
+pub fn shutdown_test(main: &TestConfig, participant: &TestConfig) {
     main.client_keep_alive.send(false).unwrap();
     participant.client_keep_alive.send(false).unwrap();
 
