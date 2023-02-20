@@ -4,7 +4,7 @@ pub mod grpc {
     use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -48,170 +48,149 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "delta_update_from_part_gprc";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert read remote row");
-
-        let (tx_main, rx_main) = mpsc::channel();
-        let (tx_participant, rx_participant) = mpsc::channel();
-        let (tx_main_write, rx_main_read) = mpsc::channel();
-        let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
-        let (tx_h_can_read, rx_h_can_read) = mpsc::channel();
-
-        let (tx_h_data_hash, rx_h_data_hash) = mpsc::channel();
-        let (tx_p_data_hash, rx_p_data_hash) = mpsc::channel();
-
-        let (tx_p_row_id, rx_p_row_id) = mpsc::channel();
+        let db = Arc::new(format!("{}{}", test_name, ".db"));
+        let contract = Arc::new(String::from("insert read remote row"));
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
 
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
+        let mca = main_client_addr.clone();
+        let pca = participant_client_addr.clone();
 
         test_harness::sleep_test();
 
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name;
-        let pdn = participant_db_name;
-        let main_db_name_write = main_db_name.clone();
-        let db_name_copy = main_db_name_write.clone();
-
-        let db_p_name = db_name_copy.clone();
-        let db_p_name2 = db_p_name.clone();
-        let db_h_name = db_name_copy.clone();
-
-        let addr_1 = participant_addrs.0.clone();
-
-        let main_srv_addr = main_addrs.0.clone();
-        let addr = main_srv_addr.clone();
-
-        let h_addr = addr.clone();
-        let p_addr = addr_1.clone();
-        let p_addr2 = p_addr.clone();
-
         {
-            let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
+            let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
+            let db = db.clone();
+            let contract = contract.clone();
+            let mca = mca.clone();
+
             thread::spawn(move || {
-                let res = main_service_client(
-                    &main_db_name,
-                    &main_client_addr,
-                    &participant_db_addr,
-                    &main_contract_desc,
-                );
-                tx_main.send(res).unwrap();
+                let res = main_service_client(&db, &mca, &participant_db_addr, &contract);
+                tx.send(res).unwrap();
             })
             .join()
             .unwrap();
+
+            let sent_participant_contract = rx.try_recv().unwrap();
+            trace!("send_participant_contract: got: {sent_participant_contract}");
+
+            assert!(sent_participant_contract);
         }
 
-        let sent_participant_contract = rx_main.try_recv().unwrap();
-        trace!("send_participant_contract: got: {sent_participant_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move || {
+                let res = participant_service_client(&pca, &contract);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        assert!(sent_participant_contract);
+            let participant_accepted_contract = rx.try_recv().unwrap();
+            trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            assert!(participant_accepted_contract);
+        }
 
-        let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let mca = mca.clone();
 
-        assert!(participant_accepted_contract);
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&db, &mca);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let write_and_read_is_successful = rx.try_recv().unwrap();
 
-        let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
+            assert!(write_and_read_is_successful);
+        }
 
-        assert!(write_and_read_is_successful);
+        {
+            let new_behavior = UpdatesToHostBehavior::SendDataHashChange;
+            let (tx, rx) = mpsc::channel();
 
-        let new_behavior = UpdatesToHostBehavior::SendDataHashChange;
+            thread::spawn(move || {
+                let res = participant_changes_update_behavior(&db, &pca, new_behavior);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
-            tx_p_change_update.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let update_at_participant_is_successful = rx.try_recv().unwrap();
 
-        let update_at_participant_is_successful = rx_p_change_update.try_recv().unwrap();
+            assert!(update_at_participant_is_successful);
+        }
 
-        assert!(update_at_participant_is_successful);
+        {
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move || {
+                let res = main_read_updated_row_should_succeed(&db, &mca);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = main_read_updated_row_should_succeed(&db_name_copy, addr);
-            tx_h_can_read.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let can_read_rows = rx.try_recv().unwrap();
+            assert!(can_read_rows);
+        }
 
-        let can_read_rows = rx_h_can_read.try_recv().unwrap();
-        assert!(can_read_rows);
+        let mut participant_row_id: u32 = 0;
 
-        thread::spawn(move || {
-            let res = get_row_id_at_participant(&db_p_name, p_addr);
-            tx_p_row_id.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move || {
+                let res = get_row_id_at_participant(&db, &pca);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        let p_row_id = rx_p_row_id.try_recv().unwrap();
-        let rid = p_row_id;
-        let rid2 = p_row_id;
+            participant_row_id = rx.try_recv().unwrap();
+        }
 
-        thread::spawn(move || {
-            let res = get_data_hash_for_changed_row_at_participant(&db_p_name2, p_addr2, rid);
-            tx_p_data_hash.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        let mut participant_data_hash: u64 = 0;
 
-        let p_data_hash = rx_p_data_hash.try_recv().unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
+            thread::spawn(move || {
+                let res =
+                    get_data_hash_for_changed_row_at_participant(&db, &pca, participant_row_id);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = get_data_hash_for_changed_row_at_host(&db_h_name, h_addr, rid2);
-            tx_h_data_hash.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            participant_data_hash = rx.try_recv().unwrap();
+        }
 
-        let h_data_hash = rx_h_data_hash.try_recv().unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert_eq!(p_data_hash, h_data_hash);
+            thread::spawn(move || {
+                let res = get_data_hash_for_changed_row_at_host(&db, &pca, participant_row_id);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
+            let h_data_hash = rx.try_recv().unwrap();
 
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+            assert_eq!(participant_data_hash, h_data_hash);
+        }
+
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -295,7 +274,7 @@ pub mod grpc {
 
     async fn main_execute_coop_write_and_read(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -351,8 +330,8 @@ pub mod grpc {
     #[tokio::main]
 
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
-        contract_desc: String,
+        participant_client_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use log::info;
 
@@ -398,7 +377,7 @@ pub mod grpc {
 
     async fn participant_changes_update_behavior(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         behavior: UpdatesToHostBehavior,
     ) -> bool {
         use log::info;
@@ -440,7 +419,10 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
 
-    async fn get_row_id_at_participant(db_name: &str, participant_client_addr: ServiceAddr) -> u32 {
+    async fn get_row_id_at_participant(
+        db_name: &str,
+        participant_client_addr: &ServiceAddr,
+    ) -> u32 {
         use log::info;
 
         use rcd_client::RcdClient;
@@ -472,7 +454,7 @@ pub mod grpc {
 
     async fn get_data_hash_for_changed_row_at_participant(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
@@ -505,7 +487,7 @@ pub mod grpc {
 
     async fn get_data_hash_for_changed_row_at_host(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
@@ -538,7 +520,7 @@ pub mod grpc {
 
     async fn main_read_updated_row_should_succeed(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -574,7 +556,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info,  trace};
+    use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
     use std::sync::mpsc;
@@ -637,7 +619,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -647,7 +629,8 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs =
+            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -678,9 +661,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
