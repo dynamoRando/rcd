@@ -175,7 +175,7 @@ pub mod gprc {
             assert!(can_read_rows);
         }
 
-        test_harness::shutdown_test(&main_test_config, &participant_test_config);
+        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]

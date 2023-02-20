@@ -123,7 +123,7 @@ pub mod grpc {
             assert!(!should_have_mismatched_rows);
         }
 
-        test_harness::shutdown_test(&main_test_config, &participant_test_config);
+        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]

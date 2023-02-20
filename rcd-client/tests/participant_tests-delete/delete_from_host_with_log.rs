@@ -166,7 +166,7 @@ pub mod grpc {
             assert!(p_read_data_log_is_correct);
         }
 
-        test_harness::shutdown_test(&main_test_config, &participant_test_config);
+        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
