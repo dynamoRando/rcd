@@ -37,7 +37,7 @@ pub struct ServiceAddr {
 }
 
 #[derive(Debug, Clone)]
-pub struct TestConfig {
+pub struct TestConfigGrpc {
     pub client_address: ServiceAddr,
     pub database_address: ServiceAddr,
     pub client_service_shutdown_trigger: Trigger,
@@ -200,7 +200,7 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConfig {
+pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConfigGrpc {
     let (client_trigger, client_listener) = triggered::trigger();
     let (db_trigger, db_listener) = triggered::trigger();
 
@@ -253,7 +253,7 @@ pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConf
 
     sleep_instance();
 
-    TestConfig {
+    TestConfigGrpc {
         client_address: client_addr,
         database_address: db_addr,
         client_service_shutdown_trigger: client_trigger,
@@ -359,7 +359,7 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code)]
-pub fn shutdown_test(main: &TestConfig, participant: &TestConfig) {
+pub fn shutdown_test(main: &TestConfigGrpc, participant: &TestConfigGrpc) {
     debug!("shutting down test...");
 
     if let Err(e) = main.client_keep_alive.send(false) {
