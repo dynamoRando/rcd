@@ -1,9 +1,9 @@
 pub mod grpc {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use rcd_client::RcdClient;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -14,95 +14,77 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "get_participants_for_db_grpc";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("get participants for test");
+        let test_db_name = Arc::new(format!("{}{}", test_name, ".db"));
+        let custom_contract_description = Arc::new(String::from("get participants for test"));
 
-        let (tx_main, rx_main) = mpsc::channel();
-        let (tx_participant, rx_participant) = mpsc::channel();
-        let (tx_main_write, rx_main_read) = mpsc::channel();
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
-
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
         test_harness::sleep_test();
 
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name;
-
-        let main_db_name_write = main_db_name.clone();
-
-        let main_srv_addr = main_addrs.0.clone();
-
         {
-            let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
+            let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
+
             thread::spawn(move || {
                 let res = main_service_client(
-                    &main_db_name,
+                    &test_db_name,
                     &main_client_addr,
                     &participant_db_addr,
-                    &main_contract_desc,
+                    &custom_contract_description,
                 );
-                tx_main.send(res).unwrap();
+                tx.send(res).unwrap();
             })
             .join()
             .unwrap();
+
+            let sent_participant_contract = rx.try_recv().unwrap();
+            debug!("send_participant_contract: got: {sent_participant_contract}");
+
+            assert!(sent_participant_contract);
         }
 
-        let sent_participant_contract = rx_main.try_recv().unwrap();
-        debug!("send_participant_contract: got: {sent_participant_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert!(sent_participant_contract);
+            thread::spawn(move || {
+                let res = participant_service_client(
+                    &participant_client_addr,
+                    &custom_contract_description,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let participant_accepted_contract = rx.try_recv().unwrap();
+            debug!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
-        let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        debug!("participant_accpeted_contract: got: {participant_accepted_contract}");
+            assert!(participant_accepted_contract);
+        }
 
-        assert!(participant_accepted_contract);
+        {
+            let (tx, rx) = mpsc::channel();
 
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&test_db_name, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        let has_participant = rx_main_read.try_recv().unwrap();
+            let has_participant = rx.try_recv().unwrap();
 
-        assert!(has_participant);
+            assert!(has_participant);
+        }
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
-
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -186,7 +168,7 @@ pub mod grpc {
     #[tokio::main]
     async fn main_execute_coop_write_and_read(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -211,8 +193,8 @@ pub mod grpc {
     #[tokio::main]
 
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
-        contract_desc: String,
+        participant_client_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use log::info;
 
@@ -257,7 +239,7 @@ pub mod grpc {
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
-    use log::{info, debug};
+    use log::{debug, info};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
     use std::{thread, time};
@@ -305,9 +287,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })

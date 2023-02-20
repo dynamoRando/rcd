@@ -4,7 +4,7 @@ pub mod gprc {
     use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -15,166 +15,152 @@ pub mod gprc {
     #[test]
     fn test() {
         let test_name = "update_from_host_queue_gprc";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert read remote row");
-
+        let test_db_name = Arc::new(format!("{}{}", test_name, ".db"));
+        let custom_contract_description = Arc::new(String::from("insert read remote row"));
         let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
-      
-        let (tx_main, rx_main) = mpsc::channel();
-        let (tx_participant, rx_participant) = mpsc::channel();
-        let (tx_main_write, rx_main_read) = mpsc::channel();
-        let (tx_p_change_update, rx_p_change_update) = mpsc::channel();
-        let (tx_h_can_read_fail, rx_h_can_read_fail) = mpsc::channel();
-        let (tx_h_can_read_success, rx_h_can_read_success) = mpsc::channel();
-
-        let (tx_p_has_update, rx_p_has_update) = mpsc::channel();
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
-
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
         test_harness::sleep_test();
 
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name.clone();
-        let participant_db_name = test_db_name;
-        let pdn = participant_db_name;
-        let pdn2 = pdn.clone();
-        let main_db_name_write = main_db_name.clone();
-        let db_name_copy = main_db_name_write.clone();
-        let db_name_copy_ = db_name_copy.clone();
-        let addr_1 = participant_addrs.0.clone();
-        let addr_1_1 = addr_1.clone();
-        let main_srv_addr = main_addrs.0.clone();
-        let addr = main_srv_addr.clone();
-        let addr_ = main_srv_addr.clone();
-
-        // main - normal database setup
         {
-            let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
+            let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
+
             thread::spawn(move || {
                 let res = main_service_client(
-                    &main_db_name,
+                    &test_db_name,
                     &main_client_addr,
                     &participant_db_addr,
-                    &main_contract_desc,
+                    &custom_contract_description,
                 );
-                tx_main.send(res).unwrap();
+                tx.send(res).unwrap();
             })
             .join()
             .unwrap();
+
+            let sent_participant_contract = rx.try_recv().unwrap();
+            trace!("send_participant_contract: got: {sent_participant_contract}");
+
+            assert!(sent_participant_contract);
         }
 
-        // main - setup contract
-        let sent_participant_contract = rx_main.try_recv().unwrap();
-        trace!("send_participant_contract: got: {sent_participant_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert!(sent_participant_contract);
+            thread::spawn(move || {
+                let res = participant_service_client(
+                    &participant_client_addr,
+                    &custom_contract_description,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+            let participant_accepted_contract = rx.try_recv().unwrap();
+            trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
-        // participant - accept contract
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            assert!(participant_accepted_contract);
+        }
 
-        let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert!(participant_accepted_contract);
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&test_db_name, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        // main - inserts remote row and tests to make sure it works
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let write_and_read_is_successful = rx.try_recv().unwrap();
 
-        let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
-
-        assert!(write_and_read_is_successful);
+            assert!(write_and_read_is_successful);
+        }
 
         let new_behavior = UpdatesFromHostBehavior::QueueForReview;
 
-        // participant - changes behavior to log updates but not execute them
-        thread::spawn(move || {
-            let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
-            tx_p_change_update.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
 
-        let update_at_participant_is_successful = rx_p_change_update.try_recv().unwrap();
+            thread::spawn(move || {
+                let res = participant_changes_update_behavior(
+                    &test_db_name,
+                    &participant_client_addr,
+                    new_behavior,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        assert!(update_at_participant_is_successful);
+            let update_at_participant_is_successful = rx.try_recv().unwrap();
 
-        // main - attempts to execute update but does not get requested value back (this is intentional)
-        thread::spawn(move || {
-            let res = main_read_updated_row_should_fail(&db_name_copy, addr, update_statement);
-            tx_h_can_read_fail.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            assert!(update_at_participant_is_successful);
+        }
 
-        let can_read_rows = rx_h_can_read_fail.try_recv().unwrap();
-        assert!(!can_read_rows);
+        {
+            let (tx, rx) = mpsc::channel();
 
-        // participant - gets pending updates and later accepts the update
-        thread::spawn(move || {
-            let res = participant_get_and_approve_pending_update(
-                &pdn2,
-                "EMPLOYEE",
-                addr_1_1,
-                update_statement,
-            );
-            tx_p_has_update.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            // main - attempts to execute update but does not get requested value back (this is intentional)
+            thread::spawn(move || {
+                let res = main_read_updated_row_should_fail(
+                    &test_db_name,
+                    &main_client_addr,
+                    update_statement,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        let has_and_accept_update = rx_p_has_update.try_recv().unwrap();
-        assert!(has_and_accept_update);
+            let can_read_rows = rx.try_recv().unwrap();
+            assert!(!can_read_rows);
+        }
 
-        // main - checks the update value again and should match
-        thread::spawn(move || {
-            let res = main_read_updated_row_should_succed(&db_name_copy_, addr_);
-            tx_h_can_read_success.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
 
-        let can_read_rows = rx_h_can_read_success.try_recv().unwrap();
-        assert!(can_read_rows);
+            // participant - gets pending updates and later accepts the update
+            thread::spawn(move || {
+                let res = participant_get_and_approve_pending_update(
+                    &test_db_name,
+                    "EMPLOYEE",
+                    &participant_client_addr,
+                    update_statement,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
+            let has_and_accept_update = rx.try_recv().unwrap();
+            assert!(has_and_accept_update);
+        }
 
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        {
+            let (tx, rx) = mpsc::channel();
+
+            // main - checks the update value again and should match
+            thread::spawn(move || {
+                let res = main_read_updated_row_should_succed(&test_db_name, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let can_read_rows = rx.try_recv().unwrap();
+            assert!(can_read_rows);
+        }
+
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -256,7 +242,7 @@ pub mod gprc {
     #[tokio::main]
     async fn main_execute_coop_write_and_read(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -311,8 +297,8 @@ pub mod gprc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
-        contract_desc: String,
+        participant_client_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
@@ -356,7 +342,7 @@ pub mod gprc {
     #[tokio::main]
     async fn participant_changes_update_behavior(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         behavior: UpdatesFromHostBehavior,
     ) -> bool {
         use log::info;
@@ -387,7 +373,7 @@ pub mod gprc {
     async fn participant_get_and_approve_pending_update(
         db_name: &str,
         table_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         update_statement: &str,
     ) -> bool {
         use log::info;
@@ -442,7 +428,7 @@ pub mod gprc {
 
     async fn main_read_updated_row_should_fail(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
         update_statement: &str,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
@@ -488,7 +474,7 @@ pub mod gprc {
 
     async fn main_read_updated_row_should_succed(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -554,7 +540,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -564,7 +550,7 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -594,9 +580,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })

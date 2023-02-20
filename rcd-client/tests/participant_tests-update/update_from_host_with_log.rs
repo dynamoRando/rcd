@@ -53,7 +53,7 @@ pub mod grpc {
     fn test() {
         let test_name = "update_from_host_log_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert read remote row");
+        let custom_contract_description = Arc::new(String::from("insert read remote row"));
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
         let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
@@ -70,14 +70,13 @@ pub mod grpc {
             let (tx, rx) = mpsc::channel();
             let main_db_name = test_db_name.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
 
             thread::spawn(move || {
                 let res = main_service_client(
                     &main_db_name,
                     &main_client_addr,
                     &participant_db_addr,
-                    &main_contract_desc,
+                    &custom_contract_description,
                 );
                 tx.send(res).unwrap();
             })
@@ -92,8 +91,7 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
-            let custom_contract_description = custom_contract_description.clone();
-
+        
             thread::spawn(move || {
                 let res = participant_service_client(
                     &participant_client_addr,
@@ -220,8 +218,7 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
-            let test_db_name = test_db_name.clone();
-
+            
             thread::spawn(move || {
                 let res = get_data_logs_at_participant(&test_db_name, &participant_client_addr);
                 tx.send(res).unwrap();
