@@ -196,7 +196,7 @@ impl RcdService {
         http::start_http_at_addr_and_dir(&mut self, http_addr, http_port, root_dir)
     }
 
-    pub fn shutdown_http(addr: String, port: u32) {
+    pub fn shutdown_http(addr: &str, port: u32) {
         http::shutdown(addr, port);
     }
 

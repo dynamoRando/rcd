@@ -41,7 +41,7 @@ pub fn start_http_at_addr(service: &mut RcdService, http_addr: String, http_port
     });
 }
 
-pub fn shutdown(addr: String, port: u32) {
+pub fn shutdown(addr: &str, port: u32) {
     let _ = http_srv::shutdown_http_addr(addr, port);
 }
 

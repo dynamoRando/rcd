@@ -46,6 +46,12 @@ pub struct TestConfigGrpc {
 }
 
 #[derive(Debug, Clone)]
+pub struct TestConfigHttp {
+    pub http_address: ServiceAddr,
+    pub keep_alive: Sender<bool>,
+}
+
+#[derive(Debug, Clone)]
 pub struct TestDirectoryConfig {
     pub root_dir: String,
     pub main_dir: String,
@@ -85,7 +91,7 @@ pub fn get_next_avail_port() -> u32 {
 pub fn start_service_with_http(
     test_db_name: &str,
     root_dir: String,
-) -> (ServiceAddr, Sender<bool>) {
+) -> TestConfigHttp {
     let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let mut service = get_service_from_config_file(None);
 
@@ -113,11 +119,15 @@ pub fn start_service_with_http(
 
     sleep_instance();
 
-    (http_addr, keep_alive)
+    TestConfigHttp {
+        http_address: http_addr,
+        keep_alive: keep_alive
+    }
+
 }
 
 #[allow(dead_code)]
-pub fn shutdown_http(addr: String, port: u32) {
+pub fn shutdown_http(addr: &str, port: u32) {
     RcdService::shutdown_http(addr, port);
 }
 
@@ -359,8 +369,8 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 }
 
 #[allow(dead_code)]
-pub fn shutdown_test(main: &TestConfigGrpc, participant: &TestConfigGrpc) {
-    debug!("shutting down test...");
+pub fn shutdown_grpc_test(main: &TestConfigGrpc, participant: &TestConfigGrpc) {
+    debug!("shutting down grpc test...");
 
     if let Err(e) = main.client_keep_alive.send(false) {
         warn!("{e}")
@@ -379,6 +389,29 @@ pub fn shutdown_test(main: &TestConfigGrpc, participant: &TestConfigGrpc) {
     main.database_service_shutdown_trigger.trigger();
     participant.client_service_shutdown_trigger.trigger();
     participant.database_service_shutdown_trigger.trigger();
+
+    debug!("shutting down test complete.");
+}
+
+
+#[allow(dead_code)]
+pub fn shutdown_http_test(main: &TestConfigHttp, participant: &TestConfigHttp) {
+    debug!("shutting down http test...");
+
+    if let Err(e) = main.keep_alive.send(false) {
+        warn!("{e}");
+    }
+
+    if let Err(e) = participant.keep_alive.send(false) {
+        warn!("{e}");
+    }
+    
+    release_port(main.http_address.port);
+    release_port(participant.http_address.port);
+
+    shutdown_http(&main.http_address.ip4_addr, main.http_address.port);
+    shutdown_http(&participant.http_address.ip4_addr, participant.http_address.port);
+
 
     debug!("shutting down test complete.");
 }

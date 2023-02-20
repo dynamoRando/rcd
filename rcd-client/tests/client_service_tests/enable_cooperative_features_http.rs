@@ -59,7 +59,7 @@ pub mod http {
         assert!(response);
 
         test_harness::release_port(port_num);
-        RcdService::shutdown_http("127.0.0.1".to_string(), port_num);
+        RcdService::shutdown_http("127.0.0.1", port_num);
     }
 
     #[cfg(test)]

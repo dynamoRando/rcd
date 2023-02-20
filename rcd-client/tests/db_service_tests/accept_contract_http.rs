@@ -1,15 +1,17 @@
-
-use crate::test_harness::{self, ServiceAddr};
+use crate::test_harness::{self, shutdown_http_test, ServiceAddr};
 use log::{debug, info};
-use std::{sync::mpsc, thread};
+use std::{
+    sync::{mpsc, Arc},
+    thread,
+};
 
 #[test]
 fn test() {
     test_harness::init_log_to_screen(log::LevelFilter::Info);
 
     let test_name = "sa_contract_http";
-    let test_db_name = format!("{}{}", test_name, ".db");
-    let custom_contract_description = String::from("This is a custom description from test");
+    let db = Arc::new(format!("{}{}", test_name, ".db"));
+    let contract = Arc::new(String::from("This is a custom description from test"));
 
     let (tx_main, rx_main) = mpsc::channel();
     let (tx_participant, rx_participant) = mpsc::channel();
@@ -18,43 +20,31 @@ fn test() {
 
     debug!("{dirs:?}");
 
-    let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
-
-    let m_keep_alive = main_addrs.1;
-    let m_addr1 = main_addrs.0;
-
-    let main_addrs = m_addr1.clone();
-
-    let participant_addrs =
-        test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
-    let p_keep_alive = participant_addrs.1;
-
-    let p_addr1 = participant_addrs.0.clone();
-    let p_addr2 = participant_addrs.0;
-    let participant_addrs = p_addr1.clone();
+    let main_test_config = test_harness::start_service_with_http(&db, dirs.main_dir);
+    let participant_test_config = test_harness::start_service_with_http(&db, dirs.participant_dir);
 
     test_harness::sleep_test();
 
-    let main_contract_desc = custom_contract_description.clone();
-    let participant_contract_desc = custom_contract_description;
-    let main_db_name = test_db_name;
+    let ma = Arc::new(main_test_config.http_address.clone());
+    let pa = Arc::new(participant_test_config.http_address.clone());
 
-    thread::spawn(move || {
-        let res = main_service_client(
-            &main_db_name,
-            main_addrs,
-            participant_addrs,
-            main_contract_desc,
-        );
-        tx_main.send(res).unwrap();
-    })
-    .join()
-    .unwrap();
+    {
+        let db = db.clone();
+        let ma = ma.clone();
+        let pa = pa.clone();
 
-    let sent_participant_contract = rx_main.try_recv().unwrap();
-    debug!("send_participant_contract: got: {sent_participant_contract}");
+        thread::spawn(move || {
+            let res = main_service_client(&db, &ma, &pa, &contract);
+            tx_main.send(res).unwrap();
+        })
+        .join()
+        .unwrap();
 
-    assert!(sent_participant_contract);
+        let sent_participant_contract = rx_main.try_recv().unwrap();
+        debug!("send_participant_contract: got: {sent_participant_contract}");
+
+        assert!(sent_participant_contract);
+    }
 
     thread::spawn(move || {
         let res = participant_service_client(p_addr1, participant_contract_desc);
@@ -68,22 +58,15 @@ fn test() {
 
     assert!(participant_accepted_contract);
 
-    let _ = m_keep_alive.send(false);
-    let _ = p_keep_alive.send(false);
-
-    test_harness::release_port(m_addr1.port);
-    test_harness::release_port(p_addr2.port);
-
-    test_harness::shutdown_http(m_addr1.ip4_addr, m_addr1.port);
-    test_harness::shutdown_http(p_addr2.ip4_addr, p_addr2.port);
+    shutdown_http_test(&main_test_config, &participant_test_config);
 }
 
 #[cfg(test)]
 #[tokio::main]
 async fn main_service_client(
     db_name: &str,
-    main_client_addr: ServiceAddr,
-    participant_db_addr: ServiceAddr,
+    main_addr: &ServiceAddr,
+    pa: &ServiceAddr,
     contract_desc: String,
 ) -> bool {
     use rcd_client::RcdClient;
@@ -95,15 +78,15 @@ async fn main_service_client(
 
     info!(
         "main_service_client attempting to connect {}",
-        main_client_addr.to_full_string_with_http()
+        main_addr.to_full_string_with_http()
     );
 
     let mut client = RcdClient::new_http_client(
         String::from("tester"),
         String::from("123456"),
         60,
-        main_client_addr.ip4_addr,
-        main_client_addr.port,
+        main_addr.ip4_addr,
+        main_addr.port,
     );
     client.create_user_database(db_name).await.unwrap();
     client.enable_cooperative_features(db_name).await.unwrap();
