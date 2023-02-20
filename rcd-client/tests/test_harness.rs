@@ -4,6 +4,7 @@ use log::debug;
 use log::error;
 use log::info;
 use log::LevelFilter;
+use log::warn;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
 use rcdx::rcd_service::get_service_from_config_file;
@@ -341,8 +342,10 @@ impl TestSettings {
     }
 
     pub fn release_port(&mut self, port: u32) {
-        let index = self.ports.iter().position(|x| *x == port).unwrap();
-        self.ports.remove(index);
+        if self.ports.contains(&port) {
+            let index = self.ports.iter().position(|x| *x == port).unwrap();
+            self.ports.remove(index);
+        }
     }
 }
 
@@ -357,8 +360,15 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 
 #[allow(dead_code)]
 pub fn shutdown_test(main: &TestConfig, participant: &TestConfig) {
-    main.client_keep_alive.send(false).unwrap();
-    participant.client_keep_alive.send(false).unwrap();
+    debug!("shutting down test...");
+
+    if let Err(e) = main.client_keep_alive.send(false) {
+        warn!("{e}")
+    }
+
+    if let Err(e) = participant.client_keep_alive.send(false) {
+        warn!("{e}")
+    }
 
     release_port(main.client_address.port);
     release_port(main.database_address.port);
@@ -369,4 +379,6 @@ pub fn shutdown_test(main: &TestConfig, participant: &TestConfig) {
     main.database_service_shutdown_trigger.trigger();
     participant.client_service_shutdown_trigger.trigger();
     participant.database_service_shutdown_trigger.trigger();
+
+    debug!("shutting down test complete.");
 }
