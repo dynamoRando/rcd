@@ -140,7 +140,8 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let db = db.clone();
-
+            let mca = mca.clone();
+            
             thread::spawn(move || {
                 let res = main_read_updated_row_should_succeed(&db, &mca);
                 tx.send(res).unwrap();
@@ -190,10 +191,10 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let db = db.clone();
-            let pca = pca.clone();
+            let mca = mca.clone();
 
             thread::spawn(move || {
-                let res = get_data_hash_for_changed_row_at_host(&db, &pca, participant_row_id);
+                let res = get_data_hash_for_changed_row_at_host(&db, &mca, participant_row_id);
                 tx.send(res).unwrap();
             })
             .join()

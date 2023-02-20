@@ -152,6 +152,7 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_read_updated_row_should_succeed(&test_db_name, &main_client_addr);
@@ -207,12 +208,12 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
-            let participant_client_addr = participant_client_addr.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_host(
                     &test_db_name,
-                    &participant_client_addr,
+                    &main_client_addr,
                     participant_row_id,
                 );
                 tx.send(res).unwrap();
@@ -524,7 +525,7 @@ pub mod grpc {
 
     async fn get_data_hash_for_changed_row_at_host(
         db_name: &str,
-        participant_client_addr: &ServiceAddr,
+        main_client_addr: &ServiceAddr,
         row_id: u32,
     ) -> u64 {
         use log::info;
@@ -533,11 +534,11 @@ pub mod grpc {
 
         info!(
             "get_data_hash_for_changed_row_at_participant attempting to connect {}",
-            participant_client_addr.to_full_string_with_http()
+            main_client_addr.to_full_string_with_http()
         );
 
         let mut client = RcdClient::new_grpc_client(
-            participant_client_addr.to_full_string_with_http(),
+            main_client_addr.to_full_string_with_http(),
             String::from("tester"),
             String::from("123456"),
             60,
