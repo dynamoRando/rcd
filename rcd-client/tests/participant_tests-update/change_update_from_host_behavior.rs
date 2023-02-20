@@ -56,8 +56,9 @@ pub mod grpc {
         {
             let participant_db_addr = participant_test_config.database_address.clone();
             let (tx, rx) = mpsc::channel();
-            let contact = contract.clone();
+            let contract = contract.clone();
             let db = db.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res =
@@ -75,7 +76,7 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let participant_client_addr = participant_client_addr.clone();
-            let contact = contract.clone();
+            let contract = contract.clone();
 
             thread::spawn(move || {
                 let res = participant_service_client(&participant_client_addr, &contract);
@@ -111,6 +112,7 @@ pub mod grpc {
             let new_update_behavior = UpdatesFromHostBehavior::Ignore;
             let (tx, rx) = mpsc::channel();
             let participant_client_addr = participant_client_addr.clone();
+            let db = db.clone();
 
             thread::spawn(move || {
                 let res = participant_changes_update_behavior(
@@ -563,7 +565,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

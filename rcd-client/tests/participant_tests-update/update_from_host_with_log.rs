@@ -70,6 +70,8 @@ pub mod grpc {
             let (tx, rx) = mpsc::channel();
             let main_db_name = test_db_name.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
+            let custom_contract_description = custom_contract_description.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_service_client(
@@ -91,6 +93,7 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let participant_client_addr = participant_client_addr.clone();
         
             thread::spawn(move || {
                 let res = participant_service_client(
@@ -111,6 +114,7 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_execute_coop_write_and_read(&test_db_name, &main_client_addr);
@@ -128,6 +132,7 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
                 let res = participant_changes_update_behavior(
@@ -159,11 +164,12 @@ pub mod grpc {
             assert!(can_read_rows);
         }
 
-        let mut participant_row_id: u32 = 0;
+        let participant_row_id: u32;
 
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
                 let res = get_row_id_at_participant(&test_db_name, &participant_client_addr);
@@ -175,11 +181,12 @@ pub mod grpc {
             participant_row_id = rx.try_recv().unwrap();
         }
 
-        let mut participant_data_hash: u64 = 0;
+        let participant_data_hash: u64;
 
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_participant(
@@ -195,11 +202,12 @@ pub mod grpc {
             participant_data_hash = rx.try_recv().unwrap();
         }
 
-        let mut host_data_hash: u64 = 0;
+        let host_data_hash: u64;
 
         {
             let (tx, rx) = mpsc::channel();
             let test_db_name = test_db_name.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_host(
@@ -883,7 +891,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

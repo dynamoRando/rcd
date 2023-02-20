@@ -87,6 +87,8 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let pca = pca.clone();
+
             thread::spawn(move || {
                 let res = participant_service_client(&pca, &contract);
                 tx.send(res).unwrap();
@@ -150,7 +152,7 @@ pub mod grpc {
             assert!(can_read_rows);
         }
 
-        let mut participant_row_id: u32 = 0;
+        let participant_row_id: u32;
 
         {
             let (tx, rx) = mpsc::channel();
@@ -167,10 +169,12 @@ pub mod grpc {
             participant_row_id = rx.try_recv().unwrap();
         }
 
-        let mut participant_data_hash: u64 = 0;
+        let participant_data_hash: u64;
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
 
             thread::spawn(move || {
                 let res =
@@ -180,11 +184,13 @@ pub mod grpc {
             .join()
             .unwrap();
 
-            let participant_data_hash = rx.try_recv().unwrap();
+            participant_data_hash = rx.try_recv().unwrap();
         }
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_host(&db, &pca, participant_row_id);
@@ -796,7 +802,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

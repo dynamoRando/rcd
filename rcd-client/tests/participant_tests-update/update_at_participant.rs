@@ -87,6 +87,8 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let pca = pca.clone();
+            
             thread::spawn(move || {
                 let res = participant_service_client(&pca, &contract);
                 tx.send(res).unwrap();
@@ -120,6 +122,8 @@ pub mod grpc {
         {
             let new_behavior = UpdatesToHostBehavior::SendDataHashChange;
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
 
             thread::spawn(move || {
                 let res = participant_changes_update_behavior(&db, &pca, new_behavior);
@@ -135,6 +139,8 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+
             thread::spawn(move || {
                 let res = main_read_updated_row_should_succeed(&db, &mca);
                 tx.send(res).unwrap();
@@ -146,10 +152,13 @@ pub mod grpc {
             assert!(can_read_rows);
         }
 
-        let mut participant_row_id: u32 = 0;
+        let participant_row_id: u32;
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
+
             thread::spawn(move || {
                 let res = get_row_id_at_participant(&db, &pca);
                 tx.send(res).unwrap();
@@ -160,10 +169,13 @@ pub mod grpc {
             participant_row_id = rx.try_recv().unwrap();
         }
 
-        let mut participant_data_hash: u64 = 0;
+        let participant_data_hash: u64;
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
+
             thread::spawn(move || {
                 let res =
                     get_data_hash_for_changed_row_at_participant(&db, &pca, participant_row_id);
@@ -177,6 +189,7 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let pca = pca.clone();
 
             thread::spawn(move || {
                 let res = get_data_hash_for_changed_row_at_host(&db, &pca, participant_row_id);
@@ -786,7 +799,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

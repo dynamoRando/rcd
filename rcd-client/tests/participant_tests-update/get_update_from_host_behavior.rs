@@ -35,6 +35,7 @@ pub mod grpc {
             let participant_db_addr = participant_test_config.database_address.clone();
             let db = db.clone();
             let contract = contract.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_service_client(
@@ -473,7 +474,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

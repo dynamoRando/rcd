@@ -7,27 +7,26 @@ pub mod grpc {
     use std::sync::{mpsc, Arc};
     use std::thread;
 
-    /*
-    # Test Description
-
-    */
-
     #[test]
     fn test() {
         let test_name = "updates_from_host_queue_with_log_grpc";
-        let db = Arc::new(format!("{}{}", test_name, ".db");
+        let db = Arc::new(format!("{}{}", test_name, ".db"));
         let contract = Arc::new(String::from("insert read remote row"));
 
         let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
-    
+
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
         let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
 
-        let participant_test_config = test_harness::start_service_with_grpc(&db, dirs.participant_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
 
         let main_client_addr = Arc::new(main_test_config.client_address.clone());
         let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
+
+        let mca = main_client_addr.clone();
+        let pca = participant_client_addr.clone();
 
         test_harness::sleep_test();
 
@@ -35,117 +34,132 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
-            
+            let contract = contract.clone();
+            let db = db.clone();
+
             thread::spawn(move || {
-                let res = main_service_client(
+                let res =
+                    main_service_client(&db, &main_client_addr, &participant_db_addr, &contract);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            // main - setup contract
+            let sent_participant_contract = rx.try_recv().unwrap();
+            trace!("send_participant_contract: got: {sent_participant_contract}");
+
+            assert!(sent_participant_contract);
+        }
+
+        {
+            let (tx, rx) = mpsc::channel();
+            let contract = contract.clone();
+
+            thread::spawn(move || {
+                let res = participant_service_client(&participant_client_addr, &contract);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let participant_accepted_contract = rx.try_recv().unwrap();
+            trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
+
+            assert!(participant_accepted_contract);
+        }
+
+        {
+            let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let mca = mca.clone();
+
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&db, &mca);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let write_and_read_is_successful = rx.try_recv().unwrap();
+
+            assert!(write_and_read_is_successful);
+        }
+
+        {
+            let new_behavior = UpdatesFromHostBehavior::QueueForReviewAndLog;
+            let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
+
+            // participant - changes behavior to log updates but not execute them
+            thread::spawn(move || {
+                let res = participant_changes_update_behavior(&db, &pca, new_behavior);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let update_at_participant_is_successful = rx.try_recv().unwrap();
+
+            assert!(update_at_participant_is_successful);
+        }
+
+        {
+            let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let mca = mca.clone();
+
+            thread::spawn(move || {
+                let res = main_read_updated_row_should_fail(&db, &mca, update_statement);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let can_read_rows = rx.try_recv().unwrap();
+            assert!(!can_read_rows);
+        }
+
+        {
+            let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let pca = pca.clone();
+
+            // participant - gets pending updates and later accepts the update
+            thread::spawn(move || {
+                let res = participant_get_and_approve_pending_update(
                     &db,
-                    &main_client_addr,
-                    &participant_db_addr,
-                    &contract,
+                    "EMPLOYEE",
+                    &pca,
+                    update_statement,
                 );
                 tx.send(res).unwrap();
             })
             .join()
             .unwrap();
 
-                // main - setup contract
-                let sent_participant_contract = rx.try_recv().unwrap();
-                trace!("send_participant_contract: got: {sent_participant_contract}");
-        
-                assert!(sent_participant_contract);
+            let has_and_accept_update = rx.try_recv().unwrap();
+            assert!(has_and_accept_update);
         }
 
         {
             let (tx, rx) = mpsc::channel();
+            let mca = mca.clone();
 
+            // main - checks the update value again and should match
+            thread::spawn(move || {
+                let res = main_read_updated_row_should_succed(&db, &mca);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        // participant - accept contract
-        thread::spawn(move || {
-            let res = participant_service_client(&participant_client_addr, &contract);
-            tx.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let can_read_rows = rx.try_recv().unwrap();
+            assert!(can_read_rows);
+        }
 
-        let participant_accepted_contract = rx.try_recv().unwrap();
-        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
-
-        assert!(participant_accepted_contract);
-    }
-
-        // main - inserts remote row and tests to make sure it works
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
-
-        let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
-
-        assert!(write_and_read_is_successful);
-
-        let new_behavior = UpdatesFromHostBehavior::QueueForReviewAndLog;
-
-        // participant - changes behavior to log updates but not execute them
-        thread::spawn(move || {
-            let res = participant_changes_update_behavior(&pdn, addr_1, new_behavior);
-            tx_p_change_update.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
-
-        let update_at_participant_is_successful = rx_p_change_update.try_recv().unwrap();
-
-        assert!(update_at_participant_is_successful);
-
-        // main - attempts to execute update but does not get requested value back (this is intentional)
-        thread::spawn(move || {
-            let res = main_read_updated_row_should_fail(&db_name_copy, addr, update_statement);
-            tx_h_can_read_fail.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
-
-        let can_read_rows = rx_h_can_read_fail.try_recv().unwrap();
-        assert!(!can_read_rows);
-
-        // participant - gets pending updates and later accepts the update
-        thread::spawn(move || {
-            let res = participant_get_and_approve_pending_update(
-                &pdn2,
-                "EMPLOYEE",
-                addr_1_1,
-                update_statement,
-            );
-            tx_p_has_update.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
-
-        let has_and_accept_update = rx_p_has_update.try_recv().unwrap();
-        assert!(has_and_accept_update);
-
-        // main - checks the update value again and should match
-        thread::spawn(move || {
-            let res = main_read_updated_row_should_succed(&db_name_copy_, addr_);
-            tx_h_can_read_success.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
-
-        let can_read_rows = rx_h_can_read_success.try_recv().unwrap();
-        assert!(can_read_rows);
-
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
-
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -227,7 +241,7 @@ pub mod grpc {
     #[tokio::main]
     async fn main_execute_coop_write_and_read(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -327,7 +341,7 @@ pub mod grpc {
     #[tokio::main]
     async fn participant_changes_update_behavior(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         behavior: UpdatesFromHostBehavior,
     ) -> bool {
         use log::info;
@@ -358,7 +372,7 @@ pub mod grpc {
     async fn participant_get_and_approve_pending_update(
         db_name: &str,
         table_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         update_statement: &str,
     ) -> bool {
         use log::info;
@@ -413,7 +427,7 @@ pub mod grpc {
 
     async fn main_read_updated_row_should_fail(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
         update_statement: &str,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
@@ -459,7 +473,7 @@ pub mod grpc {
 
     async fn main_read_updated_row_should_succed(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -513,7 +527,7 @@ pub mod http {
         let custom_contract_description = String::from("insert read remote row");
 
         let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
-    
+
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
         let (tx_main_write, rx_main_read) = mpsc::channel();
@@ -525,7 +539,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
 
@@ -534,7 +548,8 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs =
+            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -564,9 +579,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
@@ -690,7 +705,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

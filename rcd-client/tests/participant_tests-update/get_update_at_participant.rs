@@ -68,6 +68,8 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let main_client_addr = main_client_addr.clone();
+            let db = db.clone();
+
             thread::spawn(move || {
                 let res = main_execute_coop_write_and_read(&db, &main_client_addr);
                 tx.send(res).unwrap();
@@ -84,6 +86,7 @@ pub mod grpc {
             let new_behavior = UpdatesToHostBehavior::SendDataHashChange;
             let (tx, rx) = mpsc::channel();
             let participant_client_addr = participant_client_addr.clone();
+            let db = db.clone();
 
             thread::spawn(move || {
                 let res = participant_changes_update_behavior(
@@ -477,7 +480,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
