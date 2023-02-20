@@ -31,6 +31,9 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
+            let custom_contract_description = custom_contract_description.clone();
+            let test_db_name = test_db_name.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_service_client(
@@ -52,6 +55,7 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let custom_contract_description = custom_contract_description.clone();
 
             thread::spawn(move || {
                 let res = participant_service_client(
@@ -71,6 +75,8 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let test_db_name = test_db_name.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res = main_execute_coop_write_and_read(&test_db_name, &main_client_addr);
@@ -242,7 +248,7 @@ pub mod http {
     use log::{debug, info};
     use rcd_client::RcdClient;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     /*
     # Test Description
@@ -260,7 +266,7 @@ pub mod http {
         let (tx_main_write, rx_main_read) = mpsc::channel();
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -268,7 +274,7 @@ pub mod http {
         let ma2 = main_addrs.clone();
         let ma3 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -360,7 +366,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
