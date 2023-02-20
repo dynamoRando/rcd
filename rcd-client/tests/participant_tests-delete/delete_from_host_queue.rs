@@ -14,8 +14,8 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "delete_from_host_with_queue_grpc";
-        let db_name = Arc::new(format!("{}{}", test_name, ".db"));
-        let contract_desc = Arc::new(String::from("insert read remote row"));
+        let db = Arc::new(format!("{}{}", test_name, ".db"));
+        let contract = Arc::new(String::from("insert read remote row"));
 
         let delete_statement = "DELETE FROM EMPLOYEE WHERE Id = 999";
 
@@ -23,9 +23,9 @@ pub mod grpc {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&db_name, dirs.main_dir);
+        let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
         let participant_test_config =
-            test_harness::start_service_with_grpc(&db_name, dirs.participant_dir);
+            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
 
         let main_client_addr = Arc::new(main_test_config.client_address.clone());
         let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
@@ -35,14 +35,13 @@ pub mod grpc {
         {
             let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
+            let db = db.clone();
+            let main_client_addr = main_client_addr.clone();
+            let contract = contract.clone();
 
             thread::spawn(move || {
-                let res = main_service_client(
-                    &db_name,
-                    &main_client_addr,
-                    &participant_db_addr,
-                    &contract_desc,
-                );
+                let res =
+                    main_service_client(&db, &main_client_addr, &participant_db_addr, &contract);
                 tx.send(res).unwrap();
             })
             .join()
@@ -55,10 +54,11 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let contract = contract.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
-                let res =
-                    participant_service_client(&participant_client_addr, &contract_desc);
+                let res = participant_service_client(&participant_client_addr, &contract);
                 tx.send(res).unwrap();
             })
             .join()
@@ -72,9 +72,11 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
-                let res = main_execute_coop_write_and_read(&db_name, &main_client_addr);
+                let res = main_execute_coop_write_and_read(&db, &main_client_addr);
                 tx.send(res).unwrap();
             })
             .join()
@@ -89,9 +91,15 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let participant_client_addr = participant_client_addr.clone();
 
             thread::spawn(move || {
-                let res = participant_changes_delete_behavior(&db_name, &participant_client_addr, new_behavior);
+                let res = participant_changes_delete_behavior(
+                    &db,
+                    &participant_client_addr,
+                    new_behavior,
+                );
                 tx.send(res).unwrap();
             })
             .join()
@@ -103,12 +111,13 @@ pub mod grpc {
         }
 
         {
-
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
+            let main_client_addr = main_client_addr.clone();
 
             thread::spawn(move || {
                 let res =
-                    main_delete_should_fail(&db_name, delete_statement, where_clause, &main_client_addr);
+                    main_delete_should_fail(&db, delete_statement, where_clause, &main_client_addr);
                 tx.send(res).unwrap();
             })
             .join()
@@ -125,11 +134,12 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
 
             // participant - gets pending deletes and later accepts the deletion
             thread::spawn(move || {
                 let res = participant_get_and_approve_pending_deletion(
-                    &db_name,
+                    &db,
                     &participant_client_addr,
                     delete_statement,
                 );
@@ -144,9 +154,10 @@ pub mod grpc {
 
         {
             let (tx, rx) = mpsc::channel();
+            let db = db.clone();
 
             thread::spawn(move || {
-                let res = main_should_not_have_rows(&db_name, &main_client_addr);
+                let res = main_should_not_have_rows(&db, &main_client_addr);
                 tx.send(res).unwrap();
             })
             .join()
@@ -483,7 +494,7 @@ pub mod http {
     use rcd_client::RcdClient;
     use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
-    use std::{thread};
+    use std::thread;
 
     /*
     # Test Description
@@ -520,7 +531,8 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
+        let participant_addrs =
+            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -668,7 +680,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();

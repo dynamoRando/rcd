@@ -11,32 +11,31 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "get_coop_hosts_gprc";
-        let test_db_name = Arc::new(format!("{}{}", test_name, ".db"));
-        let custom_contract_description = Arc::new(String::from("db names"));
+        let db = Arc::new(format!("{}{}", test_name, ".db"));
+        let contract = Arc::new(String::from("db names"));
 
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
         let participant_test_config =
-            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
+            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
+
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
         test_harness::sleep_test();
 
         {
-            let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
+            let db = db.clone();
+            let contract = contract.clone();
+
             thread::spawn(move || {
-                let res = main_service_client(
-                    &main_db_name,
-                    &main_client_addr,
-                    &participant_db_addr,
-                    &main_contract_desc,
-                );
+                let res =
+                    main_service_client(&db, &main_client_addr, &participant_db_addr, &contract);
                 tx_main.send(res).unwrap();
             })
             .join()
@@ -49,12 +48,13 @@ pub mod grpc {
         assert!(sent_participant_contract);
 
         {
-            let participant_client_addr = participant_test_config.client_address.clone();
+            let participant_client_addr = participant_client_addr.clone();
+            let contract = contract.clone();
 
             thread::spawn(move || {
                 let res = participant_service_client(
                     &participant_client_addr,
-                    &custom_contract_description,
+                    &contract,
                 );
                 tx_participant.send(res).unwrap();
             })
