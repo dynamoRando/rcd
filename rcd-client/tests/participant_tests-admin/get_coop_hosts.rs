@@ -329,7 +329,7 @@ pub mod http {
             String::from("tester"),
             String::from("123456"),
             60,
-            main_client_addr.ip4_addr,
+            main_client_addr.ip4_addr.clone(),
             main_client_addr.port,
         );
         client.create_user_database(db_name).await.unwrap();
