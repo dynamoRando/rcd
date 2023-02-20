@@ -4,7 +4,7 @@ pub mod grpc {
     use log::{info, trace};
     use rcd_client::RcdClient;
     use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -14,168 +14,150 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "delete_from_host_with_queue_grpc";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert read remote row");
+        let db_name = Arc::new(format!("{}{}", test_name, ".db"));
+        let contract_desc = Arc::new(String::from("insert read remote row"));
 
         let delete_statement = "DELETE FROM EMPLOYEE WHERE Id = 999";
-        
+
         let where_clause = "Id = 999";
-
-        let (tx_main, rx_main) = mpsc::channel();
-        let (tx_participant, rx_participant) = mpsc::channel();
-        let (tx_main_write, rx_main_read) = mpsc::channel();
-        let (tx_p_deny_write, rx_p_deny_write) = mpsc::channel();
-        let (tx_h_auth_fail, rx_h_auth_fail) = mpsc::channel();
-
-        let (tx_p_accept_delete, rx_p_accept_delete) = mpsc::channel();
-        let (tx_m_no_rows, rx_m_no_rows) = mpsc::channel();
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let main_test_config = test_harness::start_service_with_grpc(&db_name, dirs.main_dir);
+        let participant_test_config =
+            test_harness::start_service_with_grpc(&db_name, dirs.participant_dir);
 
-        let main_addr_client_port = main_addrs.2;
-        let main_addr_db_port = main_addrs.3;
-
-        let main_client_shutdown_trigger = main_addrs.4;
-        let main_db_shutdown_triger = main_addrs.5;
-
-        let participant_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);;
-
-        let part_addr_client_port = participant_addrs.2;
-        let part_addr_db_port = participant_addrs.3;
-
-        let part_client_shutdown_trigger = participant_addrs.4;
-        let part_db_shutdown_trigger = participant_addrs.5;
+        let main_client_addr = Arc::new(main_test_config.client_address.clone());
+        let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
         test_harness::sleep_test();
 
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name.clone();
-        let main_db_name_ = main_db_name.clone();
-        let participant_db_name = test_db_name;
-        let pdn = participant_db_name;
-        let main_db_name_write = main_db_name.clone();
-        let db_name_copy = main_db_name_write.clone();
-        let db_name_copy2 = db_name_copy.clone();
-
-        let addr_1 = participant_addrs.0.clone();
-        let addr_1_1clone = addr_1.clone();
-
-        let main_srv_addr = main_addrs.0.clone();
-        let addr = main_srv_addr.clone();
-        let addr2 = addr.clone();
-
         {
-            let main_db_name = test_db_name.clone();
-            let main_client_addr = main_test_config.client_address.clone();
+            let (tx, rx) = mpsc::channel();
             let participant_db_addr = participant_test_config.database_address.clone();
-            let main_contract_desc = custom_contract_description.clone();
+
             thread::spawn(move || {
                 let res = main_service_client(
-                    &main_db_name,
+                    &db_name,
                     &main_client_addr,
                     &participant_db_addr,
-                    &main_contract_desc,
+                    &contract_desc,
                 );
-                tx_main.send(res).unwrap();
+                tx.send(res).unwrap();
             })
             .join()
             .unwrap();
+            let sent_participant_contract = rx.try_recv().unwrap();
+            trace!("send_participant_contract: got: {sent_participant_contract}");
+
+            assert!(sent_participant_contract);
         }
 
-        let sent_participant_contract = rx_main.try_recv().unwrap();
-        trace!("send_participant_contract: got: {sent_participant_contract}");
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert!(sent_participant_contract);
+            thread::spawn(move || {
+                let res =
+                    participant_service_client(&participant_client_addr, &contract_desc);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = participant_service_client(participant_addrs.0, participant_contract_desc);
-            tx_participant.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let participant_accepted_contract = rx.try_recv().unwrap();
+            trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
-        let participant_accepted_contract = rx_participant.try_recv().unwrap();
-        trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
+            assert!(participant_accepted_contract);
+        }
 
-        assert!(participant_accepted_contract);
+        {
+            let (tx, rx) = mpsc::channel();
 
-        thread::spawn(move || {
-            let res = main_execute_coop_write_and_read(&main_db_name_write, main_srv_addr);
-            tx_main_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            thread::spawn(move || {
+                let res = main_execute_coop_write_and_read(&db_name, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        let write_and_read_is_successful = rx_main_read.try_recv().unwrap();
+            let write_and_read_is_successful = rx.try_recv().unwrap();
 
-        assert!(write_and_read_is_successful);
+            assert!(write_and_read_is_successful);
+        }
 
         let new_behavior = DeletesFromHostBehavior::QueueForReview;
 
-        thread::spawn(move || {
-            let res = participant_changes_delete_behavior(&pdn, addr_1, new_behavior);
-            tx_p_deny_write.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
 
-        let status_change_is_successful = rx_p_deny_write.try_recv().unwrap();
+            thread::spawn(move || {
+                let res = participant_changes_delete_behavior(&db_name, &participant_client_addr, new_behavior);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        assert!(status_change_is_successful);
+            let status_change_is_successful = rx.try_recv().unwrap();
 
-        thread::spawn(move || {
-            let res = main_delete_should_fail(&db_name_copy, delete_statement, where_clause, addr);
-            tx_h_auth_fail.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            assert!(status_change_is_successful);
+        }
 
-        let should_succeed_not_succeed = rx_h_auth_fail.try_recv().unwrap();
+        {
 
-        // this is returning false, because we have queued up the delete for review
-        // and so we don't return the row_id from the participant back to the host
-        // and because we can't find the row_id to delete
-        // we are unable to delete the data hash from the meta data
-        assert!(!should_succeed_not_succeed);
+            let (tx, rx) = mpsc::channel();
 
-        // participant - gets pending deletes and later accepts the deletion
-        thread::spawn(move || {
-            let res = participant_get_and_approve_pending_deletion(
-                &main_db_name_,
-                addr_1_1clone,
-                delete_statement,
-            );
-            tx_p_accept_delete.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            thread::spawn(move || {
+                let res =
+                    main_delete_should_fail(&db_name, delete_statement, where_clause, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        let has_and_accept_delete = rx_p_accept_delete.try_recv().unwrap();
-        assert!(has_and_accept_delete);
+            let should_succeed_not_succeed = rx.try_recv().unwrap();
 
-        thread::spawn(move || {
-            let res = main_should_not_have_rows(&db_name_copy2, addr2);
-            tx_m_no_rows.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            // this is returning false, because we have queued up the delete for review
+            // and so we don't return the row_id from the participant back to the host
+            // and because we can't find the row_id to delete
+            // we are unable to delete the data hash from the meta data
+            assert!(!should_succeed_not_succeed);
+        }
 
-        let should_have_no_rows = rx_m_no_rows.try_recv().unwrap();
+        {
+            let (tx, rx) = mpsc::channel();
 
-        assert!(should_have_no_rows);
+            // participant - gets pending deletes and later accepts the deletion
+            thread::spawn(move || {
+                let res = participant_get_and_approve_pending_deletion(
+                    &db_name,
+                    &participant_client_addr,
+                    delete_statement,
+                );
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        test_harness::release_port(main_addr_client_port);
-        test_harness::release_port(main_addr_db_port);
-        test_harness::release_port(part_addr_client_port);
-        test_harness::release_port(part_addr_db_port);
+            let has_and_accept_delete = rx.try_recv().unwrap();
+            assert!(has_and_accept_delete);
+        }
 
-        main_client_shutdown_trigger.trigger();
-        main_db_shutdown_triger.trigger();
-        part_client_shutdown_trigger.trigger();
-        part_db_shutdown_trigger.trigger();
+        {
+            let (tx, rx) = mpsc::channel();
+
+            thread::spawn(move || {
+                let res = main_should_not_have_rows(&db_name, &main_client_addr);
+                tx.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
+
+            let should_have_no_rows = rx.try_recv().unwrap();
+
+            assert!(should_have_no_rows);
+        }
+
+        test_harness::shutdown_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -258,7 +240,7 @@ pub mod grpc {
     #[tokio::main]
     async fn main_execute_coop_write_and_read(
         db_name: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
@@ -313,8 +295,8 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
-        contract_desc: String,
+        participant_client_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
@@ -358,7 +340,7 @@ pub mod grpc {
     #[tokio::main]
     async fn participant_changes_delete_behavior(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         behavior: DeletesFromHostBehavior,
     ) -> bool {
         use log::info;
@@ -390,7 +372,7 @@ pub mod grpc {
         db_name: &str,
         delete_statement: &str,
         where_clause: &str,
-        main_client_addr: ServiceAddr,
+        main_client_addr: &ServiceAddr,
     ) -> bool {
         let mut client = RcdClient::new_grpc_client(
             main_client_addr.to_full_string_with_http(),
@@ -415,7 +397,7 @@ pub mod grpc {
     #[tokio::main]
     async fn participant_get_and_approve_pending_deletion(
         db_name: &str,
-        participant_client_addr: ServiceAddr,
+        participant_client_addr: &ServiceAddr,
         delete_statement: &str,
     ) -> bool {
         use log::info;
@@ -469,7 +451,7 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-    async fn main_should_not_have_rows(db_name: &str, main_client_addr: ServiceAddr) -> bool {
+    async fn main_should_not_have_rows(db_name: &str, main_client_addr: &ServiceAddr) -> bool {
         use rcd_enum::database_type::DatabaseType;
 
         let mut client = RcdClient::new_grpc_client(
@@ -501,7 +483,7 @@ pub mod http {
     use rcd_client::RcdClient;
     use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
     use std::sync::mpsc;
-    use std::{thread, time};
+    use std::{thread};
 
     /*
     # Test Description
@@ -514,7 +496,7 @@ pub mod http {
         let custom_contract_description = String::from("insert read remote row");
 
         let delete_statement = "DELETE FROM EMPLOYEE WHERE Id = 999";
-        
+
         let where_clause = "Id = 999";
 
         let (tx_main, rx_main) = mpsc::channel();
@@ -528,7 +510,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.1);
+        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -538,7 +520,7 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.2);
+        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
@@ -563,9 +545,9 @@ pub mod http {
         thread::spawn(move || {
             let res = main_service_client(
                 &main_db_name,
-                main_addrs,
-                participant_addrs,
-                main_contract_desc,
+                &main_addrs,
+                &participant_addrs,
+                &main_contract_desc,
             );
             tx_main.send(res).unwrap();
         })
@@ -630,11 +612,8 @@ pub mod http {
 
         // participant - gets pending deletes and later accepts the deletion
         thread::spawn(move || {
-            let res = participant_get_and_approve_pending_deletion(
-                &main_db_name_,
-                pa3,
-                delete_statement,
-            );
+            let res =
+                participant_get_and_approve_pending_deletion(&main_db_name_, pa3, delete_statement);
             tx_p_accept_delete.send(res).unwrap();
         })
         .join()

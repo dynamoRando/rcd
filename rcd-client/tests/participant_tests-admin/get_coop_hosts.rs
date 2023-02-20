@@ -1,7 +1,7 @@
 pub mod grpc {
     use crate::test_harness::{self, ServiceAddr};
     use log::{debug, info};
-    use std::sync::mpsc;
+    use std::sync::{mpsc, Arc};
     use std::thread;
 
     /*
@@ -11,8 +11,8 @@ pub mod grpc {
     #[test]
     fn test() {
         let test_name = "get_coop_hosts_gprc";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("db names");
+        let test_db_name = Arc::new(format!("{}{}", test_name, ".db"));
+        let custom_contract_description = Arc::new(String::from("db names"));
 
         let (tx_main, rx_main) = mpsc::channel();
         let (tx_participant, rx_participant) = mpsc::channel();
@@ -24,10 +24,6 @@ pub mod grpc {
             test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
         test_harness::sleep_test();
-
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name;
 
         {
             let main_db_name = test_db_name.clone();
@@ -56,8 +52,10 @@ pub mod grpc {
             let participant_client_addr = participant_test_config.client_address.clone();
 
             thread::spawn(move || {
-                let res =
-                    participant_service_client(participant_client_addr, participant_contract_desc);
+                let res = participant_service_client(
+                    &participant_client_addr,
+                    &custom_contract_description,
+                );
                 tx_participant.send(res).unwrap();
             })
             .join()
@@ -160,8 +158,8 @@ pub mod grpc {
     #[cfg(test)]
     #[tokio::main]
     async fn participant_service_client(
-        participant_client_addr: ServiceAddr,
-        contract_desc: String,
+        participant_client_addr: &ServiceAddr,
+        contract_desc: &str,
     ) -> bool {
         use log::info;
         use rcd_client::RcdClient;
