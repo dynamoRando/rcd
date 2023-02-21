@@ -18,7 +18,7 @@ pub fn setup_main_and_participant(config: CoreTestConfig) {
 
     {
         let (tx, rx) = mpsc::channel();
-        let db = db.to_owned();
+        let db = db.clone();
         let pda = pda.clone();
         let contract = contract.clone();
         let mc = mc.clone();

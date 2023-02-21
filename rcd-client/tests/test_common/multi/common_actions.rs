@@ -1,5 +1,5 @@
 use crate::test_harness::ServiceAddr;
-use log::{debug, info};
+use log::{debug};
 use rcd_client::RcdClient;
 
 #[cfg(test)]

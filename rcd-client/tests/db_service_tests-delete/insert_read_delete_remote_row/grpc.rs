@@ -6,14 +6,14 @@ use std::thread;
 #[test]
 fn test() {
     let test_name = "add_read_delete_remote_gprc";
-    let test_db_name = format!("{}{}", test_name, ".db");
-    let custom_contract_description = String::from("add read delete remote row");
+    let db = format!("{}{}", test_name, ".db");
+    let contract = String::from("add read delete remote row");
 
     let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
     let main_test_config =
-        test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        test_harness::grpc::start_service_with_grpc(&db, dirs.main_dir);
     let participant_test_config =
-        test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.participant_dir);
+        test_harness::grpc::start_service_with_grpc(&db, dirs.participant_dir);
 
     test_harness::sleep_test();
 
@@ -29,8 +29,8 @@ fn test() {
             let config = CoreTestConfig {
                 main_client: mc,
                 participant_client: pc,
-                test_db_name: test_db_name,
-                contract_desc: custom_contract_description,
+                test_db_name: db,
+                contract_desc: contract,
                 participant_db_addr: pda,
             };
 
