@@ -1,7 +1,7 @@
 use super::test_core::test_core;
 use crate::test_harness::CoreTestConfig;
 use crate::test_harness::{self};
-use std::{sync::Arc, thread};
+use std::{thread};
 
 #[test]
 fn test() {
@@ -19,14 +19,14 @@ fn test() {
         let pda = participant_test_config.http_address.clone();
 
         let config = CoreTestConfig {
-            main_client: &mc,
-            participant_client: &pc,
-            test_db_name: &db,
-            contract_desc: &contract,
-            participant_db_addr: &pda,
+            main_client: mc,
+            participant_client: pc,
+            test_db_name: db,
+            contract_desc: contract,
+            participant_db_addr: pda,
         };
 
-        test_core(&config);
+        test_core(config);
     })
     .join()
     .unwrap();

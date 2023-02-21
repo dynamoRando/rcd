@@ -57,13 +57,13 @@ pub struct TestDirectoryConfig {
     pub participant_dir: String,
 }
 
-#[derive(Debug)]
-pub struct CoreTestConfig<'a> {
-    pub main_client: &'a RcdClient,
-    pub participant_client: &'a RcdClient,
-    pub test_db_name: &'a str,
-    pub contract_desc: &'a str,
-    pub participant_db_addr: &'a ServiceAddr,
+#[derive(Debug, Clone)]
+pub struct CoreTestConfig {
+    pub main_client: RcdClient,
+    pub participant_client: RcdClient,
+    pub test_db_name: String,
+    pub contract_desc: String,
+    pub participant_db_addr: ServiceAddr,
 }
 
 

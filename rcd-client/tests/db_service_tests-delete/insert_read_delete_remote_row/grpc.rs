@@ -1,7 +1,6 @@
 use super::test_core::test_core;
 use crate::test_harness::CoreTestConfig;
 use crate::test_harness::{self};
-use std::sync::mpsc;
 use std::thread;
 
 #[test]
@@ -28,14 +27,14 @@ fn test() {
             let pda = ptc.database_address.clone();
 
             let config = CoreTestConfig {
-                main_client: &mc,
-                participant_client: &pc,
-                test_db_name: &test_db_name,
-                contract_desc: &custom_contract_description,
-                participant_db_addr: &pda,
+                main_client: mc,
+                participant_client: pc,
+                test_db_name: test_db_name,
+                contract_desc: custom_contract_description,
+                participant_db_addr: pda,
             };
 
-            test_core(&config);
+            test_core(config);
         })
         .join()
         .unwrap();

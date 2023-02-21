@@ -4,13 +4,11 @@ use rcd_client::RcdClient;
 use std::sync::mpsc;
 use std::thread;
 
-pub fn test_core(config: &CoreTestConfig) {
-    setup_main_and_participant(config);
+pub fn test_core(config: CoreTestConfig) {
+    setup_main_and_participant(config.clone());
 
-    let mc = &*config.main_client;
-    let mut mc = mc.clone();
+    let mut mc = config.main_client.clone();
     let db = config.test_db_name.to_string().clone();
-
     let (tx, rx) = mpsc::channel();
 
     thread::spawn(move || {

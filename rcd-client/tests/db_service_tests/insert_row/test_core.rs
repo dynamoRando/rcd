@@ -5,7 +5,7 @@ use rcd_client::RcdClient;
 use std::sync::{mpsc, Arc};
 use std::thread;
 
-pub fn test_core(config: &CoreTestConfig) {
+pub fn test_core(config: CoreTestConfig) {
     let mc = Arc::new(config.main_client.clone());
     let pc = Arc::new(config.participant_client.clone());
     let db = Arc::new(config.test_db_name.clone());
@@ -16,6 +16,7 @@ pub fn test_core(config: &CoreTestConfig) {
         let (tx, rx) = mpsc::channel();
         let db = db.clone();
         let contract = contract.clone();
+        let mc = mc.clone();
 
         thread::spawn(move || {
             let res = main_service_client(&db, &mc, &pda, &contract);
@@ -51,10 +52,10 @@ pub fn test_core(config: &CoreTestConfig) {
     {
         let (tx, rx) = mpsc::channel();
         let db = db.clone();
-        let mc = mc.clone();
+        let mut mc = (*mc).clone();
 
         thread::spawn(move || {
-            let res = main_execute_coop_write(&db, &mc);
+            let res = main_execute_coop_write(&db, &mut mc);
             tx.send(res).unwrap();
         })
         .join()
@@ -68,7 +69,7 @@ pub fn test_core(config: &CoreTestConfig) {
 #[cfg(test)]
 #[tokio::main]
 
-async fn main_execute_coop_write(db_name: &str, main_client: &RcdClient) -> bool {
+async fn main_execute_coop_write(db_name: &str, main_client: &mut RcdClient) -> bool {
     return main_client
         .execute_cooperative_write_at_host(
             db_name,
