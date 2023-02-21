@@ -158,7 +158,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn main_service_client(
         db_name: &str,
         main_client_addr: &ServiceAddr,
@@ -234,7 +233,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn main_execute_coop_write_and_read(
         db_name: &str,
         main_client_addr: &ServiceAddr,
@@ -291,7 +289,6 @@ pub mod grpc {
 
     #[cfg(test)]
     #[tokio::main]
-
     async fn participant_service_client(
         participant_client_addr: &ServiceAddr,
         contract_desc: &str,

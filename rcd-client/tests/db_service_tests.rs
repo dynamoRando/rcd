@@ -1,4 +1,5 @@
 pub mod test_harness;
+pub mod test_common;
 
 #[path = "db_service_tests/accept_contract_grpc.rs"]
 mod accept_contract_grpc;

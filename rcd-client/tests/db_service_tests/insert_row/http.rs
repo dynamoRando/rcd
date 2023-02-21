@@ -1,11 +1,9 @@
-
-    use crate::test_harness::{self, ServiceAddr};
-    use log::{debug, info};
-    use rcd_client::RcdClient;
-    use std::sync::{mpsc, Arc};
+    use crate::test_harness::{self, CoreTestConfig};
+    
+    use std::sync::{Arc};
     use std::thread;
 
-    use super::test_core::{test_core, CoreTestConfig};
+    use super::test_core::{test_core};
 
     #[test]
     fn test() {

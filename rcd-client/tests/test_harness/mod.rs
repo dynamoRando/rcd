@@ -57,6 +57,16 @@ pub struct TestDirectoryConfig {
     pub participant_dir: String,
 }
 
+#[derive(Debug)]
+pub struct CoreTestConfig<'a> {
+    pub main_client: &'a RcdClient,
+    pub participant_client: &'a RcdClient,
+    pub test_db_name: &'a str,
+    pub contract_desc: &'a str,
+    pub participant_db_addr: &'a ServiceAddr,
+}
+
+
 impl ServiceAddr {
     #[allow(dead_code)]
     pub fn to_full_string(&self) -> String {
@@ -275,7 +285,7 @@ pub async fn get_grpc_rcd_client(addr: ServiceAddr) -> RcdClient {
 #[allow(dead_code)]
 #[tokio::main]
 pub async fn get_http_rcd_client(addr: ServiceAddr) -> RcdClient {
-    let  client = RcdClient::new_http_client(
+    let client = RcdClient::new_http_client(
         String::from("tester"),
         String::from("123456"),
         60,
