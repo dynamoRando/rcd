@@ -15,6 +15,8 @@ pub async fn main_service_client(
     use rcd_enum::remote_delete_behavior::RemoteDeleteBehavior;
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
+    let mut main_client = (*main_client).clone();
+
     main_client.create_user_database(db_name).await.unwrap();
     main_client
         .enable_cooperative_features(db_name)
@@ -71,6 +73,8 @@ pub async fn participant_service_client(
     participant_client: &RcdClient,
     contract_desc: &str,
 ) -> bool {
+    let mut participant_client = (*participant_client).clone();
+
     let mut has_contract = false;
 
     participant_client
@@ -103,6 +107,7 @@ pub async fn participant_service_client(
 #[tokio::main]
 pub async fn main_execute_coop_write_and_read(db_name: &str, main_client: &RcdClient) -> bool {
     use rcd_enum::database_type::DatabaseType;
+    let mut main_client = (*main_client).clone();
 
     main_client
         .execute_cooperative_write_at_host(
