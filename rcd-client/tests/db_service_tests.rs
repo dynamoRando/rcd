@@ -6,8 +6,9 @@ mod accept_contract_grpc;
 #[path = "db_service_tests/accept_contract_http.rs"]
 mod accept_contract_http;
 
-#[path = "db_service_tests/insert_row.rs"]
+#[path = "db_service_tests/insert_row/mod.rs"]
 mod insert_row;
+
 #[path = "db_service_tests/save_contract.rs"]
 mod save_contract;
 
