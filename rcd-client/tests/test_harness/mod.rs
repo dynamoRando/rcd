@@ -15,8 +15,8 @@ use std::thread;
 use std::{path::Path, sync::Mutex};
 use triggered::Trigger;
 
-pub mod http;
 pub mod grpc;
+pub mod http;
 
 // http://oostens.me/posts/singletons-in-rust/
 // we want to increment for all tests the ports used
@@ -162,7 +162,6 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
     };
 }
 
-
 #[allow(dead_code)]
 pub fn get_test_temp_dir(test_name: &str) -> String {
     let dir = env::temp_dir();
@@ -257,4 +256,32 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
     if db_path.exists() {
         fs::remove_file(&db_path).unwrap();
     }
+}
+
+#[allow(dead_code)]
+#[tokio::main]
+pub async fn get_grpc_rcd_client(addr: ServiceAddr) -> RcdClient {
+    let client = RcdClient::new_grpc_client(
+        addr.to_full_string_with_http(),
+        String::from("tester"),
+        String::from("123456"),
+        60,
+    )
+    .await;
+
+    client
+}
+
+#[allow(dead_code)]
+#[tokio::main]
+pub async fn get_http_rcd_client(addr: ServiceAddr) -> RcdClient {
+    let  client = RcdClient::new_http_client(
+        String::from("tester"),
+        String::from("123456"),
+        60,
+        addr.ip4_addr.clone(),
+        addr.port,
+    );
+
+    client
 }

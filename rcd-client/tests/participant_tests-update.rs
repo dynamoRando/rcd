@@ -16,11 +16,8 @@ mod update_from_host_queue_with_log_grpc;
 #[path = "participant_tests-update/update_from_host_queue_with_log_http.rs"]
 mod update_from_host_queue_with_log_http;
 
-#[path = "participant_tests-update/update_from_host_with_log_grpc.rs"]
-mod update_from_host_with_log_grpc;
-
-#[path = "participant_tests-update/update_from_host_with_log_http.rs"]
-mod update_from_host_with_log_http;
+#[path = "participant_tests-update/update_from_host_with_log/mod.rs"]
+mod update_from_host_with_log;
 
 #[path = "participant_tests-update/change_update_from_host_behavior.rs"]
 mod change_update_from_host_behavior;
