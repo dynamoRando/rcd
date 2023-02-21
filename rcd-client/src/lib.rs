@@ -58,7 +58,7 @@ pub mod client_type;
 /// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the
 /// `SQLClient` service and is used to talk to an rcd instance as a client
 /// (and not as another `rcd` instance, aka a DataService client service. For that, use the `rcd_data_client` module).
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct RcdClient {
     /// The HTTP (or HTTPS) address and port of the `rcd` instance you are talking to. Example: `http://127.0.0.1:50051`

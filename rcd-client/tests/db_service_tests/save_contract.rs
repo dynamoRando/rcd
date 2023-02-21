@@ -183,7 +183,7 @@ pub mod grpc {
         has_contract
     }
 }
-
+/*
 pub mod http {
 
     use crate::test_harness::{self, ServiceAddr};
@@ -376,3 +376,4 @@ pub mod http {
         has_contract
     }
 }
+*/

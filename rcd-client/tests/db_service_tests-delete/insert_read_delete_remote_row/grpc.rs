@@ -18,24 +18,28 @@ fn test() {
 
     test_harness::sleep_test();
 
-    thread::spawn(move || {
-        let mc = test_harness::get_grpc_rcd_client(main_test_config.client_address.clone());
-        let pc =
-            test_harness::get_grpc_rcd_client(participant_test_config.client_address.clone());
-        let pda = participant_test_config.database_address.clone();
+    {
+        let mtc = main_test_config.clone();
+        let ptc = participant_test_config.clone();
 
-        let config = CoreTestConfig {
-            main_client: &mc,
-            participant_client: &pc,
-            test_db_name: &test_db_name,
-            contract_desc: &custom_contract_description,
-            participant_db_addr: &pda,
-        };
+        thread::spawn(move || {
+            let mc = test_harness::get_grpc_rcd_client(mtc.client_address.clone());
+            let pc = test_harness::get_grpc_rcd_client(ptc.client_address.clone());
+            let pda = ptc.database_address.clone();
 
-        test_core(&config);
-    })
-    .join()
-    .unwrap();
+            let config = CoreTestConfig {
+                main_client: &mc,
+                participant_client: &pc,
+                test_db_name: &test_db_name,
+                contract_desc: &custom_contract_description,
+                participant_db_addr: &pda,
+            };
+
+            test_core(&config);
+        })
+        .join()
+        .unwrap();
+    }
 
     test_harness::grpc::shutdown_grpc_test(&main_test_config, &participant_test_config);
 }

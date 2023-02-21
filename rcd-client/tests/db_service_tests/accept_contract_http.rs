@@ -93,7 +93,7 @@ async fn main_service_client(
         String::from("tester"),
         String::from("123456"),
         60,
-        main_addr.ip4_addr,
+        main_addr.ip4_addr.clone(),
         main_addr.port,
     );
     client.create_user_database(db_name).await.unwrap();
@@ -162,7 +162,7 @@ async fn participant_service_client(
         String::from("tester"),
         String::from("123456"),
         60,
-        participant_client_addr.ip4_addr,
+        participant_client_addr.ip4_addr.clone(),
         participant_client_addr.port,
     );
 

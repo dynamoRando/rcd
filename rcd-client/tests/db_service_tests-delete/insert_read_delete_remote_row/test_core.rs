@@ -5,12 +5,11 @@ use std::sync::mpsc;
 use std::thread;
 
 pub fn test_core(config: &CoreTestConfig) {
-
     setup_main_and_participant(config);
 
-
-    let mc = config.main_client;
-    let db = config.test_db_name.clone();
+    let mc = &*config.main_client;
+    let mut mc = mc.clone();
+    let db = config.test_db_name.to_string().clone();
 
     let (tx, rx) = mpsc::channel();
 
@@ -24,13 +23,11 @@ pub fn test_core(config: &CoreTestConfig) {
     let is_deleted = rx.try_recv().unwrap();
 
     assert!(is_deleted);
-
-
 }
 
 #[cfg(test)]
 #[tokio::main]
-async fn main_try_delete(db_name: &str, main_client: &RcdClient) -> bool {
+async fn main_try_delete(db_name: &str, main_client: &mut RcdClient) -> bool {
     let delete_result = main_client
         .execute_cooperative_write_at_host(
             db_name,
