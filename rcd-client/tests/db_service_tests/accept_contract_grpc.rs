@@ -38,9 +38,9 @@ fn test() {
 
     let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-    let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+    let main_test_config = test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.main_dir);
     let participant_test_config =
-        test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
+        test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
     test_harness::sleep_test();
 
@@ -84,7 +84,7 @@ fn test() {
 
     assert!(participant_accepted_contract);
 
-    test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
+    test_harness::grpc::shutdown_grpc_test(&main_test_config, &participant_test_config);
 }
 
 #[cfg(test)]

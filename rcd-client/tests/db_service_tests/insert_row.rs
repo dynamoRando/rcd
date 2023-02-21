@@ -25,13 +25,13 @@ pub mod grpc {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&test_db_name, dirs.main_dir);
+        let main_test_config = test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.main_dir);
         let participant_test_config =
-            test_harness::start_service_with_grpc(&test_db_name, dirs.participant_dir);
+            test_harness::grpc::start_service_with_grpc(&test_db_name, dirs.participant_dir);
 
         test_harness::sleep_test();
 
-         {
+        {
             let main_db_name = test_db_name.clone();
             let main_client_addr = main_test_config.client_address.clone();
             let participant_db_addr = participant_test_config.database_address.clone();
@@ -88,7 +88,7 @@ pub mod grpc {
 
         assert!(write_is_successful);
 
-        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
+        test_harness::grpc::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -238,8 +238,8 @@ pub mod http {
     use crate::test_harness::{self, ServiceAddr};
     use log::{debug, info};
     use rcd_client::RcdClient;
-    use std::sync::mpsc;
-    use std::{thread};
+    use std::sync::{mpsc, Arc};
+    use std::thread;
 
     #[test]
     fn test() {
@@ -249,55 +249,35 @@ pub mod http {
         */
 
         let test_name = "insert_remote_row_http";
-        let test_db_name = format!("{}{}", test_name, ".db");
-        let custom_contract_description = String::from("insert remote row");
-
-        let (tx_main, rx_main) = mpsc::channel();
-        let (tx_participant, rx_participant) = mpsc::channel();
-        let (tx_main_write, rx_main_read) = mpsc::channel();
+        let db = Arc::new(format!("{}{}", test_name, ".db"));
+        let contract = Arc::new(String::from("insert remote row"));
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
-
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
-
-        let m_keep_alive = main_addrs.1;
-        let main_addrs = main_addrs.0;
-
-        let ma1 = main_addrs.clone();
-        let ma2 = main_addrs.clone();
-
-        let participant_addrs =
-            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
-
-        let p_keep_alive = participant_addrs.1;
-        let participant_addrs = participant_addrs.0;
-
-        let pa1 = participant_addrs.clone();
-        let pa2 = participant_addrs.clone();
+        let main_test_config = test_harness::http::start_service_with_http(&db, dirs.main_dir);
+        let participant_addrs = test_harness::http::start_service_with_http(&db, dirs.participant_dir);
 
         test_harness::sleep_test();
 
-        let main_contract_desc = custom_contract_description.clone();
-        let participant_contract_desc = custom_contract_description;
-        let main_db_name = test_db_name;
-        let main_db_name_write = main_db_name.clone();
+        {
+            let (tx, rx) = mpsc::channel();
+            
+            thread::spawn(move || {
+                let res = main_service_client(
+                    &main_db_name,
+                    &main_addrs,
+                    &participant_addrs,
+                    &main_contract_desc,
+                );
+                tx_main.send(res).unwrap();
+            })
+            .join()
+            .unwrap();
 
-        thread::spawn(move || {
-            let res = main_service_client(
-                &main_db_name,
-                &main_addrs,
-                &participant_addrs,
-                &main_contract_desc,
-            );
-            tx_main.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+            let sent_participant_contract = rx_main.try_recv().unwrap();
+            debug!("send_participant_contract: got: {sent_participant_contract}");
 
-        let sent_participant_contract = rx_main.try_recv().unwrap();
-        debug!("send_participant_contract: got: {sent_participant_contract}");
-
-        assert!(sent_participant_contract);
+            assert!(sent_participant_contract);
+        }
 
         thread::spawn(move || {
             let res = participant_service_client(pa1, participant_contract_desc);

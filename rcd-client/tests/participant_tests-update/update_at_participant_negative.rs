@@ -1,5 +1,7 @@
 pub mod grpc {
 
+    use crate::test_common::multi::grpc_main_and_participant_setup;
+    use crate::test_common::GrpcTestSetup;
     use crate::test_harness::{self, ServiceAddr};
     use log::{info, trace};
     use rcd_client::RcdClient;
@@ -53,10 +55,10 @@ pub mod grpc {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
+        let main_test_config = test_harness::grpc::start_service_with_grpc(&db, dirs.main_dir);
 
         let participant_test_config =
-            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
+            test_harness::grpc::start_service_with_grpc(&db, dirs.participant_dir);
         let main_client_addr = Arc::new(main_test_config.client_address.clone());
         let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
 
@@ -65,59 +67,15 @@ pub mod grpc {
 
         test_harness::sleep_test();
 
-        {
-            let (tx, rx) = mpsc::channel();
-            let participant_db_addr = participant_test_config.database_address.clone();
-            let db = db.clone();
-            let contract = contract.clone();
-            let mca = mca.clone();
+        let test_config = GrpcTestSetup {
+            main_test_config: main_test_config,
+            participant_test_config: participant_test_config,
+            database_name: &db,
+            contract_description: &&contract,
+        };
 
-            thread::spawn(move || {
-                let res = main_service_client(&db, &mca, &participant_db_addr, &contract);
-                tx.send(res).unwrap();
-            })
-            .join()
-            .unwrap();
-
-            let sent_participant_contract = rx.try_recv().unwrap();
-            trace!("send_participant_contract: got: {sent_participant_contract}");
-
-            assert!(sent_participant_contract);
-        }
-
-        {
-            let (tx, rx) = mpsc::channel();
-            let pca = pca.clone();
-
-            thread::spawn(move || {
-                let res = participant_service_client(&pca, &contract);
-                tx.send(res).unwrap();
-            })
-            .join()
-            .unwrap();
-
-            let participant_accepted_contract = rx.try_recv().unwrap();
-            trace!("participant_accpeted_contract: got: {participant_accepted_contract}");
-
-            assert!(participant_accepted_contract);
-        }
-
-        {
-            let (tx, rx) = mpsc::channel();
-            let db = db.clone();
-            let mca = mca.clone();
-
-            thread::spawn(move || {
-                let res = main_execute_coop_write_and_read(&db, &mca);
-                tx.send(res).unwrap();
-            })
-            .join()
-            .unwrap();
-
-            let write_and_read_is_successful = rx.try_recv().unwrap();
-
-            assert!(write_and_read_is_successful);
-        }
+        let common_setup_complete = grpc_main_and_participant_setup(test_config);
+        assert!(common_setup_complete);
 
         {
             let new_behavior = UpdatesToHostBehavior::DoNothing;
@@ -141,7 +99,7 @@ pub mod grpc {
             let (tx, rx) = mpsc::channel();
             let db = db.clone();
             let mca = mca.clone();
-            
+
             thread::spawn(move || {
                 let res = main_read_updated_row_should_succeed(&db, &mca);
                 tx.send(res).unwrap();
@@ -205,7 +163,7 @@ pub mod grpc {
             assert_ne!(participant_data_hash, h_data_hash);
         }
 
-        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
+        test_harness::grpc::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -636,7 +594,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
+        let main_addrs = test_harness::http::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -646,7 +604,8 @@ pub mod http {
         let ma3 = main_addrs.clone();
         let ma4 = main_addrs.clone();
 
-        let participant_addrs = test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
+        let participant_addrs =
+            test_harness::http::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;

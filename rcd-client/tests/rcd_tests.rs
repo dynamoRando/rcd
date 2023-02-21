@@ -10,7 +10,6 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-#[path = "test_harness.rs"]
 mod test_harness;
 
 #[test]

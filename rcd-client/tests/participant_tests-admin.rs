@@ -7,5 +7,5 @@ mod get_coop_hosts;
 #[path = "participant_tests-admin/get_participants.rs"]
 mod get_participants;
 
-#[path = "test_harness.rs"]
-mod test_harness;
+pub mod test_harness;
+pub mod test_common;

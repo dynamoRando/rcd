@@ -1,4 +1,3 @@
-#[path = "test_harness.rs"]
 mod test_harness;
 
 #[path = "client_service_tests/enable_cooperative_features_grpc.rs"]

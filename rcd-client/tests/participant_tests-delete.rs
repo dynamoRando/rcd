@@ -20,3 +20,4 @@ mod get_delete_from_host_behavior;
 mod get_delete_at_participant;
 
 pub mod test_harness;
+pub mod test_common;

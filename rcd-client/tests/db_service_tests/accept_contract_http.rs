@@ -1,4 +1,5 @@
-use crate::test_harness::{self, shutdown_http_test, ServiceAddr};
+use crate::test_harness::{self, ServiceAddr};
+use crate::test_harness::http::shutdown_http_test;
 use log::{debug, info};
 use std::{
     sync::{mpsc, Arc},
@@ -20,18 +21,19 @@ fn test() {
 
     debug!("{dirs:?}");
 
-    let main_test_config = test_harness::start_service_with_http(&db, dirs.main_dir);
-    let participant_test_config = test_harness::start_service_with_http(&db, dirs.participant_dir);
-
-    test_harness::sleep_test();
+    let main_test_config = test_harness::http::start_service_with_http(&db, dirs.main_dir);
+    let participant_test_config = test_harness::http::start_service_with_http(&db, dirs.participant_dir);
 
     let ma = Arc::new(main_test_config.http_address.clone());
     let pa = Arc::new(participant_test_config.http_address.clone());
+
+    test_harness::sleep_test();
 
     {
         let db = db.clone();
         let ma = ma.clone();
         let pa = pa.clone();
+        let contract = contract.clone();
 
         thread::spawn(move || {
             let res = main_service_client(&db, &ma, &pa, &contract);
@@ -46,8 +48,13 @@ fn test() {
         assert!(sent_participant_contract);
     }
 
+{
+
+let pa = pa.clone();
+let contract = contract.clone();
+
     thread::spawn(move || {
-        let res = participant_service_client(p_addr1, participant_contract_desc);
+        let res = participant_service_client(&pa, &contract);
         tx_participant.send(res).unwrap();
     })
     .join()
@@ -57,6 +64,7 @@ fn test() {
     debug!("participant_accpeted_contract: got: {participant_accepted_contract}");
 
     assert!(participant_accepted_contract);
+}
 
     shutdown_http_test(&main_test_config, &participant_test_config);
 }
@@ -66,8 +74,8 @@ fn test() {
 async fn main_service_client(
     db_name: &str,
     main_addr: &ServiceAddr,
-    pa: &ServiceAddr,
-    contract_desc: String,
+    part_addr: &ServiceAddr,
+    contract_desc: &str,
 ) -> bool {
     use rcd_client::RcdClient;
     use rcd_enum::database_type::DatabaseType;
@@ -121,10 +129,10 @@ async fn main_service_client(
         .add_participant(
             db_name,
             "participant",
-            &participant_db_addr.ip4_addr.clone(),
-            participant_db_addr.port,
-            participant_db_addr.ip4_addr.clone(),
-            participant_db_addr.port as u16,
+            &part_addr.ip4_addr.clone(),
+            part_addr.port,
+            part_addr.ip4_addr.clone(),
+            part_addr.port as u16,
         )
         .await
         .unwrap();
@@ -138,8 +146,8 @@ async fn main_service_client(
 #[cfg(test)]
 #[tokio::main]
 async fn participant_service_client(
-    participant_client_addr: ServiceAddr,
-    contract_desc: String,
+    participant_client_addr: &ServiceAddr,
+    contract_desc: &str,
 ) -> bool {
     use rcd_client::RcdClient;
 

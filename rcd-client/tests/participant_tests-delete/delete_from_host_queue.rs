@@ -23,9 +23,9 @@ pub mod grpc {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_test_config = test_harness::start_service_with_grpc(&db, dirs.main_dir);
+        let main_test_config = test_harness::grpc::start_service_with_grpc(&db, dirs.main_dir);
         let participant_test_config =
-            test_harness::start_service_with_grpc(&db, dirs.participant_dir);
+            test_harness::grpc::start_service_with_grpc(&db, dirs.participant_dir);
 
         let main_client_addr = Arc::new(main_test_config.client_address.clone());
         let participant_client_addr = Arc::new(participant_test_config.client_address.clone());
@@ -168,7 +168,7 @@ pub mod grpc {
             assert!(should_have_no_rows);
         }
 
-        test_harness::shutdown_grpc_test(&main_test_config, &participant_test_config);
+        test_harness::grpc::shutdown_grpc_test(&main_test_config, &participant_test_config);
     }
 
     #[cfg(test)]
@@ -521,7 +521,7 @@ pub mod http {
 
         let dirs = test_harness::get_test_temp_dir_main_and_participant(test_name);
 
-        let main_addrs = test_harness::start_service_with_http(&test_db_name, dirs.main_dir);
+        let main_addrs = test_harness::http::start_service_with_http(&test_db_name, dirs.main_dir);
 
         let m_keep_alive = main_addrs.1;
         let main_addrs = main_addrs.0;
@@ -532,7 +532,7 @@ pub mod http {
         let ma4 = main_addrs.clone();
 
         let participant_addrs =
-            test_harness::start_service_with_http(&test_db_name, dirs.participant_dir);
+            test_harness::http::start_service_with_http(&test_db_name, dirs.participant_dir);
 
         let p_keep_alive = participant_addrs.1;
         let participant_addrs = participant_addrs.0;
