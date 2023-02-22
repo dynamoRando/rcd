@@ -1,4 +1,4 @@
-use crate::test_harness::CoreTestConfig;
+use rcd_test_harness::CoreTestConfig;
 use log::debug;
 use rcd_client::RcdClient;
 use std::sync::{mpsc, Arc};
@@ -26,7 +26,7 @@ pub fn test_core(config: CoreTestConfig) {
     }
 }
 
-#[cfg(test)]
+
 #[tokio::main]
 async fn client(db_name: &str, client: &RcdClient) -> bool {
     let mut client = (*client).clone();

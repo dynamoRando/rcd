@@ -1,6 +1,6 @@
-use crate::test_harness::CoreTestConfig;
 use log::debug;
 use rcd_client::RcdClient;
+use rcd_test_harness::CoreTestConfig;
 
 use std::sync::{mpsc, Arc};
 use std::thread;
