@@ -16,7 +16,7 @@ members = [
     "rcd-common",
     # lib - for all code related to query parsing
     "rcd-query",
-    # binary - new test executable, throwaway for stuff
+    # binary - throwaway for stuff
     "rcd-foo",
     # binary - combined http and grpc
     "rcdx",
@@ -44,5 +44,13 @@ members = [
     # an example app that will use the wasm client 
     "tracking", 
     # core lib for managing containers: docker or k8s
-    "rcd-my-info-core"
+    "rcd-my-info-core",
+    # test harness and low complex tests
+    "rcd-test-harness",
+    # integration tests for client 
+    "rcd-test-i-client",
+    # integration tests for database
+    "rcd-test-i-db",
+    # integration tests for participant 
+    "rcd-test-i-part"
 ]

@@ -1,0 +1,32 @@
+[package]
+name = "rcd-test-i-db"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rcdproto = { path = "../rcdproto" }
+rcd-core = { path = "../rcd-core" }
+rcd-common = { path = "../rcd-common" }
+rcd-enum = { path = "../rcd-enum" }
+rcd-query = { path = "../rcd-query" }
+rcdx = { path = "../rcdx" }
+rcd-http-common = { path = "../rcd-http-common" }
+rcd-client = { path = "../rcd-client" }
+rcd-test-harness = { path = "../rcd-test-harness" }
+
+tonic = "0.8.1"
+tokio = { version = "1.18.0", features = ["full"] }
+futures = { version = "0.3.*" }
+log = "0.4.17"
+env_logger = "0.10.0"
+lazy_static = "1.4.0"
+triggered = "0.1"
+reqwest = { version = "0.11", features = ["json"] }
+serde_json = "1"
+serde = "1"
+simple_logger = "4"
+
+[build-dependencies]
+tonic-build = "0.8.0"

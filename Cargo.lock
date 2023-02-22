@@ -2919,6 +2919,113 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-test-harness"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "futures 0.3.24",
+ "lazy_static",
+ "log",
+ "rcd-client",
+ "rcd-common",
+ "rcd-core",
+ "rcd-enum",
+ "rcd-http-common",
+ "rcd-query",
+ "rcdproto",
+ "rcdx",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "triggered",
+]
+
+[[package]]
+name = "rcd-test-i-client"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "futures 0.3.24",
+ "lazy_static",
+ "log",
+ "rcd-client",
+ "rcd-common",
+ "rcd-core",
+ "rcd-enum",
+ "rcd-http-common",
+ "rcd-query",
+ "rcd-test-harness",
+ "rcdproto",
+ "rcdx",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "triggered",
+]
+
+[[package]]
+name = "rcd-test-i-db"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "futures 0.3.24",
+ "lazy_static",
+ "log",
+ "rcd-client",
+ "rcd-common",
+ "rcd-core",
+ "rcd-enum",
+ "rcd-http-common",
+ "rcd-query",
+ "rcd-test-harness",
+ "rcdproto",
+ "rcdx",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "triggered",
+]
+
+[[package]]
+name = "rcd-test-i-part"
+version = "0.1.0"
+dependencies = [
+ "env_logger",
+ "futures 0.3.24",
+ "lazy_static",
+ "log",
+ "rcd-client",
+ "rcd-common",
+ "rcd-core",
+ "rcd-enum",
+ "rcd-http-common",
+ "rcd-query",
+ "rcd-test-harness",
+ "rcdproto",
+ "rcdx",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "triggered",
+]
+
+[[package]]
 name = "rcdcli"
 version = "0.1.0"
 
