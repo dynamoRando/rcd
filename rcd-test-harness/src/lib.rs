@@ -6,6 +6,8 @@ use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
 use simple_logger::SimpleLogger;
+use test_common::GrpcTestSetup;
+use test_common::HttpTestSetup;
 use std::env;
 use std::fs;
 use std::sync::mpsc;
@@ -27,6 +29,12 @@ pub mod test_common;
 pub enum AddrType {
     Client,
     Database,
+}
+
+#[derive(Debug, Clone)]
+pub struct RcdClientConfig {
+    pub addr: ServiceAddr,
+    pub client_type: RcdClientType,
 }
 
 #[derive(Debug, Clone)]
@@ -60,11 +68,13 @@ pub struct TestDirectoryConfig {
 
 #[derive(Debug, Clone)]
 pub struct CoreTestConfig {
-    pub main_client: RcdClient,
-    pub participant_client: Option<RcdClient>,
+    pub main_client: RcdClientConfig,
+    pub participant_client: Option<RcdClientConfig>,
     pub test_db_name: String,
     pub contract_desc: Option<String>,
     pub participant_db_addr: Option<ServiceAddr>,
+    pub grpc_test_setup: Option<GrpcTestSetup>,
+    pub http_test_setup: Option<HttpTestSetup>,
 }
 
 impl ServiceAddr {
@@ -259,28 +269,23 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
     }
 }
 
-#[tokio::main]
-pub async fn get_grpc_rcd_client(addr: ServiceAddr) -> RcdClient {
-    let client = RcdClient::new_grpc_client(
-        addr.to_full_string_with_http(),
-        String::from("tester"),
-        String::from("123456"),
-        60,
-    )
-    .await;
-
-    client
-}
-
-#[tokio::main]
-pub async fn get_http_rcd_client(addr: ServiceAddr) -> RcdClient {
-    let client = RcdClient::new_http_client(
-        String::from("tester"),
-        String::from("123456"),
-        60,
-        addr.ip4_addr.clone(),
-        addr.port,
-    );
-
-    client
+pub async fn get_rcd_client(config: &RcdClientConfig) -> RcdClient {
+    match config.client_type {
+        RcdClientType::Grpc => {
+            RcdClient::new_grpc_client(
+                config.addr.to_full_string_with_http(),
+                String::from("tester"),
+                String::from("123456"),
+                60,
+            )
+            .await
+        }
+        RcdClientType::Http => RcdClient::new_http_client(
+            String::from("tester"),
+            String::from("123456"),
+            60,
+            config.addr.ip4_addr.clone(),
+            config.addr.port,
+        ),
+    }
 }

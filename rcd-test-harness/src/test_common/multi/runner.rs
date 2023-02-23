@@ -1,11 +1,13 @@
+use rcd_client::client_type::RcdClientType;
 use std::thread;
 
 use crate::{
-    get_grpc_rcd_client, get_http_rcd_client, get_test_temp_dir,
-    get_test_temp_dir_main_and_participant,
+    get_test_temp_dir, get_test_temp_dir_main_and_participant,
     grpc::{shutdown_grpc_tests, start_service_with_grpc},
     http::{shutdown_http_tests, start_service_with_http},
-    sleep_test, CoreTestConfig,
+    sleep_test,
+    test_common::{GrpcTestSetup, HttpTestSetup},
+    CoreTestConfig,
 };
 
 #[derive(Debug, Clone)]
@@ -28,16 +30,20 @@ impl TestRunner {
 
         {
             let mtc = main_test_config.clone();
-        
-            thread::spawn(move || {
-                let mc = get_grpc_rcd_client(mtc.client_address.clone());
+            let mc = crate::RcdClientConfig {
+                addr: mtc.client_address.clone(),
+                client_type: RcdClientType::Grpc,
+            };
 
+            thread::spawn(move || {
                 let config = CoreTestConfig {
                     main_client: mc,
                     participant_client: None,
                     test_db_name: db,
                     contract_desc: None,
                     participant_db_addr: None,
+                    grpc_test_setup: None,
+                    http_test_setup: None,
                 };
 
                 test_core(config);
@@ -67,9 +73,24 @@ impl TestRunner {
             let contract = config.contract_desc.clone();
 
             thread::spawn(move || {
-                let mc = get_grpc_rcd_client(mtc.client_address.clone());
-                let pc = get_grpc_rcd_client(ptc.client_address.clone());
+                let mc = crate::RcdClientConfig {
+                    addr: mtc.client_address.clone(),
+                    client_type: RcdClientType::Grpc,
+                };
+                let pc = crate::RcdClientConfig {
+                    addr: ptc.client_address.clone(),
+                    client_type: RcdClientType::Grpc,
+                };
                 let pda = ptc.database_address.clone();
+
+                let grpc_test_setup = GrpcTestSetup {
+                    main_test_config: mtc.clone(),
+                    participant_test_config: Some(ptc.clone()),
+                    database_name: db.clone(),
+                    contract_description: contract.as_ref().unwrap().clone(),
+                    main_client: mc.clone(),
+                    participant_client: Some(pc.clone()),
+                };
 
                 let config = CoreTestConfig {
                     main_client: mc,
@@ -77,6 +98,8 @@ impl TestRunner {
                     test_db_name: db,
                     contract_desc: contract,
                     participant_db_addr: Some(pda),
+                    grpc_test_setup: Some(grpc_test_setup),
+                    http_test_setup: None,
                 };
 
                 test_core(config);
@@ -105,10 +128,27 @@ impl TestRunner {
             let ptc = participant_test_config.clone();
 
             thread::spawn(move || {
-                let mc = get_http_rcd_client(mtc.http_address.clone());
-                let pc = get_http_rcd_client(ptc.http_address.clone());
+                let mc = crate::RcdClientConfig {
+                    addr: mtc.http_address.clone(),
+                    client_type: RcdClientType::Http,
+                };
+                let pc = crate::RcdClientConfig {
+                    addr: ptc.http_address.clone(),
+                    client_type: RcdClientType::Http,
+                };
+
+                let ptc = ptc.clone();
                 let pda = ptc.http_address.clone();
                 let contract = config.contract_desc.clone();
+
+                let http_test_setup = HttpTestSetup {
+                    main_test_config: mtc.clone(),
+                    participant_test_config: ptc.clone(),
+                    database_name: db.clone(),
+                    contract_description: contract.as_ref().unwrap().clone(),
+                    main_client: mc.clone(),
+                    participant_client: Some(pc.clone()),
+                };
 
                 let config = CoreTestConfig {
                     main_client: mc,
@@ -116,6 +156,8 @@ impl TestRunner {
                     test_db_name: db,
                     contract_desc: contract,
                     participant_db_addr: Some(pda),
+                    grpc_test_setup: None,
+                    http_test_setup: Some(http_test_setup),
                 };
 
                 test_core(config);
@@ -143,7 +185,10 @@ impl TestRunner {
             let mtc = main_test_config.clone();
 
             thread::spawn(move || {
-                let mc = get_http_rcd_client(mtc.http_address.clone());
+                let mc = crate::RcdClientConfig {
+                    addr: mtc.http_address,
+                    client_type: RcdClientType::Http,
+                };
 
                 let contract = config.contract_desc.clone();
 
@@ -153,6 +198,8 @@ impl TestRunner {
                     test_db_name: db,
                     contract_desc: contract,
                     participant_db_addr: None,
+                    grpc_test_setup: None,
+                    http_test_setup: None,
                 };
 
                 test_core(config);

@@ -27,3 +27,5 @@ I have not yet found a great solution to handling trying to bring online both a 
 
 For now, tests are run in different threads, and to ensure that each `client` and `service` come up in the right order, a poor combination of `thread::sleep` occurs right now to try and ensure that a `service` has booted up and is ready to recieve messages. I had investigated trying to find a way to signal back to the parent thread a message that the service had finished coming online, but there seems to be no good method at the moment.
 
+# Notes On Async
+Beacuse of the nature of the async runtime in tokio, there needs to be one main entry point for the runtime. This is usually either the `client` function or the `go` function inside of `test_core.rs`.

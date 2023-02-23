@@ -1,12 +1,14 @@
-use crate::{TestConfigGrpc, TestConfigHttp};
+use crate::{TestConfigGrpc, TestConfigHttp, RcdClientConfig};
 pub mod multi;
 
 #[derive(Debug, Clone)]
 pub struct GrpcTestSetup {
     pub main_test_config: TestConfigGrpc,
-    pub participant_test_config: TestConfigGrpc,
+    pub participant_test_config: Option<TestConfigGrpc>,
     pub database_name: String,
     pub contract_description: String,
+    pub main_client: RcdClientConfig,
+    pub participant_client: Option<RcdClientConfig>
 }
 
 #[derive(Debug, Clone)]
@@ -15,4 +17,6 @@ pub struct HttpTestSetup {
     pub participant_test_config: TestConfigHttp,
     pub database_name: String,
     pub contract_description: String,
+    pub main_client: RcdClientConfig,
+    pub participant_client: Option<RcdClientConfig>
 }

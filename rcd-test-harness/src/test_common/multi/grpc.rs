@@ -9,7 +9,7 @@ pub fn grpc_main_and_participant_setup(test_config: GrpcTestSetup) -> bool {
     let config = test_config.clone();
 
     let main_test_config = config.main_test_config;
-    let participant_test_config = config.participant_test_config;
+    let participant_test_config = config.participant_test_config.unwrap();
 
     let main_client_addr = Arc::new(main_test_config.client_address.clone());
     let participant_client_addr = Arc::new(participant_test_config.client_address.clone());

@@ -1,34 +1,18 @@
 use log::debug;
-use rcd_client::RcdClient;
 use rcd_enum::database_type::DatabaseType;
-use rcd_test_harness::CoreTestConfig;
-use std::sync::{mpsc, Arc};
-use std::thread;
+use rcd_test_harness::{CoreTestConfig, RcdClientConfig};
 
 pub fn test_core(config: CoreTestConfig) {
-    let mc = Arc::new(config.main_client.clone());
-    
-    {
-        let (tx, rx) = mpsc::channel();
-        thread::spawn(move || {
-            let res = client(&config.test_db_name, &mc);
-            tx.send(res).unwrap();
-        })
-        .join()
-        .unwrap();
+    let mc = config.main_client.clone();
+    let response = client(&config.test_db_name, &mc);
+    debug!("create_db_enable_coop_read_write: got: is_error: {response}");
 
-        let response = rx.try_recv().unwrap();
-
-        debug!("create_db_enable_coop_read_write: got: is_error: {response}");
-
-        assert!(!response);
-    }
+    assert!(!response);
 }
 
-#[cfg(test)]
 #[tokio::main]
-async fn client(db_name: &str, main_client: &RcdClient) -> bool {
-    let mut client = (*main_client).clone();
+async fn client(db_name: &str, main_client: &RcdClientConfig) -> bool {
+    let mut client = rcd_test_harness::get_rcd_client(main_client).await;
     let database_type = DatabaseType::to_u32(DatabaseType::Sqlite);
 
     let is_db_created = client.create_user_database(db_name).await.unwrap();
@@ -39,7 +23,7 @@ async fn client(db_name: &str, main_client: &RcdClient) -> bool {
     let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
     assert!(enable_coop_features);
-    let mut execute_write_drop_is_successful = false;
+    let execute_write_drop_is_successful: bool;
     execute_write_drop_is_successful = client
         .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
         .await
@@ -50,7 +34,7 @@ async fn client(db_name: &str, main_client: &RcdClient) -> bool {
     let create_table_statement =
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-    let mut execute_write_create_reply_is_successful = false;
+    let execute_write_create_reply_is_successful: bool;
     execute_write_create_reply_is_successful = client
         .execute_write_at_host(db_name, &create_table_statement, database_type, "")
         .await
@@ -60,7 +44,7 @@ async fn client(db_name: &str, main_client: &RcdClient) -> bool {
 
     let add_record_statement = String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
-    let mut execute_write_add_record_is_successful = false;
+    let execute_write_add_record_is_successful: bool;
     execute_write_add_record_is_successful = client
         .execute_write_at_host(db_name, &add_record_statement, database_type, "")
         .await

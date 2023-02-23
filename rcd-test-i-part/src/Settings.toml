@@ -1,0 +1,12 @@
+debug = false
+database_type = 1
+backing_database_name = "rcd.db"
+rcd_schema = "rcd"
+grpc_client_service_addr_port = "127.0.0.1:50051"
+grpc_data_service_addr_port = "127.0.0.1:50052"
+http_addr = "127.0.0.1"
+http_port = "50055"
+admin_un = "tester"
+admin_pw = "123456"
+client_grpc_timeout_in_seconds = 60
+data_grpc_timeout_in_seconds = 60

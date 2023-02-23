@@ -10,8 +10,6 @@ use std::env;
 use std::fs;
 use std::path::Path;
 
-mod test_harness;
-
 #[test]
 /// Attempts to read settings from the Settings.toml
 fn read_settings_from_config() {
@@ -117,23 +115,6 @@ fn hash() {
     // ASSERT
     assert!(&has_login);
     assert!(is_valid);
-}
-
-#[test]
-/// Tests the functionality of getting the next available testing port for the client service
-fn get_harness_value() {
-    // ARRANGE, ACT
-    let current = test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_current_port();
-    let next = crate::test_harness::TEST_SETTINGS
-        .lock()
-        .unwrap()
-        .get_next_avail_port();
-
-    // ASSERT
-    assert_eq!(current + 1, next);
 }
 
 #[test]
