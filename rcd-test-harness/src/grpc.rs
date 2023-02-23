@@ -3,8 +3,8 @@ use rcd_client::client_type::RcdClientType;
 use rcdx::rcd_service::get_service_from_config_file;
 
 use crate::{
-    delete_test_database, release_port, start_keepalive_for_test, AddrType,
-    ServiceAddr, TEST_SETTINGS,
+    delete_test_database, release_port, start_keepalive_for_test, AddrType, ServiceAddr,
+    TEST_SETTINGS,
 };
 
 use super::TestConfigGrpc;
@@ -48,16 +48,20 @@ pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConf
 
     let dir = root_dir.clone();
 
-    let _ = service.start_grpc_at_addrs_with_shutdown(
-        db_name,
-        client_address_port,
-        db_address_port,
-        dir,
-        client_listener,
-        db_listener,
-        5,
-        None,
-    );
+    let settings = Some(service.rcd_settings.clone());
+
+    service
+        .start_grpc_at_addrs_with_shutdown(
+            db_name,
+            client_address_port,
+            db_address_port,
+            dir,
+            client_listener,
+            db_listener,
+            5,
+            settings,
+        )
+        .unwrap();
 
     let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, client_addr.clone());
     let _ = keep_alive.send(true);
