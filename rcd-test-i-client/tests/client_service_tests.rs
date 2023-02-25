@@ -13,3 +13,6 @@ mod get_set_logical_storage_policy;
 
 #[path = "client_service_tests/get_settings/mod.rs"]
 mod get_settings;
+
+#[path = "client_service_tests/has_table/mod.rs"]
+mod has_table;
