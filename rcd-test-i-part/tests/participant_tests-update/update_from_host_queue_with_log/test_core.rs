@@ -1,7 +1,6 @@
-use log::{trace, debug};
+use log::{trace};
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-use rcd_test_harness::{CoreTestConfig, RcdClientConfig};
-use rcd_test_i_part::common::{test_common_grpc, test_common_http};
+use rcd_test_harness::{CoreTestConfig, RcdClientConfig, test_common::multi::common_contract_setup::main_and_participant_setup};
 
 pub fn test_core(config: CoreTestConfig) {
     go(config)
@@ -9,19 +8,12 @@ pub fn test_core(config: CoreTestConfig) {
 
 #[tokio::main]
 async fn go(config: CoreTestConfig) {
+    let result = main_and_participant_setup(config.clone()).await;
+    assert!(result);
+
     let db = config.test_db_name.clone();
-    let pca = config.participant_client.as_ref().unwrap().clone();
     let mca = config.main_client.clone();
-
-    if let Some(grpc_setup) = config.grpc_test_setup {
-        debug!("running test_common_grpc");
-        test_common_grpc(grpc_setup).await;
-    }
-
-    if let Some(http_setup) = config.http_test_setup {
-        debug!("running test_common_http");
-        test_common_http(http_setup).await;
-    }
+    let pca = config.participant_client.as_ref().unwrap().clone();
     
     let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
 
