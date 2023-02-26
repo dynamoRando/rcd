@@ -6,7 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rcd-common = { path = "../rcd-common" }
 rcd-enum = { path = "../rcd-enum" }
 serde = "1"
 serde_derive = "1"
