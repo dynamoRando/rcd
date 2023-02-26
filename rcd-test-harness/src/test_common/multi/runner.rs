@@ -7,7 +7,7 @@ use crate::{
     http::{shutdown_http_tests, start_service_with_http},
     sleep_test,
     test_common::{GrpcTestSetup, HttpTestSetup},
-    CoreTestConfig, 
+    CoreTestConfig,
 };
 
 #[derive(Debug, Clone)]
@@ -182,8 +182,8 @@ impl TestRunner {
         let db = format!("{}{}", config.test_name, ".db");
 
         let dirs = get_test_temp_dir_main_and_participant(&config.test_name);
-        let main_test_config = 
-        start_service_with_http(&db, dirs.main_dir, config.use_internal_logging);
+        let main_test_config =
+            start_service_with_http(&db, dirs.main_dir, config.use_internal_logging);
 
         sleep_test();
 

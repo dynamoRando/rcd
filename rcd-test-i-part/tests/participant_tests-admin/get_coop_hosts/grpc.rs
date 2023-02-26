@@ -4,7 +4,7 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 #[test]
 fn test() {
     rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
-    
+
     let test_name = "get_coop_hosts_gprc";
     let contract = String::from("insert read remote row");
     let config = RunnerConfig {

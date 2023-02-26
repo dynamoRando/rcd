@@ -5,7 +5,7 @@ use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::DateTime;
 use chrono::Utc;
 use guid_create::GUID;
-use log::{info, warn, trace};
+use log::{info, trace, warn};
 use rcd_common::crypt;
 use rcd_common::db::*;
 use rcd_common::host_info::*;

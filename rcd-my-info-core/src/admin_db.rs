@@ -1,6 +1,5 @@
-
 pub enum DbType {
     Sqlite,
     MySql,
-    Postgres
+    Postgres,
 }

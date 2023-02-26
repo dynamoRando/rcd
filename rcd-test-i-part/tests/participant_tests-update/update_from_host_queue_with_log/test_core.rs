@@ -1,6 +1,9 @@
-use log::{trace};
+use log::trace;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-use rcd_test_harness::{CoreTestConfig, RcdClientConfig, test_common::multi::common_contract_setup::main_and_participant_setup};
+use rcd_test_harness::{
+    test_common::multi::common_contract_setup::main_and_participant_setup, CoreTestConfig,
+    RcdClientConfig,
+};
 
 pub fn test_core(config: CoreTestConfig) {
     go(config)
@@ -14,7 +17,7 @@ async fn go(config: CoreTestConfig) {
     let db = config.test_db_name.clone();
     let mca = config.main_client.clone();
     let pca = config.participant_client.as_ref().unwrap().clone();
-    
+
     let update_statement = "UPDATE EMPLOYEE SET NAME = 'TESTER' WHERE ID = 999";
 
     {

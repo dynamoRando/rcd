@@ -1,6 +1,6 @@
 use log::{debug, error, info, warn};
 use rcd_common::crypt::{self, hash};
-use rcd_sqlite::sqlite::{has_any_rows, get_scalar_as_u32};
+use rcd_sqlite::sqlite::{get_scalar_as_u32, has_any_rows};
 use rusqlite::{named_params, Connection};
 use std::path::Path;
 

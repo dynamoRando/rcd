@@ -1,5 +1,5 @@
-use substring::Substring;
 use log::trace;
+use substring::Substring;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum ColumnType {

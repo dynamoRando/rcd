@@ -14,7 +14,7 @@ use rcd_enum::{
 use rcdproto::rcdp::Participant;
 use rusqlite::{named_params, Connection, Result};
 
-use crate::sqlite::{execute_write, get_db_conn, has_any_rows, execute_read};
+use crate::sqlite::{execute_read, execute_write, get_db_conn, has_any_rows};
 
 use super::logical_storage_policy::get_logical_storage_policy_for_all_user_tables;
 

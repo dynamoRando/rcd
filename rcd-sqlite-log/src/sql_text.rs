@@ -30,4 +30,3 @@ pub fn get_last_x_logs(x: u32) -> String {
     result = result.replace(":x", &x.to_string());
     result
 }
-

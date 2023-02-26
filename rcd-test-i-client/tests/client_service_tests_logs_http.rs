@@ -1,7 +1,6 @@
-use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 use crate::client_service_tests_logs_core::test_core;
+use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 mod client_service_tests_logs_core;
-
 
 #[test]
 fn http() {

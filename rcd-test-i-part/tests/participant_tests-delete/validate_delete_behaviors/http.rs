@@ -5,7 +5,7 @@ use super::test_core::test_core;
 #[test]
 fn test() {
     rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
-    
+
     let test_name = "validate_delete_http";
     let contract = String::from("insert read remote row");
 

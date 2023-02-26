@@ -1,4 +1,5 @@
 use super::RcdData;
+use log::trace;
 use rcd_common::db::PartialDataResult;
 use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
@@ -11,7 +12,6 @@ use rcdproto::rcdp::{
     NotifyHostOfRemovedRowRequest, NotifyHostOfRemovedRowResponse, Row, RowInfo, UpdateDataRequest,
     UpdateDataResult, UpdateRowDataHashForHostRequest, UpdateRowDataHashForHostResponse,
 };
-use log::trace;
 
 pub async fn insert_command_into_table(
     core: &RcdData,

@@ -1,5 +1,5 @@
 use rcd_test_harness::{
-    test_common::multi::common_contract_setup::main_and_participant_setup, CoreTestConfig,    
+    test_common::multi::common_contract_setup::main_and_participant_setup, CoreTestConfig,
 };
 
 pub fn test_core(config: CoreTestConfig) {

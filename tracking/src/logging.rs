@@ -1,5 +1,5 @@
-use web_sys::console;
 use js_sys::Date;
+use web_sys::console;
 
 /// Takes a message and writes it to the browser console with a datetime stamp
 pub fn log_to_console(message: &str) {

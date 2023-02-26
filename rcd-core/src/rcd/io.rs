@@ -2,7 +2,7 @@ use super::Rcd;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use log::{warn, info, trace};
+use log::{info, trace, warn};
 use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
@@ -154,7 +154,7 @@ pub async fn execute_read_at_participant(
     }
 
     let statement_results = vec![statement_result_set];
-    
+
     ExecuteReadReply {
         authentication_result: Some(auth_result.1),
         total_resultsets: 1,

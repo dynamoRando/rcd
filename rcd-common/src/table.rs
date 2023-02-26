@@ -1,7 +1,7 @@
 use guid_create::GUID;
+use log::trace;
 use rcd_enum::column_type::ColumnType;
 use substring::Substring;
-use log::trace;
 
 #[derive(Debug, Clone)]
 pub struct Data {

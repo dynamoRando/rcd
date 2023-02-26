@@ -1,8 +1,8 @@
 use self::participant::create_participant_table;
 
 use super::{
-    get_db_conn, get_scalar_as_string, get_schema_of_table,
-    has_database, has_table, sql_text, DbiConfigSqlite, execute_read,
+    execute_read, get_db_conn, get_scalar_as_string, get_schema_of_table, has_database, has_table,
+    sql_text, DbiConfigSqlite,
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;

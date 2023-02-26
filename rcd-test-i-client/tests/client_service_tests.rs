@@ -1,4 +1,3 @@
-
 #[path = "client_service_tests/create_user_database/mod.rs"]
 mod create_user_database;
 

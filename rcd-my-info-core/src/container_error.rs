@@ -18,9 +18,9 @@ pub enum DataStoreError {
 */
 
 #[derive(Error, Debug)]
-pub enum CreateContainerError{
+pub enum CreateContainerError {
     #[error("A container with that name or id already exists")]
     ContainerAlreadyExists,
     #[error("Docker: `{0}`")]
-    DockerError(String)
+    DockerError(String),
 }

@@ -1,3 +1,5 @@
+use super::RcdService;
+use log::info;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
@@ -10,8 +12,6 @@ use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::
 use std::{env, thread};
 use tonic::transport::Server;
 use triggered::Listener;
-use log::info;
-use super::RcdService;
 
 #[tokio::main]
 pub async fn start_client_service_at_addr_with_shutdown(

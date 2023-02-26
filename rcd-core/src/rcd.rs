@@ -352,7 +352,6 @@ impl Rcd {
     }
 
     fn verify_login(&self, request: AuthRequest) -> (bool, AuthResult) {
-        
         let is_authenticated: bool = if !request.jwt.is_empty() {
             self.dbi().verify_token(request.jwt)
         } else {

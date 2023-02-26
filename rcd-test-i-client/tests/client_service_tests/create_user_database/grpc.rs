@@ -1,5 +1,5 @@
-use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 use super::test_core::test_core;
+use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 
 #[test]
 fn test() {

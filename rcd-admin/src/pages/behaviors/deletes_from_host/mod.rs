@@ -11,9 +11,7 @@ use crate::{
         },
         common::{select_database::SelectDatabase, select_table::SelectTable},
     },
-    request::{
-        self, clear_status, get_token, set_status, update_token_login_status, get_database,
-    },
+    request::{self, clear_status, get_database, get_token, set_status, update_token_login_status},
 };
 
 mod change_behavior;
@@ -40,7 +38,6 @@ pub fn DeletesFromHost() -> Html {
     let onclick_db = {
         let table_names = table_names;
         Callback::from(move |db_name: String| {
-
             let database = get_database(&db_name);
             let mut names: Vec<String> = Vec::new();
 

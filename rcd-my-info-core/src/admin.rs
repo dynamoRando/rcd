@@ -16,7 +16,7 @@ impl Admin {
             DbType::Sqlite => {
                 let path = Path::new(&root_dir).join("my_info.db");
                 let db = SqliteDb::new(path.to_str().unwrap().to_string());
-                
+
                 Admin {
                     db_type: DbType::Sqlite,
                     root_dir,
@@ -63,11 +63,11 @@ impl Admin {
                 let data_port = client_port + 1;
                 let http_port = data_port + 1;
 
-                // we need to create a docker instance, exposing 50051, 50052, 50055 
+                // we need to create a docker instance, exposing 50051, 50052, 50055
                 // to the previously determined ports
 
                 // if that provision works, then we will update the users' account
-                // with these port numbers 
+                // with these port numbers
 
                 // finally we should update the last port used for the next account that is provisioned
                 todo!()

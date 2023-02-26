@@ -2,7 +2,7 @@ use rcd_test_harness::{CoreTestConfig, RcdClientConfig};
 
 /*
 
-Because of the way logging works (which must initalize a logger for lifetime of STATIC) the 
+Because of the way logging works (which must initalize a logger for lifetime of STATIC) the
 logging tests are the only tests that are broken into their own crate for HTTP/GRPC. In other words,
 we MUST treat them as seperate programs.
 

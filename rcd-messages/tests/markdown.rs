@@ -1,3 +1,4 @@
+use log::debug;
 use rcd_messages::{
     client::{ColumnSchema, Contract, DatabaseSchema, Host, Row, RowValue, TableSchema},
     formatter::{
@@ -5,7 +6,6 @@ use rcd_messages::{
         markdown::{contract, db},
     },
 };
-use log::debug;
 
 #[test]
 pub fn test_markdown_rows() {
@@ -223,7 +223,7 @@ pub fn test_database_schema() {
     };
 
     let cv1: Vec<ColumnSchema> = vec![cs11, cs12];
-    
+
     let ts1 = TableSchema {
         table_name: "EMPLOYEE".to_string(),
         table_id: "EMPLOYEE".to_string(),
@@ -256,7 +256,7 @@ pub fn test_database_schema() {
     };
 
     let cv2: Vec<ColumnSchema> = vec![cs21, cs22];
-    
+
     let ts2 = TableSchema {
         table_name: "ADDRESS".to_string(),
         table_id: "ADDRESS".to_string(),
@@ -267,7 +267,7 @@ pub fn test_database_schema() {
     };
 
     let tv: Vec<TableSchema> = vec![ts1, ts2];
-    
+
     let ds = DatabaseSchema {
         database_name: "TEST".to_string(),
         database_id: "TEST".to_string(),
@@ -364,7 +364,7 @@ pub fn test_contract() {
     };
 
     let cv2: Vec<ColumnSchema> = vec![cs21, cs22];
-    
+
     let ts2 = TableSchema {
         table_name: "ADDRESS".to_string(),
         table_id: "ADDRESS".to_string(),
@@ -375,7 +375,7 @@ pub fn test_contract() {
     };
 
     let tv: Vec<TableSchema> = vec![ts1, ts2];
-    
+
     let ds = DatabaseSchema {
         database_name: "TEST".to_string(),
         database_id: "TEST".to_string(),

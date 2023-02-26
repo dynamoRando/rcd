@@ -3,7 +3,7 @@ use crate::{
         databases::{add::Create, enable_coop::EnableCoop, tables::Tables},
         home,
     },
-    request::{get_databases, get_database},
+    request::{get_database, get_databases},
 };
 use rcd_messages::client::DatabaseSchema;
 

@@ -137,7 +137,7 @@ impl RcdService {
     }
 
     pub fn enable_internal_logging(&self, root_dir: &str, log_level: LevelFilter) {
-        if let Err(e) =  SqliteLog::init_at_dir(log_level, root_dir.to_string()) {
+        if let Err(e) = SqliteLog::init_at_dir(log_level, root_dir.to_string()) {
             error!("{}", e);
         }
     }

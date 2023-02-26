@@ -12,7 +12,7 @@ use super::TestConfigGrpc;
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
 pub fn start_service_with_grpc(
-    test_db_name: &str, 
+    test_db_name: &str,
     root_dir: String,
     use_internal_logging: bool,
 ) -> TestConfigGrpc {

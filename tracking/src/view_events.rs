@@ -1,10 +1,9 @@
 use yew::{function_component, html, Html};
 
-use crate::{event_props::SharkEventProps};
+use crate::event_props::SharkEventProps;
 
 #[function_component]
 pub fn ViewEvents(SharkEventProps { events }: &SharkEventProps) -> Html {
-
     let events = events.clone();
 
     html!(

@@ -4,7 +4,7 @@ use rcd_my_info_core::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::thread;
 
-use log::{debug, info, warn, error};
+use log::{debug, error, info, warn};
 
 use std::sync::{Arc, Mutex};
 

@@ -6,8 +6,6 @@ use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
 use simple_logger::SimpleLogger;
-use test_common::GrpcTestSetup;
-use test_common::HttpTestSetup;
 use std::env;
 use std::fs;
 use std::sync::mpsc;
@@ -15,6 +13,8 @@ use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
 use std::{path::Path, sync::Mutex};
+use test_common::GrpcTestSetup;
+use test_common::HttpTestSetup;
 use triggered::Trigger;
 
 pub mod grpc;
