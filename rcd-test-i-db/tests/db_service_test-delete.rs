@@ -1,8 +1,7 @@
-use rcd_enum::database_type::DatabaseType;
 use rcd_test_harness::test_common::multi::common_contract_setup::main_and_participant_setup;
 use rcd_test_harness::CoreTestConfig;
 
-use log::{debug, LevelFilter};
+use log::LevelFilter;
 use rcd_test_harness::{
     init_log_to_screen,
     test_common::multi::runner::{RunnerConfig, TestRunner},
@@ -10,7 +9,7 @@ use rcd_test_harness::{
 
 #[test]
 fn grpc() {
-    let test_name = "add_read_update_remote_grpc";
+    let test_name = "add_read_delete_remote_gprc";
     init_log_to_screen(LevelFilter::Info);
 
     let config = RunnerConfig {
@@ -26,7 +25,7 @@ fn grpc() {
 fn http() {
     rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
 
-    let test_name = "add_read_update_remote_http";
+    let test_name = "add_read_delete_remote_http";
 
     let config = RunnerConfig {
         test_name: test_name.to_string(),
@@ -45,45 +44,17 @@ fn test_core(config: CoreTestConfig) {
 async fn go(config: CoreTestConfig) {
     let result = main_and_participant_setup(config.clone()).await;
     assert!(result);
-    let db_name = &config.test_db_name;
-    let mut client = rcd_test_harness::get_rcd_client(&config.main_client).await;
 
-    let update_result = client
+    let mut client = rcd_test_harness::get_rcd_client(&config.main_client).await;
+    let can_delete = client
         .execute_cooperative_write_at_host(
-            db_name,
-            "UPDATE EMPLOYEE SET NAME = 'Bob' WHERE Id = 999;",
+            &config.test_db_name,
+            "DELETE FROM EMPLOYEE WHERE Id = 999",
             "participant",
             "Id = 999",
         )
         .await
         .unwrap();
 
-    assert!(update_result);
-
-    let new_data = client
-        .execute_read_at_host(
-            db_name,
-            "SELECT Name FROM EMPLOYEE",
-            DatabaseType::to_u32(DatabaseType::Sqlite),
-        )
-        .await
-        .unwrap();
-
-    debug!("{new_data:?}");
-
-    let new_value = new_data
-        .rows
-        .first()
-        .unwrap()
-        .values
-        .last()
-        .unwrap()
-        .value
-        .clone();
-
-    debug!("{new_value:?}");
-    let expected_value = "Bob".as_bytes().to_vec();
-    debug!("{expected_value:?}");
-
-    assert!(new_value == expected_value);
+    assert!(can_delete);
 }

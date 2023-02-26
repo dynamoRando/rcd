@@ -1,3 +1,2 @@
-pub mod grpc;
-pub mod http;
 pub mod runner;
+pub mod common_contract_setup;
