@@ -1,20 +1,17 @@
-use log::LevelFilter;
 use rcd_test_harness::{
-    init_log_to_screen,
     test_common::multi::runner::{RunnerConfig, TestRunner},
 };
-
-use super::test_core::test_core;
+use crate::client_service_tests_logs_core::test_core;
+mod client_service_tests_logs_core;
 
 #[test]
-fn test() {
-    init_log_to_screen(LevelFilter::Debug);
+fn grpc() {
 
-    let test_name = "get_settings_grpc";
+    let test_name = "get_logs_grpc";
     let config = RunnerConfig {
         test_name: test_name.to_string(),
         contract_desc: None,
-        use_internal_logging: false,
+        use_internal_logging: true,
     };
 
     TestRunner::run_grpc_test(config, test_core);

@@ -16,3 +16,9 @@ mod get_settings;
 
 #[path = "client_service_tests/has_table/mod.rs"]
 mod has_table;
+
+#[path = "client_service_tests/host_only/mod.rs"]
+mod host_only;
+
+#[path = "client_service_tests/is_online/mod.rs"]
+mod is_online;

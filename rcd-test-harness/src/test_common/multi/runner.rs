@@ -14,6 +14,7 @@ use crate::{
 pub struct RunnerConfig {
     pub test_name: String,
     pub contract_desc: Option<String>,
+    pub use_internal_logging: bool,
 }
 
 pub struct TestRunner {}
@@ -24,7 +25,7 @@ impl TestRunner {
     pub fn run_grpc_test(config: RunnerConfig, test_core: fn(CoreTestConfig)) {
         let db = format!("{}{}", config.test_name, ".db");
         let root_dir = get_test_temp_dir(&config.test_name);
-        let main_test_config = start_service_with_grpc(&db, root_dir);
+        let main_test_config = start_service_with_grpc(&db, root_dir, config.use_internal_logging);
 
         sleep_test();
 
@@ -62,8 +63,10 @@ impl TestRunner {
         let db = format!("{}{}", config.test_name, ".db");
         let dirs = get_test_temp_dir_main_and_participant(&config.test_name);
 
-        let main_test_config = start_service_with_grpc(&db, dirs.main_dir);
-        let participant_test_config = start_service_with_grpc(&db, dirs.participant_dir);
+        let main_test_config =
+            start_service_with_grpc(&db, dirs.main_dir, config.use_internal_logging);
+        let participant_test_config =
+            start_service_with_grpc(&db, dirs.participant_dir, config.use_internal_logging);
 
         sleep_test();
 
@@ -118,8 +121,10 @@ impl TestRunner {
         let db = format!("{}{}", config.test_name, ".db");
 
         let dirs = get_test_temp_dir_main_and_participant(&config.test_name);
-        let main_test_config = start_service_with_http(&db, dirs.main_dir);
-        let participant_test_config = start_service_with_http(&db, dirs.participant_dir);
+        let main_test_config =
+            start_service_with_http(&db, dirs.main_dir, config.use_internal_logging);
+        let participant_test_config =
+            start_service_with_http(&db, dirs.participant_dir, config.use_internal_logging);
 
         sleep_test();
 
@@ -177,7 +182,8 @@ impl TestRunner {
         let db = format!("{}{}", config.test_name, ".db");
 
         let dirs = get_test_temp_dir_main_and_participant(&config.test_name);
-        let main_test_config = start_service_with_http(&db, dirs.main_dir);
+        let main_test_config = 
+        start_service_with_http(&db, dirs.main_dir, config.use_internal_logging);
 
         sleep_test();
 

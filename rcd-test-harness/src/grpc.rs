@@ -11,7 +11,11 @@ use super::TestConfigGrpc;
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConfigGrpc {
+pub fn start_service_with_grpc(
+    test_db_name: &str, 
+    root_dir: String,
+    use_internal_logging: bool,
+) -> TestConfigGrpc {
     let (client_trigger, client_listener) = triggered::trigger();
     let (db_trigger, db_listener) = triggered::trigger();
 
@@ -40,6 +44,10 @@ pub fn start_service_with_grpc(test_db_name: &str, root_dir: String) -> TestConf
     debug!("{:?}", &root_dir);
 
     service.start_at_dir(root_dir.as_str());
+
+    if use_internal_logging {
+        service.enable_internal_logging(&root_dir, log::LevelFilter::Debug);
+    }
 
     let db_name = service.rcd_settings.backing_database_name.clone();
 

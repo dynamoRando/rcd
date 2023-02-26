@@ -10,7 +10,7 @@ use super::test_core::test_core;
 fn test() {
     init_log_to_screen(LevelFilter::Debug);
 
-    let test_name = "get_settings_grpc";
+    let test_name = "auth_token_grpc";
     let config = RunnerConfig {
         test_name: test_name.to_string(),
         contract_desc: None,

@@ -9,6 +9,7 @@ fn test() {
     let config = RunnerConfig {
         test_name: test_name.to_string(),
         contract_desc: None,
+        use_internal_logging: false,
     };
 
     TestRunner::run_http_test(config, test_core);

@@ -10,6 +10,7 @@ fn test() {
     let config = RunnerConfig {
         test_name: test_name.to_string(),
         contract_desc: Some(contract),
+        use_internal_logging: false,
     };
 
     TestRunner::run_grpc_test_multi(config, test_core);

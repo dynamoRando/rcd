@@ -1,9 +1,10 @@
-use super::test_core::test_core;
 use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
+
+use super::test_core::test_core;
 
 #[test]
 fn test() {
-    let test_name = "create_user_database_positive_http";
+    let test_name = "revoke_token_http";
 
     let config = RunnerConfig {
         test_name: test_name.to_string(),

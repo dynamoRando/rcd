@@ -48,11 +48,7 @@ impl SqliteLog {
 
         // PRAGMA journal_mode=WAL
         connection
-            .pragma_update(
-                None,
-                "journal_mode",
-                "WAL",
-            )
+            .pragma_update(None, "journal_mode", "WAL")
             .unwrap();
 
         connection.execute(&create_log_table(), []).unwrap();

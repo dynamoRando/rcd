@@ -10,7 +10,10 @@ use crate::{
 
 #[allow(dead_code)]
 /// returns a tuple for the addr_port of the client service and the db service
-pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> TestConfigHttp {
+pub fn start_service_with_http(
+    test_db_name: &str,
+     root_dir: String,
+    use_internal_logging: bool) -> TestConfigHttp {
     let http_port_num = TEST_SETTINGS.lock().unwrap().get_next_avail_port();
     let mut service = get_service_from_config_file(None);
 
@@ -31,8 +34,13 @@ pub fn start_service_with_http(test_db_name: &str, root_dir: String) -> TestConf
     debug!("{:?}", &test_db_name);
     debug!("{:?}", &cwd);
 
+    if use_internal_logging {
+        service.enable_internal_logging(&root_dir, log::LevelFilter::Debug);
+    }
+
     service.start_http_at_addr_and_dir("127.0.0.1".to_string(), http_port_num as u16, root_dir);
 
+   
     let keep_alive = start_keepalive_for_test(RcdClientType::Grpc, http_addr.clone());
     let _ = keep_alive.send(true);
 
