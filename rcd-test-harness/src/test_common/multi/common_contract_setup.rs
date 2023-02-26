@@ -66,7 +66,7 @@ pub async fn client(
     let behavior = RemoteDeleteBehavior::Ignore;
 
     client
-        .generate_contract(db_name, "tester", &contract_desc, behavior)
+        .generate_contract(db_name, "tester", contract_desc, behavior)
         .await
         .unwrap();
 

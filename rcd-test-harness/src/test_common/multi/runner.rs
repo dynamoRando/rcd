@@ -32,7 +32,7 @@ impl TestRunner {
         {
             let mtc = main_test_config.clone();
             let mc = crate::RcdClientConfig {
-                addr: mtc.client_address.clone(),
+                addr: mtc.client_address,
                 client_type: RcdClientType::Grpc,
             };
 
@@ -73,7 +73,7 @@ impl TestRunner {
         {
             let mtc = main_test_config.clone();
             let ptc = participant_test_config.clone();
-            let contract = config.contract_desc.clone();
+            let contract = config.contract_desc;
 
             thread::spawn(move || {
                 let mc = crate::RcdClientConfig {
@@ -148,7 +148,7 @@ impl TestRunner {
 
                 let http_test_setup = HttpTestSetup {
                     main_test_config: mtc.clone(),
-                    participant_test_config: ptc.clone(),
+                    participant_test_config: ptc,
                     database_name: db.clone(),
                     contract_description: contract.as_ref().unwrap().clone(),
                     main_client: mc.clone(),

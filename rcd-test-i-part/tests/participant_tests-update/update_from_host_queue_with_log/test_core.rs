@@ -60,7 +60,7 @@ async fn participant_changes_update_behavior(
     participant_client_addr: &RcdClientConfig,
     behavior: UpdatesFromHostBehavior,
 ) -> bool {
-    let mut client = rcd_test_harness::get_rcd_client(&participant_client_addr).await;
+    let mut client = rcd_test_harness::get_rcd_client(participant_client_addr).await;
 
     let change_update_behavior = client
         .change_updates_from_host_behavior(db_name, "EMPLOYEE", behavior)
@@ -76,7 +76,7 @@ async fn main_read_updated_row_should_fail(
 ) -> bool {
     use rcd_enum::database_type::DatabaseType;
 
-    let mut client = rcd_test_harness::get_rcd_client(&main_client_addr).await;
+    let mut client = rcd_test_harness::get_rcd_client(main_client_addr).await;
 
     let update_result = client
         .execute_cooperative_write_at_host(db_name, update_statement, "participant", "ID = 999")
@@ -114,7 +114,7 @@ async fn participant_get_and_approve_pending_update(
 ) -> bool {
     let mut has_statement = false;
     let mut statement_row_id = 0;
-    let mut client = rcd_test_harness::get_rcd_client(&participant_client_addr).await;
+    let mut client = rcd_test_harness::get_rcd_client(participant_client_addr).await;
 
     let pending_updates = client
         .get_pending_actions_at_participant(db_name, table_name, "UPDATE")
@@ -151,7 +151,7 @@ async fn main_read_updated_row_should_succed(
 ) -> bool {
     use rcd_enum::database_type::DatabaseType;
 
-    let mut client = rcd_test_harness::get_rcd_client(&main_client_addr).await;
+    let mut client = rcd_test_harness::get_rcd_client(main_client_addr).await;
 
     let cmd = String::from("SELECT NAME FROM EMPLOYEE WHERE Id = 999");
     let read_result = client

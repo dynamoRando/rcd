@@ -14,7 +14,7 @@ Also, because you can't dashes in module names, these are the only files that do
 
 pub fn test_core(config: CoreTestConfig) {
     let mc = config.main_client.clone();
-    let db = config.test_db_name.clone();
+    let db = config.test_db_name;
     let got_logs = client(&db, &mc);
     assert!(got_logs);
 }

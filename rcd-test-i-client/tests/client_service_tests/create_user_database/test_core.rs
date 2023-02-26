@@ -4,7 +4,7 @@ use rcd_test_harness::RcdClientConfig;
 
 pub fn test_core(config: CoreTestConfig) {
     let mc = config.main_client.clone();
-    let db = config.test_db_name.clone();
+    let db = config.test_db_name;
 
     let response = client(&db, &mc);
     debug!("create_user_database: got: {response}");

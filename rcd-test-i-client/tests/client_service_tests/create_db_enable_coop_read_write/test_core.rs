@@ -23,8 +23,8 @@ async fn client(db_name: &str, main_client: &RcdClientConfig) -> bool {
     let drop_table_statement = String::from("DROP TABLE IF EXISTS EMPLOYEE;");
 
     assert!(enable_coop_features);
-    let execute_write_drop_is_successful: bool;
-    execute_write_drop_is_successful = client
+    
+    let execute_write_drop_is_successful: bool = client
         .execute_write_at_host(db_name, &drop_table_statement, database_type, "")
         .await
         .unwrap();
@@ -34,8 +34,8 @@ async fn client(db_name: &str, main_client: &RcdClientConfig) -> bool {
     let create_table_statement =
         String::from("CREATE TABLE IF NOT EXISTS EMPLOYEE (Id INT, Name TEXT);");
 
-    let execute_write_create_reply_is_successful: bool;
-    execute_write_create_reply_is_successful = client
+    
+    let execute_write_create_reply_is_successful: bool = client
         .execute_write_at_host(db_name, &create_table_statement, database_type, "")
         .await
         .unwrap();
@@ -44,8 +44,8 @@ async fn client(db_name: &str, main_client: &RcdClientConfig) -> bool {
 
     let add_record_statement = String::from("INSERT INTO EMPLOYEE (Id, Name) VALUES (1, 'Randy');");
 
-    let execute_write_add_record_is_successful: bool;
-    execute_write_add_record_is_successful = client
+    
+    let execute_write_add_record_is_successful: bool = client
         .execute_write_at_host(db_name, &add_record_statement, database_type, "")
         .await
         .unwrap();

@@ -48,7 +48,7 @@ pub fn start_service_with_http(
 
     TestConfigHttp {
         http_address: http_addr,
-        keep_alive: keep_alive,
+        keep_alive,
     }
 }
 

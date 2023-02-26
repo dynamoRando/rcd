@@ -1,7 +1,7 @@
 use rcd_test_harness::{CoreTestConfig, RcdClientConfig};
 
 pub fn test_core(config: CoreTestConfig) {
-    let mc = config.main_client.clone();
+    let mc = config.main_client;
     let response = client(&mc);
     assert!(response);
 }

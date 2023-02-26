@@ -94,7 +94,7 @@ async fn go(config: CoreTestConfig) {
 
     // lets check a normal situation, reset and add a record
     let cmd = "INSERT INTO EMPLOYEE (ID, NAME) VALUES (999, 'TESTER')";
-    mc.execute_cooperative_write_at_host(&db_name, &cmd, "participant", "")
+    mc.execute_cooperative_write_at_host(&db_name, cmd, "participant", "")
         .await
         .unwrap();
 
@@ -126,7 +126,7 @@ async fn go(config: CoreTestConfig) {
 
     // reset with record
     let cmd = "INSERT INTO EMPLOYEE (ID, NAME) VALUES (999, 'TESTER')";
-    mc.execute_cooperative_write_at_host(&db_name, &cmd, "participant", "")
+    mc.execute_cooperative_write_at_host(&db_name, cmd, "participant", "")
         .await
         .unwrap();
 
@@ -190,7 +190,7 @@ async fn go(config: CoreTestConfig) {
 
     // reset with record
     let cmd = "INSERT INTO EMPLOYEE (ID, NAME) VALUES (999, 'ASDF')";
-    mc.execute_cooperative_write_at_host(&db_name, &cmd, "participant", "")
+    mc.execute_cooperative_write_at_host(&db_name, cmd, "participant", "")
         .await
         .unwrap();
 
