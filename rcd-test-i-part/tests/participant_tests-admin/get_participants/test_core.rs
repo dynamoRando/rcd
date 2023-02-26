@@ -1,4 +1,3 @@
-use log::{debug, trace, warn};
 use rcd_test_harness::{
     test_common::multi::common_contract_setup::main_and_participant_setup, CoreTestConfig,
 };
