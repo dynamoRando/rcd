@@ -1,3 +1,4 @@
+use log::debug;
 use rcdproto::rcdp::{
     AcceptPendingContractReply, AcceptPendingContractRequest, Contract, ViewPendingContractsReply,
     ViewPendingContractsRequest,
@@ -20,7 +21,12 @@ pub async fn accept_pending_contract(
         // contract
         // 3 - we need to notify the host that we have accepted the contract
 
+        debug!("requested host_alias: {}", request.host_alias);
+
         let contracts = core.dbi().get_pending_contracts();
+
+        debug!("{contracts:?}");
+
         let pending_contract = contracts
             .iter()
             .enumerate()
@@ -38,7 +44,7 @@ pub async fn accept_pending_contract(
             .dbi()
             .create_partial_database_from_contract(&param_contract);
 
-        let self_host_info = core.dbi().rcd_get_host_info();
+        let self_host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
         // 3 - notify the host that we've accepted the contract
         let is_host_notified = core
             .remote()

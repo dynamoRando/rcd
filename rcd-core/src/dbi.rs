@@ -107,7 +107,7 @@ impl Dbi {
     }
 
     pub fn create_token_for_login(&self, login: &str) -> (String, DateTime<Utc>) {
-        let host_info = self.rcd_get_host_info();
+        let host_info = self.rcd_get_host_info().expect("no host info is set");
         let token_data = auth::create_jwt(&host_info.name, login);
         self.save_token(login, &token_data.0, token_data.1);
         token_data
@@ -1163,7 +1163,7 @@ impl Dbi {
     pub fn get_active_contract_proto(&self, db_name: &str) -> Contract {
         let active_contract = self.get_active_contract(db_name);
         let db_schema = self.get_database_schema(db_name);
-        let host_info = self.rcd_get_host_info();
+        let host_info = self.rcd_get_host_info().expect("no host info is set");
         active_contract.to_cdata_contract(
             &host_info,
             "",
@@ -1259,7 +1259,7 @@ impl Dbi {
         }
     }
 
-    pub fn rcd_get_host_info(&self) -> HostInfo {
+    pub fn rcd_get_host_info(&self) -> Option<HostInfo> {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
@@ -1298,14 +1298,11 @@ impl Dbi {
         }
     }
 
-    /// Generates the host info and saves it to our rcd_db if it has not alraedy been generated.
+    /// Generates the host info and saves it to our rcd_db, overwriting the previous host_name and token (but not the host_id)
     /// Will always return the current `HostInfo`
     pub fn generate_and_get_host_info(&self, host_name: &str) -> HostInfo {
-        if !self.if_rcd_host_info_exists() {
-            self.rcd_generate_host_info(host_name);
-        }
-
-        self.rcd_get_host_info()
+        self.rcd_generate_host_info(host_name);
+        self.rcd_get_host_info().expect("no host info is set")
     }
 
     pub fn configure_admin(&self, login: &str, pw: &str) {

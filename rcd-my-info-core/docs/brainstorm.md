@@ -27,8 +27,7 @@ References:
 
 # Alternative Design
 
-Rather than manage an RCD instance that brings online both a GRPC and HTTP endpoint, encapsulated by a container (or pod), we could extend the design of the 
-exising RCD service to accept a _proxy_ GRPC/HTTP service on it's behalf.
+Rather than manage an RCD instance that brings online both a GRPC and HTTP endpoint, encapsulated by a container (or pod), we could extend the design of the exising RCD service to accept a _proxy_ GRPC/HTTP service on it's behalf.
 
 Design Highlights:
     - A new RCD proxy service that takes all the same messages that an RCD service would, along with a `instance_id` which is 
@@ -47,4 +46,18 @@ Design Highlights:
     - Likewise, we need to make sure that the `Remote` object on the data service can handle using a proxy service on it's behalf. I don't believe
     it needs to (since all it does is instantiate a client) but it's worth double checking.
 
-    
+## Other Notes
+
+It would be preferable when a new RCD instance is created that we go ahead and generate a host-id automatically on the service itself, doing something like: 
+
+```
+// does the same thing as rcd.rs -> core.generate_host_info(host_name) 
+// but instead of supplying a user specified host name, generates a GUID for the name and returns it
+// this would then be used by rcd-proxy to identify the instance of RCD
+service.init_host_info()
+```
+
+This would then pre-populate with a GUID for the host name. Later, if a contract is generated, we would re-generate the token and the host_name, but NEVER re-generate the id.
+
+The host_id then becomes the method by which a rcd-proxy can identify which instance messages should be sent to.
+

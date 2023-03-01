@@ -1786,6 +1786,7 @@ impl RcdClient {
                 pw_hash: Vec::new(),
                 token: Vec::new(),
                 jwt: self.jwt.clone(),
+                id: None,
             };
 
             debug!("{auth:?}");
@@ -1799,6 +1800,7 @@ impl RcdClient {
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: String::from(""),
+            id: None,
         };
 
         debug!("{:?}", auth);

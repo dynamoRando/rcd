@@ -47,7 +47,7 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
                             core.dbi().get_participants_for_table(&db_name, ct.as_str());
                         for participant in &participants_for_table {
                             // we would need to get rows for that table from the participant
-                            let host_info = core.dbi().rcd_get_host_info();
+                            let host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
                             let remote_data_result = core
                                 .remote()
                                 .get_row_from_participant(participant.clone(), host_info)
@@ -215,7 +215,7 @@ pub async fn execute_write_at_participant(
                         UpdatesToHostBehavior::SendDataHashChange => {
                             let remote_host =
                                 core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
-                            let own_host_info = core.dbi().rcd_get_host_info().clone();
+                            let own_host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
 
                             let notify_result = core
                                 .remote()
@@ -257,7 +257,7 @@ pub async fn execute_write_at_participant(
                         DeletesToHostBehavior::SendNotification => {
                             let remote_host =
                                 core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
-                            let own_host_info = core.dbi().rcd_get_host_info().clone();
+                            let own_host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
 
                             let notify_result = core
                                 .remote()
@@ -360,7 +360,7 @@ pub async fn execute_cooperative_write_at_host(
             .dbi()
             .get_participant_by_alias(&db_name, &request.alias)
             .unwrap();
-        let host_info = core.dbi().rcd_get_host_info();
+        let host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
         let cmd_table_name = get_table_name(&statement, core.dbi().db_type());
         let where_clause = request.where_clause.clone();
 

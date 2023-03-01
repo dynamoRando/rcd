@@ -28,6 +28,7 @@ pub fn start_service_with_http(
     debug!("{:?}", &root_dir);
 
     service.start_at_dir(root_dir.as_str());
+    service.warn_init_host_info();
 
     let cwd = service.cwd();
     delete_test_database(test_db_name, &cwd);

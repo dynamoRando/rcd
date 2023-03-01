@@ -1,4 +1,5 @@
 use config::Config;
+use guid_create::GUID;
 use log::{error, info, LevelFilter};
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
@@ -101,6 +102,7 @@ impl RcdService {
         }
     }
 
+    /// initializes the service from the settings, overriding the current working directory with the specified value
     pub fn start_at_dir(&mut self, root_dir: &str) {
         configure_backing_store_at_dir(
             self.rcd_settings.database_type,
@@ -146,6 +148,7 @@ impl RcdService {
         return self.db_interface.as_ref().unwrap().clone();
     }
 
+    /// initalizes the service from the settings, using the current working directory as the root for files
     pub fn start(&mut self) {
         configure_backing_store(
             self.rcd_settings.database_type,
@@ -178,6 +181,30 @@ impl RcdService {
             DatabaseType::Sqlserver => unimplemented!(),
             _ => panic!("Unknown db type"),
         }
+    }
+
+    /// Initalizes the `RCD` instance with a random generated host_id, host_name, and token.
+    /// Effectively this is the same thing as a call to rcd.rs (core) `.generate_host_info(host_name)`
+    /// and returns the host_id.
+    ///
+    /// __This is intended to be called only ONCE when a brand new RCD instance
+    /// has been created. This function WILL PANIC if there is a host id already set.__
+    pub fn warn_init_host_info(&self) {
+        let db = self.db_interface.as_ref().unwrap();
+
+        let host_info = db.rcd_get_host_info();
+        if host_info.is_none() {
+            let id = GUID::rand();
+            db.rcd_generate_host_info(&id.to_string());
+        } else {
+            let host_id = host_info.unwrap().id;
+            panic!("a host id has already been set: {host_id}")
+        }
+    }
+
+    pub fn get_host_id(&self) -> String {
+        let db = self.db_interface.as_ref().unwrap();
+        db.rcd_get_host_info().expect("no host info is set").id
     }
 
     #[tokio::main]

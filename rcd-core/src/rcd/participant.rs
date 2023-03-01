@@ -18,7 +18,7 @@ pub async fn try_auth_at_participant(
 
     let result = core
         .remote()
-        .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info())
+        .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info().expect("no host info is set"))
         .await;
 
     TryAuthAtPartipantReply {
@@ -78,7 +78,7 @@ pub async fn send_participant_contract(
             .unwrap();
         let active_contract = core.dbi().get_active_contract(&db_name);
         let db_schema = core.dbi().get_database_schema(&db_name);
-        let host_info = core.dbi().rcd_get_host_info();
+        let host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
         let result = core
             .remote()
             .send_participant_contract(participant, host_info, active_contract, db_schema)

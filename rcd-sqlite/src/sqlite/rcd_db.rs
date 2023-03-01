@@ -1,4 +1,3 @@
-use super::execute_write;
 use super::{get_scalar_as_string, get_scalar_as_u32, has_any_rows, sql_text::Cds};
 use crate::sqlite::get_db_conn;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
@@ -777,7 +776,7 @@ fn create_cds_hosts_table(conn: &Connection) {
         .unwrap();
 }
 
-pub fn get_host_info(config: DbiConfigSqlite) -> HostInfo {
+pub fn get_host_info(config: DbiConfigSqlite) -> Option<HostInfo> {
     let conn = get_rcd_conn(&config);
     let cmd = String::from(
         "
@@ -817,44 +816,62 @@ pub fn get_host_info(config: DbiConfigSqlite) -> HostInfo {
         results.push(hi.unwrap());
     }
 
-    if results.is_empty() {
-        HostInfo {
-            id: "host-info-not-set".to_string(),
-            name: "host-info-not-set".to_string(),
-            token: Vec::new(),
-        }
-    } else {
-        results.first().unwrap().clone()
+    if !results.is_empty() {
+        return Some(results.first().unwrap().clone());
     }
+
+    None
 }
 
 pub fn generate_host_info(host_name: &str, config: DbiConfigSqlite) {
-    let id = GUID::rand();
     let conn = get_rcd_conn(&config);
     let token_gen = GUID::rand();
     let token = crypt::hash(&token_gen.to_string());
 
-    execute_write(&conn, "DELETE FROM CDS_HOST_INFO;");
+    let cmd = "SELECT COUNT(*) HOSTS FROM CDS_HOST_INFO".to_string();
+    let has_rows = has_any_rows(cmd, &conn);
 
-    let cmd = String::from(
-        "
-            INSERT INTO CDS_HOST_INFO
-            (
-                HOST_ID,
-                HOST_NAME,
-                TOKEN
+    if has_rows {
+        let cmd = String::from(
+            "
+                UPDATE CDS_HOST_INFO
+                SET 
+                    HOST_NAME = :name,
+                    TOKEN = :token
+                ;",
+        );
+        let mut statement = conn.prepare(&cmd).unwrap();
+        let total_rows = statement
+            .execute(named_params! {":name" : host_name, ":token" : token.0 })
+            .unwrap();
+
+        if total_rows == 0 {
+            panic!("host info not updated")
+        }
+    } else {
+        let id = GUID::rand();
+        let cmd = String::from(
+            "
+                INSERT INTO CDS_HOST_INFO
+                (
+                    HOST_ID,
+                    HOST_NAME,
+                    TOKEN
+                )
+                VALUES
+                (
+                    :id,
+                    :name,
+                    :token
+                );",
+        );
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(
+                named_params! {":id" : id.to_string(), ":name" : host_name, ":token" : token.0 },
             )
-            VALUES
-            (
-                :id,
-                :name,
-                :token
-            );",
-    );
-    let mut statement = conn.prepare(&cmd).unwrap();
-    statement
-        .execute(named_params! {":id" : id.to_string(), ":name" : host_name, ":token" : token.0 })
-        .unwrap();
+            .unwrap();
+    }
 }
 
 pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {

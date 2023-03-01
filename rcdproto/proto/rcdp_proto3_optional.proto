@@ -744,12 +744,13 @@ message MessageInfo {
 }
 
 // A message for authentication purposes (note: this is proof of concept, and obviously not secure)
-message AuthRequest{
+message AuthRequest {
   string userName = 1;
   string pw = 2;
   bytes pwHash = 3;
   bytes token = 4;
   string jwt = 5;
+  optional string id = 6;
 }
 
 // A message describing the results of an authentication attempt

@@ -1137,6 +1137,8 @@ pub struct AuthRequest {
     pub token: ::prost::alloc::vec::Vec<u8>,
     #[prost(string, tag="5")]
     pub jwt: ::prost::alloc::string::String,
+    #[prost(string, optional, tag="6")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// A message describing the results of an authentication attempt
 #[derive(serde::Serialize, serde::Deserialize)]

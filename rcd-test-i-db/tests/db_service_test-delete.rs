@@ -10,7 +10,7 @@ use rcd_test_harness::{
 #[test]
 fn grpc() {
     let test_name = "add_read_delete_remote_gprc";
-    init_log_to_screen(LevelFilter::Info);
+    init_log_to_screen(LevelFilter::Debug);
 
     let config = RunnerConfig {
         test_name: test_name.to_string(),
