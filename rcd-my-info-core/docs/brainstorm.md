@@ -61,3 +61,32 @@ This would then pre-populate with a GUID for the host name. Later, if a contract
 
 The host_id then becomes the method by which a rcd-proxy can identify which instance messages should be sent to.
 
+# Alternative Design Notes
+
+## RCD Changes
+- Create new `service` method called `init_with_hash` that setup's an `RCD` instance with the specified settings
+    - This method would not save the pw in plain text, instead already hashing it and saving it to the `rcd.db` with the hash.
+- Create new `service` method called `start_with_config` that would override all `RcdSettings` values, including the root directory.
+    - This is what would allow the concept of a "proxy" communication layer to be passed into the `RCD` instance. 
+    - The idea is that the `RCD` instance technically lives only as long as the method call.
+
+## RCD Proxy 
+- Service would host an `rcd-grpc` and `rcd-http` instance. It would inspect the `auth` token for an id, look it up in it's 
+    local database to see if it had one, and if it did, call the `start_with_config` method, passing in a premade `config` that 
+    had it's values (it's GRPC and HTTP settings) along with the appropriate `root` dir.
+
+- Some example methods for the "proxy" struct:
+    - Create new account
+        - Creates a new RCD Proxy account with a un and pw hash
+        - Provisions an instance directory at the location of it's own configured `root` directory
+            - Calls `init_with_hash` using the same hash as what's in the `rcd_common` "crypt" library
+    - Account Table Structure 
+        - username
+        - pw_hash
+        - instance_id 
+        - dir (in theoy this should be the same name as the `instance_dir`)
+            - it would be easier to just name the dir the same as the instance_id, where available
+    - Test Handling Multiple Accounts
+        - Test a few on-demand instances by bringing online the `start_with_config` method and ensuring everything still works
+        - This would generate the config based on the inspected `id` value passed in the `AuthRequest` message.
+
