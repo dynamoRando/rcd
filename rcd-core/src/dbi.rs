@@ -1305,6 +1305,19 @@ impl Dbi {
         self.rcd_get_host_info().expect("no host info is set")
     }
 
+    pub fn configure_admin_hash(&self, login: &str, hash: [u8; 128]) {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                sqlite::rcd_db::configure_admin_with_hash(login, hash, settings)
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn configure_admin(&self, login: &str, pw: &str) {
         match self.db_type {
             DatabaseType::Sqlite => {

@@ -18,7 +18,10 @@ pub async fn try_auth_at_participant(
 
     let result = core
         .remote()
-        .try_auth_at_participant(db_participant, &core.dbi().rcd_get_host_info().expect("no host info is set"))
+        .try_auth_at_participant(
+            db_participant,
+            &core.dbi().rcd_get_host_info().expect("no host info is set"),
+        )
         .await;
 
     TryAuthAtPartipantReply {

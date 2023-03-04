@@ -227,7 +227,11 @@ pub async fn accept_pending_action_at_participant(
             is_local_update_successful = true;
 
             let remote_host = core.dbi().get_cds_host_for_part_db(db_name).unwrap();
-            let own_host_info = core.dbi().rcd_get_host_info().expect("no host info is set").clone();
+            let own_host_info = core
+                .dbi()
+                .rcd_get_host_info()
+                .expect("no host info is set")
+                .clone();
             let hash = data_result.data_hash;
 
             let is_deleted = match data_result.action {

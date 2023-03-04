@@ -453,12 +453,20 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
     }
 }
 
+pub fn create_login_with_hash(login: &str, hash: [u8; 128], config: &DbiConfigSqlite) {
+    let conn = get_rcd_conn(config);
+
+    let cmd = Cds::text_add_user();
+    let mut statement = conn.prepare(&cmd).unwrap();
+    statement
+        .execute(named_params! { ":username": login, ":hash": hash })
+        .unwrap();
+}
+
 pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
     let conn = get_rcd_conn(config);
     // https://www.reddit.com/r/rust/comments/2sipzj/is_there_an_easy_way_to_hash_passwords_in_rust/
     // https://blue42.net/code/rust/examples/sodiumoxide-password-hashing/post/
-
-    info!("un and pw: {} {}", login, pw);
 
     let login_hash = crypt::hash(pw);
     let cmd = Cds::text_add_user();
@@ -491,6 +499,18 @@ pub fn has_login_via_config(login: &str, config: DbiConfigSqlite) -> Result<bool
 fn get_rcd_conn(config: &DbiConfigSqlite) -> Connection {
     let db_path = Path::new(&config.root_folder).join(&config.rcd_db_name);
     Connection::open(db_path).unwrap()
+}
+
+pub fn configure_admin_with_hash(login: &str, hash: [u8; 128], config: DbiConfigSqlite) {
+    let conn = get_rcd_conn(&config);
+
+    if !has_login(login, &conn).unwrap() {
+        create_login_with_hash(login, hash, &config);
+    }
+
+    if !role::login_is_in_role(login, &String::from("SysAdmin"), &config).unwrap() {
+        role::add_login_to_role(login, &String::from("SysAdmin"), &config);
+    }
 }
 
 pub fn configure_admin(login: &str, pw: &str, config: DbiConfigSqlite) {

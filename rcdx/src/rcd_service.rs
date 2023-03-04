@@ -16,6 +16,69 @@ use rcd_enum::database_type::DatabaseType;
 mod grpc;
 mod http;
 
+/// Intalizes the backing cds with the specified admin values. Intended to only be called by an rcd-proxy upon inital sign-up
+fn init_backing_store_at_dir_with_hash(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    root_dir: &str,
+    admin_un: &str,
+    admin_hash: [u8; 128],
+) {
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: root_dir.to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            dbi.configure_rcd_db();
+            dbi.configure_admin_hash(admin_un, admin_hash);
+        }
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
+        _ => panic!("Unknown db type"),
+    }
+    todo!()
+}
+
+fn configure_backing_store_at_existing_dir(
+    db_type: DatabaseType,
+    backing_db_name: &str,
+    root_dir: &str,
+) {
+    match db_type {
+        DatabaseType::Sqlite => {
+            let config = DbiConfigSqlite {
+                root_folder: root_dir.to_string(),
+                rcd_db_name: backing_db_name.to_string(),
+            };
+
+            let dbi = Dbi {
+                db_type: DatabaseType::Sqlite,
+                mysql_config: None,
+                postgres_config: None,
+                sqlite_config: Some(config),
+            };
+
+            dbi.configure_rcd_db();
+        }
+        DatabaseType::Mysql => todo!(),
+        DatabaseType::Postgres => todo!(),
+        DatabaseType::Sqlserver => todo!(),
+        _ => panic!("Unknown db type"),
+    }
+
+    todo!()
+}
+
 /// Configures the backing cds based on the type in the apps current working directory
 fn configure_backing_store_at_dir(
     db_type: DatabaseType,
@@ -99,6 +162,51 @@ impl RcdService {
             cwd.to_string()
         } else {
             self.root_dir.clone()
+        }
+    }
+
+    /// initalizes the service at the specified directory with the username and hash provided
+    /// note: this is intended to be called by a rcd-proxy instance upon registration of an
+    /// rcd account - to be called only once
+    pub fn init_at_dir(&mut self, root_dir: &str, admin_un: &str, admin_hash: [u8; 128]) {
+        init_backing_store_at_dir_with_hash(
+            self.rcd_settings.database_type,
+            &self.rcd_settings.backing_database_name,
+            root_dir,
+            admin_un,
+            admin_hash,
+        );
+    }
+
+    pub fn start_at_existing_dir(&mut self, root_dir: &str) {
+        configure_backing_store_at_existing_dir(
+            self.rcd_settings.database_type,
+            &self.rcd_settings.backing_database_name,
+            root_dir,
+        );
+        let db_type = self.rcd_settings.database_type;
+
+        match db_type {
+            DatabaseType::Sqlite => {
+                let sqlite_config = DbiConfigSqlite {
+                    root_folder: root_dir.to_string(),
+                    rcd_db_name: self.rcd_settings.backing_database_name.clone(),
+                };
+
+                let config = Dbi {
+                    db_type,
+                    mysql_config: None,
+                    postgres_config: None,
+                    sqlite_config: Some(sqlite_config),
+                };
+
+                self.db_interface = Some(config);
+            }
+
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+            _ => panic!("Unknown db type"),
         }
     }
 

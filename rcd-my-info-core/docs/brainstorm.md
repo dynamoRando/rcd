@@ -90,3 +90,12 @@ The host_id then becomes the method by which a rcd-proxy can identify which inst
         - Test a few on-demand instances by bringing online the `start_with_config` method and ensuring everything still works
         - This would generate the config based on the inspected `id` value passed in the `AuthRequest` message.
 
+### Proxy Steps For New Account
+- Take the username and password, hash the password and save in it's own db
+- If the folder doesn't already exist, cretae a new GUID for the folder name and create the directory for the account with the GUID folder name
+- Create a `Settings.toml` file and place it in the directory. The username and password should be blank, because we won't use them
+- Call `rcd_service.init_at_dir()` to create the needed files
+- Call `rcd_service.warn_iniit_host()` to create the first time host info 
+
+#### Proxy Steps For On Demand Work
+- Call `rcd_service.start_at_existing_dir()` whenever the account logs in or a message is recieved for that instance
