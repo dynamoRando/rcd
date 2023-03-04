@@ -90,7 +90,7 @@ impl ServiceAddr {
 
 lazy_static! {
     pub static ref TEST_SETTINGS: Mutex<TestSettings> = Mutex::new(TestSettings {
-        max_port: 6000,
+        max_port: 9000,
         ports: Vec::new()
     });
 }
