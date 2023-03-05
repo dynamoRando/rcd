@@ -1,5 +1,5 @@
 use config::Config;
-use log::info;
+use log::{error, info};
 use rcd_enum::database_type::DatabaseType;
 use simple_logger::SimpleLogger;
 use std::{env, path::Path};
@@ -50,24 +50,65 @@ impl RcdProxy {
             .build()
             .expect("Could not find {SETTINGS} file in {dir}");
 
-        let db_name = settings
-            .get_string("backing_database_name")
-            .unwrap_or(PROXY_DB.to_string());
-        let client_addr = settings
-            .get_string("client_addr_port")
-            .unwrap_or("127.0.0.1:50051".to_string());
-        let db_addr = settings
-            .get_string("db_addr_port")
-            .unwrap_or("127.0.0.1:50052".to_string());
-        let http_addr = settings
-            .get_string("http_addr")
-            .unwrap_or("127.0.0.1".to_string());
-        let http_port = settings
-            .get_string("http_port")
-            .unwrap_or("50055".to_string());
-        let db_type = settings
-            .get_string("database_type")
-            .unwrap_or("1".to_string());
+        let result_db_name = settings.get_string("backing_database_name");
+
+        let db_name: String = match result_db_name {
+            Ok(name) => name,
+            Err(_) => {
+                error!("missing setting: 'backing_database_name', using default {PROXY_DB}");
+                PROXY_DB.to_string()
+            }
+        };
+
+        let result_client_addr = settings.get_string("client_addr_port");
+
+        let client_addr = match result_client_addr {
+            Ok(addr) => addr,
+            Err(_) => {
+                error!("missing setting: 'client_addr_port', using default 127.0.0.1:50051");
+                "127.0.0.1:50051".to_string()
+            }
+        };
+
+        let result_db_addr = settings.get_string("db_addr_port");
+
+        let db_addr = match result_db_addr {
+            Ok(addr) => addr,
+            Err(_) => {
+                error!("missing setting: 'db_addr_port', using default 127.0.0.1:50052");
+                "127.0.0.1:50052".to_string()
+            }
+        };
+
+        let result_http_addr = settings.get_string("http_addr");
+
+        let http_addr = match result_http_addr {
+            Ok(addr) => addr,
+            Err(_) => {
+                error!("missing setting: 'http_addr', using default 127.0.0.1");
+                "127.0.0.1".to_string()
+            }
+        };
+
+        let result_http_port = settings.get_string("http_port");
+
+        let http_port = match result_http_port {
+            Ok(port) => port,
+            Err(_) => {
+                error!("missing setting: 'http_port',  using default 50055");
+                "50055".to_string()
+            }
+        };
+
+        let result_db_type = settings.get_string("database_type");
+
+        let db_type = match result_db_type {
+            Ok(x) => x,
+            Err(_) => {
+                error!("missing setting: 'database_type', using default 1 ");
+                "1".to_string()
+            }
+        };
 
         let settings = RcdProxySettings {
             use_grpc: true,
@@ -93,7 +134,7 @@ impl RcdProxy {
 }
 
 #[test]
-fn test_get_settings() {
+fn test_output_settings() {
     SimpleLogger::new().env().init().unwrap();
 
     let cwd = env::current_dir().unwrap().to_str().unwrap().to_string();
