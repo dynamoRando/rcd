@@ -1,3 +1,4 @@
+use config::Config;
 use rcd_enum::database_type::DatabaseType;
 use std::path::Path;
 use thiserror::Error;
@@ -39,9 +40,11 @@ impl RcdProxy {
             return Err(RcdProxyErr::SettingsNotFound(dir));
         }
 
+        let config = config.to_str().unwrap();
+
         let settings = Config::builder()
             .add_source(config::File::with_name(config))
-            .add_source(config::Environment::with_prfix("APP"))
+            .add_source(config::Environment::with_prefix("APP"))
             .build()
             .expect("Could not find config file in {dir}");
 
