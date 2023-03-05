@@ -1,12 +1,15 @@
 [package]
-name = "rcd-enum"
+name = "rcd-proxy"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+rcd-enum =  { path = "../rcd-enum" }
+serde_json = "1"
 serde = "1"
-substring = "1.4.5"
-log = "0.4"
 serde_derive = "1"
+thiserror = "1.0.38"
+log = "0.4.17"
+config = "0.13.3"

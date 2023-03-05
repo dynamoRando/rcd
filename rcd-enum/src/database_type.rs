@@ -1,4 +1,5 @@
-use serde::{Deserialize, Serialize};
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 /// Represents the type of backing database rcd is hosting
 /// # Types
