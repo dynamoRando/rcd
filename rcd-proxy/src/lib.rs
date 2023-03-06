@@ -8,10 +8,14 @@ use thiserror::Error;
 const SETTINGS: &str = "Settings.toml";
 const PROXY_DB: &str = "Proxy.db";
 
+mod proxy_grpc;
+
 #[derive(Error, Debug)]
 pub enum RcdProxyErr {
     #[error("Could not find Settings.toml in dir: `{0}`")]
     SettingsNotFound(String),
+    #[error("User already exists: `{0}`")]
+    UserAlreadyExists(String),
 }
 
 #[derive(Debug, Clone)]
@@ -130,6 +134,23 @@ impl RcdProxy {
     pub fn output_settings(&self) {
         let settings = &self.settings.clone();
         info!("{settings:?}");
+    }
+
+    /// initalizes the backing database
+    pub fn start(&self) {
+        todo!();
+    }
+
+    /// starts the grpc proxy
+    pub fn start_grpc(&self) {
+        todo!();
+    }
+
+    /// checks to see if the specified user name already exists
+    /// if not, it will save the un, hash the pw, and init
+    /// a new `rcd` directory for the account and init the `rcd` instance
+    pub fn register_user(un: String, pw: String) -> Result<(), RcdProxyErr> {
+        todo!();
     }
 }
 
