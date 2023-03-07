@@ -1,5 +1,6 @@
 use config::Config;
 use log::{error, info};
+use proxy_db::ProxyDb;
 use rcd_enum::database_type::DatabaseType;
 use simple_logger::SimpleLogger;
 use std::{env, path::Path};
@@ -8,7 +9,10 @@ use thiserror::Error;
 const SETTINGS: &str = "Settings.toml";
 const PROXY_DB: &str = "Proxy.db";
 
+mod proxy_db;
+mod proxy_db_sqlite;
 mod proxy_grpc;
+mod sql_text;
 
 #[derive(Error, Debug)]
 pub enum RcdProxyErr {
@@ -21,6 +25,7 @@ pub enum RcdProxyErr {
 #[derive(Debug, Clone)]
 pub struct RcdProxy {
     settings: RcdProxySettings,
+    db: ProxyDb,
 }
 
 #[derive(Debug, Clone)]
@@ -114,6 +119,8 @@ impl RcdProxy {
             }
         };
 
+        let db_type = DatabaseType::from_u32(db_type.parse().unwrap());
+
         let settings = RcdProxySettings {
             use_grpc: true,
             use_http: true,
@@ -121,12 +128,20 @@ impl RcdProxy {
             grpc_db_addr_port: db_addr,
             http_ip: http_addr,
             http_port: http_port.parse().unwrap(),
-            root_dir: dir,
-            database_type: DatabaseType::from_u32(db_type.parse().unwrap()),
-            database_name: db_name,
+            root_dir: dir.clone(),
+            database_type: db_type,
+            database_name: db_name.clone(),
         };
 
-        let service = RcdProxy { settings };
+        let db = match db_type {
+            DatabaseType::Unknown => todo!(),
+            DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name.clone(), dir.clone()),
+            DatabaseType::Mysql => todo!(),
+            DatabaseType::Postgres => todo!(),
+            DatabaseType::Sqlserver => todo!(),
+        };
+
+        let service = RcdProxy { settings, db };
 
         Ok(service)
     }
@@ -138,6 +153,8 @@ impl RcdProxy {
 
     /// initalizes the backing database
     pub fn start(&self) {
+        self.db.config();
+
         todo!();
     }
 

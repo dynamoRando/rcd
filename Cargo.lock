@@ -2513,6 +2513,7 @@ dependencies = [
  "rcd-grpc",
  "rcd-http",
  "rcdproto",
+ "rusqlite",
  "serde",
  "serde_derive",
  "serde_json",
