@@ -293,7 +293,6 @@ fn test_output_settings() {
 #[test]
 pub fn test_new_with_sqlite() {
     use std::env;
-
     let _ = SimpleLogger::new().env().init();
 
     use rcd_test_harness::get_test_temp_dir;

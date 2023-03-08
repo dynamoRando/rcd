@@ -1,5 +1,5 @@
 use crate::proxy_db_sqlite::ProxySqlite;
-use crate::{RcdProxyErr};
+use crate::RcdProxyErr;
 
 #[derive(Clone, Debug)]
 pub struct DbConfigSqlite {

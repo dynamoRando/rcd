@@ -1,7 +1,7 @@
 use crate::RcdProxy;
 use log::debug;
 
-use rcdproto::rcdp::sql_client_server::{SqlClient};
+use rcdproto::rcdp::sql_client_server::SqlClient;
 use rcdproto::rcdp::*;
 use tonic::{Request, Response, Status};
 
