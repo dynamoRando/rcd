@@ -2,7 +2,7 @@ use crate::sql_text::sqlite::{ADD_LOGIN, SQLITE_CREATE_LOGIN_TABLE};
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
 use log::{debug, trace};
 use rusqlite::named_params;
-use rusqlite::{types::Type, Connection, Result};
+use rusqlite::{Connection, Result};
 use std::path::Path;
 use thiserror::Error;
 
@@ -29,7 +29,7 @@ impl ProxySqlite {
     pub fn register_user(&self, un: &str, hash: &str) -> Result<(), RcdProxyErr> {
         let conn = self.conn();
         let mut cmd = "SELECT COUNT(*) num_user FROM LOGIN WHERE username = ':un'".to_string();
-        cmd = cmd.replace(":un", &un);
+        cmd = cmd.replace(":un", un);
         if !self.has_any_rows(&cmd) {
             let mut statement = conn.prepare(ADD_LOGIN).unwrap();
             let num_rows = statement
@@ -45,17 +45,17 @@ impl ProxySqlite {
             }
         } else {
             let msg = format!("User '{}' already exists", un);
-            return Err(RcdProxyErr::UserAlreadyExists(msg));
+            Err(RcdProxyErr::UserAlreadyExists(msg))
         }
     }
 
     fn write(&self, sql: &str) -> Result<usize, ProxySqliteErr> {
         let result = self.conn().execute(sql, []);
 
-        return match result {
+        match result {
             Ok(n) => Ok(n),
             Err(e) => Err(ProxySqliteErr::General(e.to_string())),
-        };
+        }
     }
 
     fn conn(&self) -> Connection {
@@ -67,7 +67,7 @@ impl ProxySqlite {
     fn get_scalar_as_u32(&self, cmd: &str) -> u32 {
         let mut value: u32 = 0;
         let conn = self.conn();
-        let mut statement = conn.prepare(&cmd).unwrap();
+        let mut statement = conn.prepare(cmd).unwrap();
         let rows = statement.query_map([], |row| row.get(0)).unwrap();
 
         for item in rows {

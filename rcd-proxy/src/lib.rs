@@ -1,10 +1,11 @@
+use std::path::Path;
+
 use config::Config;
 use log::{error, info};
 use proxy_db::ProxyDb;
 use rcd_enum::database_type::DatabaseType;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
-use std::{env, path::Path};
 use thiserror::Error;
 
 const SETTINGS: &str = "Settings.toml";
@@ -139,7 +140,7 @@ impl RcdProxy {
 
         let db = match db_type {
             DatabaseType::Unknown => todo!(),
-            DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name.clone(), root_dir.to_string()),
+            DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name, root_dir.to_string()),
             DatabaseType::Mysql => todo!(),
             DatabaseType::Postgres => todo!(),
             DatabaseType::Sqlserver => todo!(),
@@ -281,6 +282,7 @@ impl RcdProxy {
 
 #[test]
 fn test_output_settings() {
+    use std::env;
     let _ = SimpleLogger::new().env().init();
 
     let cwd = env::current_dir().unwrap().to_str().unwrap().to_string();
@@ -290,6 +292,8 @@ fn test_output_settings() {
 
 #[test]
 pub fn test_new_with_sqlite() {
+    use std::env;
+
     let _ = SimpleLogger::new().env().init();
 
     use rcd_test_harness::get_test_temp_dir;
@@ -304,6 +308,7 @@ pub fn test_new_with_sqlite() {
 
 #[test]
 pub fn test_register_twice() {
+    use std::env;
     let _ = SimpleLogger::new().env().init();
 
     use rcd_test_harness::get_test_temp_dir;

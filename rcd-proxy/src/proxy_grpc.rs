@@ -1,9 +1,9 @@
 use crate::RcdProxy;
 use log::debug;
-use rcd_core::rcd::Rcd;
-use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
+
+use rcdproto::rcdp::sql_client_server::{SqlClient};
 use rcdproto::rcdp::*;
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::{Request, Response, Status};
 
 #[derive(Clone, Debug)]
 #[allow(dead_code)]
