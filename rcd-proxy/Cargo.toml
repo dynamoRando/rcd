@@ -11,6 +11,8 @@ rcd-grpc = { path = "../rcd-grpc" }
 rcd-http = { path = "../rcd-http" }
 rcdproto = { path = "../rcdproto" }
 rcd-core = { path = "../rcd-core" }
+rcd-common = { path = "../rcd-common"}
+rcd-test-harness = { path = "../rcd-test-harness"}
 serde_json = "1"
 serde = "1"
 serde_derive = "1"

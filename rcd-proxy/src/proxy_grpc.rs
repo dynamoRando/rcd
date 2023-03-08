@@ -6,6 +6,7 @@ use rcdproto::rcdp::*;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone, Debug)]
+#[allow(dead_code)]
 /// Implements the `SQLClient` definition from the protobuff file
 pub struct ProxyClientGrpc {
     root_folder: String,
@@ -16,6 +17,7 @@ pub struct ProxyClientGrpc {
 }
 
 impl ProxyClientGrpc {
+    #[allow(dead_code, unused_variables)]
     pub fn new(
         root_folder: String,
         database_name: String,
@@ -35,6 +37,7 @@ impl ProxyClientGrpc {
 
 #[tonic::async_trait]
 impl SqlClient for ProxyClientGrpc {
+    #[allow(dead_code, unused_variables)]
     async fn is_online(
         &self,
         request: Request<TestRequest>,
@@ -46,6 +49,7 @@ impl SqlClient for ProxyClientGrpc {
         todo!();
     }
 
+    #[allow(dead_code, unused_variables)]
     async fn get_logs_by_last_number(
         &self,
         request: Request<GetLogsByLastNumberRequest>,
@@ -53,7 +57,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_settings(
         &self,
         request: Request<GetSettingsRequest>,
@@ -61,7 +65,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_cooperative_hosts(
         &self,
         request: Request<GetCooperativeHostsRequest>,
@@ -69,7 +73,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_updates_from_host_behavior(
         &self,
         request: Request<GetUpdatesFromHostBehaviorRequest>,
@@ -77,7 +81,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_updates_to_host_behavior(
         &self,
         request: Request<GetUpdatesToHostBehaviorRequest>,
@@ -85,7 +89,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_deletes_from_host_behavior(
         &self,
         request: Request<GetDeletesFromHostBehaviorRequest>,
@@ -93,14 +97,14 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_deletes_to_host_behavior(
         &self,
         request: Request<GetDeletesToHostBehaviorRequest>,
     ) -> Result<Response<GetDeletesToHostBehaviorReply>, Status> {
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_versions(
         &self,
         request: Request<AuthRequest>,
@@ -109,7 +113,7 @@ impl SqlClient for ProxyClientGrpc {
         // need to write an HTTP version as well
         todo!()
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_host_info(
         &self,
         request: Request<AuthRequest>,
@@ -117,7 +121,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn revoke_token(
         &self,
         request: Request<AuthRequest>,
@@ -125,7 +129,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn auth_for_token(
         &self,
         request: Request<AuthRequest>,
@@ -133,7 +137,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_active_contract(
         &self,
         request: Request<GetActiveContractRequest>,
@@ -141,7 +145,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_participants(
         &self,
         request: Request<GetParticipantsRequest>,
@@ -149,7 +153,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_databases(
         &self,
         request: Request<GetDatabasesRequest>,
@@ -157,7 +161,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn accept_pending_action_at_participant(
         &self,
         request: Request<AcceptPendingActionRequest>,
@@ -165,7 +169,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_pending_actions_at_participant(
         &self,
         request: Request<GetPendingActionsRequest>,
@@ -173,6 +177,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
+    #[allow(dead_code, unused_variables)]
 
     async fn get_data_log_table_status_at_participant(
         &self,
@@ -181,7 +186,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         unimplemented!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn set_data_log_table_status_at_participant(
         &self,
         request: Request<SetDataLogTableStatusRequest>,
@@ -189,7 +194,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         unimplemented!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn generate_host_info(
         &self,
         request: Request<GenerateHostInfoRequest>,
@@ -197,7 +202,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn create_user_database(
         &self,
         request: Request<CreateUserDatabaseRequest>,
@@ -205,7 +210,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn enable_coooperative_features(
         &self,
         request: Request<EnableCoooperativeFeaturesRequest>,
@@ -213,7 +218,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn execute_read_at_host(
         &self,
         request: Request<ExecuteReadRequest>,
@@ -221,7 +226,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn execute_read_at_participant(
         &self,
         request: Request<ExecuteReadRequest>,
@@ -229,7 +234,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn execute_write_at_host(
         &self,
         request: Request<ExecuteWriteRequest>,
@@ -237,7 +242,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn execute_write_at_participant(
         &self,
         request: Request<ExecuteWriteRequest>,
@@ -245,7 +250,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     #[allow(unused_assignments)]
     async fn execute_cooperative_write_at_host(
         &self,
@@ -254,7 +259,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn has_table(
         &self,
         request: Request<HasTableRequest>,
@@ -262,7 +267,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn set_logical_storage_policy(
         &self,
         request: Request<SetLogicalStoragePolicyRequest>,
@@ -270,7 +275,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_logical_storage_policy(
         &self,
         request: Request<GetLogicalStoragePolicyRequest>,
@@ -278,7 +283,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn generate_contract(
         &self,
         request: Request<GenerateContractRequest>,
@@ -286,7 +291,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn add_participant(
         &self,
         request: Request<AddParticipantRequest>,
@@ -294,7 +299,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn send_participant_contract(
         &self,
         request: Request<SendParticipantContractRequest>,
@@ -302,7 +307,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn review_pending_contracts(
         &self,
         request: Request<ViewPendingContractsRequest>,
@@ -310,7 +315,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn accept_pending_contract(
         &self,
         request: Request<AcceptPendingContractRequest>,
@@ -318,14 +323,14 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn reject_pending_contract(
         &self,
         _request: tonic::Request<RejectPendingContractRequest>,
     ) -> Result<tonic::Response<RejectPendingContractReply>, tonic::Status> {
         unimplemented!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn change_host_status(
         &self,
         request: tonic::Request<ChangeHostStatusRequest>,
@@ -333,7 +338,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn try_auth_at_participant(
         &self,
         request: tonic::Request<TryAuthAtParticipantRequest>,
@@ -341,7 +346,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn change_updates_from_host_behavior(
         &self,
         request: Request<ChangeUpdatesFromHostBehaviorRequest>,
@@ -349,7 +354,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn change_deletes_from_host_behavior(
         &self,
         request: Request<ChangeDeletesFromHostBehaviorRequest>,
@@ -357,7 +362,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn change_updates_to_host_behavior(
         &self,
         request: Request<ChangeUpdatesToHostBehaviorRequest>,
@@ -365,7 +370,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn change_deletes_to_host_behavior(
         &self,
         request: Request<ChangeDeletesToHostBehaviorRequest>,
@@ -373,7 +378,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn read_row_id_at_participant(
         &self,
         request: Request<GetReadRowIdsRequest>,
@@ -381,7 +386,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_data_hash_at_host(
         &self,
         request: Request<GetDataHashRequest>,
@@ -389,7 +394,7 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
     }
-
+    #[allow(dead_code, unused_variables)]
     async fn get_data_hash_at_participant(
         &self,
         request: Request<GetDataHashRequest>,

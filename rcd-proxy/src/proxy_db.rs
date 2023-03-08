@@ -1,5 +1,5 @@
 use crate::proxy_db_sqlite::ProxySqlite;
-use crate::RcdProxyErr;
+use crate::{RcdProxyErr, PROXY_DB};
 
 #[derive(Clone, Debug)]
 pub struct DbConfigSqlite {
@@ -14,6 +14,7 @@ pub struct DbConfigMySql {}
 pub struct DbConfigPostgres {}
 
 #[derive(Clone, Debug)]
+#[allow(dead_code, unused_variables)]
 pub enum ProxyDbConfig {
     Unknown,
     Sqlite(DbConfigSqlite),
@@ -50,7 +51,17 @@ impl ProxyDb {
         }
     }
 
-    pub fn register_user(&self, un: String, pw: String) -> Result<(), RcdProxyErr> {
+    pub fn register_user(&self, un: &str, hash: &str) -> Result<(), RcdProxyErr> {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().register_user(un, hash),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    #[allow(dead_code, unused_variables)]
+    pub fn has_user(&self, un: &str) -> Result<bool, RcdProxyErr> {
         todo!()
     }
 

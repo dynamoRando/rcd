@@ -2508,10 +2508,12 @@ version = "0.1.0"
 dependencies = [
  "config",
  "log",
+ "rcd-common",
  "rcd-core",
  "rcd-enum",
  "rcd-grpc",
  "rcd-http",
+ "rcd-test-harness",
  "rcdproto",
  "rusqlite",
  "serde",
