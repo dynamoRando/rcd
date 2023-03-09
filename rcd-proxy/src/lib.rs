@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs, path::Path};
 
 use config::Config;
 use log::{error, info};
@@ -7,6 +7,7 @@ use rcd_enum::database_type::DatabaseType;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
 use thiserror::Error;
+use uuid::Uuid;
 
 const SETTINGS: &str = "Settings.toml";
 const PROXY_DB: &str = "Proxy.db";
@@ -15,6 +16,7 @@ mod proxy_db;
 mod proxy_db_sqlite;
 mod proxy_grpc;
 mod sql_text;
+mod user_info;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum RcdProxyErr {
@@ -24,6 +26,8 @@ pub enum RcdProxyErr {
     UserAlreadyExists(String),
     #[error("Db Error: `{0}`")]
     DbError(String),
+    #[error("Folder already exists: `{0}`")]
+    FolderAlreadyExists(String),
 }
 
 #[derive(Debug, Clone)]
@@ -212,6 +216,33 @@ impl RcdProxy {
         use rcd_common::crypt::hash;
         let hash = hash(pw);
         self.db.register_user(un, &hash.0)
+    }
+
+    pub fn create_rcd_instance(
+        &self,
+        un: &str,
+        overwrite_existing: bool,
+    ) -> Result<(), RcdProxyErr> {
+        let folder_id = Uuid::new_v4().to_string();
+        let folder_path = Path::new(&self.settings.root_dir).join(folder_id);
+
+        if Path::exists(&folder_path) && !overwrite_existing {
+            return Err(RcdProxyErr::FolderAlreadyExists(
+                folder_path.to_str().unwrap().to_string(),
+            ));
+        }
+
+        if folder_path.exists() && overwrite_existing {
+            fs::remove_dir_all(&folder_path).unwrap();
+        }
+
+        fs::create_dir_all(&folder_path).unwrap();
+
+        // make the new folder
+        // and then init the RCD instance in this folder
+        // and then record the host_id returned in our LOGIN table
+
+        todo!();
     }
 }
 
