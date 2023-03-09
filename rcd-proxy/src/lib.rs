@@ -50,110 +50,57 @@ impl RcdProxy {
         config_dir: &str,
         root_dir: &str,
     ) -> Result<Self, RcdProxyErr> {
-        let config = Path::new(&config_dir).join(SETTINGS);
+        let result_settings = Self::get_settings(config_dir);
 
-        if !Path::exists(&config) {
-            return Err(RcdProxyErr::SettingsNotFound(config_dir.to_string()));
-        }
+        match result_settings {
+            Ok(mut settings) => {
+                settings.root_dir = root_dir.to_string();
 
-        let config = config.to_str().unwrap();
+                let db_type = settings.database_type;
+                let db_name = settings.database_name.clone();
 
-        let settings = Config::builder()
-            .add_source(config::File::with_name(config))
-            .add_source(config::Environment::with_prefix("APP"))
-            .build()
-            .expect("Could not find {SETTINGS} file in {dir}");
+                let db = match db_type {
+                    DatabaseType::Unknown => todo!(),
+                    DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name, root_dir.to_string()),
+                    DatabaseType::Mysql => todo!(),
+                    DatabaseType::Postgres => todo!(),
+                    DatabaseType::Sqlserver => todo!(),
+                };
 
-        let result_db_name = settings.get_string("backing_database_name");
+                let service = RcdProxy { settings, db };
 
-        let db_name: String = match result_db_name {
-            Ok(name) => name,
-            Err(_) => {
-                error!("missing setting: 'backing_database_name', using default {PROXY_DB}");
-                PROXY_DB.to_string()
+                return Ok(service);
             }
+            Err(e) => return Err(e),
         };
-
-        let result_client_addr = settings.get_string("client_addr_port");
-
-        let client_addr = match result_client_addr {
-            Ok(addr) => addr,
-            Err(_) => {
-                error!("missing setting: 'client_addr_port', using default 127.0.0.1:50051");
-                "127.0.0.1:50051".to_string()
-            }
-        };
-
-        let result_db_addr = settings.get_string("db_addr_port");
-
-        let db_addr = match result_db_addr {
-            Ok(addr) => addr,
-            Err(_) => {
-                error!("missing setting: 'db_addr_port', using default 127.0.0.1:50052");
-                "127.0.0.1:50052".to_string()
-            }
-        };
-
-        let result_http_addr = settings.get_string("http_addr");
-
-        let http_addr = match result_http_addr {
-            Ok(addr) => addr,
-            Err(_) => {
-                error!("missing setting: 'http_addr', using default 127.0.0.1");
-                "127.0.0.1".to_string()
-            }
-        };
-
-        let result_http_port = settings.get_string("http_port");
-
-        let http_port = match result_http_port {
-            Ok(port) => port,
-            Err(_) => {
-                error!("missing setting: 'http_port',  using default 50055");
-                "50055".to_string()
-            }
-        };
-
-        let result_db_type = settings.get_string("database_type");
-
-        let db_type = match result_db_type {
-            Ok(x) => x,
-            Err(_) => {
-                error!("missing setting: 'database_type', using default 1 ");
-                "1".to_string()
-            }
-        };
-
-        let db_type = DatabaseType::from_u32(db_type.parse().unwrap());
-
-        let settings = RcdProxySettings {
-            use_grpc: true,
-            use_http: true,
-            grpc_client_addr_port: client_addr,
-            grpc_db_addr_port: db_addr,
-            http_ip: http_addr,
-            http_port: http_port.parse().unwrap(),
-            root_dir: root_dir.to_string(),
-            database_type: db_type,
-            database_name: db_name.clone(),
-        };
-
-        let db = match db_type {
-            DatabaseType::Unknown => todo!(),
-            DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name, root_dir.to_string()),
-            DatabaseType::Mysql => todo!(),
-            DatabaseType::Postgres => todo!(),
-            DatabaseType::Sqlserver => todo!(),
-        };
-
-        let service = RcdProxy { settings, db };
-
-        Ok(service)
     }
 
     /// reads the specified directory's Settings.toml and returns
     /// a new instance of a RcdProxy
     pub fn get_proxy_from_config(dir: &str) -> Result<Self, RcdProxyErr> {
+        let result_settings = Self::get_settings(dir);
+        match result_settings {
+            Ok(settings) => {
+                let db_type = settings.database_type.clone();
+                let db_name = settings.database_name.clone();
+
+                let db = match db_type {
+                    DatabaseType::Unknown => todo!(),
+                    DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name, dir.to_string()),
+                    DatabaseType::Mysql => todo!(),
+                    DatabaseType::Postgres => todo!(),
+                    DatabaseType::Sqlserver => todo!(),
+                };
+
+                let service = RcdProxy { settings, db };
+
+                return Ok(service);
+            }
+            Err(e) => return Err(e),
+        };
+    }
+
+    fn get_settings(dir: &str) -> Result<RcdProxySettings, RcdProxyErr> {
         let config = Path::new(&dir).join(SETTINGS);
 
         if !Path::exists(&config) {
@@ -230,7 +177,7 @@ impl RcdProxy {
 
         let db_type = DatabaseType::from_u32(db_type.parse().unwrap());
 
-        let settings = RcdProxySettings {
+        Ok(RcdProxySettings {
             use_grpc: true,
             use_http: true,
             grpc_client_addr_port: client_addr,
@@ -240,19 +187,7 @@ impl RcdProxy {
             root_dir: dir.to_string(),
             database_type: db_type,
             database_name: db_name.clone(),
-        };
-
-        let db = match db_type {
-            DatabaseType::Unknown => todo!(),
-            DatabaseType::Sqlite => ProxyDb::new_with_sqlite(db_name, dir.to_string()),
-            DatabaseType::Mysql => todo!(),
-            DatabaseType::Postgres => todo!(),
-            DatabaseType::Sqlserver => todo!(),
-        };
-
-        let service = RcdProxy { settings, db };
-
-        Ok(service)
+        })
     }
 
     pub fn output_settings(&self) {
@@ -282,8 +217,9 @@ impl RcdProxy {
 
 #[test]
 fn test_output_settings() {
+    use ignore_result::Ignore;
     use std::env;
-    let _ = SimpleLogger::new().env().init();
+    SimpleLogger::new().env().init().ignore();
 
     let cwd = env::current_dir().unwrap().to_str().unwrap().to_string();
     let proxy = RcdProxy::get_proxy_from_config(&cwd).unwrap();
@@ -292,10 +228,12 @@ fn test_output_settings() {
 
 #[test]
 pub fn test_new_with_sqlite() {
-    use std::env;
-    let _ = SimpleLogger::new().env().init();
-
+    use ignore_result::Ignore;
     use rcd_test_harness::get_test_temp_dir;
+    use std::env;
+
+    SimpleLogger::new().env().init().ignore();
+
     let root_dir = get_test_temp_dir("rcd-proxy-db-unit-test-new");
     let config_dir = env::current_dir().unwrap().to_str().unwrap().to_string();
     let proxy = RcdProxy::get_proxy_from_config_with_dir(&config_dir, &root_dir).unwrap();
@@ -307,10 +245,12 @@ pub fn test_new_with_sqlite() {
 
 #[test]
 pub fn test_register_twice() {
-    use std::env;
-    let _ = SimpleLogger::new().env().init();
-
+    use ignore_result::Ignore;
     use rcd_test_harness::get_test_temp_dir;
+    use std::env;
+
+    SimpleLogger::new().env().init().ignore();
+
     let root_dir = get_test_temp_dir("rcd-proxy-db-unit-test-register");
     let config_dir = env::current_dir().unwrap().to_str().unwrap().to_string();
     let proxy = RcdProxy::get_proxy_from_config_with_dir(&config_dir, &root_dir).unwrap();
