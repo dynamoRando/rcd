@@ -1,6 +1,6 @@
 use config::Config;
 use guid_create::GUID;
-use log::{error, info, LevelFilter};
+use log::{error, info, LevelFilter, trace};
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::dbi::Dbi;
@@ -22,7 +22,7 @@ fn init_backing_store_at_dir_with_hash(
     backing_db_name: &str,
     root_dir: &str,
     admin_un: &str,
-    admin_hash: [u8; 128],
+    admin_hash: Vec<u8>,
 ) {
     match db_type {
         DatabaseType::Sqlite => {
@@ -46,7 +46,6 @@ fn init_backing_store_at_dir_with_hash(
         DatabaseType::Sqlserver => todo!(),
         _ => panic!("Unknown db type"),
     }
-    todo!()
 }
 
 fn configure_backing_store_at_existing_dir(
@@ -168,7 +167,10 @@ impl RcdService {
     /// initalizes the service at the specified directory with the username and hash provided
     /// note: this is intended to be called by a rcd-proxy instance upon registration of an
     /// rcd account - to be called only once
-    pub fn init_at_dir(&mut self, root_dir: &str, admin_un: &str, admin_hash: [u8; 128]) {
+    pub fn init_at_dir(&mut self, root_dir: &str, admin_un: &str, admin_hash: Vec<u8>) {
+
+        trace!("init at dir: {root_dir:?}");
+
         init_backing_store_at_dir_with_hash(
             self.rcd_settings.database_type,
             &self.rcd_settings.backing_database_name,
@@ -212,6 +214,9 @@ impl RcdService {
 
     /// initializes the service from the settings, overriding the current working directory with the specified value
     pub fn start_at_dir(&mut self, root_dir: &str) {
+
+        trace!("start at dir: {root_dir:?}");
+
         configure_backing_store_at_dir(
             self.rcd_settings.database_type,
             &self.rcd_settings.backing_database_name,
@@ -297,8 +302,11 @@ impl RcdService {
     ///
     /// __This is intended to be called only ONCE when a brand new RCD instance
     /// has been created. This function WILL PANIC if there is a host id already set.__
-    pub fn warn_init_host_info(&self) {
+    pub fn warn_init_host_info(&mut self) {
+        self.init_dbi();
         let db = self.db_interface.as_ref().unwrap();
+
+        trace!("{db:?}");
 
         let host_info = db.rcd_get_host_info();
         if host_info.is_none() {
@@ -370,6 +378,34 @@ impl RcdService {
     ) -> Result<(), Box<dyn std::error::Error>> {
         return grpc::start_grpc_client_service_at_addr(self, address_port, root_folder);
     }
+
+    fn init_dbi(&mut self) {
+        let db_type = self.rcd_settings.database_type;
+
+        match db_type {
+            DatabaseType::Sqlite => {
+                let sqlite_config = DbiConfigSqlite {
+                    root_folder: self.root_dir.clone(),
+                    rcd_db_name: self.rcd_settings.backing_database_name.clone(),
+                };
+
+                let config = Dbi {
+                    db_type,
+                    mysql_config: None,
+                    postgres_config: None,
+                    sqlite_config: Some(sqlite_config),
+                };
+
+                trace!("{config:?}");
+
+                self.db_interface = Some(config);
+            }
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+            _ => panic!("Unknown db type"),
+        }
+    }
 }
 
 /// Returns an RcdService from the config file
@@ -396,10 +432,10 @@ pub fn get_service_from_config_file(settings_filename: Option<String>) -> RcdSer
 #[allow(dead_code)]
 /// Returns an RcdService from the supplied config (normally used in testing)
 /// This function is normally called in tests
-pub fn get_service_from_config(config: RcdSettings) -> RcdService {
+pub fn get_service_from_config(config: RcdSettings, root_dir: &str) -> RcdService {
     RcdService {
         rcd_settings: config,
-        root_dir: String::from(""),
+        root_dir: root_dir.to_string(),
         db_interface: None,
         sql_client_channel: None,
         db_client_channel: None,

@@ -28,7 +28,7 @@ fn read_settings_from_config() {
     };
 
     // ACT
-    let service = get_service_from_config(rcd_setting);
+    let service = get_service_from_config(rcd_setting, "");
 
     // ASSERT
     assert_eq!(service.rcd_settings.database_type, DatabaseType::Unknown);
@@ -63,7 +63,7 @@ fn configure_backing_db() {
     }
 
     // ACT
-    let mut service = get_service_from_config(rcd_setting);
+    let mut service = get_service_from_config(rcd_setting, "");
     service.start();
 
     // ASSERT

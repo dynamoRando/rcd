@@ -61,13 +61,31 @@ impl ProxyDb {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
-    pub fn has_user(&self, un: &str) -> Result<bool, RcdProxyErr> {
-        todo!()
+    pub fn has_user(&self, un: &str) -> bool {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().has_user(un),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
     }
 
     pub fn get_user(&self, un: &str) -> Result<UserInfo, RcdProxyErr> {
-        todo!();
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().get_user(un),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    pub fn update_user(&self, u: &UserInfo) -> Result<(), RcdProxyErr> {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().update_user(u),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
     }
 
     fn sqlite(&self) -> &ProxySqlite {

@@ -453,7 +453,7 @@ pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSq
     }
 }
 
-pub fn create_login_with_hash(login: &str, hash: [u8; 128], config: &DbiConfigSqlite) {
+pub fn create_login_with_hash(login: &str, hash: Vec<u8>, config: &DbiConfigSqlite) {
     let conn = get_rcd_conn(config);
 
     let cmd = Cds::text_add_user();
@@ -501,7 +501,7 @@ fn get_rcd_conn(config: &DbiConfigSqlite) -> Connection {
     Connection::open(db_path).unwrap()
 }
 
-pub fn configure_admin_with_hash(login: &str, hash: [u8; 128], config: DbiConfigSqlite) {
+pub fn configure_admin_with_hash(login: &str, hash: Vec<u8>, config: DbiConfigSqlite) {
     let conn = get_rcd_conn(&config);
 
     if !has_login(login, &conn).unwrap() {
@@ -582,6 +582,8 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
             let statement = String::from("INSERT INTO CDS_ROLE (ROLENAME) VALUES ('SysAdmin');");
             execute_write_on_connection(db_name, &statement, config);
         }
+    } else {
+        warn!("dir already exists: {db_path:?}");
     }
 }
 
@@ -772,6 +774,9 @@ fn create_user_role_table(conn: &Connection) {
 }
 
 fn create_host_info_table(conn: &Connection) {
+
+    trace!("creating CDS_HOST_INFO on: {conn:?}");
+
     conn.execute(&Cds::text_create_host_info_table(), [])
         .unwrap();
 }

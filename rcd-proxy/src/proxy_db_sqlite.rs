@@ -93,7 +93,7 @@ impl ProxySqlite {
         Ok(users.last().unwrap().unwrap())
     }
 
-    pub fn update_user(&self, u: UserInfo) -> Result<(), RcdProxyErr> {
+    pub fn update_user(&self, u: &UserInfo) -> Result<(), RcdProxyErr> {
         if !self.has_user(&u.username) {
             return Err(RcdProxyErr::UserNotFound(u.username.to_string()));
         }
@@ -102,7 +102,7 @@ impl ProxySqlite {
         let conn = self.conn();
         let mut statement = conn.prepare(&cmd).unwrap();
         let r = statement.execute(named_params! {
-            ":folder": u.folder.unwrap(),
+            ":folder": u.folder.as_ref().unwrap(),
             ":hash": u.hash,
             ":id": u.id,
             ":un": u.username,
@@ -189,7 +189,7 @@ pub fn test_db_user_io() {
     sql.register_user("db_test", &hash.0).unwrap();
     let mut u = sql.get_user("db_test").unwrap();
     u.folder = Some("new-folder".to_string());
-    let result_save = sql.update_user(u);
+    let result_save = sql.update_user(&u);
 
     debug!("{result_save:?}");
 
