@@ -1,4 +1,5 @@
 use crate::proxy_db_sqlite::ProxySqlite;
+use crate::user_info::UserInfo;
 use crate::RcdProxyErr;
 
 #[derive(Clone, Debug)]
@@ -63,6 +64,10 @@ impl ProxyDb {
     #[allow(dead_code, unused_variables)]
     pub fn has_user(&self, un: &str) -> Result<bool, RcdProxyErr> {
         todo!()
+    }
+
+    pub fn get_user(&self, un: &str) -> Result<UserInfo, RcdProxyErr> {
+        todo!();
     }
 
     fn sqlite(&self) -> &ProxySqlite {

@@ -4,6 +4,7 @@ use config::Config;
 use log::{error, info};
 use proxy_db::ProxyDb;
 use rcd_enum::database_type::DatabaseType;
+use rcdx::rcd_service::RcdService;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
 use thiserror::Error;
@@ -28,6 +29,10 @@ pub enum RcdProxyErr {
     DbError(String),
     #[error("Folder already exists: `{0}`")]
     FolderAlreadyExists(String),
+    #[error("User `{0}` not found")]
+    UserNotFound(String),
+    #[error("No rows affected")]
+    NoRowsAffected,
 }
 
 #[derive(Debug, Clone)]

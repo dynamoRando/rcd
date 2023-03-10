@@ -2522,6 +2522,7 @@ dependencies = [
  "rcd-http",
  "rcd-test-harness",
  "rcdproto",
+ "rcdx",
  "rusqlite",
  "serde",
  "serde_derive",
