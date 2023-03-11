@@ -472,7 +472,7 @@ pub fn create_login(login: &str, pw: &str, config: &DbiConfigSqlite) {
     let cmd = Cds::text_add_user();
     let mut statement = conn.prepare(&cmd).unwrap();
     statement
-        .execute(named_params! { ":username": login, ":hash": login_hash.0 })
+        .execute(named_params! { ":username": login, ":hash": login_hash.0.as_bytes().to_vec() })
         .unwrap();
 }
 
