@@ -1,4 +1,6 @@
-use crate::sql_text::sqlite::{ADD_LOGIN, GET_USER, SQLITE_CREATE_LOGIN_TABLE, UPDATE_USER};
+use crate::sql_text::sqlite::{
+    ADD_LOGIN, GET_HOST, GET_USER, SQLITE_CREATE_LOGIN_TABLE, UPDATE_USER,
+};
 use crate::user_info::UserInfo;
 use crate::PROXY_DB;
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
@@ -50,6 +52,53 @@ impl ProxySqlite {
     pub fn has_user(&self, un: &str) -> bool {
         let where_clause = format!("username = '{}'", un);
         self.has_any_rows_with_table("LOGIN", &where_clause)
+    }
+
+    pub fn has_host(&self, id: &str) -> bool {
+        let where_clause = format!("host_id = '{}'", id);
+        self.has_any_rows_with_table("LOGIN", &where_clause)
+    }
+
+    pub fn get_host(&self, id: &str) -> Result<UserInfo, RcdProxyErr> {
+        if !self.has_host(id) {
+            return Err(RcdProxyErr::HostIdNotFound(id.to_string()));
+        }
+
+        let cmd = GET_HOST;
+
+        let conn = self.conn();
+        let mut statement = conn.prepare(&cmd).unwrap();
+
+        let row_to_user = |un: String,
+                           hash: Vec<u8>,
+                           folder: Option<String>,
+                           host_id: Option<String>|
+         -> Result<UserInfo> {
+            Ok(UserInfo {
+                username: un,
+                hash,
+                folder,
+                id: host_id,
+            })
+        };
+
+        let users = statement
+            .query_and_then(
+                named_params! {
+                    ":id": id
+                },
+                |row| {
+                    row_to_user(
+                        row.get(0).unwrap(),
+                        row.get(1).unwrap(),
+                        row.get(2).unwrap(),
+                        row.get(3).unwrap(),
+                    )
+                },
+            )
+            .unwrap();
+
+        Ok(users.last().unwrap().unwrap())
     }
 
     pub fn get_user(&self, un: &str) -> Result<UserInfo, RcdProxyErr> {

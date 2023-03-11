@@ -163,7 +163,11 @@ impl RcdService {
             self.root_dir.clone()
         }
     }
-
+    
+    pub fn core(&self) -> &Rcd {
+        return self.core.as_ref().unwrap();
+    }
+    
     /// initalizes the service at the specified directory with the username and hash provided
     /// note: this is intended to be called by a rcd-proxy instance upon registration of an
     /// rcd account - to be called only once

@@ -70,6 +70,24 @@ impl ProxyDb {
         }
     }
 
+    pub fn has_host(&self, id: &str) -> bool {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().has_host(id),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    pub fn get_host(&self, id: &str) -> Result<UserInfo, RcdProxyErr> {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().get_host(id),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
     pub fn get_user(&self, un: &str) -> Result<UserInfo, RcdProxyErr> {
         match self.config {
             ProxyDbConfig::Unknown => todo!(),

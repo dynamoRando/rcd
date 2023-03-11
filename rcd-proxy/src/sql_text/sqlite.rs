@@ -19,10 +19,26 @@ VALUES
 )
 ;";
 
+#[allow(dead_code)]
 pub const UPDATE_FOLDER_FOR_LOGIN: &str =
     "UPDATE LOGIN SET folder = :folder WHERE username = :username";
+
+#[allow(dead_code)]
 pub const UPDATE_HOST_ID_FOR_LOGIN: &str =
     "UPDATE LOGIN SET host_id = :host_id WHERE username = :host_id";
+
+pub const GET_HOST: &str = "
+SELECT 
+    username,
+    token,
+    folder,
+    host_id
+FROM 
+    LOGIN
+WHERE 
+    host_id = :id
+;
+";
 
 pub const GET_USER: &str = "
 SELECT 

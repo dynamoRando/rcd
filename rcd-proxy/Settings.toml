@@ -4,3 +4,5 @@ db_addr_port = "127.0.0.1:50052"
 http_addr = "127.0.0.1"
 http_port = "50055"
 database_type = 1 
+proxy_http_addr = "127.0.0.1"
+proxy_http_port = "50040"

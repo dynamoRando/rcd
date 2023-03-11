@@ -1,15 +1,20 @@
 use std::{fs, path::Path};
 
+use crate::proxy_grpc::ProxyClientGrpc;
 use config::Config;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
 use proxy_db::ProxyDb;
 use rcd_common::rcd_settings::RcdSettings;
+use rcd_core::rcd::Rcd;
 use rcd_enum::database_type::DatabaseType;
+use rcdproto::rcdp::sql_client_server::SqlClientServer;
 use rcdx::rcd_service::RcdService;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
 use thiserror::Error;
+use tonic::transport::Server;
+use user_info::UserInfo;
 use uuid::Uuid;
 
 const SETTINGS: &str = "Settings.toml";
@@ -33,6 +38,8 @@ pub enum RcdProxyErr {
     FolderAlreadyExists(String),
     #[error("User `{0}` not found")]
     UserNotFound(String),
+    #[error("Host Id `{0}` not found")]
+    HostIdNotFound(String),
     #[error("No rows affected")]
     NoRowsAffected,
     #[error("User `{0}` folder not set")]
@@ -56,6 +63,8 @@ pub struct RcdProxySettings {
     pub root_dir: String,
     pub database_type: DatabaseType,
     pub database_name: String,
+    pub proxy_http_addr: String,
+    pub proxy_http_port: usize,
 }
 
 impl RcdProxy {
@@ -178,6 +187,26 @@ impl RcdProxy {
             }
         };
 
+        let result_proxy_http_addr = settings.get_string("proxy_http_addr");
+
+        let proxy_http_addr = match result_proxy_http_addr {
+            Ok(addr) => addr,
+            Err(_) => {
+                error!("missing setting: 'http_addr', using default 127.0.0.1");
+                "127.0.0.1".to_string()
+            }
+        };
+
+        let result_proxy_http_port = settings.get_string("proxy_http_port");
+
+        let proxy_http_port = match result_proxy_http_port {
+            Ok(port) => port,
+            Err(_) => {
+                error!("missing setting: 'http_port',  using default 50055");
+                "50055".to_string()
+            }
+        };
+
         let result_db_type = settings.get_string("database_type");
 
         let db_type = match result_db_type {
@@ -200,6 +229,8 @@ impl RcdProxy {
             root_dir: dir.to_string(),
             database_type: db_type,
             database_name: db_name.clone(),
+            proxy_http_addr: proxy_http_addr,
+            proxy_http_port: proxy_http_port.parse().unwrap(),
         })
     }
 
@@ -213,9 +244,37 @@ impl RcdProxy {
         self.db.config();
     }
 
-    /// starts the grpc proxy
-    pub fn start_grpc(&self) {
-        todo!();
+    pub fn start_server() {
+        todo!()
+    }
+
+    #[tokio::main]
+    pub async fn start_grpc(&self) {
+        let (_, client_listener) = triggered::trigger();
+        let addr = self.settings.grpc_client_addr_port.clone();
+
+        let client = ProxyClientGrpc::new(
+            self.settings.root_dir.clone(),
+            self.settings.database_name.clone(),
+            addr.clone(),
+            self.settings.grpc_db_addr_port.clone(),
+            self.clone(),
+        );
+
+        let service = tonic_reflection::server::Builder::configure()
+            .build()
+            .unwrap();
+
+        info!("Client Proxy Service Starting At: {addr}");
+
+        let addr = addr.parse().unwrap();
+
+        Server::builder()
+            .add_service(SqlClientServer::new(client))
+            .add_service(service) // Add this
+            .serve_with_shutdown(addr, client_listener)
+            .await
+            .unwrap();
     }
 
     /// checks to see if the specified user name already exists
@@ -252,7 +311,7 @@ impl RcdProxy {
 
     /// sets up a brand new rcd service for the specified user and updates the rcd folder for this user
     /// intended to be called after a user is registered
-    fn setup_rcd_service(&self, un: &str, full_folder_path: &str) -> Result<String, RcdProxyErr> {
+    pub fn setup_rcd_service(&self, un: &str, full_folder_path: &str) -> Result<String, RcdProxyErr> {
         trace!("un: {} dir: {}", un, full_folder_path);
 
         let settings = self.get_default_rcd_setings(un);
@@ -267,15 +326,39 @@ impl RcdProxy {
 
         trace!("{service:?}");
 
-        service.init_at_dir(&full_folder_path, un, u.hash);
+        service.init_at_dir(&full_folder_path, un, u.hash.clone());
         service.warn_init_host_info();
-        Ok(service.get_host_id())
+
+        let host_id = service.get_host_id();
+
+        if u.id.is_none() {
+            u.id = Some(host_id.clone());
+            self.db.update_user(&u).unwrap();
+        }
+
+        Ok(host_id)
     }
 
     pub fn get_rcd_service_for_existing_user(&self, un: &str) -> Result<RcdService, RcdProxyErr> {
-        let full_folder_path = self.get_user_root_dir(un)?;
+        let u = self.db.get_user(un)?;
+        let full_folder_path = self.get_user_root_dir(&u)?;
 
         let settings = self.get_default_rcd_setings(un);
+
+        let mut service = rcdx::rcd_service::get_service_from_config(settings, &full_folder_path);
+        service.start_at_dir(&full_folder_path);
+        Ok(service)
+    }
+
+    pub fn get_rcd_core_for_existing_host(&self, id: &str) -> Result<Rcd, RcdProxyErr> {
+        let service = self.get_rcd_service_for_existing_host(id)?;
+        Ok(service.core().clone())
+    }
+
+    pub fn get_rcd_service_for_existing_host(&self, id: &str) -> Result<RcdService, RcdProxyErr> {
+        let u = self.db.get_host(id)?;
+        let full_folder_path = self.get_user_root_dir(&u)?;
+        let settings = self.get_default_rcd_setings(&u.username);
 
         let mut service = rcdx::rcd_service::get_service_from_config(settings, &full_folder_path);
         service.start_at_dir(&full_folder_path);
@@ -297,28 +380,21 @@ impl RcdProxy {
         }
     }
 
-    fn get_user_root_dir(&self, un: &str) -> Result<String, RcdProxyErr> {
-        let result_user = self.db.get_user(un);
+    fn get_user_root_dir(&self, u: &UserInfo) -> Result<String, RcdProxyErr> {
+        trace!("get_user_root_dir: {u:?}");
 
-        match result_user {
-            Ok(u) => {
-                trace!("get_user_root_dir: {u:?}");
-
-                if u.folder.is_none() {
-                    return Err(RcdProxyErr::UserFolderNotSet(u.username));
-                }
-
-                return Ok(Path::new(&self.settings.root_dir)
-                    .join(u.folder.unwrap())
-                    .to_str()
-                    .unwrap()
-                    .to_string());
-            }
-            Err(e) => return Err(e),
+        if u.folder.as_ref().is_none() {
+            return Err(RcdProxyErr::UserFolderNotSet(u.username.clone()));
         }
+
+        return Ok(Path::new(&self.settings.root_dir)
+            .join(u.folder.as_ref().unwrap())
+            .to_str()
+            .unwrap()
+            .to_string());
     }
 
-    fn setup_user_folder(&self, overwrite_existing: bool) -> Result<String, RcdProxyErr> {
+    pub fn setup_user_folder(&self, overwrite_existing: bool) -> Result<String, RcdProxyErr> {
         let folder_id = Uuid::new_v4().to_string();
         let folder_path = Path::new(&self.settings.root_dir).join(folder_id);
 
@@ -370,6 +446,19 @@ pub fn test_register_twice() {
             "User 'test' already exists".to_string()
         ))
     );
+}
+
+#[test]
+pub fn test_register_and_setup_user_and_host() {
+    let proxy = test_rcd_common_setup("rcd-proxy-unit-test-reg-setup-run-host").unwrap();
+    let service = proxy.get_rcd_service_for_existing_user("test").unwrap();
+    let host_id = service.get_host_id();
+    debug!("{host_id:?}");
+    assert!(host_id.len() > 0);
+
+    let service = proxy.get_rcd_service_for_existing_host(&host_id).unwrap();
+    let id = service.get_host_id();
+    assert_eq!(host_id, id);
 }
 
 #[test]

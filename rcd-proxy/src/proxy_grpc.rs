@@ -113,14 +113,56 @@ impl SqlClient for ProxyClientGrpc {
         // need to write an HTTP version as well
         todo!()
     }
-    #[allow(dead_code, unused_variables)]
+
     async fn get_host_info(
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<HostInfoReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+
+        let request = request.into_inner().clone();
+        if let Some(id) = request.id.as_ref() {
+            let result_has_core = self.proxy.get_rcd_core_for_existing_host(&id);
+            match result_has_core {
+                Ok(core) => {
+                    let response = core.get_host_info(request).await;
+                    return Ok(Response::new(response));
+                }
+                Err(_) => {
+                    let auth_result = AuthResult {
+                        user_name: request.user_name.clone(),
+                        token: "".to_string(),
+                        is_authenticated: false,
+                        authentication_message: format!(
+                            "Host Id: {id} was not found at rcd-proxy instance"
+                        ),
+                    };
+
+                    let reply = HostInfoReply {
+                        authentication_result: Some(auth_result),
+                        host_info: None,
+                    };
+
+                    return Ok(Response::new(reply));
+                }
+            }
+        };
+
+        let auth_result = AuthResult {
+            user_name: request.user_name.clone(),
+            token: "".to_string(),
+            is_authenticated: false,
+            authentication_message: format!("No Host Id provided for rcd-proxy instance"),
+        };
+
+        let reply = HostInfoReply {
+            authentication_result: Some(auth_result),
+            host_info: None,
+        };
+
+        return Ok(Response::new(reply));
     }
+
     #[allow(dead_code, unused_variables)]
     async fn revoke_token(
         &self,

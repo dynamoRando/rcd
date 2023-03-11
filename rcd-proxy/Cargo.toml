@@ -25,3 +25,6 @@ tonic = "0.8.3"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 ignore-result = "0.2.0"
 uuid = { version = "1.3.0", features = ["v4"] }
+tonic-reflection = "0.6.0"
+tokio = "1.26.0"
+triggered = "0.1.2"
