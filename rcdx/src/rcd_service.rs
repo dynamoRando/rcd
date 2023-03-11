@@ -1,10 +1,12 @@
 use config::Config;
 use guid_create::GUID;
-use log::{error, info, LevelFilter, trace};
+use log::{error, info, trace, LevelFilter};
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
+use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
+use rcd_core::remote_grpc::RemoteGrpc;
 use rcd_sqlite_log::SqliteLog;
 use std::env;
 use std::path::Path;
@@ -154,6 +156,26 @@ pub struct RcdService {
 }
 
 impl RcdService {
+    pub fn with_core_grpc(&mut self, db_addr_port: &str, timeout_in_seconds: u32) {
+        let grpc = RemoteGrpc {
+            db_addr_port: db_addr_port.to_string(),
+            timeout_in_seconds: timeout_in_seconds,
+        };
+
+        let remote_client = RcdRemoteDbClient {
+            comm_type: RcdCommunication::Grpc,
+            grpc: Some(grpc),
+            http: None,
+        };
+
+        let core = Rcd {
+            db_interface: Some(self.db_interface.as_ref().unwrap().clone()),
+            remote_client: Some(remote_client),
+            settings: Some(self.rcd_settings.clone()),
+        };
+        self.core = Some(core);
+    }
+
     pub fn cwd(&self) -> String {
         if self.root_dir.is_empty() {
             let wd = env::current_dir().unwrap();
@@ -163,16 +185,15 @@ impl RcdService {
             self.root_dir.clone()
         }
     }
-    
+
     pub fn core(&self) -> &Rcd {
         return self.core.as_ref().unwrap();
     }
-    
+
     /// initalizes the service at the specified directory with the username and hash provided
     /// note: this is intended to be called by a rcd-proxy instance upon registration of an
     /// rcd account - to be called only once
     pub fn init_at_dir(&mut self, root_dir: &str, admin_un: &str, admin_hash: Vec<u8>) {
-
         trace!("init at dir: {root_dir:?}");
 
         init_backing_store_at_dir_with_hash(
@@ -218,7 +239,6 @@ impl RcdService {
 
     /// initializes the service from the settings, overriding the current working directory with the specified value
     pub fn start_at_dir(&mut self, root_dir: &str) {
-
         trace!("start at dir: {root_dir:?}");
 
         configure_backing_store_at_dir(

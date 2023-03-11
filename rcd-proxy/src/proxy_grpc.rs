@@ -122,7 +122,11 @@ impl SqlClient for ProxyClientGrpc {
 
         let request = request.into_inner().clone();
         if let Some(id) = request.id.as_ref() {
-            let result_has_core = self.proxy.get_rcd_core_for_existing_host(&id);
+            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
+                &id,
+                &self.proxy.settings.grpc_db_addr_port,
+                60,
+            );
             match result_has_core {
                 Ok(core) => {
                     let response = core.get_host_info(request).await;

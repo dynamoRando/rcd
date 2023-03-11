@@ -922,7 +922,6 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
         let mut padded = [0u8; 128];
         returned_value
             .hash
-            .as_bytes()
             .iter()
             .enumerate()
             .for_each(|(i, val)| {

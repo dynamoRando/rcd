@@ -74,6 +74,7 @@ pub struct RcdClient {
     grpc_client: Option<SqlClientClient<Channel>>,
     http_client: Option<Client>,
     send_jwt_if_available: bool,
+    host_id: Option<String>,
 }
 
 impl RcdClient {
@@ -115,6 +116,7 @@ impl RcdClient {
             http_client: Some(http_client),
             jwt: String::from(""),
             send_jwt_if_available: false,
+            host_id: None,
         }
     }
 
@@ -142,7 +144,12 @@ impl RcdClient {
             http_client: None,
             jwt: String::from(""),
             send_jwt_if_available: false,
+            host_id: None
         }
+    }
+
+    pub fn set_host_id(&mut self, id: &str) {
+        self.host_id = Some(id.to_string())
     }
 
     pub fn new_http_client(
@@ -165,6 +172,7 @@ impl RcdClient {
             http_client: Some(http_client),
             jwt: String::from(""),
             send_jwt_if_available: false,
+            host_id: None
         }
     }
 
@@ -1786,7 +1794,7 @@ impl RcdClient {
                 pw_hash: Vec::new(),
                 token: Vec::new(),
                 jwt: self.jwt.clone(),
-                id: None,
+                id: self.host_id.clone(),
             };
 
             debug!("{auth:?}");
@@ -1800,7 +1808,7 @@ impl RcdClient {
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: String::from(""),
-            id: None,
+            id: self.host_id.clone(),
         };
 
         debug!("{:?}", auth);

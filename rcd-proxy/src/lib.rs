@@ -248,16 +248,14 @@ impl RcdProxy {
         todo!()
     }
 
-    #[tokio::main]
-    pub async fn start_grpc(&self) {
+    pub async fn start_grpc_client_at_addr(&self, addr: &str) {
         let (_, client_listener) = triggered::trigger();
-        let addr = self.settings.grpc_client_addr_port.clone();
 
         let client = ProxyClientGrpc::new(
             self.settings.root_dir.clone(),
             self.settings.database_name.clone(),
-            addr.clone(),
-            self.settings.grpc_db_addr_port.clone(),
+            addr.to_string(),
+            self.settings.grpc_db_addr_port.to_string(),
             self.clone(),
         );
 
@@ -271,10 +269,17 @@ impl RcdProxy {
 
         Server::builder()
             .add_service(SqlClientServer::new(client))
-            .add_service(service) // Add this
+            .add_service(service)
             .serve_with_shutdown(addr, client_listener)
             .await
             .unwrap();
+
+        info!("Cient Proxy Service Ending...");
+    }
+
+    pub async fn start_grpc_client(&self) {
+        self.start_grpc_client_at_addr(&self.settings.grpc_client_addr_port)
+            .await
     }
 
     /// checks to see if the specified user name already exists
@@ -311,7 +316,11 @@ impl RcdProxy {
 
     /// sets up a brand new rcd service for the specified user and updates the rcd folder for this user
     /// intended to be called after a user is registered
-    pub fn setup_rcd_service(&self, un: &str, full_folder_path: &str) -> Result<String, RcdProxyErr> {
+    pub fn setup_rcd_service(
+        &self,
+        un: &str,
+        full_folder_path: &str,
+    ) -> Result<String, RcdProxyErr> {
         trace!("un: {} dir: {}", un, full_folder_path);
 
         let settings = self.get_default_rcd_setings(un);
@@ -352,6 +361,15 @@ impl RcdProxy {
 
     pub fn get_rcd_core_for_existing_host(&self, id: &str) -> Result<Rcd, RcdProxyErr> {
         let service = self.get_rcd_service_for_existing_host(id)?;
+        Ok(service.core().clone())
+    }
+
+    pub fn get_rcd_core_for_existing_host_grpc(&self, 
+        id: &str,
+        proxy_grpc_addr_port: &str,
+        proxy_grpc_timeout_in_sec: u32) -> Result<Rcd, RcdProxyErr> {
+        let mut service = self.get_rcd_service_for_existing_host(id)?;
+        service.with_core_grpc(proxy_grpc_addr_port, proxy_grpc_timeout_in_sec);
         Ok(service.core().clone())
     }
 
