@@ -82,6 +82,9 @@ impl RcdClient {
         grpc_client_addr_port: String,
         timeout_in_seconds: u32,
     ) -> SqlClientClient<Channel> {
+
+        debug!("{grpc_client_addr_port:?}");
+
         let endpoint = tonic::transport::Channel::builder(grpc_client_addr_port.parse().unwrap())
             .timeout(Duration::from_secs(timeout_in_seconds.into()));
         let channel = endpoint.connect().await.unwrap();

@@ -1,12 +1,13 @@
+use log::debug;
 use rcd_client::client_type::RcdClientType;
-use std::thread;
+use std::thread::{self};
 
 use crate::{
     get_test_temp_dir, get_test_temp_dir_main_and_participant,
     grpc::{shutdown_grpc_tests, start_service_with_grpc},
     http::{shutdown_http_tests, start_service_with_http},
     sleep_test,
-    test_common::{GrpcTestSetup, HttpTestSetup},
+    test_common::{proxy, GrpcTestSetup, HttpTestSetup},
     CoreTestConfig,
 };
 
@@ -20,6 +21,52 @@ pub struct RunnerConfig {
 pub struct TestRunner {}
 
 impl TestRunner {
+    #[tokio::main]
+    pub async fn run_grpc_proxy_test(config: RunnerConfig, test_core: fn(CoreTestConfig)) {
+        let db = format!("{}{}", config.test_name, ".db");
+        let setup =
+            proxy::setup_proxy_with_users(&config.test_name, false, proxy::RcdProxyTestType::Grpc)
+                .unwrap();
+
+        debug!("{setup:?}");
+
+        {
+            let proxy = setup.proxy_info.proxy;
+            tokio::spawn(async move {
+                debug!("starting proxy");
+                proxy.start_grpc_client().await;
+                debug!("ending proxy");
+            });
+        }
+
+        sleep_test();
+
+        {
+            let addr = setup.proxy_info.client_addr.clone();
+            let mc = crate::RcdClientConfig {
+                addr: addr,
+                client_type: RcdClientType::Grpc,
+                host_id: Some(setup.main.host_id.clone()),
+            };
+
+            thread::spawn(move || {
+                let config = CoreTestConfig {
+                    main_client: mc,
+                    participant_client: None,
+                    test_db_name: db,
+                    contract_desc: None,
+                    participant_db_addr: None,
+                    grpc_test_setup: None,
+                    http_test_setup: None,
+                };
+
+                test_core(config);
+            })
+            .join()
+            .unwrap();
+        }
+    }
+
     /// takes a config for a test and will begin an HTTP GRPC test, using the
     /// provided `test_core` function to run
     pub fn run_grpc_test(config: RunnerConfig, test_core: fn(CoreTestConfig)) {
@@ -34,6 +81,7 @@ impl TestRunner {
             let mc = crate::RcdClientConfig {
                 addr: mtc.client_address,
                 client_type: RcdClientType::Grpc,
+                host_id: None,
             };
 
             thread::spawn(move || {
@@ -79,10 +127,12 @@ impl TestRunner {
                 let mc = crate::RcdClientConfig {
                     addr: mtc.client_address.clone(),
                     client_type: RcdClientType::Grpc,
+                    host_id: None,
                 };
                 let pc = crate::RcdClientConfig {
                     addr: ptc.client_address.clone(),
                     client_type: RcdClientType::Grpc,
+                    host_id: None,
                 };
                 let pda = ptc.database_address.clone();
 
@@ -136,10 +186,12 @@ impl TestRunner {
                 let mc = crate::RcdClientConfig {
                     addr: mtc.http_address.clone(),
                     client_type: RcdClientType::Http,
+                    host_id: None,
                 };
                 let pc = crate::RcdClientConfig {
                     addr: ptc.http_address.clone(),
                     client_type: RcdClientType::Http,
+                    host_id: None,
                 };
 
                 let ptc = ptc.clone();
@@ -194,6 +246,7 @@ impl TestRunner {
                 let mc = crate::RcdClientConfig {
                     addr: mtc.http_address,
                     client_type: RcdClientType::Http,
+                    host_id: None,
                 };
 
                 let contract = config.contract_desc.clone();

@@ -1,13 +1,8 @@
-use crate::proxy_test_harness::harness_common_setup;
-use ignore_result::Ignore;
-use log::debug;
-use rcd_test_harness::{get_next_avail_port, sleep_test};
-use simple_logger::SimpleLogger;
-mod proxy_test_harness;
-use rcd_client::RcdClient;
 
+/*
 #[tokio::test]
 pub async fn test_get_host_info_grpc() {
+    use rcd_test_harness::{get_next_avail_port, sleep_test};
     SimpleLogger::new()
         .with_level(log::LevelFilter::Debug)
         .init()
@@ -46,3 +41,4 @@ pub async fn test_get_host_info_grpc() {
         .unwrap();
     }
 }
+*/

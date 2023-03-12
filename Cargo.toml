@@ -49,6 +49,8 @@ members = [
     "rcd-proxy",
     # test harness and low complex tests
     "rcd-test-harness",
+    # test harness common code
+    "rcd-test-harness-common",
     # integration tests for client 
     "rcd-test-i-client",
     # integration tests for database

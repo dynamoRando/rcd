@@ -133,14 +133,7 @@ impl SqlClient for ProxyClientGrpc {
                     return Ok(Response::new(response));
                 }
                 Err(_) => {
-                    let auth_result = AuthResult {
-                        user_name: request.user_name.clone(),
-                        token: "".to_string(),
-                        is_authenticated: false,
-                        authentication_message: format!(
-                            "Host Id: {id} was not found at rcd-proxy instance"
-                        ),
-                    };
+                    let auth_result = get_auth_id_not_found(&request.user_name, id);
 
                     let reply = HostInfoReply {
                         authentication_result: Some(auth_result),
@@ -152,12 +145,7 @@ impl SqlClient for ProxyClientGrpc {
             }
         };
 
-        let auth_result = AuthResult {
-            user_name: request.user_name.clone(),
-            token: "".to_string(),
-            is_authenticated: false,
-            authentication_message: format!("No Host Id provided for rcd-proxy instance"),
-        };
+        let auth_result = get_auth_not_specified(&request.user_name);
 
         let reply = HostInfoReply {
             authentication_result: Some(auth_result),
@@ -246,7 +234,45 @@ impl SqlClient for ProxyClientGrpc {
         request: Request<GenerateHostInfoRequest>,
     ) -> Result<Response<GenerateHostInfoReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+
+        let request = request.into_inner().clone();
+        let auth = request.authentication.as_ref();
+
+        if let Some(id) = &auth.unwrap().id {
+            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
+                &id,
+                &self.proxy.settings.grpc_db_addr_port,
+                60,
+            );
+            match result_has_core {
+                Ok(core) => {
+                    let response = core.generate_host_info(request).await;
+                    return Ok(Response::new(response));
+                }
+                Err(_) => {
+                    let auth_result = get_auth_id_not_found(
+                        &auth.unwrap().user_name.clone(),
+                        &auth.unwrap().id.as_ref().unwrap(),
+                    );
+
+                    let reply = GenerateHostInfoReply {
+                        authentication_result: Some(auth_result),
+                        is_successful: false,
+                    };
+
+                    return Ok(Response::new(reply));
+                }
+            }
+        };
+
+        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
+
+        let reply = GenerateHostInfoReply {
+            authentication_result: Some(auth_result),
+            is_successful: false,
+        };
+
+        return Ok(Response::new(reply));
     }
     #[allow(dead_code, unused_variables)]
     async fn create_user_database(
@@ -254,15 +280,96 @@ impl SqlClient for ProxyClientGrpc {
         request: Request<CreateUserDatabaseRequest>,
     ) -> Result<Response<CreateUserDatabaseReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+
+        let request = request.into_inner().clone();
+        let auth = request.authentication.as_ref();
+
+        if let Some(id) = &auth.unwrap().id {
+            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
+                &id,
+                &self.proxy.settings.grpc_db_addr_port,
+                60,
+            );
+            match result_has_core {
+                Ok(core) => {
+                    let response = core.create_user_database(request).await;
+                    return Ok(Response::new(response));
+                }
+                Err(_) => {
+                    let auth_result = get_auth_id_not_found(
+                        &auth.unwrap().user_name.clone(),
+                        &auth.unwrap().id.as_ref().unwrap(),
+                    );
+
+                    let reply = CreateUserDatabaseReply {
+                        authentication_result: Some(auth_result),
+                        is_created: false,
+                        message: "".to_string(),
+                    };
+
+                    return Ok(Response::new(reply));
+                }
+            }
+        };
+
+        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
+
+        let reply = CreateUserDatabaseReply {
+            authentication_result: Some(auth_result),
+            is_created: false,
+            message: "".to_string(),
+        };
+
+        return Ok(Response::new(reply));
     }
+
     #[allow(dead_code, unused_variables)]
     async fn enable_coooperative_features(
         &self,
         request: Request<EnableCoooperativeFeaturesRequest>,
     ) -> Result<Response<EnableCoooperativeFeaturesReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+
+        let request = request.into_inner().clone();
+        let auth = request.authentication.as_ref();
+
+        if let Some(id) = &auth.unwrap().id {
+            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
+                &id,
+                &self.proxy.settings.grpc_db_addr_port,
+                60,
+            );
+            match result_has_core {
+                Ok(core) => {
+                    let response = core.enable_coooperative_features(request).await;
+                    return Ok(Response::new(response));
+                }
+                Err(_) => {
+                    let auth_result = get_auth_id_not_found(
+                        &auth.unwrap().user_name.clone(),
+                        &auth.unwrap().id.as_ref().unwrap(),
+                    );
+
+                    let reply = EnableCoooperativeFeaturesReply {
+                        authentication_result: Some(auth_result),
+                        is_successful: false,
+                        message: "".to_string(),
+                    };
+
+                    return Ok(Response::new(reply));
+                }
+            }
+        };
+
+        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
+
+        let reply = EnableCoooperativeFeaturesReply {
+            authentication_result: Some(auth_result),
+            is_successful: false,
+            message: "".to_string(),
+        };
+
+        return Ok(Response::new(reply));
     }
     #[allow(dead_code, unused_variables)]
     async fn execute_read_at_host(
@@ -447,5 +554,23 @@ impl SqlClient for ProxyClientGrpc {
     ) -> Result<Response<GetDataHashReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
+    }
+}
+
+fn get_auth_id_not_found(un: &str, id: &str) -> AuthResult {
+    AuthResult {
+        user_name: un.to_string(),
+        token: "".to_string(),
+        is_authenticated: false,
+        authentication_message: format!("Host Id: {id} was not found at rcd-proxy instance"),
+    }
+}
+
+fn get_auth_not_specified(un: &str) -> AuthResult {
+    AuthResult {
+        user_name: un.to_string(),
+        token: "".to_string(),
+        is_authenticated: false,
+        authentication_message: format!("No Host Id provided for rcd-proxy instance"),
     }
 }

@@ -63,11 +63,29 @@ pub struct RcdProxySettings {
     pub root_dir: String,
     pub database_type: DatabaseType,
     pub database_name: String,
+    // for the webpage to talk to this instance
     pub proxy_http_addr: String,
     pub proxy_http_port: usize,
 }
 
 impl RcdProxy {
+    pub fn get_proxy_with_config(settings: RcdProxySettings) -> Self {
+        let db_type = settings.database_type;
+        let db_name = settings.database_name.clone();
+
+        let db = match db_type {
+            DatabaseType::Unknown => todo!(),
+            DatabaseType::Sqlite => {
+                ProxyDb::new_with_sqlite(db_name, settings.root_dir.to_string())
+            }
+            DatabaseType::Mysql => todo!(),
+            DatabaseType::Postgres => todo!(),
+            DatabaseType::Sqlserver => todo!(),
+        };
+
+        RcdProxy { settings, db }
+    }
+
     pub fn get_proxy_from_config_with_dir(
         config_dir: &str,
         root_dir: &str,
@@ -364,10 +382,12 @@ impl RcdProxy {
         Ok(service.core().clone())
     }
 
-    pub fn get_rcd_core_for_existing_host_grpc(&self, 
+    pub fn get_rcd_core_for_existing_host_grpc(
+        &self,
         id: &str,
         proxy_grpc_addr_port: &str,
-        proxy_grpc_timeout_in_sec: u32) -> Result<Rcd, RcdProxyErr> {
+        proxy_grpc_timeout_in_sec: u32,
+    ) -> Result<Rcd, RcdProxyErr> {
         let mut service = self.get_rcd_service_for_existing_host(id)?;
         service.with_core_grpc(proxy_grpc_addr_port, proxy_grpc_timeout_in_sec);
         Ok(service.core().clone())
@@ -498,7 +518,7 @@ pub fn test_get_rcd_for_user() {
 /// common test code - sets up a test folder and returns a rcd proxy
 pub fn test_setup(test_name: &str) -> RcdProxy {
     use ignore_result::Ignore;
-    use rcd_test_harness::get_test_temp_dir;
+    use rcd_test_harness_common::get_test_temp_dir;
     use std::env;
 
     SimpleLogger::new().env().init().ignore();

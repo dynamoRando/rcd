@@ -218,7 +218,7 @@ impl ProxySqlite {
 pub fn test_db_user_io() {
     use ignore_result::Ignore;
     use rcd_common::crypt::hash;
-    use rcd_test_harness::get_test_temp_dir;
+    use rcd_test_harness_common::get_test_temp_dir;
     use simple_logger::SimpleLogger;
     use std::env;
 

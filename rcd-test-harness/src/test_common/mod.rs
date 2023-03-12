@@ -1,5 +1,6 @@
 use crate::{RcdClientConfig, TestConfigGrpc, TestConfigHttp};
 pub mod multi;
+pub mod proxy;
 
 #[derive(Debug, Clone)]
 pub struct GrpcTestSetup {

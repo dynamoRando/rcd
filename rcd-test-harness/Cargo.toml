@@ -12,9 +12,10 @@ rcd-common = { path = "../rcd-common" }
 rcd-enum = { path = "../rcd-enum" }
 rcd-query = { path = "../rcd-query" }
 rcdx = { path = "../rcdx" }
+rcd-proxy = { path = "../rcd-proxy" }
 rcd-http-common = { path = "../rcd-http-common" }
+rcd-test-harness-common = { path = "../rcd-test-harness-common" }
 rcd-client = { path = "../rcd-client" }
-
 tonic = "0.8.1"
 tokio = { version = "1.18.0", features = ["full"] }
 futures = { version = "0.3.*" }

@@ -1,12 +1,13 @@
 use core::time;
 use lazy_static::lazy_static;
+use log::debug;
 use log::error;
 use log::info;
 use log::LevelFilter;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
+use rcd_test_harness_common::get_test_temp_dir;
 use simple_logger::SimpleLogger;
-use std::env;
 use std::fs;
 use std::sync::mpsc;
 use std::sync::mpsc::Receiver;
@@ -35,6 +36,7 @@ pub enum AddrType {
 pub struct RcdClientConfig {
     pub addr: ServiceAddr,
     pub client_type: RcdClientType,
+    pub host_id: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -177,20 +179,6 @@ async fn keep_alive(client_type: RcdClientType, addr: ServiceAddr, reciever: Rec
     };
 }
 
-pub fn get_test_temp_dir(test_name: &str) -> String {
-    let dir = env::temp_dir();
-    let tmp = dir.as_os_str().to_str().unwrap();
-    let path = Path::new(&tmp).join("RCD_TESTS").join(test_name);
-
-    if path.exists() {
-        fs::remove_dir_all(&path).unwrap();
-    }
-
-    fs::create_dir_all(&path).unwrap();
-
-    return path.as_path().to_str().unwrap().to_string();
-}
-
 /// returns a tuple for the root directory, the "main" directory, and the "participant" directory
 /// in the temp folder
 pub fn get_test_temp_dir_main_and_participant(test_name: &str) -> TestDirectoryConfig {
@@ -270,22 +258,52 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 }
 
 pub async fn get_rcd_client(config: &RcdClientConfig) -> RcdClient {
+
+    debug!("get_rcd_client: {config:?}");
+
     match config.client_type {
         RcdClientType::Grpc => {
-            RcdClient::new_grpc_client(
+            if config.host_id.is_none() {
+                return RcdClient::new_grpc_client(
+                    config.addr.to_full_string_with_http(),
+                    String::from("tester"),
+                    String::from("123456"),
+                    60,
+                )
+                .await;
+            }
+
+            let mut client = RcdClient::new_grpc_client(
                 config.addr.to_full_string_with_http(),
                 String::from("tester"),
                 String::from("123456"),
                 60,
             )
-            .await
+            .await;
+
+            client.set_host_id(&config.host_id.as_ref().unwrap());
+            client
         }
-        RcdClientType::Http => RcdClient::new_http_client(
-            String::from("tester"),
-            String::from("123456"),
-            60,
-            config.addr.ip4_addr.clone(),
-            config.addr.port,
-        ),
+        RcdClientType::Http => {
+            if config.host_id.is_none() {
+                return RcdClient::new_http_client(
+                    String::from("tester"),
+                    String::from("123456"),
+                    60,
+                    config.addr.ip4_addr.clone(),
+                    config.addr.port,
+                );
+            }
+            let mut client = RcdClient::new_http_client(
+                String::from("tester"),
+                String::from("123456"),
+                60,
+                config.addr.ip4_addr.clone(),
+                config.addr.port,
+            );
+
+            client.set_host_id(&config.host_id.as_ref().unwrap());
+            client
+        }
     }
 }
