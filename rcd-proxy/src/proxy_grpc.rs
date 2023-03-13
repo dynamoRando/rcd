@@ -1,6 +1,7 @@
 use crate::RcdProxy;
 use log::debug;
 
+use rcd_core::rcd::Rcd;
 use rcdproto::rcdp::sql_client_server::SqlClient;
 use rcdproto::rcdp::*;
 use tonic::{Request, Response, Status};
@@ -32,6 +33,48 @@ impl ProxyClientGrpc {
             own_db_addr_port,
             proxy,
         }
+    }
+
+    fn validate_auth_request(&self, auth: &Option<AuthRequest>) -> Result<Rcd, AuthResult> {
+        if auth.is_some() {
+            let auth = auth.as_ref().unwrap().clone();
+            let un = auth.user_name.clone();
+            if auth.id.is_some() {
+                let id = auth.id.unwrap();
+                let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
+                    &id,
+                    &self.proxy.settings.grpc_db_addr_port,
+                    60,
+                );
+
+                if result_has_core.is_ok() {
+                    return Ok(result_has_core.unwrap());
+                } else {
+                    return Err(AuthResult {
+                        user_name: un.to_string(),
+                        token: "".to_string(),
+                        is_authenticated: false,
+                        authentication_message: format!(
+                            "Host Id: {id} was not found at rcd-proxy instance"
+                        ),
+                    });
+                }
+            } else {
+                return Err(AuthResult {
+                    user_name: un.to_string(),
+                    token: "".to_string(),
+                    is_authenticated: false,
+                    authentication_message: format!("No Host Id provided for rcd-proxy instance"),
+                });
+            }
+        }
+
+        Err(AuthResult {
+            user_name: "".to_string(),
+            token: "".to_string(),
+            is_authenticated: false,
+            authentication_message: "No authentication provided".to_string(),
+        })
     }
 }
 
@@ -119,40 +162,23 @@ impl SqlClient for ProxyClientGrpc {
         request: Request<AuthRequest>,
     ) -> Result<Response<HostInfoReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-
         let request = request.into_inner().clone();
-        if let Some(id) = request.id.as_ref() {
-            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
-                &id,
-                &self.proxy.settings.grpc_db_addr_port,
-                60,
-            );
-            match result_has_core {
-                Ok(core) => {
-                    let response = core.get_host_info(request).await;
-                    return Ok(Response::new(response));
-                }
-                Err(_) => {
-                    let auth_result = get_auth_id_not_found(&request.user_name, id);
+        let auth_result = self.validate_auth_request(&Some(request.clone()));
 
-                    let reply = HostInfoReply {
-                        authentication_result: Some(auth_result),
-                        host_info: None,
-                    };
-
-                    return Ok(Response::new(reply));
-                }
+        match auth_result {
+            Ok(core) => {
+                let response = core.get_host_info(request).await;
+                return Ok(Response::new(response));
             }
-        };
+            Err(auth_result) => {
+                let reply = HostInfoReply {
+                    authentication_result: Some(auth_result),
+                    host_info: None,
+                };
 
-        let auth_result = get_auth_not_specified(&request.user_name);
-
-        let reply = HostInfoReply {
-            authentication_result: Some(auth_result),
-            host_info: None,
-        };
-
-        return Ok(Response::new(reply));
+                return Ok(Response::new(reply));
+            }
+        }
     }
 
     #[allow(dead_code, unused_variables)]
@@ -236,44 +262,24 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
 
         let request = request.into_inner().clone();
-        let auth = request.authentication.as_ref();
+        let auth_result = self.validate_auth_request(&request.authentication);
 
-        if let Some(id) = &auth.unwrap().id {
-            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
-                &id,
-                &self.proxy.settings.grpc_db_addr_port,
-                60,
-            );
-            match result_has_core {
-                Ok(core) => {
-                    let response = core.generate_host_info(request).await;
-                    return Ok(Response::new(response));
-                }
-                Err(_) => {
-                    let auth_result = get_auth_id_not_found(
-                        &auth.unwrap().user_name.clone(),
-                        &auth.unwrap().id.as_ref().unwrap(),
-                    );
-
-                    let reply = GenerateHostInfoReply {
-                        authentication_result: Some(auth_result),
-                        is_successful: false,
-                    };
-
-                    return Ok(Response::new(reply));
-                }
+        match auth_result {
+            Ok(core) => {
+                let response = core.generate_host_info(request).await;
+                return Ok(Response::new(response));
             }
-        };
+            Err(auth_result) => {
+                let reply = GenerateHostInfoReply {
+                    authentication_result: Some(auth_result),
+                    is_successful: false,
+                };
 
-        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
-
-        let reply = GenerateHostInfoReply {
-            authentication_result: Some(auth_result),
-            is_successful: false,
-        };
-
-        return Ok(Response::new(reply));
+                return Ok(Response::new(reply));
+            }
+        }
     }
+
     #[allow(dead_code, unused_variables)]
     async fn create_user_database(
         &self,
@@ -282,45 +288,23 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
 
         let request = request.into_inner().clone();
-        let auth = request.authentication.as_ref();
+        let auth_result = self.validate_auth_request(&request.authentication);
 
-        if let Some(id) = &auth.unwrap().id {
-            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
-                &id,
-                &self.proxy.settings.grpc_db_addr_port,
-                60,
-            );
-            match result_has_core {
-                Ok(core) => {
-                    let response = core.create_user_database(request).await;
-                    return Ok(Response::new(response));
-                }
-                Err(_) => {
-                    let auth_result = get_auth_id_not_found(
-                        &auth.unwrap().user_name.clone(),
-                        &auth.unwrap().id.as_ref().unwrap(),
-                    );
-
-                    let reply = CreateUserDatabaseReply {
-                        authentication_result: Some(auth_result),
-                        is_created: false,
-                        message: "".to_string(),
-                    };
-
-                    return Ok(Response::new(reply));
-                }
+        match auth_result {
+            Ok(core) => {
+                let response = core.create_user_database(request).await;
+                return Ok(Response::new(response));
             }
-        };
+            Err(auth_result) => {
+                let reply = CreateUserDatabaseReply {
+                    authentication_result: Some(auth_result),
+                    is_created: false,
+                    message: "".to_string(),
+                };
 
-        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
-
-        let reply = CreateUserDatabaseReply {
-            authentication_result: Some(auth_result),
-            is_created: false,
-            message: "".to_string(),
-        };
-
-        return Ok(Response::new(reply));
+                return Ok(Response::new(reply));
+            }
+        }
     }
 
     #[allow(dead_code, unused_variables)]
@@ -331,45 +315,23 @@ impl SqlClient for ProxyClientGrpc {
         debug!("Request from {:?}", request.remote_addr());
 
         let request = request.into_inner().clone();
-        let auth = request.authentication.as_ref();
+        let auth_result = self.validate_auth_request(&request.authentication);
 
-        if let Some(id) = &auth.unwrap().id {
-            let result_has_core = self.proxy.get_rcd_core_for_existing_host_grpc(
-                &id,
-                &self.proxy.settings.grpc_db_addr_port,
-                60,
-            );
-            match result_has_core {
-                Ok(core) => {
-                    let response = core.enable_coooperative_features(request).await;
-                    return Ok(Response::new(response));
-                }
-                Err(_) => {
-                    let auth_result = get_auth_id_not_found(
-                        &auth.unwrap().user_name.clone(),
-                        &auth.unwrap().id.as_ref().unwrap(),
-                    );
-
-                    let reply = EnableCoooperativeFeaturesReply {
-                        authentication_result: Some(auth_result),
-                        is_successful: false,
-                        message: "".to_string(),
-                    };
-
-                    return Ok(Response::new(reply));
-                }
+        match auth_result {
+            Ok(core) => {
+                let response = core.enable_coooperative_features(request).await;
+                return Ok(Response::new(response));
             }
-        };
+            Err(auth_result) => {
+                let reply = EnableCoooperativeFeaturesReply {
+                    authentication_result: Some(auth_result),
+                    is_successful: false,
+                    message: "".to_string(),
+                };
 
-        let auth_result = get_auth_not_specified(&auth.unwrap().user_name);
-
-        let reply = EnableCoooperativeFeaturesReply {
-            authentication_result: Some(auth_result),
-            is_successful: false,
-            message: "".to_string(),
-        };
-
-        return Ok(Response::new(reply));
+                return Ok(Response::new(reply));
+            }
+        }
     }
     #[allow(dead_code, unused_variables)]
     async fn execute_read_at_host(
@@ -554,23 +516,5 @@ impl SqlClient for ProxyClientGrpc {
     ) -> Result<Response<GetDataHashReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
         todo!();
-    }
-}
-
-fn get_auth_id_not_found(un: &str, id: &str) -> AuthResult {
-    AuthResult {
-        user_name: un.to_string(),
-        token: "".to_string(),
-        is_authenticated: false,
-        authentication_message: format!("Host Id: {id} was not found at rcd-proxy instance"),
-    }
-}
-
-fn get_auth_not_specified(un: &str) -> AuthResult {
-    AuthResult {
-        user_name: un.to_string(),
-        token: "".to_string(),
-        is_authenticated: false,
-        authentication_message: format!("No Host Id provided for rcd-proxy instance"),
     }
 }
