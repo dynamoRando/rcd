@@ -40,6 +40,7 @@ pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddP
     let db_port: u32 = request.port;
     let http_addr = request.http_addr;
     let http_port = request.http_port;
+    let id = request.id;
 
     let reply_message = String::from("");
     let mut is_successful = false;
@@ -52,6 +53,7 @@ pub async fn add_participant(core: &Rcd, request: AddParticipantRequest) -> AddP
             db_port,
             http_addr,
             http_port as u16,
+            id,
         );
     };
 

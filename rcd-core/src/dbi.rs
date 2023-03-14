@@ -941,12 +941,13 @@ impl Dbi {
         db_port: u32,
         http_addr: String,
         http_port: u16,
+        id: Option<String>
     ) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 sqlite::db::participant::add_participant(
-                    db_name, alias, ip4addr, db_port, settings, http_addr, http_port,
+                    db_name, alias, ip4addr, db_port, settings, http_addr, http_port, id
                 )
             }
             DatabaseType::Unknown => unimplemented!(),

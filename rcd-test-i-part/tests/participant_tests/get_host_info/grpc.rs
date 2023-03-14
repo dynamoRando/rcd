@@ -18,14 +18,7 @@ fn test() {
 
 #[test]
 fn test_proxy() {
-    use ignore_result::Ignore;
-
-    SimpleLogger::new()
-    .with_level(log::LevelFilter::Debug)
-    .init()
-    .ignore();
-
-
+  
     let test_name = "get_host_info_grpc-proxy";
 
     let config = RunnerConfig {

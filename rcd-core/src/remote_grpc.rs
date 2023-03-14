@@ -75,7 +75,10 @@ impl RemoteGrpc {
         let request = tonic::Request::new(SaveContractRequest {
             contract: Some(contract),
             message_info: Some(message_info),
+            id: Some(participant.id.to_string()),
         });
+
+        debug!("send_participant_contract: {request:?}");
 
         let addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
 
@@ -197,7 +200,8 @@ impl RemoteGrpc {
         table_name: &str,
         sql: &str,
     ) -> InsertDataResult {
-        let auth = get_auth_request(own_host_info);
+        let mut auth = get_auth_request(own_host_info);
+        auth.id = Some(participant.id.to_string());
 
         let request = InsertDataRequest {
             authentication: Some(auth),
@@ -222,7 +226,8 @@ impl RemoteGrpc {
         own_host_info: HostInfo,
     ) -> GetRowFromPartialDatabaseResult {
         let message_info = get_message_info(&own_host_info, self.db_addr_port.clone());
-        let auth = get_auth_request(&own_host_info);
+        let mut auth = get_auth_request(&own_host_info);
+        auth.id = Some(participant.participant.id.to_string());
 
         let row_address = RowParticipantAddress {
             database_name: participant.db_name.clone(),
@@ -343,6 +348,7 @@ impl RemoteGrpc {
                 .database_name
                 .clone(),
             message_info: Some(message_info),
+            id: Some(host_info.host_guid),
         };
 
         let message = format!(

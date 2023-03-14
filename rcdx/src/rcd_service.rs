@@ -6,6 +6,7 @@ use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;
 use rcd_core::rcd::Rcd;
+use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_grpc::RemoteGrpc;
 use rcd_sqlite_log::SqliteLog;
 use std::env;
@@ -153,6 +154,7 @@ pub struct RcdService {
     pub sql_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
     pub db_client_channel: Option<(Sender<bool>, Receiver<bool>)>,
     pub core: Option<Rcd>,
+    pub core_data: Option<RcdData>,
 }
 
 impl RcdService {
@@ -173,7 +175,13 @@ impl RcdService {
             remote_client: Some(remote_client),
             settings: Some(self.rcd_settings.clone()),
         };
+
+        let core_data = RcdData {
+            db_interface: Some(self.db_interface.as_ref().unwrap().clone()),
+        };
+
         self.core = Some(core);
+        self.core_data = Some(core_data);
     }
 
     pub fn cwd(&self) -> String {
@@ -188,6 +196,10 @@ impl RcdService {
 
     pub fn core(&self) -> &Rcd {
         return self.core.as_ref().unwrap();
+    }
+
+    pub fn core_data(&self) -> &RcdData {
+        return self.core_data.as_ref().unwrap();
     }
 
     /// initalizes the service at the specified directory with the username and hash provided
@@ -442,6 +454,7 @@ pub fn get_service_from_config_file(settings_filename: Option<String>) -> RcdSer
         sql_client_channel: None,
         db_client_channel: None,
         core: None,
+        core_data: None,
     };
 
     if service.root_dir.is_empty() {
@@ -464,6 +477,7 @@ pub fn get_service_from_config(config: RcdSettings, root_dir: &str) -> RcdServic
         sql_client_channel: None,
         db_client_channel: None,
         core: None,
+        core_data: None,
     }
 }
 

@@ -54,6 +54,10 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
                                 .get_row_from_participant(participant.clone(), host_info)
                                 .await;
 
+                            if !remote_data_result.is_successful {
+                                warn!("remote data result failed: {remote_data_result:?}");
+                            }
+
                             let data_hash_for_row =
                                 remote_data_result.row.as_ref().unwrap().hash.clone();
 
@@ -403,6 +407,8 @@ pub async fn execute_cooperative_write_at_host(
                     if local_insert_is_successful {
                         is_remote_action_successful = true;
                     }
+                } else {
+                    warn!("remote delete was not successful: {remote_insert_result:?}");
                 }
             }
             DmlType::Update => {
@@ -486,6 +492,8 @@ pub async fn execute_cooperative_write_at_host(
                     if local_delete_is_successful {
                         is_remote_action_successful = true;
                     }
+                } else {
+                    warn!("remote delete was not successful");
                 }
             }
             DmlType::Select => panic!(),

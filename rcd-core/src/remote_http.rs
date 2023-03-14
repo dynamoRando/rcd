@@ -344,6 +344,7 @@ impl RemoteHttp {
                 .database_name
                 .clone(),
             message_info: Some(message_info),
+            id: Some(host_info.host_guid.clone()),
         };
 
         let request_json = serde_json::to_string(&request).unwrap();
@@ -382,6 +383,7 @@ impl RemoteHttp {
         let request = SaveContractRequest {
             contract: Some(contract),
             message_info: Some(message_info),
+            id: Some(participant.id.to_string()),
         };
 
         let request_json = serde_json::to_string(&request).unwrap();

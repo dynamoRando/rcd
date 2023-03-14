@@ -1,18 +1,19 @@
 use crate::{get_rcd_client, CoreTestConfig, RcdClientConfig, ServiceAddr};
-use log::{debug, trace};
+use log::{debug, trace, warn};
 
 /// has a main and participant establish a new contract and verifies that the main has read/write
 /// to the participant
 pub async fn main_and_participant_setup(config: CoreTestConfig) -> bool {
-    debug!("{config:?}");
+    debug!("main_and_participant_setup: {config:?}");
 
     let mc = config.main_client.clone();
     let pc = config.participant_client.as_ref().unwrap().clone();
     let pdb = config.participant_db_addr.as_ref().unwrap().clone();
     let db = config.test_db_name.clone();
     let contract = config.contract_desc.as_ref().unwrap().clone();
+    let participant_id = config.participant_id;
 
-    let client_sent_contract = client(&db, &mc, &pdb, &contract).await;
+    let client_sent_contract = client(&db, &mc, &pdb, &contract, participant_id).await;
 
     assert!(client_sent_contract);
 
@@ -32,6 +33,7 @@ pub async fn client(
     config: &RcdClientConfig,
     participant_db_addr: &ServiceAddr,
     contract_desc: &str,
+    participant_id: Option<String>,
 ) -> bool {
     use rcd_enum::database_type::DatabaseType;
     use rcd_enum::logical_storage_policy::LogicalStoragePolicy;
@@ -78,6 +80,7 @@ pub async fn client(
             participant_db_addr.port,
             participant_db_addr.ip4_addr.clone(),
             participant_db_addr.port as u16,
+            participant_id,
         )
         .await
         .unwrap();
@@ -93,9 +96,15 @@ pub async fn participant(config: &RcdClientConfig, contract_desc: &str) -> bool 
 
     let mut client = get_rcd_client(config).await;
 
+    debug!("common_contract_setup::participant: {client:?}");
+
     client.generate_host_info("participant").await.unwrap();
 
     let pending_contracts = client.view_pending_contracts().await.unwrap();
+
+    if pending_contracts.is_empty() {
+        warn!("no contracts found");
+    }
 
     for contract in &pending_contracts {
         if contract.description == contract_desc {
@@ -120,7 +129,7 @@ pub async fn io(db_name: &str, config: &RcdClientConfig) -> bool {
 
     let mut client = get_rcd_client(config).await;
 
-    client
+    let result = client
         .execute_cooperative_write_at_host(
             db_name,
             "INSERT INTO EMPLOYEE ( Id, Name ) VALUES ( 999, 'ASDF');",
@@ -129,6 +138,8 @@ pub async fn io(db_name: &str, config: &RcdClientConfig) -> bool {
         )
         .await
         .unwrap();
+
+    assert!(result);
 
     let data = client
         .execute_read_at_host(

@@ -1,6 +1,6 @@
 use log::debug;
 use rcd_client::client_type::RcdClientType;
-use std::thread::{self};
+use std::{thread::{self}, sync::mpsc};
 
 use crate::{
     get_test_temp_dir, get_test_temp_dir_main_and_participant,
@@ -8,7 +8,7 @@ use crate::{
     http::{shutdown_http_tests, start_service_with_http},
     sleep_test,
     test_common::{proxy, GrpcTestSetup, HttpTestSetup},
-    CoreTestConfig,
+    CoreTestConfig, ServiceAddr, TestConfigGrpc, RcdClientAuth,
 };
 
 #[derive(Debug, Clone)]
@@ -27,15 +27,25 @@ impl TestRunner {
         let setup =
             proxy::setup_proxy_with_users(&config.test_name, false, proxy::RcdProxyTestType::Grpc)
                 .unwrap();
+        
 
         debug!("{setup:?}");
 
         {
-            let proxy = setup.proxy_info.proxy;
+            let proxy = setup.proxy_info.proxy.clone();
             tokio::spawn(async move {
-                debug!("starting proxy");
+                debug!("starting proxy client");
                 proxy.start_grpc_client().await;
-                debug!("ending proxy");
+                debug!("ending proxy client");
+            });
+        }
+
+        {
+            let proxy = setup.proxy_info.proxy.clone();
+            tokio::spawn(async move {
+                debug!("starting proxy data");
+                proxy.start_grpc_data().await;
+                debug!("ending proxy data");
             });
         }
 
@@ -47,6 +57,7 @@ impl TestRunner {
                 addr: addr,
                 client_type: RcdClientType::Grpc,
                 host_id: Some(setup.main.host_id.clone()),
+                auth: None,
             };
 
             thread::spawn(move || {
@@ -58,6 +69,108 @@ impl TestRunner {
                     participant_db_addr: None,
                     grpc_test_setup: None,
                     http_test_setup: None,
+                    participant_id: None,
+                };
+
+                test_core(config);
+            })
+            .join()
+            .unwrap();
+        }
+    }
+
+    #[tokio::main]
+    pub async fn run_grpc_proxy_test_multi(config: RunnerConfig, test_core: fn(CoreTestConfig)) {
+        let db = format!("{}{}", config.test_name, ".db");
+        let setup =
+            proxy::setup_proxy_with_users(&config.test_name, true, proxy::RcdProxyTestType::Grpc)
+                .unwrap();
+
+        let participant_id = setup.part.as_ref().unwrap().host_id.clone();
+
+        debug!("{setup:?}");
+
+        {
+            let proxy = setup.proxy_info.proxy.clone();
+            tokio::spawn(async move {
+                debug!("starting proxy client");
+                proxy.start_grpc_client().await;
+                debug!("ending proxy client");
+            });
+        }
+
+        {
+            let proxy = setup.proxy_info.proxy.clone();
+            tokio::spawn(async move {
+                debug!("starting proxy data");
+                proxy.start_grpc_data().await;
+                debug!("ending proxy data");
+            });
+        }
+
+        sleep_test();
+
+        {
+            let client_addr = setup.proxy_info.client_addr.clone();
+            let db_addr = setup.proxy_info.db_addr.clone();
+
+            let m_auth = RcdClientAuth {
+                un: "tester".to_string(),
+                pw: "123456".to_string(),
+            };
+
+            let p_auth = RcdClientAuth {
+                un: "part".to_string(),
+                pw: "123456".to_string(),
+            };
+
+            let mc = crate::RcdClientConfig {
+                addr: client_addr.clone(),
+                client_type: RcdClientType::Grpc,
+                host_id: Some(setup.main.host_id.clone()),
+                auth: Some(m_auth),
+            };
+
+            let pc = crate::RcdClientConfig {
+                addr: client_addr.clone(),
+                client_type: RcdClientType::Grpc,
+                host_id: Some(setup.part.as_ref().unwrap().host_id.clone()),
+                auth: Some(p_auth),
+            };
+
+            let (client_trigger, client_listener) = triggered::trigger();
+            let (db_trigger, db_listener) = triggered::trigger();
+            let (tx_main, rx_main) = mpsc::channel();
+
+            let mtc = TestConfigGrpc {
+                client_address: client_addr.clone(),
+                database_address: db_addr.as_ref().unwrap().clone(),
+                client_service_shutdown_trigger: client_trigger,
+                database_service_shutdown_trigger: db_trigger,
+                client_keep_alive: tx_main,
+            };
+
+            let ptc = mtc.clone();
+
+            let grpc_test_setup = GrpcTestSetup {
+                main_test_config: mtc.clone(),
+                participant_test_config: Some(ptc.clone()),
+                database_name: db.clone(),
+                contract_description: config.contract_desc.as_ref().unwrap().clone(),
+                main_client: mc.clone(),
+                participant_client: Some(pc.clone()),
+            };
+
+            thread::spawn(move || {
+                let config = CoreTestConfig {
+                    main_client: mc,
+                    participant_client: Some(pc),
+                    test_db_name: db,
+                    contract_desc: Some(config.contract_desc.as_ref().unwrap().clone()),
+                    participant_db_addr: setup.proxy_info.db_addr.clone(),
+                    grpc_test_setup: Some(grpc_test_setup),
+                    http_test_setup: None,
+                    participant_id: Some(participant_id.clone())
                 };
 
                 test_core(config);
@@ -82,6 +195,7 @@ impl TestRunner {
                 addr: mtc.client_address,
                 client_type: RcdClientType::Grpc,
                 host_id: None,
+                auth: None,
             };
 
             thread::spawn(move || {
@@ -93,6 +207,7 @@ impl TestRunner {
                     participant_db_addr: None,
                     grpc_test_setup: None,
                     http_test_setup: None,
+                    participant_id: None,
                 };
 
                 test_core(config);
@@ -128,11 +243,13 @@ impl TestRunner {
                     addr: mtc.client_address.clone(),
                     client_type: RcdClientType::Grpc,
                     host_id: None,
+                    auth: None,
                 };
                 let pc = crate::RcdClientConfig {
                     addr: ptc.client_address.clone(),
                     client_type: RcdClientType::Grpc,
                     host_id: None,
+                    auth: None,
                 };
                 let pda = ptc.database_address.clone();
 
@@ -153,6 +270,7 @@ impl TestRunner {
                     participant_db_addr: Some(pda),
                     grpc_test_setup: Some(grpc_test_setup),
                     http_test_setup: None,
+                    participant_id: None,
                 };
 
                 test_core(config);
@@ -187,11 +305,13 @@ impl TestRunner {
                     addr: mtc.http_address.clone(),
                     client_type: RcdClientType::Http,
                     host_id: None,
+                    auth: None,
                 };
                 let pc = crate::RcdClientConfig {
                     addr: ptc.http_address.clone(),
                     client_type: RcdClientType::Http,
                     host_id: None,
+                    auth: None,
                 };
 
                 let ptc = ptc.clone();
@@ -215,6 +335,7 @@ impl TestRunner {
                     participant_db_addr: Some(pda),
                     grpc_test_setup: None,
                     http_test_setup: Some(http_test_setup),
+                    participant_id: None,
                 };
 
                 test_core(config);
@@ -247,6 +368,7 @@ impl TestRunner {
                     addr: mtc.http_address,
                     client_type: RcdClientType::Http,
                     host_id: None,
+                    auth: None,
                 };
 
                 let contract = config.contract_desc.clone();
@@ -259,6 +381,7 @@ impl TestRunner {
                     participant_db_addr: None,
                     grpc_test_setup: None,
                     http_test_setup: None,
+                    participant_id: None,
                 };
 
                 test_core(config);

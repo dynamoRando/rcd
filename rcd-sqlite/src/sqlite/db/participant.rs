@@ -136,8 +136,14 @@ pub fn add_participant(
     config: DbiConfigSqlite,
     http_addr: String,
     http_port: u16,
+    id: Option<String>,
 ) -> bool {
     let conn = get_db_conn(&config, db_name);
+
+    let db_host_id = match id {
+        Some(id) => GUID::parse(&id).unwrap(),
+        None => GUID::parse(defaults::EMPTY_GUID).unwrap(),
+    };
 
     let is_added: bool = if has_participant(db_name, alias, config) {
         false
@@ -150,7 +156,7 @@ pub fn add_participant(
             db_port,
             contract_status: ContractStatus::NotSent,
             accepted_contract_version: GUID::parse(defaults::EMPTY_GUID).unwrap(),
-            id: GUID::parse(defaults::EMPTY_GUID).unwrap(),
+            id: db_host_id,
             token: Vec::new(),
             http_addr,
             http_port,

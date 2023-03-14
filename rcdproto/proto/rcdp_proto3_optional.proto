@@ -491,6 +491,7 @@ message AddParticipantRequest{
 	uint32 port = 5;
 	string http_addr =  6;
 	uint32 http_port = 7;
+	optional string id = 8;
 }
 
 message AddParticipantReply{
@@ -664,6 +665,7 @@ message GetRowFromPartialDatabaseResult {
 message SaveContractRequest {
 	Contract contract = 1;
 	MessageInfo messageInfo = 2;
+	optional string id = 3;
 }
 
 message SaveContractResult {
@@ -677,6 +679,7 @@ message ParticipantAcceptsContractRequest {
 	string contractVersionGUID = 3;
 	string databaseName = 4;
 	MessageInfo messageInfo = 5;
+	optional string id = 6;
 }
 
 message ParticipantAcceptsContractResult {

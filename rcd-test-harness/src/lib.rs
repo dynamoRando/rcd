@@ -37,6 +37,13 @@ pub struct RcdClientConfig {
     pub addr: ServiceAddr,
     pub client_type: RcdClientType,
     pub host_id: Option<String>,
+    pub auth: Option<RcdClientAuth>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RcdClientAuth {
+    pub un: String,
+    pub pw: String,
 }
 
 #[derive(Debug, Clone)]
@@ -77,6 +84,7 @@ pub struct CoreTestConfig {
     pub participant_db_addr: Option<ServiceAddr>,
     pub grpc_test_setup: Option<GrpcTestSetup>,
     pub http_test_setup: Option<HttpTestSetup>,
+    pub participant_id: Option<String>,
 }
 
 impl ServiceAddr {
@@ -258,28 +266,34 @@ pub fn delete_test_database(db_name: &str, cwd: &str) {
 }
 
 pub async fn get_rcd_client(config: &RcdClientConfig) -> RcdClient {
-
-    debug!("get_rcd_client: {config:?}");
+    info!("get_rcd_client: {config:?}");
 
     match config.client_type {
         RcdClientType::Grpc => {
+            let un: String;
+            let pw: String;
+
+            if config.auth.is_none() {
+                un = String::from("tester");
+                pw = String::from("123456");
+            } else {
+                un = config.auth.as_ref().unwrap().un.clone();
+                pw = config.auth.as_ref().unwrap().pw.clone();
+            }
+
             if config.host_id.is_none() {
                 return RcdClient::new_grpc_client(
                     config.addr.to_full_string_with_http(),
-                    String::from("tester"),
-                    String::from("123456"),
+                    un,
+                    pw,
                     60,
                 )
                 .await;
             }
 
-            let mut client = RcdClient::new_grpc_client(
-                config.addr.to_full_string_with_http(),
-                String::from("tester"),
-                String::from("123456"),
-                60,
-            )
-            .await;
+            let mut client =
+                RcdClient::new_grpc_client(config.addr.to_full_string_with_http(), un, pw, 60)
+                    .await;
 
             client.set_host_id(&config.host_id.as_ref().unwrap());
             client

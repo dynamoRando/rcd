@@ -1323,6 +1323,7 @@ impl RcdClient {
         participant_db_port: u32,
         participant_http_addr: String,
         participant_http_port: u16,
+        participant_id: Option<String>,
     ) -> Result<bool, Box<dyn Error>> {
         let auth = self.gen_auth_request();
 
@@ -1334,6 +1335,7 @@ impl RcdClient {
             port: participant_db_port,
             http_addr: participant_http_addr,
             http_port: participant_http_port as u32,
+            id: participant_id,
         };
 
         match self.client_type {

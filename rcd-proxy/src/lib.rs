@@ -1,14 +1,15 @@
 use std::{fs, path::Path};
 
-use crate::proxy_grpc::ProxyClientGrpc;
+use crate::proxy_grpc::{ProxyClientGrpc, ProxyDbGrpc};
 use config::Config;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
 use proxy_db::ProxyDb;
 use rcd_common::rcd_settings::RcdSettings;
-use rcd_core::rcd::Rcd;
+use rcd_core::{rcd::Rcd, rcd_data::RcdData};
 use rcd_enum::database_type::DatabaseType;
-use rcdproto::rcdp::sql_client_server::SqlClientServer;
+use rcd_grpc::data_srv::DataServiceImpl;
+use rcdproto::rcdp::{sql_client_server::SqlClientServer, data_service_server::DataServiceServer};
 use rcdx::rcd_service::RcdService;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
@@ -266,6 +267,34 @@ impl RcdProxy {
         todo!()
     }
 
+    pub async fn start_grpc_data_at_addr(&self, addr: &str) {
+        let (_, client_listener) = triggered::trigger();
+
+        let client = ProxyDbGrpc::new(
+            self.settings.root_dir.clone(),
+            self.settings.database_name.clone(),
+            addr.to_string(),
+            self.clone(),
+        );
+
+        let service = tonic_reflection::server::Builder::configure()
+            .build()
+            .unwrap();
+
+        info!("Data Proxy Service Starting At: {addr}");
+
+        let addr = addr.parse().unwrap();
+
+        Server::builder()
+            .add_service(DataServiceServer::new(client))
+            .add_service(service)
+            .serve_with_shutdown(addr, client_listener)
+            .await
+            .unwrap();
+
+        info!("Data Proxy Service Ending...");
+    }
+
     pub async fn start_grpc_client_at_addr(&self, addr: &str) {
         let (_, client_listener) = triggered::trigger();
 
@@ -297,6 +326,11 @@ impl RcdProxy {
 
     pub async fn start_grpc_client(&self) {
         self.start_grpc_client_at_addr(&self.settings.grpc_client_addr_port)
+            .await
+    }
+
+    pub async fn start_grpc_data(&self) {
+        self.start_grpc_data_at_addr(&self.settings.grpc_db_addr_port)
             .await
     }
 
@@ -380,6 +414,17 @@ impl RcdProxy {
     pub fn get_rcd_core_for_existing_host(&self, id: &str) -> Result<Rcd, RcdProxyErr> {
         let service = self.get_rcd_service_for_existing_host(id)?;
         Ok(service.core().clone())
+    }
+
+    pub fn get_rcd_core_data_for_existing_host_grpc(
+        &self,
+        id: &str,
+        proxy_grpc_addr_port: &str,
+        proxy_grpc_timeout_in_sec: u32,
+    ) -> Result<RcdData, RcdProxyErr> {
+        let mut service = self.get_rcd_service_for_existing_host(id)?;
+        service.with_core_grpc(proxy_grpc_addr_port, proxy_grpc_timeout_in_sec);
+        Ok(service.core_data().clone())
     }
 
     pub fn get_rcd_core_for_existing_host_grpc(

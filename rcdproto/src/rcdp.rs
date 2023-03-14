@@ -735,6 +735,8 @@ pub struct AddParticipantRequest {
     pub http_addr: ::prost::alloc::string::String,
     #[prost(uint32, tag="7")]
     pub http_port: u32,
+    #[prost(string, optional, tag="8")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -991,6 +993,8 @@ pub struct SaveContractRequest {
     pub contract: ::core::option::Option<Contract>,
     #[prost(message, optional, tag="2")]
     pub message_info: ::core::option::Option<MessageInfo>,
+    #[prost(string, optional, tag="3")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1013,6 +1017,8 @@ pub struct ParticipantAcceptsContractRequest {
     pub database_name: ::prost::alloc::string::String,
     #[prost(message, optional, tag="5")]
     pub message_info: ::core::option::Option<MessageInfo>,
+    #[prost(string, optional, tag="6")]
+    pub id: ::core::option::Option<::prost::alloc::string::String>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[derive(Clone, PartialEq, ::prost::Message)]
