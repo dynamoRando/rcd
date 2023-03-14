@@ -8,7 +8,7 @@ use super::test_core::test_core;
 
 #[test]
 fn test() {
-    // init_log_to_screen(LevelFilter::Debug);
+    init_log_to_screen(LevelFilter::Debug);
 
     let test_name = "reject_host_grpc";
     let config = RunnerConfig {

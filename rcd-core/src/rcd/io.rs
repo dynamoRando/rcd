@@ -277,6 +277,10 @@ pub async fn execute_write_at_participant(
                                 )
                                 .await;
 
+                            if !notify_result {
+                                warn!("notify host {remote_host:?} of delete was not successful");
+                            }
+
                             if delete_result.is_successful && notify_result {
                                 is_overall_successful = true;
                                 rows_affected = 1;
@@ -408,7 +412,7 @@ pub async fn execute_cooperative_write_at_host(
                         is_remote_action_successful = true;
                     }
                 } else {
-                    warn!("remote delete was not successful: {remote_insert_result:?}");
+                    warn!("remote insert was not successful: {remote_insert_result:?}");
                 }
             }
             DmlType::Update => {

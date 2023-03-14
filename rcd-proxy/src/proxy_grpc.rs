@@ -1,6 +1,6 @@
 use crate::RcdProxy;
 use chrono::Utc;
-use log::debug;
+use log::{debug, warn};
 use rcd_common::defaults;
 use rcd_core::{rcd::Rcd, rcd_data::RcdData};
 use rcdproto::rcdp::data_service_server::DataService;
@@ -1494,6 +1494,8 @@ impl DataService for ProxyDbGrpc {
                     authentication_result: Some(auth_result),
                     is_successful: false,
                 };
+
+                warn!("notify_host_of_removed_row: {reply:?}");
 
                 return Ok(Response::new(reply));
             }

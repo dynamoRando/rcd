@@ -5,7 +5,7 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 fn test() {
     rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
 
-    let test_name = "get_db_names_gprc";
+    let test_name = "get_db_names_grpc";
     let contract = String::from("");
     let config = RunnerConfig {
         test_name: test_name.to_string(),
@@ -14,4 +14,21 @@ fn test() {
     };
 
     TestRunner::run_grpc_test_multi(config, test_core);
+}
+
+
+
+#[test]
+fn test_proxy() {
+    rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
+
+    let test_name = "get_db_names_grpc-proxy";
+
+    let config = RunnerConfig {
+        test_name: test_name.to_string(),
+        contract_desc: Some("".to_string()),
+        use_internal_logging: false,
+    };
+
+    TestRunner::run_grpc_proxy_test_multi(config, test_core);
 }

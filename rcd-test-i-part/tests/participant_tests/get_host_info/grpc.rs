@@ -1,6 +1,5 @@
 use super::test_core::test_core;
 use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
-use simple_logger::SimpleLogger;
 
 #[test]
 fn test() {

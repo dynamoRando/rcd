@@ -583,7 +583,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
             execute_write_on_connection(db_name, &statement, config);
         }
     } else {
-        warn!("dir already exists: {db_path:?}");
+        warn!("configure_rcd_db: dir already exists: {db_path:?}");
     }
 }
 

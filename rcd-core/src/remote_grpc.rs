@@ -101,7 +101,11 @@ impl RemoteGrpc {
         table_name: &str,
         row_id: u32,
     ) -> bool {
-        let auth = get_auth_request(own_host_info);
+        let mut auth = get_auth_request(own_host_info);
+        auth.id = Some(host.host_id.clone());
+
+        debug!("remote-grpc::notify_host_of_removed_row::auth: {auth:?}");
+
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
 
         let chost = Host {
@@ -126,9 +130,14 @@ impl RemoteGrpc {
             row_id,
         };
 
+        debug!("{request:?}");
+
         let client = get_client_from_cds_host(host);
         let response = client.await.notify_host_of_removed_row(request).await;
         let result = response.unwrap().into_inner();
+
+        debug!("{result:?}");
+
         result.is_successful
     }
 
@@ -141,7 +150,8 @@ impl RemoteGrpc {
         sql: &str,
         where_clause: &str,
     ) -> DeleteDataResult {
-        let auth = get_auth_request(own_host_info);
+        let mut auth = get_auth_request(own_host_info);
+        auth.id = Some(participant.id.to_string());
 
         let request = DeleteDataRequest {
             authentication: Some(auth),
@@ -259,7 +269,11 @@ impl RemoteGrpc {
         own_host_info: &HostInfo,
         data_info: &DataInfo,
     ) -> bool {
-        let auth = get_auth_request(own_host_info);
+        let mut auth = get_auth_request(own_host_info);
+        auth.id = Some(host.host_id.clone());
+
+        debug!("notify_host_of_updated_hash::auth: {auth:?}");
+
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
 
         let chost = Host {

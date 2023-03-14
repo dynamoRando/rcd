@@ -8,7 +8,7 @@ use crate::{
     http::{shutdown_http_tests, start_service_with_http},
     sleep_test,
     test_common::{proxy, GrpcTestSetup, HttpTestSetup},
-    CoreTestConfig, ServiceAddr, TestConfigGrpc, RcdClientAuth,
+    CoreTestConfig, TestConfigGrpc, RcdClientAuth,
 };
 
 #[derive(Debug, Clone)]
@@ -138,9 +138,9 @@ impl TestRunner {
                 auth: Some(p_auth),
             };
 
-            let (client_trigger, client_listener) = triggered::trigger();
-            let (db_trigger, db_listener) = triggered::trigger();
-            let (tx_main, rx_main) = mpsc::channel();
+            let (client_trigger, _client_listener) = triggered::trigger();
+            let (db_trigger, _db_listener) = triggered::trigger();
+            let (tx_main, _rx_main) = mpsc::channel();
 
             let mtc = TestConfigGrpc {
                 client_address: client_addr.clone(),

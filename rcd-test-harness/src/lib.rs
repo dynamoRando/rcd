@@ -1,4 +1,6 @@
 use core::time;
+use fern::colors::Color;
+use fern::colors::ColoredLevelConfig;
 use lazy_static::lazy_static;
 use log::debug;
 use log::error;
@@ -128,13 +130,42 @@ pub fn sleep_instance() {
     sleep_test_for_seconds(2);
 }
 
-/// overrides RCD's default logger to log to screen for the specified logging level
-
+/// overrides RCD's default logger to log to screen for the specified logging level with Simple Logger
 pub fn init_log_to_screen(level: LevelFilter) {
     let res_log = SimpleLogger::new().with_level(level).init();
     if let Err(e) = res_log {
         error!("{e}");
     }
+}
+
+pub fn init_log_to_screen_fern(level: LevelFilter) {
+    use ignore_result::Ignore;
+
+    let colors = ColoredLevelConfig::new()
+        .info(Color::Green)
+        .debug(Color::Blue)
+        .error(Color::BrightRed)
+        .warn(Color::Magenta);
+
+    fern::Dispatch::new()
+        .format(move |out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                colors.color(record.level()),
+                message
+            ))
+        })
+        .level(level)
+        .level_for("tokio", log::LevelFilter::Off)
+        .level_for("hyper", log::LevelFilter::Off)
+        .level_for("rocket", log::LevelFilter::Off)
+        .level_for("h2", log::LevelFilter::Off)
+        .level_for("tower", log::LevelFilter::Off)
+        .chain(std::io::stdout())
+        .apply()
+        .ignore();
 }
 
 pub fn start_keepalive_for_test(client_type: RcdClientType, addr: ServiceAddr) -> Sender<bool> {

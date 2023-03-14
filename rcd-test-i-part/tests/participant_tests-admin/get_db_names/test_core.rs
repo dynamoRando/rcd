@@ -57,13 +57,29 @@ async fn go(config: CoreTestConfig) {
             .client_type
         {
             rcd_client::client_type::RcdClientType::Grpc => {
-                expected_db_names = [
-                    "part_example.db",
-                    "part_example2.db",
-                    "part_example3.db",
-                    "get_db_names_gprc.dbpart",
-                    "rcd.db",
-                ];
+                if config
+                    .participant_client
+                    .as_ref()
+                    .unwrap()
+                    .host_id
+                    .is_none()
+                {
+                    expected_db_names = [
+                        "part_example.db",
+                        "part_example2.db",
+                        "part_example3.db",
+                        "get_db_names_grpc.dbpart",
+                        "rcd.db",
+                    ];
+                } else {
+                    expected_db_names = [
+                        "get_db_names_grpc-proxy.dbpart",
+                        "part_example3.db",
+                        "part_example2.db",
+                        "part_example.db",
+                        "rcd.db",
+                    ];
+                }
             }
             rcd_client::client_type::RcdClientType::Http => {
                 expected_db_names = [
@@ -114,12 +130,27 @@ async fn go(config: CoreTestConfig) {
 
         match config.main_client.client_type {
             rcd_client::client_type::RcdClientType::Grpc => {
-                expected_db_names = [
-                    "get_db_names2.db",
-                    "get_db_names3.db",
-                    "get_db_names_gprc.db",
-                    "rcd.db",
-                ];
+                if config
+                    .participant_client
+                    .as_ref()
+                    .unwrap()
+                    .host_id
+                    .is_none()
+                {
+                    expected_db_names = [
+                        "get_db_names2.db",
+                        "get_db_names3.db",
+                        "get_db_names_grpc.db",
+                        "rcd.db",
+                    ];
+                } else {
+                    expected_db_names = [
+                        "get_db_names2.db",
+                        "get_db_names3.db",
+                        "get_db_names_grpc-proxy.db",
+                        "rcd.db",
+                    ];
+                }
             }
             rcd_client::client_type::RcdClientType::Http => {
                 expected_db_names = [
@@ -138,6 +169,7 @@ async fn go(config: CoreTestConfig) {
 
         for name in &expected_db_names {
             if !actual_db_names.contains(&(*name).to_string()) {
+                warn!("missing database: {:?}", name);
                 has_all_databases = false;
             }
         }

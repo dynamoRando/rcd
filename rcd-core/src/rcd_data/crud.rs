@@ -1,5 +1,5 @@
 use super::RcdData;
-use log::trace;
+use log::{trace, warn};
 use rcd_common::db::PartialDataResult;
 use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
@@ -287,7 +287,9 @@ pub async fn get_row_from_partial_database(
     core: &RcdData,
     request: GetRowFromPartialDatabaseRequest,
 ) -> GetRowFromPartialDatabaseResult {
-    let auth_result = core.authenticate_host(request.authentication.unwrap());
+    let auth_result = core.authenticate_host(request.authentication.as_ref().unwrap().clone());
+
+    let mut has_row = false;
 
     let mut result_row = Row {
         row_id: 0,
@@ -307,11 +309,15 @@ pub async fn get_row_from_partial_database(
         result_row = core
             .dbi()
             .get_row_from_partial_database(&db_name, &table_name, row_id);
+        has_row = true;
+    } else {
+        let auth = request.authentication.as_ref().unwrap().clone();
+        warn!("unable to authenticate {auth:?}");
     }
 
     GetRowFromPartialDatabaseResult {
         authentication_result: Some(auth_result.1),
-        is_successful: false,
+        is_successful: has_row,
         result_message: String::from(""),
         row: Some(result_row),
     }
@@ -376,7 +382,7 @@ pub async fn notify_host_of_removed_row(
             core.dbi()
                 .remove_remote_row_reference_from_host(&db_name, &table_name, row_id);
     } else {
-        trace!("not authenticated!");
+        warn!("notify_host_of_removed_row: not authenticated!");
     }
 
     NotifyHostOfRemovedRowResponse {
