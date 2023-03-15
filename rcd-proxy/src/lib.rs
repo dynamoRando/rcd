@@ -8,13 +8,13 @@ use proxy_db::ProxyDb;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::{rcd::Rcd, rcd_data::RcdData};
 use rcd_enum::database_type::DatabaseType;
-use rcd_grpc::data_srv::DataServiceImpl;
-use rcdproto::rcdp::{sql_client_server::SqlClientServer, data_service_server::DataServiceServer};
+use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use rcdx::rcd_service::RcdService;
 #[cfg(test)]
 use simple_logger::SimpleLogger;
 use thiserror::Error;
 use tonic::transport::Server;
+use triggered::{Listener, Trigger};
 use user_info::UserInfo;
 use uuid::Uuid;
 
@@ -51,6 +51,15 @@ pub enum RcdProxyErr {
 pub struct RcdProxy {
     settings: RcdProxySettings,
     db: ProxyDb,
+}
+
+#[derive(Debug, Clone)]
+struct GrpcServiceSettings {
+    pub root_folder: String,
+    pub database_name: String,
+    pub addr_port: String,
+    pub own_db_addr_port: String,
+    pub proxy: RcdProxy,
 }
 
 #[derive(Debug, Clone)]
@@ -295,16 +304,44 @@ impl RcdProxy {
         info!("Data Proxy Service Ending...");
     }
 
-    pub async fn start_grpc_client_at_addr(&self, addr: &str) {
-        let (_, client_listener) = triggered::trigger();
-
-        let client = ProxyClientGrpc::new(
-            self.settings.root_dir.clone(),
-            self.settings.database_name.clone(),
-            addr.to_string(),
-            self.settings.grpc_db_addr_port.to_string(),
-            self.clone(),
+    async fn start_grpc_data_with_settings(settings: GrpcServiceSettings, listener: Listener) {
+        let client = ProxyDbGrpc::new(
+            settings.root_folder.clone(),
+            settings.database_name.clone(),
+            settings.addr_port.clone(),
+            settings.proxy.clone(),
         );
+
+        let addr = settings.addr_port.clone();
+
+        let service = tonic_reflection::server::Builder::configure()
+            .build()
+            .unwrap();
+
+        info!("Data Proxy Service Starting At: {addr}");
+
+        let addr = addr.parse().unwrap();
+
+        Server::builder()
+            .add_service(DataServiceServer::new(client))
+            .add_service(service)
+            .serve_with_shutdown(addr, listener)
+            .await
+            .unwrap();
+
+        info!("Data Proxy Service Ending...");
+    }
+
+    async fn start_grpc_client_with_settings(settings: GrpcServiceSettings, listener: Listener) {
+        let client = ProxyClientGrpc::new(
+            settings.root_folder.clone(),
+            settings.database_name.clone(),
+            settings.addr_port.clone(),
+            settings.own_db_addr_port.to_string(),
+            settings.proxy.clone(),
+        );
+
+        let addr = settings.addr_port.clone();
 
         let service = tonic_reflection::server::Builder::configure()
             .build()
@@ -317,21 +354,53 @@ impl RcdProxy {
         Server::builder()
             .add_service(SqlClientServer::new(client))
             .add_service(service)
-            .serve_with_shutdown(addr, client_listener)
+            .serve_with_shutdown(addr, listener)
             .await
             .unwrap();
 
         info!("Cient Proxy Service Ending...");
     }
 
-    pub async fn start_grpc_client(&self) {
-        self.start_grpc_client_at_addr(&self.settings.grpc_client_addr_port)
-            .await
+    pub async fn start_grpc_client_with_trigger(&self) -> Trigger {
+        let (trigger, listener) = triggered::trigger();
+
+        let settings = GrpcServiceSettings {
+            root_folder: self.settings.root_dir.clone(),
+            database_name: self.settings.database_name.clone(),
+            addr_port: self.settings.grpc_client_addr_port.clone(),
+            own_db_addr_port: self.settings.grpc_db_addr_port.clone(),
+            proxy: self.clone(),
+        };
+
+        tokio::spawn(
+            async move { Self::start_grpc_client_with_settings(settings, listener).await },
+        );
+
+        trigger
     }
 
-    pub async fn start_grpc_data(&self) {
-        self.start_grpc_data_at_addr(&self.settings.grpc_db_addr_port)
-            .await
+    pub async fn start_grpc_data_with_trigger(&self) -> Trigger {
+        let (trigger, listener) = triggered::trigger();
+
+        let settings = GrpcServiceSettings {
+            root_folder: self.settings.root_dir.clone(),
+            database_name: self.settings.database_name.clone(),
+            addr_port: self.settings.grpc_db_addr_port.clone(),
+            own_db_addr_port: self.settings.grpc_db_addr_port.clone(),
+            proxy: self.clone(),
+        };
+
+        tokio::spawn(async move { Self::start_grpc_data_with_settings(settings, listener).await });
+
+        trigger
+    }
+
+    pub async fn start_grpc_client(&self) -> Trigger {
+        self.start_grpc_client_with_trigger().await
+    }
+
+    pub async fn start_grpc_data(&self) -> Trigger {
+        self.start_grpc_data_with_trigger().await
     }
 
     /// checks to see if the specified user name already exists

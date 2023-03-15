@@ -16,7 +16,7 @@ fn test() {
 
 
 #[test]
-fn test_proxy() {
+fn proxy() {
   
     let test_name = "get_host_info_grpc-proxy";
 

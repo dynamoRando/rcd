@@ -18,7 +18,7 @@ fn test() {
 
 
 #[test]
-fn test_proxy() {
+fn proxy() {
     rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
 
     let test_name = "get_participants_for_db_grpc-proxy";

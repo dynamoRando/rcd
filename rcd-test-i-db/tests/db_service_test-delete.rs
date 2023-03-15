@@ -36,6 +36,22 @@ fn http() {
     TestRunner::run_http_test_multi(config, test_core);
 }
 
+#[test]
+fn proxy_grpc() {
+    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+
+    let test_name = "add_read_delete_remote_gprc-proxy";
+
+    let config = RunnerConfig {
+        test_name: test_name.to_string(),
+        contract_desc: Some("".to_string()),
+        use_internal_logging: false,
+    };
+
+    TestRunner::run_grpc_proxy_test_multi(config, test_core);
+}
+
+
 fn test_core(config: CoreTestConfig) {
     go(config);
 }

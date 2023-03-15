@@ -21,7 +21,7 @@ fn test() {
 }
 
 #[test]
-fn test_proxy() {
+fn proxy() {
     init_log_to_screen(LevelFilter::Debug);
 
     let test_name = "reject_host_grpc-proxy";

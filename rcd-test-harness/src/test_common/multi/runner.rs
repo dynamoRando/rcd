@@ -1,14 +1,18 @@
 use log::debug;
 use rcd_client::client_type::RcdClientType;
-use std::{thread::{self}, sync::mpsc};
+use std::{
+    sync::{mpsc, Arc, Mutex},
+    thread::{self},
+};
+use triggered::Trigger;
 
 use crate::{
     get_test_temp_dir, get_test_temp_dir_main_and_participant,
     grpc::{shutdown_grpc_tests, start_service_with_grpc},
     http::{shutdown_http_tests, start_service_with_http},
-    sleep_test,
+    release_port, sleep_test,
     test_common::{proxy, GrpcTestSetup, HttpTestSetup},
-    CoreTestConfig, TestConfigGrpc, RcdClientAuth,
+    CoreTestConfig, RcdClientAuth, TestConfigGrpc,
 };
 
 #[derive(Debug, Clone)]
@@ -16,6 +20,12 @@ pub struct RunnerConfig {
     pub test_name: String,
     pub contract_desc: Option<String>,
     pub use_internal_logging: bool,
+}
+
+#[derive(Debug, Clone)]
+struct ProxyGrpcTriggers {
+    pub client: Option<Trigger>,
+    pub db: Option<Trigger>,
 }
 
 pub struct TestRunner {}
@@ -27,24 +37,36 @@ impl TestRunner {
         let setup =
             proxy::setup_proxy_with_users(&config.test_name, false, proxy::RcdProxyTestType::Grpc)
                 .unwrap();
-        
 
         debug!("{setup:?}");
 
+        let triggers = ProxyGrpcTriggers {
+            client: None,
+            db: None,
+        };
+
+        let triggers = Arc::new(Mutex::new(triggers));
+
         {
             let proxy = setup.proxy_info.proxy.clone();
+            let triggers = triggers.clone();
             tokio::spawn(async move {
                 debug!("starting proxy client");
-                proxy.start_grpc_client().await;
+                let client_trigger = proxy.start_grpc_client().await;
+                let mut triggers = triggers.lock().unwrap();
+                triggers.client = Some(client_trigger);
                 debug!("ending proxy client");
             });
         }
 
         {
             let proxy = setup.proxy_info.proxy.clone();
+            let triggers = triggers.clone();
             tokio::spawn(async move {
                 debug!("starting proxy data");
-                proxy.start_grpc_data().await;
+                let data_trigger = proxy.start_grpc_data().await;
+                let mut triggers = triggers.lock().unwrap();
+                triggers.db = Some(data_trigger);
                 debug!("ending proxy data");
             });
         }
@@ -77,6 +99,12 @@ impl TestRunner {
             .join()
             .unwrap();
         }
+
+        // shutdown proxy services
+        triggers.lock().unwrap().client.as_ref().unwrap().trigger();
+        triggers.lock().unwrap().db.as_ref().unwrap().trigger();
+        release_port(setup.proxy_info.client_addr.port);
+        release_port(setup.proxy_info.db_addr.as_ref().unwrap().port);
     }
 
     #[tokio::main]
@@ -90,20 +118,33 @@ impl TestRunner {
 
         debug!("{setup:?}");
 
+        let triggers = ProxyGrpcTriggers {
+            client: None,
+            db: None,
+        };
+
+        let triggers = Arc::new(Mutex::new(triggers));
+
         {
             let proxy = setup.proxy_info.proxy.clone();
+            let triggers = triggers.clone();
             tokio::spawn(async move {
                 debug!("starting proxy client");
-                proxy.start_grpc_client().await;
+                let client_trigger = proxy.start_grpc_client().await;
+                let mut triggers = triggers.lock().unwrap();
+                triggers.client = Some(client_trigger);
                 debug!("ending proxy client");
             });
         }
 
         {
             let proxy = setup.proxy_info.proxy.clone();
+            let triggers = triggers.clone();
             tokio::spawn(async move {
                 debug!("starting proxy data");
-                proxy.start_grpc_data().await;
+                let data_trigger = proxy.start_grpc_data().await;
+                let mut triggers = triggers.lock().unwrap();
+                triggers.db = Some(data_trigger);
                 debug!("ending proxy data");
             });
         }
@@ -161,16 +202,17 @@ impl TestRunner {
                 participant_client: Some(pc.clone()),
             };
 
+            let db_addr = setup.proxy_info.db_addr.clone();
             thread::spawn(move || {
                 let config = CoreTestConfig {
                     main_client: mc,
                     participant_client: Some(pc),
                     test_db_name: db,
                     contract_desc: Some(config.contract_desc.as_ref().unwrap().clone()),
-                    participant_db_addr: setup.proxy_info.db_addr.clone(),
+                    participant_db_addr: db_addr.clone(),
                     grpc_test_setup: Some(grpc_test_setup),
                     http_test_setup: None,
-                    participant_id: Some(participant_id.clone())
+                    participant_id: Some(participant_id.clone()),
                 };
 
                 test_core(config);
@@ -178,6 +220,12 @@ impl TestRunner {
             .join()
             .unwrap();
         }
+
+        // shutdown proxy services
+        triggers.lock().unwrap().client.as_ref().unwrap().trigger();
+        triggers.lock().unwrap().db.as_ref().unwrap().trigger();
+        release_port(setup.proxy_info.client_addr.port);
+        release_port(setup.proxy_info.db_addr.as_ref().clone().unwrap().port);
     }
 
     /// takes a config for a test and will begin an HTTP GRPC test, using the
