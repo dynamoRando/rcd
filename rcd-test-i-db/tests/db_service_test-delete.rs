@@ -1,24 +1,44 @@
 use rcd_test_harness::test_common::multi::common_contract_setup::main_and_participant_setup;
+use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 use rcd_test_harness::CoreTestConfig;
 
-use log::LevelFilter;
-use rcd_test_harness::{
-    init_log_to_screen,
-    test_common::multi::runner::{RunnerConfig, TestRunner},
-};
-
-#[test]
-fn grpc() {
-    let test_name = "add_read_delete_remote_gprc";
-    init_log_to_screen(LevelFilter::Debug);
-
-    let config = RunnerConfig {
-        test_name: test_name.to_string(),
-        contract_desc: Some(String::from("contract")),
-        use_internal_logging: false,
+pub mod grpc {
+    use log::LevelFilter;
+    use rcd_test_harness::{
+        init_log_to_screen,
+        test_common::multi::runner::{RunnerConfig, TestRunner},
     };
 
-    TestRunner::run_grpc_test_multi(config, test_core);
+    use crate::test_core;
+
+    #[test]
+    fn proxy() {
+        // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+
+        let test_name = "add_read_delete_remote_gprc-proxy";
+
+        let config = RunnerConfig {
+            test_name: test_name.to_string(),
+            contract_desc: Some("".to_string()),
+            use_internal_logging: false,
+        };
+
+        TestRunner::run_grpc_proxy_test_multi(config, test_core);
+    }
+
+    #[test]
+    fn grpc() {
+        let test_name = "add_read_delete_remote_gprc";
+        init_log_to_screen(LevelFilter::Debug);
+
+        let config = RunnerConfig {
+            test_name: test_name.to_string(),
+            contract_desc: Some(String::from("contract")),
+            use_internal_logging: false,
+        };
+
+        TestRunner::run_grpc_test_multi(config, test_core);
+    }
 }
 
 #[test]
@@ -35,22 +55,6 @@ fn http() {
 
     TestRunner::run_http_test_multi(config, test_core);
 }
-
-#[test]
-fn proxy_grpc() {
-    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
-
-    let test_name = "add_read_delete_remote_gprc-proxy";
-
-    let config = RunnerConfig {
-        test_name: test_name.to_string(),
-        contract_desc: Some("".to_string()),
-        use_internal_logging: false,
-    };
-
-    TestRunner::run_grpc_proxy_test_multi(config, test_core);
-}
-
 
 fn test_core(config: CoreTestConfig) {
     go(config);

@@ -127,13 +127,28 @@ impl SqlClient for ProxyClientGrpc {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     async fn get_settings(
         &self,
         request: Request<GetSettingsRequest>,
     ) -> Result<Response<GetSettingsReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+        let request = request.into_inner().clone();
+        let auth_result = self.validate_auth_request(&request.authentication);
+
+        match auth_result {
+            Ok(core) => {
+                let response = core.get_settings(request).await;
+                return Ok(Response::new(response));
+            }
+            Err(auth_result) => {
+                let reply = GetSettingsReply {
+                    authentication_result: Some(auth_result),
+                    settings_json: "".to_string(),
+                };
+
+                return Ok(Response::new(reply));
+            }
+        }
     }
 
     async fn get_cooperative_hosts(
@@ -293,13 +308,27 @@ impl SqlClient for ProxyClientGrpc {
         }
     }
 
-    #[allow(dead_code, unused_variables)]
     async fn revoke_token(
         &self,
         request: Request<AuthRequest>,
     ) -> Result<Response<RevokeReply>, Status> {
         debug!("Request from {:?}", request.remote_addr());
-        todo!();
+        let request = request.into_inner().clone();
+        let auth_result = self.validate_auth_request(&Some(request.clone()));
+
+        match auth_result {
+            Ok(core) => {
+                let response = core.revoke_token(request).await;
+                return Ok(Response::new(response));
+            }
+            Err(_) => {
+                let reply = RevokeReply {
+                    is_successful: false,
+                };
+
+                return Ok(Response::new(reply));
+            }
+        }
     }
 
     async fn auth_for_token(
