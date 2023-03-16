@@ -1,5 +1,5 @@
 [package]
-name = "rcd-my-info-core"
+name = "rcd-proxy-container"
 version = "0.1.0"
 edition = "2021"
 

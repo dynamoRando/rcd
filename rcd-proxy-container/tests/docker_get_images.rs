@@ -1,6 +1,6 @@
 use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
 use log::info;
-use rcd_my_info_core::rcd_docker::RcdDocker;
+use rcd_proxy_container::rcd_docker::RcdDocker;
 use std::thread;
 
 #[path = "test_harness.rs"]

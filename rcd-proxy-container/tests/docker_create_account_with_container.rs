@@ -11,7 +11,7 @@ use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
 use log::debug;
 use log::error;
 use log::info;
-use rcd_my_info_core::{admin::Admin, admin_db::DbType};
+use rcd_proxy_container::{admin::Admin, admin_db::DbType};
 use simple_logger::SimpleLogger;
 use std::sync::Arc;
 

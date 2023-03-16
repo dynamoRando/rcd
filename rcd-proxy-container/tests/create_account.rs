@@ -2,7 +2,7 @@
 mod test_harness;
 
 use crate::test_harness::get_test_temp_dir;
-use rcd_my_info_core::{admin::Admin, admin_db::DbType};
+use rcd_proxy_container::{admin::Admin, admin_db::DbType};
 use simple_logger::SimpleLogger;
 
 #[test]

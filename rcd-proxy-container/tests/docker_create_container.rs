@@ -1,5 +1,5 @@
 use log::{debug, error, info};
-use rcd_my_info_core::rcd_docker::RcdDocker;
+use rcd_proxy_container::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::{
     sync::{Arc, Mutex},

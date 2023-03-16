@@ -2500,7 +2500,7 @@ name = "rcd-foo"
 version = "0.1.0"
 dependencies = [
  "log",
- "rcd-my-info-core",
+ "rcd-proxy-container",
  "rcd-sqlite-log",
  "tokio",
 ]
@@ -2555,21 +2555,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rcd-my-info-core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "docker-api",
- "log",
- "rcd-common",
- "rcd-sqlite",
- "rusqlite",
- "simple_logger",
- "thiserror",
- "tokio",
-]
-
-[[package]]
 name = "rcd-proxy"
 version = "0.1.0"
 dependencies = [
@@ -2597,6 +2582,21 @@ dependencies = [
  "tonic-reflection",
  "triggered",
  "uuid 1.3.0",
+]
+
+[[package]]
+name = "rcd-proxy-container"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "docker-api",
+ "log",
+ "rcd-common",
+ "rcd-sqlite",
+ "rusqlite",
+ "simple_logger",
+ "thiserror",
+ "tokio",
 ]
 
 [[package]]

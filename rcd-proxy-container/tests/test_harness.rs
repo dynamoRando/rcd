@@ -1,7 +1,7 @@
 use std::{env, fs, path::Path};
 
 use log::info;
-use rcd_my_info_core::rcd_docker::RcdDocker;
+use rcd_proxy_container::rcd_docker::RcdDocker;
 
 #[allow(dead_code)]
 pub const DOCKER_NOT_RUNNING_MESSAGE: &str = "docker not running - test skipped";
