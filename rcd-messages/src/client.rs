@@ -157,276 +157,205 @@ pub struct GetDatabasesRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct GetDatabasesReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub databases: Vec<DatabaseSchema>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AcceptPendingActionRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub row_id: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AcceptPendingActionReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetPendingActionsRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub action: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetPendingActionsReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub pending_statements: Vec<PendingStatement>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct PendingStatement {
     pub row_id: u32,
-
     pub statement: String,
-
     pub requested_ts_utc: String,
-
     pub host_id: String,
-
     pub action: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetDataLogTableStatusRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub use_data_log: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetDataLogTableStatusReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetDataLogTableStatusRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetDataLogTableStatusReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub use_data_log: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetReadRowIdsRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub where_clause: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetReadRowIdsReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub row_ids: Vec<u32>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetDataHashRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub row_id: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetDataHashReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub data_hash: u64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeDeletesToHostBehaviorRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub behavior: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeDeletesToHostBehaviorReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeUpdatesToHostBehaviorRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub behavior: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeUpdatesToHostBehaviorReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeDeletesFromHostBehaviorRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub behavior: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeDeletesFromHostBehaviorReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeUpdatesFromHostBehaviorRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub behavior: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangesUpdatesFromHostBehaviorReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TryAuthAtParticipantRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub participant_id: String,
-
     pub participant_alias: String,
-
     pub db_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TryAuthAtPartipantReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeHostStatusRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub host_alias: String,
-
     pub host_id: String,
-
     pub status: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ChangeHostStatusReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub status: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GenerateHostInfoRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub host_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GenerateHostInfoReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SendParticipantContractRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub participant_alias: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SendParticipantContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_sent: bool,
-
     pub message: String,
 }
 /// a message representing the results of a SQL query
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct StatementResultset {
     pub is_error: bool,
-
     pub result_message: String,
-
     pub number_of_rows_affected: u64,
-
     pub rows: Vec<Row>,
-
     pub execution_error_message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct CreateUserDatabaseRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct CreateUserDatabaseReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_created: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -463,91 +392,66 @@ pub struct ExecuteWriteReply {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HasTableRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct HasTableReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub has_table: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GenerateContractRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub host_name: String,
-
     pub description: String,
-
     pub database_name: String,
-
     pub remote_delete_behavior: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GenerateContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetLogicalStoragePolicyRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub policy_mode: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetLogicalStoragePolicyReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetLogicalStoragePolicyRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetLogicalStoragePolicyReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub policy_mode: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteCooperativeWriteRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub sql_statement: String,
-
     pub database_type: u32,
-
     pub alias: String,
-
     pub participant_id: String,
-
     pub where_clause: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ExecuteCooperativeWriteReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub total_rows_affected: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -564,9 +468,7 @@ pub struct AddParticipantRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AddParticipantReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -582,43 +484,34 @@ pub struct ViewPendingContractsReply {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AcceptPendingContractRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub host_alias: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AcceptPendingContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RejectPendingContractRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub host_alias: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RejectPendingContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct EnableCoooperativeFeaturesRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct EnableCoooperativeFeaturesReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -647,71 +540,48 @@ pub struct CreateTableRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct CreateTableResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub database_name: String,
-
     pub result_message: String,
-
     pub database_id: String,
-
     pub table_name: String,
-
     pub table_id: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RowInfo {
     pub database_name: String,
-
     pub table_name: String,
-
     pub rowid: u32,
-
     pub data_hash: u64,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct InsertDataRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub cmd: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct InsertDataResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub data_hash: u64,
-
     pub message: String,
-
     pub row_id: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct UpdateDataRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub cmd: String,
-
     pub where_clause: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct UpdateDataResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
-
     pub rows: Vec<RowInfo>,
     /// 0 - unknown
     /// 1 - success (overwrite or overwrite with log)
@@ -722,23 +592,16 @@ pub struct UpdateDataResult {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct DeleteDataRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub table_name: String,
-
     pub cmd: String,
-
     pub where_clause: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct DeleteDataResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub message: String,
-
     pub rows: Vec<RowInfo>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -784,23 +647,14 @@ pub struct ParticipantAcceptsContractResult {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct UpdateRowDataHashForHostRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub message_info: ::core::option::Option<MessageInfo>,
-
     pub host_info: ::core::option::Option<Host>,
-
     pub database_name: String,
-
     pub database_id: String,
-
     pub table_name: String,
-
     pub table_id: u32,
-
     pub row_id: u32,
-
     pub updated_hash_value: u64,
-
     pub is_deleted_at_participant: bool,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -812,60 +666,42 @@ pub struct UpdateRowDataHashForHostResponse {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct NotifyHostOfRemovedRowRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub message_info: ::core::option::Option<MessageInfo>,
-
     pub host_info: ::core::option::Option<Host>,
-
     pub database_name: String,
-
     pub database_id: String,
-
     pub table_name: String,
-
     pub table_id: u32,
-
     pub row_id: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct NotifyHostOfRemovedRowResponse {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
 }
 /// A message for basic online testing
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TestRequest {
     pub request_time_utc: String,
-
     pub request_origin_url: String,
-
     pub request_origin_ip4: String,
-
     pub request_origin_ip6: String,
-
     pub request_port_number: u32,
-
     pub request_echo_message: String,
 }
 /// A message for basic online testing
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TestReply {
     pub reply_time_utc: String,
-
     pub reply_echo_message: String,
-
     pub rcdx_version: String,
 }
 /// a message for general information
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct MessageInfo {
     pub is_little_endian: bool,
-
     pub message_addresses: Vec<String>,
-
     pub message_generated_time_utc: String,
-
     pub message_guid: String,
 }
 /// A message for authentication purposes (note: this is proof of concept, and obviously not secure)
@@ -890,52 +726,38 @@ pub struct AuthResult {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct CreateDatabaseRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub message_info: ::core::option::Option<MessageInfo>,
-
     pub database_name: String,
 }
 /// A message describing the results of a CreateDatabaseRequest
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct CreateDatabaseResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub database_name: String,
-
     pub result_message: String,
-
     pub database_id: String,
 }
 /// an object for representing a row in a table. used for returning data
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct Row {
     pub database_name: String,
-
     pub table_name: String,
-
     pub row_id: u32,
-
     pub values: Vec<RowValue>,
-
     pub is_remoteable: bool,
-
     pub remote_metadata: ::core::option::Option<RowRemoteMetadata>,
-
     pub hash: Vec<u8>,
 }
 /// an object for storing values for a row in a table. used for returning data
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RowValue {
     pub column: ::core::option::Option<ColumnSchema>,
-
     pub is_null_value: bool,
     /// we send the raw bytes and expect the client to convert the value based on the column type.
     /// note: this value does not include the 4 byte INT length prefix for variable length fields
     /// to ease conversion refer to the Drummersoft.DrummerDB.Common library, in particular the `DbBinaryConvert` class
     pub value: Vec<u8>,
-
     pub string_value: String,
 }
 /// describes the data status of the host in relation to the participant
@@ -944,11 +766,8 @@ pub struct RowValue {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RowRemoteMetadata {
     pub is_remote_out_of_sync_with_host: bool,
-
     pub is_hash_out_of_sync_with_host: bool,
-
     pub is_remote_deleted: bool,
-
     pub is_local_deleted: bool,
 }
 /// a message for describing schema information of a column in a database table
@@ -982,7 +801,6 @@ pub struct Contract {
     pub schema: ::core::option::Option<DatabaseSchema>,
     /// a GUID representing the version of the contract
     pub contract_version: String,
-
     pub host_info: ::core::option::Option<Host>,
     /// the status of the contract, if applicable
     pub status: u32,
@@ -991,21 +809,13 @@ pub struct Contract {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct Participant {
     pub participant_guid: String,
-
     pub alias: String,
-
     pub ip4_address: String,
-
     pub ip6_address: String,
-
     pub database_port_number: u32,
-
     pub token: Vec<u8>,
-
     pub internal_participant_guid: String,
-
     pub http_addr: String,
-
     pub http_port: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -1034,13 +844,9 @@ pub struct DatabaseSchema {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 pub struct TableSchema {
     pub table_name: String,
-
     pub table_id: String,
-
     pub database_name: String,
-
     pub database_id: String,
-
     pub columns: Vec<ColumnSchema>,
     /// Drummersoft.DrummerDB.Core.Structures.Enum.LogicalStoragePolicy
     pub logical_storage_policy: u32,
@@ -1048,15 +854,12 @@ pub struct TableSchema {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct TransactionInfo {
     pub transaction_batch_id: String,
-
     pub transaction_mode: u32,
 }
 /// a message for identifying the location of a row in a partial database
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RowParticipantAddress {
     pub database_name: String,
-
     pub table_name: String,
-
     pub row_id: u32,
 }

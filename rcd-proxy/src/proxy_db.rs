@@ -61,6 +61,7 @@ impl ProxyDb {
         }
     }
 
+    #[allow(dead_code)]
     pub fn has_user(&self, un: &str) -> bool {
         match self.config {
             ProxyDbConfig::Unknown => todo!(),
@@ -70,6 +71,7 @@ impl ProxyDb {
         }
     }
 
+    #[allow(dead_code)]
     pub fn has_host(&self, id: &str) -> bool {
         match self.config {
             ProxyDbConfig::Unknown => todo!(),

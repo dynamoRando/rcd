@@ -2,7 +2,6 @@ use core::time;
 use fern::colors::Color;
 use fern::colors::ColoredLevelConfig;
 use lazy_static::lazy_static;
-use log::debug;
 use log::error;
 use log::info;
 use log::LevelFilter;

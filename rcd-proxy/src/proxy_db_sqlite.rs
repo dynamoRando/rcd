@@ -2,6 +2,7 @@ use crate::sql_text::sqlite::{
     ADD_LOGIN, GET_HOST, GET_USER, SQLITE_CREATE_LOGIN_TABLE, UPDATE_USER,
 };
 use crate::user_info::UserInfo;
+#[allow(unused_imports)]
 use crate::PROXY_DB;
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
 use log::{debug, trace, warn};
@@ -220,7 +221,7 @@ pub fn test_db_user_io() {
     use rcd_common::crypt::hash;
     use rcd_test_harness_common::get_test_temp_dir;
     use simple_logger::SimpleLogger;
-    use std::env;
+    
 
     SimpleLogger::new().env().init().ignore();
 
