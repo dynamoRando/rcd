@@ -2555,6 +2555,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "rcd-my-info"
+version = "0.1.0"
+
+[[package]]
 name = "rcd-proxy"
 version = "0.1.0"
 dependencies = [

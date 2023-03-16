@@ -56,7 +56,9 @@ members = [
     # integration tests for database
     "rcd-test-i-db",
     # integration tests for participant 
-    "rcd-test-i-part"
+    "rcd-test-i-part",
+    # webpage for data accounts
+    "rcd-my-info"
 ]
 
 # note - rcd-my-info-core and rcd-proxy both aim to try and provide the same effect: a service that manages multiple rcd instances. however, rcd-my-info-core does it by natively bringing online the entire rcd-stack with a grpc + http endpoint
