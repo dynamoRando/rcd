@@ -553,18 +553,13 @@ pub struct ExecuteCooperativeWriteReply {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AddParticipantRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub database_name: String,
-
     pub alias: String,
-
     pub ip4_address: String,
-
     pub port: u32,
-
     pub http_addr: String,
-
     pub http_port: u32,
+    pub id: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct AddParticipantReply {
@@ -749,45 +744,36 @@ pub struct DeleteDataResult {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetRowFromPartialDatabaseRequest {
     pub authentication: ::core::option::Option<AuthRequest>,
-
     pub row_address: ::core::option::Option<RowParticipantAddress>,
-
     pub message_info: ::core::option::Option<MessageInfo>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct GetRowFromPartialDatabaseResult {
     pub authentication_result: ::core::option::Option<AuthResult>,
-
     pub is_successful: bool,
-
     pub result_message: String,
-
     pub row: ::core::option::Option<Row>,
 }
 /// a message from a host to a participant to save a contract
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SaveContractRequest {
     pub contract: ::core::option::Option<Contract>,
-
     pub message_info: ::core::option::Option<MessageInfo>,
+    pub id: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SaveContractResult {
     pub is_saved: bool,
-
     pub error_message: String,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ParticipantAcceptsContractRequest {
     pub participant: ::core::option::Option<Participant>,
-
     pub contract_guid: String,
-
     pub contract_version_guid: String,
-
     pub database_name: String,
-
     pub message_info: ::core::option::Option<MessageInfo>,
+    pub id: Option<String>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ParticipantAcceptsContractResult {
@@ -890,6 +876,7 @@ pub struct AuthRequest {
     pub pw_hash: Vec<u8>,
     pub token: Vec<u8>,
     pub jwt: String,
+    pub id: Option<String>,
 }
 /// A message describing the results of an authentication attempt
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]

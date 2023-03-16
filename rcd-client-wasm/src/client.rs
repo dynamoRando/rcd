@@ -186,6 +186,7 @@ impl RcdClient {
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: String::from(""),
+            id: None,
         };
 
         let url = self.get_http_url(AUTH_FOR_TOKEN);

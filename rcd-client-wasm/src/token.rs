@@ -37,6 +37,7 @@ impl Token {
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: self.jwt.clone(),
+            id: None,
         };
 
         serde_json::to_string(&request).unwrap()
@@ -50,6 +51,7 @@ impl Token {
             pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: self.jwt.clone(),
+            id: None,
         }
     }
 }

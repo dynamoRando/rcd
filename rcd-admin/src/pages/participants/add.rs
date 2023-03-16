@@ -53,6 +53,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                 port: port.parse().unwrap(),
                 http_addr: http,
                 http_port: http_port.parse().unwrap(),
+                id: None,
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
