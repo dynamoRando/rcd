@@ -26,6 +26,7 @@ mod proxy_db_sqlite;
 mod proxy_grpc;
 mod sql_text;
 mod user_info;
+mod grpc_client;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum RcdProxyErr {

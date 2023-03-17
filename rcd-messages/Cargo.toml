@@ -11,3 +11,4 @@ serde_derive = "1"
 indexmap = "1.9.1"
 rcd-markdown = { path = "../rcd-markdown" }
 log = "0.4"
+num_enum = "0.5.11"

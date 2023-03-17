@@ -13,6 +13,7 @@ rcdproto = { path = "../rcdproto" }
 rcd-core = { path = "../rcd-core" }
 rcd-common = { path = "../rcd-common"}
 rcd-test-harness-common = { path = "../rcd-test-harness-common"}
+rcd-messages = { path = "../rcd-messages"}
 rcd-client = { path = "../rcd-client"}
 rcdx = { path = "../rcdx" }
 serde_json = "1"
