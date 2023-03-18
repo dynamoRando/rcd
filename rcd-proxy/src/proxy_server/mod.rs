@@ -13,8 +13,11 @@ use rocket::{Request, Response};
 
 use crate::RcdProxy;
 use crate::proxy_server::account::register;
+use crate::proxy_server::execute::execute_request;
 
 mod account;
+mod execute;
+mod process;
 
 #[derive(Debug, Clone)]
 pub struct ProxyServer {
@@ -45,7 +48,7 @@ impl ProxyServer {
         };
         let _ = rocket::custom(config)
             .attach(CORS)
-            .mount("/", routes![index, register])
+            .mount("/", routes![index, register, execute_request])
             .manage(proxy)
             .launch()
             .await?;
