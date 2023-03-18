@@ -429,12 +429,12 @@ impl RcdProxy {
         &self,
         un: &str,
         overwrite_existing: bool,
-    ) -> Result<(), RcdProxyErr> {
+    ) -> Result<String, RcdProxyErr> {
         let full_folder_path = self.setup_user_folder(overwrite_existing)?;
         let host_id = self.setup_rcd_service(un, &full_folder_path)?;
 
         let mut u = self.db.get_user(un)?;
-        u.id = Some(host_id);
+        u.id = Some(host_id.clone());
 
         if u.folder.is_none() {
             u.folder = Some(full_folder_path);
@@ -444,7 +444,7 @@ impl RcdProxy {
 
         trace!("create_rcd_instance: {u:?}");
 
-        Ok(())
+        Ok(host_id)
     }
 
     /// sets up a brand new rcd service for the specified user and updates the rcd folder for this user

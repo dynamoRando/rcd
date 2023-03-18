@@ -8,6 +8,7 @@ pub struct RegisterLoginRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RegisterLoginReply {
     pub is_successful: bool,
+    pub host_id: Option<String>,
     pub error: Option<String>,
 }
 
