@@ -28,7 +28,7 @@ async fn create_database() {
     let id = Mutex::new(id);
     let id = Arc::new(id);
 
-    let setup = configure_proxy_for_test("proxy-i-register-user", RcdProxyTestType::Grpc);
+    let setup = configure_proxy_for_test("proxy-i-register-make-db", RcdProxyTestType::Grpc);
     {
         let proxy = setup.proxy.clone();
         let server = ProxyServer::new(proxy.clone());
