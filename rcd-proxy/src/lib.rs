@@ -21,12 +21,13 @@ use uuid::Uuid;
 const SETTINGS: &str = "Settings.toml";
 const PROXY_DB: &str = "Proxy.db";
 
+mod grpc_client;
 mod proxy_db;
 mod proxy_db_sqlite;
 mod proxy_grpc;
+pub mod proxy_server;
 mod sql_text;
 mod user_info;
-mod grpc_client;
 
 #[derive(Error, Debug, PartialEq)]
 pub enum RcdProxyErr {
@@ -97,6 +98,14 @@ impl RcdProxy {
         RcdProxy { settings, db }
     }
 
+    pub fn http_endpoint_addr(&self) -> String {
+        self.settings.proxy_http_addr.clone()
+    }
+
+    pub fn http_endpoint_port(&self) -> u16 {
+        self.settings.proxy_http_port as u16
+    }
+
     pub fn get_proxy_from_config_with_dir(
         config_dir: &str,
         root_dir: &str,
@@ -153,6 +162,8 @@ impl RcdProxy {
 
     fn get_settings(dir: &str) -> Result<RcdProxySettings, RcdProxyErr> {
         let config = Path::new(&dir).join(SETTINGS);
+
+        debug!("{config:?}");
 
         if !Path::exists(&config) {
             return Err(RcdProxyErr::SettingsNotFound(dir.to_string()));

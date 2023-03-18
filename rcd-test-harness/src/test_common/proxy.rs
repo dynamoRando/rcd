@@ -31,7 +31,7 @@ pub enum RcdProxyTestType {
 }
 
 /// common test code - sets up a test folder and returns a rcd proxy
-fn configure_proxy_for_test(test_name: &str, proxy_type: RcdProxyTestType) -> RcdProxyInfo {
+pub fn configure_proxy_for_test(test_name: &str, proxy_type: RcdProxyTestType) -> RcdProxyInfo {
     use rcd_test_harness_common::get_test_temp_dir;
     let root_dir = get_test_temp_dir(test_name);
 
@@ -41,6 +41,7 @@ fn configure_proxy_for_test(test_name: &str, proxy_type: RcdProxyTestType) -> Rc
             let client_addr = format!("127.0.0.1:{}", client_port);
             let db_port = get_next_avail_port();
             let db_addr = format!("127.0.0.1:{}", db_port);
+            let proxy_http_port = get_next_avail_port();
 
             let settings = RcdProxySettings {
                 use_grpc: true,
@@ -52,7 +53,7 @@ fn configure_proxy_for_test(test_name: &str, proxy_type: RcdProxyTestType) -> Rc
                 database_type: rcd_enum::database_type::DatabaseType::Sqlite,
                 database_name: "Proxy.db".to_string(),
                 proxy_http_addr: "127.0.0.1".to_string(),
-                proxy_http_port: 0,
+                proxy_http_port: proxy_http_port as usize,
                 root_dir: root_dir,
             };
 

@@ -2624,6 +2624,7 @@ dependencies = [
  "rcd-test-harness-common",
  "rcdproto",
  "rcdx",
+ "rocket",
  "rusqlite",
  "serde",
  "serde_derive",
@@ -2820,6 +2821,24 @@ dependencies = [
  "tonic",
  "tonic-build",
  "triggered",
+]
+
+[[package]]
+name = "rcd-test-proxy"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "fern",
+ "ignore-result",
+ "log",
+ "rcd-messages",
+ "rcd-proxy",
+ "rcd-test-harness",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "simple_logger",
+ "tokio",
 ]
 
 [[package]]

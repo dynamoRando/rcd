@@ -57,6 +57,8 @@ members = [
     "rcd-test-i-db",
     # integration tests for participant 
     "rcd-test-i-part",
+    # integration tests for proxy
+    "rcd-test-proxy",
     # webpage for data accounts
     "rcd-my-info"
 ]
