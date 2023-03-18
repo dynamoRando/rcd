@@ -5,9 +5,10 @@ use config::Config;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
 use proxy_db::ProxyDb;
-use rcd_common::rcd_settings::RcdSettings;
+use rcd_common::{crypt, rcd_settings::RcdSettings};
 use rcd_core::{rcd::Rcd, rcd_data::RcdData};
 use rcd_enum::database_type::DatabaseType;
+use rcd_messages::proxy::server_messages::AuthForTokenReply;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
 use rcdx::rcd_service::RcdService;
 #[cfg(test)]
@@ -415,6 +416,28 @@ impl RcdProxy {
         self.start_grpc_data_with_trigger().await
     }
 
+    pub fn auth_for_token(&self, un: &str, pw: &str) -> Result<AuthForTokenReply, RcdProxyErr> {
+        todo!()
+    }
+
+    pub fn verify_login(&self, un: &str, pw: &str) -> Result<bool, RcdProxyErr> {
+        if self.db.has_user(un) {
+            let u = self.db.get_user(un)?;
+
+            let mut padded = [0u8; 128];
+            u.hash.iter().enumerate().for_each(|(i, val)| {
+                padded[i] = *val;
+            });
+
+            return Ok(crypt::verify(padded, pw));
+        }
+        Ok(false)
+    }
+
+    pub fn verify_token(&self, jwt: &str) -> Result<bool, RcdProxyErr> {
+        todo!()
+    }
+
     /// checks to see if the specified user name already exists
     /// if not, it will save the un, hash the pw, and init
     /// a new `rcd` directory for the account and init the `rcd` instance
@@ -424,10 +447,9 @@ impl RcdProxy {
         self.db.register_user(un, &hash.0)
     }
 
-    pub fn get_host_id_for_user(&self, un: &str) -> Result<Option<String>, RcdProxyErr>
-    {
+    pub fn get_host_id_for_user(&self, un: &str) -> Result<Option<String>, RcdProxyErr> {
         let u = self.db.get_user(un)?;
-        return Ok(u.id)
+        return Ok(u.id);
     }
 
     /// sets up the rcd instnce for the user. intended to be called after `register_user`

@@ -12,6 +12,59 @@ pub async fn execute_request(
     debug!("{request:?}");
 
     let request = request.into_inner();
+
+    if request.pw.is_some() {
+        let result_is_authorized = state.verify_login(&request.login, &request.pw.clone().unwrap());
+        match result_is_authorized {
+            Ok(is_auth) => {
+                if !is_auth {
+                    let response = ExecuteReply {
+                        login_success: false,
+                        execute_success: false,
+                        reply: None,
+                    };
+
+                    return (Status::Ok, Json(response));
+                }
+            }
+            Err(_) => {
+                let response = ExecuteReply {
+                    login_success: false,
+                    execute_success: false,
+                    reply: None,
+                };
+
+                return (Status::Ok, Json(response));
+            }
+        }
+    }
+
+    if request.jwt.is_some() {
+        let result_is_authorized = state.verify_token(&request.jwt.clone().unwrap());
+        match result_is_authorized {
+            Ok(is_auth) => {
+                if !is_auth {
+                    let response = ExecuteReply {
+                        login_success: false,
+                        execute_success: false,
+                        reply: None,
+                    };
+
+                    return (Status::Ok, Json(response));
+                }
+            }
+            Err(_) => {
+                let response = ExecuteReply {
+                    login_success: false,
+                    execute_success: false,
+                    reply: None,
+                };
+
+                return (Status::Ok, Json(response));
+            }
+        }
+    }
+
     let result_id = state.get_host_id_for_user(&request.login);
     let response = match result_id {
         Ok(id) => match id {

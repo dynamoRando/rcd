@@ -98,7 +98,8 @@ async fn create_database() {
         tokio::spawn(async move {
             let request = ExecuteRequest {
                 login: "tester".to_string(),
-                pw: "1234".to_string(),
+                pw: Some("1234".to_string()),
+                jwt: None,
                 request_type: request_type,
                 request_json: _request_json,
             };

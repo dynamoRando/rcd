@@ -1,5 +1,7 @@
 use log::debug;
-use rcd_messages::proxy::server_messages::{RegisterLoginReply, RegisterLoginRequest};
+use rcd_messages::proxy::server_messages::{
+    AuthForTokenReply, AuthForTokenRequest, RegisterLoginReply, RegisterLoginRequest,
+};
 use rocket::{http::Status, post, serde::json::Json, State};
 
 use crate::RcdProxy;
@@ -35,6 +37,28 @@ pub async fn register(
             is_successful: true,
             host_id: None,
             error: Some(e.to_string()),
+        },
+    };
+
+    (Status::Ok, Json(response))
+}
+
+#[post("/account/token", format = "application/json", data = "<request>")]
+pub async fn token(
+    request: Json<AuthForTokenRequest>,
+    state: &State<RcdProxy>,
+) -> (Status, Json<AuthForTokenReply>) {
+    debug!("{request:?}");
+
+    let request = request.into_inner();
+    let result_token = state.auth_for_token(&request.login, &request.pw);
+
+    let response = match result_token {
+        Ok(token) => token,
+        Err(_) => AuthForTokenReply {
+            is_successful: false,
+            expiration_utc: None,
+            jwt: None,
         },
     };
 

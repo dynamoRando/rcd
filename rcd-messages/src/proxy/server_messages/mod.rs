@@ -1,4 +1,3 @@
-
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RegisterLoginRequest {
     pub login: String,
@@ -12,11 +11,24 @@ pub struct RegisterLoginReply {
     pub error: Option<String>,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+pub struct AuthForTokenRequest {
+    pub login: String,
+    pub pw: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+pub struct AuthForTokenReply {
+    pub is_successful: bool,
+    pub expiration_utc: Option<String>,
+    pub jwt: Option<String>,
+}
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct ExecuteRequest {
     pub login: String,
-    pub pw: String,
+    pub pw: Option<String>,
+    pub jwt: Option<String>,
     pub request_type: u16,
     pub request_json: String,
 }
