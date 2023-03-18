@@ -90,7 +90,7 @@ async fn create_database() {
 
         let _request = CreateUserDatabaseRequest {
             authentication: Some(_auth),
-            database_name: "hopeitworks".to_string(),
+            database_name: "hopeitworks.db".to_string(),
         };
 
         let _request_json = serde_json::to_string(&_request).unwrap();
