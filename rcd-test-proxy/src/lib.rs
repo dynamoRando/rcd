@@ -11,10 +11,8 @@ pub async fn get_http_result<
     request: U,
 ) -> T {
     let request_json = serde_json::to_string(&request).unwrap();
-
-    debug!("{}", request_json);
-
     let result_json: String = send_http_message(request_json, url).await;
+    debug!("{result_json:?}");
     let value: T = serde_json::from_str(&result_json).unwrap();
     value
 }

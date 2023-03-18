@@ -39,6 +39,7 @@ async fn register_account() {
     
         debug!("{url:?}");
         let result: RegisterLoginReply = get_http_result(url, request).await;
+        debug!("{result:?}");
         assert!(result.is_successful);
         
     }).await.unwrap();
