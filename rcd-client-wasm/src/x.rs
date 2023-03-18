@@ -1413,17 +1413,6 @@ pub mod sql_client_client {
     pub struct SqlClientClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl SqlClientClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
     impl<T> SqlClientClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
@@ -1487,7 +1476,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/rcdp.SQLClient/IsOnline");
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/IsOnline");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn create_user_database(
@@ -1505,7 +1494,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/CreateUserDatabase",
+                "/x.SQLClient/CreateUserDatabase",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1527,7 +1516,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/EnableCoooperativeFeatures",
+                "/x.SQLClient/EnableCoooperativeFeatures",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1546,7 +1535,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ExecuteReadAtHost",
+                "/x.SQLClient/ExecuteReadAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1565,7 +1554,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ExecuteWriteAtHost",
+                "/x.SQLClient/ExecuteWriteAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1587,7 +1576,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ExecuteCooperativeWriteAtHost",
+                "/x.SQLClient/ExecuteCooperativeWriteAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1606,7 +1595,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ExecuteReadAtParticipant",
+                "/x.SQLClient/ExecuteReadAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1625,7 +1614,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ExecuteWriteAtParticipant",
+                "/x.SQLClient/ExecuteWriteAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1643,7 +1632,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/rcdp.SQLClient/HasTable");
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/HasTable");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn set_logical_storage_policy(
@@ -1664,7 +1653,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/SetLogicalStoragePolicy",
+                "/x.SQLClient/SetLogicalStoragePolicy",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1686,7 +1675,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetLogicalStoragePolicy",
+                "/x.SQLClient/GetLogicalStoragePolicy",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1705,7 +1694,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GenerateContract",
+                "/x.SQLClient/GenerateContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1724,7 +1713,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/AddParticipant",
+                "/x.SQLClient/AddParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1746,7 +1735,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/SendParticipantContract",
+                "/x.SQLClient/SendParticipantContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1765,7 +1754,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ReviewPendingContracts",
+                "/x.SQLClient/ReviewPendingContracts",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1784,7 +1773,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/AcceptPendingContract",
+                "/x.SQLClient/AcceptPendingContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1803,7 +1792,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/RejectPendingContract",
+                "/x.SQLClient/RejectPendingContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1822,7 +1811,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GenerateHostInfo",
+                "/x.SQLClient/GenerateHostInfo",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1841,7 +1830,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ChangeHostStatus",
+                "/x.SQLClient/ChangeHostStatus",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1860,7 +1849,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/TryAuthAtParticipant",
+                "/x.SQLClient/TryAuthAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1882,7 +1871,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ChangeUpdatesFromHostBehavior",
+                "/x.SQLClient/ChangeUpdatesFromHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1904,7 +1893,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ChangeDeletesFromHostBehavior",
+                "/x.SQLClient/ChangeDeletesFromHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1926,7 +1915,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ChangeUpdatesToHostBehavior",
+                "/x.SQLClient/ChangeUpdatesToHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1948,7 +1937,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ChangeDeletesToHostBehavior",
+                "/x.SQLClient/ChangeDeletesToHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1967,7 +1956,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDataHashAtHost",
+                "/x.SQLClient/GetDataHashAtHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -1986,7 +1975,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDataHashAtParticipant",
+                "/x.SQLClient/GetDataHashAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2005,7 +1994,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/ReadRowIdAtParticipant",
+                "/x.SQLClient/ReadRowIdAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2024,7 +2013,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDataLogTableStatusAtParticipant",
+                "/x.SQLClient/GetDataLogTableStatusAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2043,7 +2032,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/SetDataLogTableStatusAtParticipant",
+                "/x.SQLClient/SetDataLogTableStatusAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2062,7 +2051,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetPendingActionsAtParticipant",
+                "/x.SQLClient/GetPendingActionsAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2081,7 +2070,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/AcceptPendingActionAtParticipant",
+                "/x.SQLClient/AcceptPendingActionAtParticipant",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2100,9 +2089,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDatabases",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/GetDatabases");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn get_participants(
@@ -2120,7 +2107,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetParticipants",
+                "/x.SQLClient/GetParticipants",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2139,7 +2126,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetActiveContract",
+                "/x.SQLClient/GetActiveContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2157,9 +2144,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/AuthForToken",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/AuthForToken");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn revoke_token(
@@ -2176,9 +2161,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/RevokeToken",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/RevokeToken");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn get_host_info(
@@ -2195,9 +2178,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetHostInfo",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/GetHostInfo");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn get_versions(
@@ -2214,9 +2195,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetVersions",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/GetVersions");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn get_updates_from_host_behavior(
@@ -2237,7 +2216,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetUpdatesFromHostBehavior",
+                "/x.SQLClient/GetUpdatesFromHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2259,7 +2238,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetUpdatesToHostBehavior",
+                "/x.SQLClient/GetUpdatesToHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2281,7 +2260,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDeletesFromHostBehavior",
+                "/x.SQLClient/GetDeletesFromHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2303,7 +2282,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetDeletesToHostBehavior",
+                "/x.SQLClient/GetDeletesToHostBehavior",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2322,7 +2301,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetCooperativeHosts",
+                "/x.SQLClient/GetCooperativeHosts",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2340,9 +2319,7 @@ pub mod sql_client_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetSettings",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.SQLClient/GetSettings");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn get_logs_by_last_number(
@@ -2360,7 +2337,7 @@ pub mod sql_client_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.SQLClient/GetLogsByLastNumber",
+                "/x.SQLClient/GetLogsByLastNumber",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2375,17 +2352,6 @@ pub mod data_service_client {
     #[derive(Debug, Clone)]
     pub struct DataServiceClient<T> {
         inner: tonic::client::Grpc<T>,
-    }
-    impl DataServiceClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
     }
     impl<T> DataServiceClient<T>
     where
@@ -2450,9 +2416,7 @@ pub mod data_service_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/IsOnline",
-            );
+            let path = http::uri::PathAndQuery::from_static("/x.DataService/IsOnline");
             self.inner.unary(request.into_request(), path, codec).await
         }
         pub async fn create_partial_database(
@@ -2470,7 +2434,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/CreatePartialDatabase",
+                "/x.DataService/CreatePartialDatabase",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2489,7 +2453,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/CreateTableInDatabase",
+                "/x.DataService/CreateTableInDatabase",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2508,7 +2472,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/InsertCommandIntoTable",
+                "/x.DataService/InsertCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2527,7 +2491,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/UpdateCommandIntoTable",
+                "/x.DataService/UpdateCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2546,7 +2510,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/DeleteCommandIntoTable",
+                "/x.DataService/DeleteCommandIntoTable",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2568,7 +2532,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/GetRowFromPartialDatabase",
+                "/x.DataService/GetRowFromPartialDatabase",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2587,7 +2551,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/SaveContract",
+                "/x.DataService/SaveContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2609,7 +2573,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/AcceptContract",
+                "/x.DataService/AcceptContract",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2631,7 +2595,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/UpdateRowDataHashForHost",
+                "/x.DataService/UpdateRowDataHashForHost",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2653,7 +2617,7 @@ pub mod data_service_client {
                 })?;
             let codec = tonic::codec::ProstCodec::default();
             let path = http::uri::PathAndQuery::from_static(
-                "/rcdp.DataService/NotifyHostOfRemovedRow",
+                "/x.DataService/NotifyHostOfRemovedRow",
             );
             self.inner.unary(request.into_request(), path, codec).await
         }
@@ -2671,7 +2635,7 @@ pub mod data_service_client {
                     )
                 })?;
             let codec = tonic::codec::ProstCodec::default();
-            let path = http::uri::PathAndQuery::from_static("/rcdp.DataService/TryAuth");
+            let path = http::uri::PathAndQuery::from_static("/x.DataService/TryAuth");
             self.inner.unary(request.into_request(), path, codec).await
         }
     }

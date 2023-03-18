@@ -1,3 +1,4 @@
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct RcdError {
     pub number: u32,

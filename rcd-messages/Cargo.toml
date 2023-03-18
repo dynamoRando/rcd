@@ -6,8 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-serde = "1"
+serde_json = "1"
 serde_derive = "1"
+serde = { version = "1.0", features = ["derive"] }
 indexmap = "1.9.1"
 rcd-markdown = { path = "../rcd-markdown" }
 log = "0.4"

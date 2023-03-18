@@ -2456,12 +2456,16 @@ name = "rcd-client-wasm"
 version = "0.1.0"
 dependencies = [
  "js-sys",
+ "prost",
  "rcd-enum",
  "rcd-http-common",
  "rcd-messages",
  "serde",
  "serde_derive",
  "serde_json",
+ "tonic",
+ "tonic-build",
+ "tonic-web-wasm-client",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -2595,6 +2599,7 @@ dependencies = [
  "rcd-markdown",
  "serde",
  "serde_derive",
+ "serde_json",
 ]
 
 [[package]]
