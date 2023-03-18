@@ -424,6 +424,12 @@ impl RcdProxy {
         self.db.register_user(un, &hash.0)
     }
 
+    pub fn get_host_id_for_user(&self, un: &str) -> Result<Option<String>, RcdProxyErr>
+    {
+        let u = self.db.get_user(un)?;
+        return Ok(u.id)
+    }
+
     /// sets up the rcd instnce for the user. intended to be called after `register_user`
     pub fn create_rcd_instance(
         &self,
@@ -493,7 +499,8 @@ impl RcdProxy {
     }
 
     pub fn get_rcd_core_for_existing_host(&self, id: &str) -> Result<Rcd, RcdProxyErr> {
-        let service = self.get_rcd_service_for_existing_host(id)?;
+        let mut service = self.get_rcd_service_for_existing_host(id)?;
+        service.with_core_grpc(&self.settings.grpc_db_addr_port, 60);
         Ok(service.core().clone())
     }
 

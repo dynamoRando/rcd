@@ -20,7 +20,7 @@ pub async fn register(
 
             match result_host_id {
                 Ok(id) => RegisterLoginReply {
-                    is_successful: false,
+                    is_successful: true,
                     host_id: Some(id),
                     error: None,
                 },
