@@ -36,7 +36,7 @@ pub async fn execute_request(
                     Err(e) => ExecuteReply {
                         login_success: false,
                         execute_success: false,
-                        reply: None,
+                        reply: Some(e.to_string()),
                     },
                 }
             }
