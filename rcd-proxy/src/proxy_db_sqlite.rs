@@ -1,10 +1,12 @@
 use crate::sql_text::sqlite::{
-    ADD_LOGIN, GET_HOST, GET_USER, SQLITE_CREATE_LOGIN_TABLE, UPDATE_USER,
+    ADD_LOGIN, GET_HOST, GET_USER, SQLITE_CREATE_LOGIN_TABLE, SQLITE_CREATE_TOKENS_TABLE,
+    UPDATE_USER,
 };
 use crate::user_info::UserInfo;
 #[allow(unused_imports)]
 use crate::PROXY_DB;
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
+use chrono::{DateTime, Utc};
 use log::{debug, trace, warn};
 use rusqlite::named_params;
 use rusqlite::{Connection, Result};
@@ -29,6 +31,73 @@ impl ProxySqlite {
 
     pub fn config(&self) {
         self.write(SQLITE_CREATE_LOGIN_TABLE).unwrap();
+        self.write(SQLITE_CREATE_TOKENS_TABLE).unwrap();
+    }
+
+    pub fn save_token(
+        &self,
+        login: &str,
+        token: &str,
+        expiration: DateTime<Utc>,
+    ) -> Result<(), RcdProxyErr> {
+        let conn = self.conn();
+        let cmd = String::from(
+            "
+                INSERT INTO TOKENS
+                (
+                    USERNAME,
+                    TOKEN,
+                    ISSUED_UTC,
+                    EXPIRATION_UTC
+                )
+                VALUES
+                (
+                    :un,
+                    :token,
+                    :issued,
+                    :expiration
+                );",
+        );
+
+        let issued = Utc::now().to_rfc3339();
+        let expiration = expiration.to_rfc3339();
+
+        let mut statement = conn.prepare(&cmd).unwrap();
+        statement
+            .execute(named_params! {
+                ":un" : login.to_string(),
+                ":token" : token,
+                ":issued" : issued,
+                ":expiration" : expiration,
+            })
+            .unwrap();
+
+        Ok(())
+    }
+
+    pub fn verify_token(&self, token: &str) -> bool {
+        let conn = self.conn();
+        let mut cmd = String::from("SELECT COUNT(*) FROM TOKENS WHERE TOKEN = ':token'");
+        cmd = cmd.replace(":token", token);
+        self.has_any_rows_with_cmd(&cmd)
+    }
+
+    pub fn login_has_token(&self, login: &str) -> bool {
+        let conn = self.conn();
+        let mut cmd = String::from("SELECT COUNT(*) FROM TOKENS WHERE USERNAME = ':login'");
+        cmd = cmd.replace(":login", login);
+        self.has_any_rows_with_cmd(&cmd)
+    }
+
+    pub fn delete_expired_tokens(&self) {
+        let conn = self.conn();
+        let now = Utc::now().to_rfc3339();
+
+        let mut cmd = String::from("DELETE FROM TOKENS WHERE EXPIRATION_UTC < ':now'");
+        cmd = cmd.replace(":now", &now);
+
+        let _ = conn.execute(&cmd, []);
+        let _ = conn.close();
     }
 
     pub fn register_user(&self, un: &str, hash: &str) -> Result<(), RcdProxyErr> {
@@ -221,7 +290,6 @@ pub fn test_db_user_io() {
     use rcd_common::crypt::hash;
     use rcd_test_harness_common::get_test_temp_dir;
     use simple_logger::SimpleLogger;
-    
 
     SimpleLogger::new().env().init().ignore();
 

@@ -1,3 +1,5 @@
+use chrono::{DateTime, Utc};
+
 use crate::proxy_db_sqlite::ProxySqlite;
 use crate::user_info::UserInfo;
 use crate::RcdProxyErr;
@@ -58,6 +60,48 @@ impl ProxyDb {
             ProxyDbConfig::Sqlite(_) => self.sqlite().register_user(un, hash),
             ProxyDbConfig::MySql(_) => todo!(),
             ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    pub fn save_token(&self, login: &str, token: &str, expiration: DateTime<Utc>) -> Result<(), RcdProxyErr> {
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().save_token(login, token, expiration),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    pub fn login_has_token(&self, un: &str) -> bool {
+        self.delete_expired_tokens();
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().login_has_token(un),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
+    pub fn verify_token(&self, token: &str) -> bool {
+        self.delete_expired_tokens();
+        match self.config {
+            ProxyDbConfig::Sqlite(_) => {
+                self.sqlite().verify_token(&token)
+            }
+            ProxyDbConfig::Unknown => unimplemented!(),
+            ProxyDbConfig::MySql(_) => unimplemented!(),
+            ProxyDbConfig::Postgres(_) => unimplemented!(),
+        }
+    }
+
+    pub fn delete_expired_tokens(&self) {
+        match self.config {
+            ProxyDbConfig::Sqlite(_) => {
+                self.sqlite().delete_expired_tokens();
+            }
+            ProxyDbConfig::Unknown => unimplemented!(),
+            ProxyDbConfig::MySql(_) => unimplemented!(),
+            ProxyDbConfig::Postgres(_) => unimplemented!(),
         }
     }
 

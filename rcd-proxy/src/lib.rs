@@ -1,12 +1,13 @@
 use std::{fs, path::Path};
 
 use crate::proxy_grpc::{ProxyClientGrpc, ProxyDbGrpc};
+use chrono::{DateTime, Utc};
 use config::Config;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
 use proxy_db::ProxyDb;
 use rcd_common::{crypt, rcd_settings::RcdSettings};
-use rcd_core::{rcd::Rcd, rcd_data::RcdData};
+use rcd_core::{auth, rcd::Rcd, rcd_data::RcdData};
 use rcd_enum::database_type::DatabaseType;
 use rcd_messages::proxy::server_messages::AuthForTokenReply;
 use rcdproto::rcdp::{data_service_server::DataServiceServer, sql_client_server::SqlClientServer};
@@ -417,7 +418,33 @@ impl RcdProxy {
     }
 
     pub fn auth_for_token(&self, un: &str, pw: &str) -> Result<AuthForTokenReply, RcdProxyErr> {
-        todo!()
+        if self.verify_login(un, pw)? {
+            if !self.db.login_has_token(un) {
+                let token_data = self.create_token_for_login(un);
+                let jwt = token_data.0;
+                let expiration_utc = token_data.1.to_string();
+
+                return Ok(AuthForTokenReply {
+                    is_successful: true,
+                    expiration_utc: Some(expiration_utc),
+                    jwt: Some(jwt),
+                });
+            }
+        }
+
+        Ok(AuthForTokenReply {
+            is_successful: false,
+            expiration_utc: None,
+            jwt: None,
+        })
+    }
+
+    fn create_token_for_login(&self, login: &str) -> (String, DateTime<Utc>) {
+        let token_data = auth::create_jwt("rcd-proxy", login);
+        self.db
+            .save_token(login, &token_data.0, token_data.1)
+            .unwrap();
+        token_data
     }
 
     pub fn verify_login(&self, un: &str, pw: &str) -> Result<bool, RcdProxyErr> {
@@ -435,7 +462,7 @@ impl RcdProxy {
     }
 
     pub fn verify_token(&self, jwt: &str) -> Result<bool, RcdProxyErr> {
-        todo!()
+        Ok(self.db.verify_token(jwt))
     }
 
     /// checks to see if the specified user name already exists
