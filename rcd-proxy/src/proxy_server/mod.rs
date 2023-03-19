@@ -18,6 +18,7 @@ use crate::proxy_server::execute::execute_request;
 mod account;
 mod execute;
 mod process;
+pub mod http_endpoint;
 
 #[derive(Debug, Clone)]
 pub struct ProxyServer {

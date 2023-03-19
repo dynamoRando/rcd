@@ -2605,6 +2605,23 @@ dependencies = [
 [[package]]
 name = "rcd-my-info"
 version = "0.1.0"
+dependencies = [
+ "futures-util",
+ "gloo",
+ "js-sys",
+ "rcd-client-wasm",
+ "rcd-enum",
+ "rcd-http-common",
+ "rcd-messages",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "yew",
+ "yew-router",
+]
 
 [[package]]
 name = "rcd-proxy"
