@@ -9,6 +9,10 @@ use yew_router::prelude::*;
 
 use crate::log::log_to_console;
 use crate::pages::home::Home;
+use crate::pages::login::Login;
+use crate::pages::page_not_found::PageNotFound;
+use crate::pages::register::Register;
+use crate::pages::site_admin::SiteAdmin;
 use crate::request::{get_status, get_token};
 use crate::components::nav::Nav;
 use crate::components::status::Status;
@@ -17,6 +21,15 @@ use crate::components::status::Status;
 pub enum Route {
     #[at("/")]
     Home,
+    #[at("/info/register")]
+    Register,
+    #[at("/info/login")]
+    Login,
+    #[at("/info/site-admin")]
+    SiteAdmin,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
 }
 
 #[function_component]
@@ -51,7 +64,7 @@ pub fn App() -> Html {
 
     html! { 
         <BrowserRouter>
-            // <Nav />
+            <Nav />
             // <Status is_logged_in={is_logged_in_state} status_message={status_state}/>
             <main>
                 <Switch<Route> render={switch} />
@@ -72,6 +85,18 @@ fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => {
             html! { <Home /> }
+        }
+        Route::Register => {
+            html! { <Register /> }
+        }
+        Route::Login => {
+            html! { <Login /> }
+        }
+        Route::SiteAdmin => {
+            html! { <SiteAdmin /> }
+        }
+        Route::NotFound => {
+            html! { <PageNotFound /> }
         }
     }
 }

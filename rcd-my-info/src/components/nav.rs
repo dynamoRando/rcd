@@ -19,7 +19,7 @@ pub fn Nav() -> Html {
     html! {
         <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
             <div class="navbar-brand">
-                <h1 class="navbar-item is-size-3">{ "RCD Admin" }</h1>
+                <h1 class="navbar-item is-size-3">{ "My Info" }</h1>
 
                 <button class={classes!("navbar-burger", "burger", active_class)}
                     aria-label="menu" aria-expanded="false"
@@ -34,6 +34,15 @@ pub fn Nav() -> Html {
                 <div class="navbar-start">
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Home}>
                         { "Home" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Register}>
+                    { "Register" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Login}>
+                    { "Login" }
+                    </Link<Route>>
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::SiteAdmin}>
+                    { "Site Admin" }
                     </Link<Route>>
                 </div>
             </div>
