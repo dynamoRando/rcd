@@ -111,8 +111,8 @@ pub fn Connect() -> Html {
             let p = pw_val;
 
             spawn_local(async move {
-                //let result = client.auth_for_token(&u, &p).await;
-                let result = client.auth_for_token_x(&u, &p).await;
+                let result = client.auth_for_token(&u, &p).await;
+                // let result = client.auth_for_token_x(&u, &p).await;
                 match result {
                     Ok(token) => {
                         save_token(token, database_names);
