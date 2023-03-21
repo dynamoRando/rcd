@@ -1,8 +1,8 @@
 use gloo::{
-    storage::{SessionStorage, Storage},
+    storage::{SessionStorage, Storage}, console::debug,
 };
 use rcd_client_wasm::token::Token;
-use rcd_messages::proxy::server_messages::{http::TOKEN_URL, AuthForTokenRequest, AuthForTokenReply};
+use rcd_messages::proxy::server_messages::{http::{TOKEN_URL, REGISTER_URL}, AuthForTokenRequest, AuthForTokenReply, RegisterLoginRequest, RegisterLoginReply};
 use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{JsValue, JsCast};
 use wasm_bindgen_futures::JsFuture;
@@ -22,6 +22,21 @@ impl RcdProxy {
     pub fn new(addr: &str) -> Self {
         let addr = format!("{}{}", "http://", addr);
         Self { addr }
+    }
+
+    pub async fn register_account(&mut self, un: &str, pw: &str) -> Result<RegisterLoginReply, String> {
+        let request = RegisterLoginRequest {
+            login: un.to_string(),
+            pw: pw.to_string(),
+        };
+
+        let url = self.get_http_url(REGISTER_URL);
+        let result: Result<RegisterLoginReply, String> = self.get_http_result_error(url, request).await;
+
+        match result {
+            Ok(registration) => Ok(registration),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Result<Token, String> {
@@ -68,7 +83,8 @@ impl RcdProxy {
 
     fn get_http_url(&self, action_url: &str) -> String {
         let address = &self.addr;
-        let url = format!("{address}{action_url}");
+        let url = format!("{address}/{action_url}");
+        debug!(url.clone());
         url
     }
 }

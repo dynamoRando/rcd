@@ -1,7 +1,11 @@
 use web_sys::HtmlInputElement;
-use yew::{prelude::*, platform::spawn_local};
+use yew::{platform::spawn_local, prelude::*};
 
-use crate::{request::proxy::{RcdProxy, set_proxy}, con::PROXY_ADDR};
+use crate::{
+    con::PROXY_ADDR,
+    log::log_to_console,
+    request::proxy::{set_proxy, RcdProxy},
+};
 
 #[function_component]
 pub fn Register() -> Html {
@@ -13,18 +17,18 @@ pub fn Register() -> Html {
     let onclick = {
         let ui_un = ui_un.clone();
         let ui_pw = ui_pw.clone();
+        let register_result = register_result.clone();
 
         Callback::from(move |_| {
-   
             let ui_un = ui_un.clone();
             let ui_pw = ui_pw.clone();
+            let register_result = register_result.clone();
 
             let un = &ui_un;
             let pw = &ui_pw;
 
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
-    
 
             let mut proxy = RcdProxy::new(PROXY_ADDR);
             set_proxy(&proxy);
@@ -33,11 +37,15 @@ pub fn Register() -> Html {
             let p = pw_val;
 
             spawn_local(async move {
-                let result = proxy.auth_for_token(&u, &p).await;
-                // let result = client.auth_for_token_x(&u, &p).await;
+                let result = proxy.register_account(&u, &p).await;
                 match result {
-                    Ok(token) => {
-                        save_token(token, database_names);
+                    Ok(registration) => {
+                        let result_message = format!(
+                            "result: {} host_id: {}",
+                            registration.is_successful,
+                            registration.host_id.as_ref().unwrap().clone()
+                        );
+                        register_result.set(result_message);
                     }
                     Err(e) => log_to_console(e),
                 };
@@ -58,7 +66,7 @@ pub fn Register() -> Html {
                         <input type="text" class="input"  id="pw" placeholder="pw" ref={&ui_pw} />
 
                         <div class="buttons">
-                        <button type="button" class="button is-primary" id="register" value="Register">
+                        <button type="button" class="button is-primary" id="register" value="Register" {onclick}>
                             <span class="mdi mdi-account-plus">{" Register"}</span>
                         </button>
                         </div>

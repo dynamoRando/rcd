@@ -12,6 +12,7 @@ async fn main() {
     match result_proxy {
         Ok(proxy) => {
             let proxy = proxy.clone();
+            proxy.start();
             proxy.start_grpc_client().await;
             proxy.start_grpc_data().await;
             let server = ProxyServer::new(proxy);
