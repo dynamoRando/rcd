@@ -13,7 +13,7 @@ use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
-use crate::request::{get_status, get_token};
+use crate::request::rcd::{get_status, get_token};
 use crate::components::nav::Nav;
 use crate::components::status::Status;
 

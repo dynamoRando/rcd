@@ -1,4 +1,7 @@
-use yew::prelude::*;
+use web_sys::HtmlInputElement;
+use yew::{prelude::*, platform::spawn_local};
+
+use crate::{request::proxy::{RcdProxy, set_proxy}, con::PROXY_ADDR};
 
 #[function_component]
 pub fn Register() -> Html {
@@ -6,6 +9,41 @@ pub fn Register() -> Html {
     let ui_pw = use_node_ref();
 
     let register_result = use_state_eq(move || String::from(""));
+
+    let onclick = {
+        let ui_un = ui_un.clone();
+        let ui_pw = ui_pw.clone();
+
+        Callback::from(move |_| {
+   
+            let ui_un = ui_un.clone();
+            let ui_pw = ui_pw.clone();
+
+            let un = &ui_un;
+            let pw = &ui_pw;
+
+            let un_val = un.cast::<HtmlInputElement>().unwrap().value();
+            let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
+    
+
+            let mut proxy = RcdProxy::new(PROXY_ADDR);
+            set_proxy(&proxy);
+
+            let u = un_val;
+            let p = pw_val;
+
+            spawn_local(async move {
+                let result = proxy.auth_for_token(&u, &p).await;
+                // let result = client.auth_for_token_x(&u, &p).await;
+                match result {
+                    Ok(token) => {
+                        save_token(token, database_names);
+                    }
+                    Err(e) => log_to_console(e),
+                };
+            })
+        })
+    };
 
     html! {
         <div>
@@ -24,7 +62,7 @@ pub fn Register() -> Html {
                             <span class="mdi mdi-account-plus">{" Register"}</span>
                         </button>
                         </div>
-
+                        <h2 class="subtitle"> {"Register Result"} </h2>
                         <p>{(*register_result).clone()}</p>
                     </div>
                 </div>

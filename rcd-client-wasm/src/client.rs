@@ -23,7 +23,7 @@ pub struct RcdClient {
 impl RcdClient {
     pub fn new(ip: String, port: u32) -> Self {
         let addr = format!("{}{}{}{}", "http://", ip, ":", port);
-        RcdClient { addr }
+        Self { addr }
     }
 
     pub async fn execute_cooperative_write_at_host(

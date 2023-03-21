@@ -1,0 +1,1 @@
+pub const TOKEN_URL: &str = "account/token";

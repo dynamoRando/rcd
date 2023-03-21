@@ -1,6 +1,6 @@
 use rcd_messages::client::AuthRequest;
 
-/// Represents a JWT granted from an RCD instance
+/// Represents a JWT granted from an RCD or RCD-PROXY instance
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Token {
     /// The JWT

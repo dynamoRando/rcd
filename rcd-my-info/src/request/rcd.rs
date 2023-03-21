@@ -8,47 +8,21 @@ use yew::{platform::spawn_local, AttrValue, Callback};
 
 use crate::log::log_to_console;
 
-const KEY: &str = "rcdmyinfo.key.instance";
+const KEY: &str = "rcdmyinfo.key.rcd.instance";
 const DATABASES: &str = "rcdmyinfo.key.databases";
 const PARTICIPANTS: &str = "rcdmyinfo.key.participants";
 const STATUS: &str = "rcdmyinfo.key.status";
-const CLIENT: &str = "rcdmyinfo.key.client";
+const RCDCLIENT: &str = "rcdmyinfo.key.client";
 
-/// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON if successful,
-/// otherwise a string describing the error that occurred
-pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, String>>) {
-    let message = format!("{}{}", "outgoing message: ", body);
-    log_to_console(message);
-    if !body.is_empty() {
-        spawn_local(async move {
-            let result = Request::new(&url)
-                .method(Method::POST)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .send()
-                .await;
 
-            if result.is_ok() {
-                let response = result.as_ref().unwrap().text().await;
-
-                if let Ok(data) = response {
-                    callback.emit(Ok(AttrValue::from(data)));
-                } else {
-                    let err = result.err().unwrap().to_string();
-                    callback.emit(Err(err))
-                }
-            }
-        });
-    }
-}
 
 pub fn set_client(client: &RcdClient) {
     let client_json = serde_json::to_string(&client).unwrap();
-    SessionStorage::set(CLIENT, client_json).expect("failed to set");
+    SessionStorage::set(RCDCLIENT, client_json).expect("failed to set");
 }
 
 pub fn get_client() -> RcdClient {
-    let client = SessionStorage::get(CLIENT).unwrap_or_else(|_| String::from(""));
+    let client = SessionStorage::get(RCDCLIENT).unwrap_or_else(|_| String::from(""));
     if client.is_empty() {
         RcdClient::new(String::from(""), 0)
     } else {

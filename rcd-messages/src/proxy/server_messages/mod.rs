@@ -1,3 +1,5 @@
+pub mod http;
+
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct RegisterLoginRequest {
     pub login: String,

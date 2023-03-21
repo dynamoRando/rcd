@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::request::get_token;
+use crate::request::rcd::get_token;
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct StatusProps {

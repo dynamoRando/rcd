@@ -49,7 +49,6 @@ async fn token() {
             server.start().await.unwrap();
         });
     }
-
     {
         let proxy = setup.proxy.clone();
         let id = id.clone();
@@ -133,12 +132,10 @@ async fn token() {
         .await
         .unwrap();
     }
-
     {
         let id = id.clone();
         let test_jwt = test_jwt.clone();
         let proxy = setup.proxy.clone();
-        let request_type: u16 = RequestType::CreateUserDatabase.into();
         let mut _id: Option<String> = None;
         if let Ok(_lock) = id.lock() {
             _id = Some(_lock.id.as_ref().unwrap().clone());

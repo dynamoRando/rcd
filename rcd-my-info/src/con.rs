@@ -1,0 +1,1 @@
+pub const PROXY_ADDR: &str = "localhost:50040";
