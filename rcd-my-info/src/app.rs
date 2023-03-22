@@ -7,16 +7,19 @@ use yew::prelude::*;
 use yew_router::history::{AnyHistory, History, MemoryHistory};
 use yew_router::prelude::*;
 
+use crate::components::nav::Nav;
+use crate::components::rcd_nav::RcdNav;
+use crate::components::status::Status;
 use crate::log::log_to_console;
 use crate::pages::home::Home;
 use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
-use crate::pages::rcd_admin::MyRcd;
+use crate::pages::rcd_admin::db::RcdDb;
+use crate::pages::rcd_admin::sql::RcdSql;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
+use crate::request::proxy::get_proxy_token;
 use crate::request::rcd::{get_status, get_token};
-use crate::components::nav::Nav;
-use crate::components::status::Status;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -28,8 +31,10 @@ pub enum Route {
     Login,
     #[at("/info/site-admin")]
     SiteAdmin,
-    #[at("/my")]
-    MyRcd,
+    #[at("/my/db")]
+    MyRcdDb,
+    #[at("/my/sql")]
+    MyRcdSql,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -37,38 +42,34 @@ pub enum Route {
 
 #[function_component]
 pub fn App() -> Html {
-    //let is_logged_in_state = use_state(move || false);
-    //let login_state = is_logged_in_state.clone();
+    let is_proxy_logged_in_state = use_state(move || false);
+    let login_state = is_proxy_logged_in_state.clone();
 
-    //let status_state = use_state(move || String::from(""));
-    //let status = status_state.clone();
+    let status_state = use_state(move || String::from(""));
+    let status = status_state.clone();
 
-    /* 
-        spawn_local(async move {
-            IntervalStream::new(1_000)
-                .for_each(|_| {
-                    check_and_set_login_status(login_state.clone());
-                    ready(())
-                })
-                .await;
-        });
+    spawn_local(async move {
+        IntervalStream::new(1_000)
+            .for_each(|_| {
+                check_and_set_login_status(login_state.clone());
+                ready(())
+            })
+            .await;
+    });
 
-        spawn_local(async move {
-            IntervalStream::new(1_000)
-                .for_each(|_| {
-                    check_and_set_status(status.clone());
-                    ready(())
-                })
-                .await;
-        });
-        */
+    spawn_local(async move {
+        IntervalStream::new(1_000)
+            .for_each(|_| {
+                check_and_set_status(status.clone());
+                ready(())
+            })
+            .await;
+    });
 
-        
-
-    html! { 
+    html! {
         <BrowserRouter>
             <Nav />
-            // <Status is_logged_in={is_logged_in_state} status_message={status_state}/>
+            <RcdNav is_logged_in={is_proxy_logged_in_state} status_message={status_state}/>
             <main>
                 <Switch<Route> render={switch} />
             </main>
@@ -98,8 +99,11 @@ fn switch(routes: Route) -> Html {
         Route::SiteAdmin => {
             html! { <SiteAdmin /> }
         }
-        Route::MyRcd => {
-            html! { <MyRcd /> }
+        Route::MyRcdDb => {
+            html! { <RcdDb /> }
+        }
+        Route::MyRcdSql => {
+            html! { <RcdSql /> }
         }
         Route::NotFound => {
             html! { <PageNotFound /> }
@@ -108,7 +112,7 @@ fn switch(routes: Route) -> Html {
 }
 
 fn check_and_set_login_status(is_logged_in_state: UseStateHandle<bool>) {
-    let is_logged_in = get_token().is_logged_in;
+    let is_logged_in = get_proxy_token().is_logged_in;
     is_logged_in_state.set(is_logged_in);
 }
 

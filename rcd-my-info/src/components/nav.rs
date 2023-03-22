@@ -41,9 +41,6 @@ pub fn Nav() -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Login}>
                     { "Login" }
                     </Link<Route>>
-                    <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcd}>
-                    { "My Info" }
-                    </Link<Route>>
                     <Link<Route> classes={classes!("navbar-item")} to={Route::SiteAdmin}>
                     { "Site Admin" }
                     </Link<Route>>

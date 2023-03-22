@@ -43,8 +43,7 @@ pub fn Login() -> Html {
                     Ok(token) => {
                         if token.is_logged_in {
                             set_proxy_token(token);
-                            login_result.set("Login success! You will be 
-                            redirected in a moment to the app".to_string());
+                            login_result.set("Login success! You can now admin your instance.".to_string());
                         } else {
                             login_result.set("Login failed.".to_string());
                         }
