@@ -34,7 +34,7 @@ pub async fn register(
             }
         }
         Err(e) => RegisterLoginReply {
-            is_successful: true,
+            is_successful: false,
             host_id: None,
             error: Some(e.to_string()),
         },
@@ -60,6 +60,29 @@ pub async fn token(
             expiration_utc: None,
             jwt: None,
         },
+    };
+
+    (Status::Ok, Json(response))
+}
+
+#[post(
+    "/account/token/revoke",
+    format = "application/json",
+    data = "<request>"
+)]
+pub async fn revoke_token(
+    request: Json<AuthForTokenRequest>,
+    state: &State<RcdProxy>,
+) -> (Status, Json<AuthForTokenReply>) {
+    debug!("{request:?}");
+
+    let request = request.into_inner();
+    state.revoke_tokens_for_login(&request.login);
+
+    let response = AuthForTokenReply {
+        is_successful: true,
+        expiration_utc: None,
+        jwt: None,
     };
 
     (Status::Ok, Json(response))

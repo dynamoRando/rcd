@@ -3,6 +3,7 @@ use std::{fs, path::Path};
 use crate::proxy_grpc::{ProxyClientGrpc, ProxyDbGrpc};
 use chrono::{DateTime, Utc};
 use config::Config;
+use log::warn;
 #[allow(unused_imports)]
 use log::{debug, error, info, trace};
 use proxy_db::ProxyDb;
@@ -417,19 +418,26 @@ impl RcdProxy {
         self.start_grpc_data_with_trigger().await
     }
 
+    pub fn revoke_tokens_for_login(&self, un: &str) {
+        self.db.revoke_tokens_for_login(un);
+    }
+
     pub fn auth_for_token(&self, un: &str, pw: &str) -> Result<AuthForTokenReply, RcdProxyErr> {
         if self.verify_login(un, pw)? {
-            if !self.db.login_has_token(un) {
-                let token_data = self.create_token_for_login(un);
-                let jwt = token_data.0;
-                let expiration_utc = token_data.1.to_string();
-
-                return Ok(AuthForTokenReply {
-                    is_successful: true,
-                    expiration_utc: Some(expiration_utc),
-                    jwt: Some(jwt),
-                });
+            if self.db.login_has_token(un) {
+                self.db.revoke_tokens_for_login(un);
+                debug!("revoked existing tokens for login {un}");
             }
+
+            let token_data = self.create_token_for_login(un);
+            let jwt = token_data.0;
+            let expiration_utc = token_data.1.to_string();
+
+            return Ok(AuthForTokenReply {
+                is_successful: true,
+                expiration_utc: Some(expiration_utc),
+                jwt: Some(jwt),
+            });
         }
 
         Ok(AuthForTokenReply {

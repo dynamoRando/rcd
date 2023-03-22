@@ -72,6 +72,16 @@ impl ProxyDb {
         }
     }
 
+    pub fn revoke_tokens_for_login(&self, un: &str) -> bool {
+        self.delete_expired_tokens();
+        match self.config {
+            ProxyDbConfig::Unknown => todo!(),
+            ProxyDbConfig::Sqlite(_) => self.sqlite().revoke_tokens_for_login(un),
+            ProxyDbConfig::MySql(_) => todo!(),
+            ProxyDbConfig::Postgres(_) => todo!(),
+        }
+    }
+
     pub fn login_has_token(&self, un: &str) -> bool {
         self.delete_expired_tokens();
         match self.config {

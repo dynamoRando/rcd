@@ -38,14 +38,24 @@ pub fn Register() -> Html {
 
             spawn_local(async move {
                 let result = proxy.register_account(&u, &p).await;
+                log_to_console("{result:?}".to_string());
                 match result {
                     Ok(registration) => {
-                        let result_message = format!(
-                            "result: {} host_id: {}",
-                            registration.is_successful,
-                            registration.host_id.as_ref().unwrap().clone()
-                        );
-                        register_result.set(result_message);
+                        if registration.is_successful {
+                            let result_message = format!(
+                                "result: {} host_id: {}",
+                                registration.is_successful,
+                                registration.host_id.as_ref().unwrap().clone()
+                            );
+                            register_result.set(result_message);
+                        } else  {
+                            let result_message = format!(
+                                "result: {} message: {}",
+                                registration.is_successful,
+                                registration.error.as_ref().unwrap().to_string(),
+                            );
+                            register_result.set(result_message);
+                        }
                     }
                     Err(e) => log_to_console(e),
                 };

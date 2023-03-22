@@ -1413,17 +1413,6 @@ pub mod sql_client_client {
     pub struct SqlClientClient<T> {
         inner: tonic::client::Grpc<T>,
     }
-    impl SqlClientClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
-    }
     impl<T> SqlClientClient<T>
     where
         T: tonic::client::GrpcService<tonic::body::BoxBody>,
@@ -2363,17 +2352,6 @@ pub mod data_service_client {
     #[derive(Debug, Clone)]
     pub struct DataServiceClient<T> {
         inner: tonic::client::Grpc<T>,
-    }
-    impl DataServiceClient<tonic::transport::Channel> {
-        /// Attempt to create a new client by connecting to a given endpoint.
-        pub async fn connect<D>(dst: D) -> Result<Self, tonic::transport::Error>
-        where
-            D: std::convert::TryInto<tonic::transport::Endpoint>,
-            D::Error: Into<StdError>,
-        {
-            let conn = tonic::transport::Endpoint::new(dst)?.connect().await?;
-            Ok(Self::new(conn))
-        }
     }
     impl<T> DataServiceClient<T>
     where

@@ -12,7 +12,7 @@ use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
 
 use crate::RcdProxy;
-use crate::proxy_server::account::{register, token};
+use crate::proxy_server::account::{register, token, revoke_token};
 use crate::proxy_server::execute::execute_request;
 
 mod account;
@@ -49,7 +49,7 @@ impl ProxyServer {
         };
         let _ = rocket::custom(config)
             .attach(CORS)
-            .mount("/", routes![index, register, execute_request, token])
+            .mount("/", routes![index, register, execute_request, token, revoke_token])
             .manage(proxy)
             .launch()
             .await?;

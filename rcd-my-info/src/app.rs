@@ -11,6 +11,7 @@ use crate::log::log_to_console;
 use crate::pages::home::Home;
 use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
+use crate::pages::rcd_admin::MyRcd;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
 use crate::request::rcd::{get_status, get_token};
@@ -27,6 +28,8 @@ pub enum Route {
     Login,
     #[at("/info/site-admin")]
     SiteAdmin,
+    #[at("/my")]
+    MyRcd,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -94,6 +97,9 @@ fn switch(routes: Route) -> Html {
         }
         Route::SiteAdmin => {
             html! { <SiteAdmin /> }
+        }
+        Route::MyRcd => {
+            html! { <MyRcd /> }
         }
         Route::NotFound => {
             html! { <PageNotFound /> }

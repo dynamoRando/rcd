@@ -1,14 +1,19 @@
 use gloo::{
-    storage::{SessionStorage, Storage}, console::debug,
+    console::debug,
+    storage::{SessionStorage, Storage},
 };
 use rcd_client_wasm::token::Token;
-use rcd_messages::proxy::server_messages::{http::{TOKEN_URL, REGISTER_URL}, AuthForTokenRequest, AuthForTokenReply, RegisterLoginRequest, RegisterLoginReply};
+use rcd_messages::proxy::server_messages::{
+    http::{REGISTER_URL, TOKEN_URL, REVOKE_TOKEN_URL},
+    AuthForTokenReply, AuthForTokenRequest, RegisterLoginReply, RegisterLoginRequest,
+};
 use serde::{de, Deserialize, Serialize};
-use wasm_bindgen::{JsValue, JsCast};
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{RequestInit, RequestMode, Request};
 use web_sys::Response;
+use web_sys::{Request, RequestInit, RequestMode};
 
+use crate::log::log_to_console;
 
 const RCDPROXY: &str = "rcdmyinfo.key.proxy";
 const KEY: &str = "rcdmyinfo.key.rcdproxy.instance";
@@ -24,19 +29,37 @@ impl RcdProxy {
         Self { addr }
     }
 
-    pub async fn register_account(&mut self, un: &str, pw: &str) -> Result<RegisterLoginReply, String> {
+    pub async fn register_account(
+        &mut self,
+        un: &str,
+        pw: &str,
+    ) -> Result<RegisterLoginReply, String> {
         let request = RegisterLoginRequest {
             login: un.to_string(),
             pw: pw.to_string(),
         };
 
         let url = self.get_http_url(REGISTER_URL);
-        let result: Result<RegisterLoginReply, String> = self.get_http_result_error(url, request).await;
+        let result: Result<RegisterLoginReply, String> =
+            self.get_http_result_error(url, request).await;
 
         match result {
             Ok(registration) => Ok(registration),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn logout(&mut self, un: &str) {
+        let request = AuthForTokenRequest {
+            login: un.to_string(),
+            pw: "".to_string(),
+        };
+
+        let url = self.get_http_url(REVOKE_TOKEN_URL);
+        let result: Result<AuthForTokenReply, String> =
+            self.get_http_result_error(url, request).await;
+        let debug = format!("{result:?}");
+        log_to_console(debug);
     }
 
     pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Result<Token, String> {
@@ -46,8 +69,10 @@ impl RcdProxy {
         };
 
         let url = self.get_http_url(TOKEN_URL);
-        let result: Result<AuthForTokenReply, String> = self.get_http_result_error(url, request).await;
-
+        let result: Result<AuthForTokenReply, String> =
+            self.get_http_result_error(url, request).await;
+        let debug = format!("{result:?}");
+        log_to_console(debug);
         match result {
             Ok(r) => Ok(Token {
                 jwt: r.jwt.unwrap(),
@@ -104,14 +129,26 @@ pub fn get_proxy() -> RcdProxy {
     }
 }
 
+pub fn clear_proxy_token(){
+    SessionStorage::set(KEY, "").expect("failed to set");
+}
+
 /// Saves the JWT to Session Storage
-pub fn set_token(token: Token) {
+pub fn set_proxy_token(token: Token) {
     let token = serde_json::to_string(&token).unwrap();
     SessionStorage::set(KEY, token).expect("failed to set");
 }
 
+pub fn has_proxy_token() -> bool {
+    let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
+    if token.is_empty() {
+        return false;
+    }
+    true
+}
+
 /// Gets the JWT from Session Storage
-pub fn get_token() -> Token {
+pub fn get_proxy_token() -> Token {
     let token = SessionStorage::get(KEY).unwrap_or_else(|_| String::from(""));
     if token.is_empty() {
         Token::new()
@@ -120,8 +157,6 @@ pub fn get_token() -> Token {
         token
     }
 }
-
-
 
 pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
     let mut opts = RequestInit::new();

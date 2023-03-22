@@ -76,14 +76,18 @@ impl ProxySqlite {
     }
 
     pub fn verify_token(&self, token: &str) -> bool {
-        let conn = self.conn();
         let mut cmd = String::from("SELECT COUNT(*) FROM TOKENS WHERE TOKEN = ':token'");
         cmd = cmd.replace(":token", token);
         self.has_any_rows_with_cmd(&cmd)
     }
 
+    pub fn revoke_tokens_for_login(&self, login: &str) -> bool {
+        let mut cmd = String::from("DELETE FROM TOKENS WHERE USERNAME = ':login'");
+        cmd = cmd.replace(":login", login);
+        self.write(&cmd).unwrap() > 0
+    }
+
     pub fn login_has_token(&self, login: &str) -> bool {
-        let conn = self.conn();
         let mut cmd = String::from("SELECT COUNT(*) FROM TOKENS WHERE USERNAME = ':login'");
         cmd = cmd.replace(":login", login);
         self.has_any_rows_with_cmd(&cmd)
