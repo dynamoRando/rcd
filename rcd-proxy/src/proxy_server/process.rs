@@ -8,11 +8,11 @@ use rcdproto::rcdp::{
     EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
     ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
     GetActiveContractRequest, GetCooperativeHostsRequest, GetDataHashRequest,
-    GetDataLogTableStatusRequest, GetDatabasesRequest, GetDeletesFromHostBehaviorRequest,
+    GetDatabasesRequest, GetDeletesFromHostBehaviorRequest,
     GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyRequest, GetLogsByLastNumberRequest,
     GetParticipantsRequest, GetPendingActionsRequest, GetReadRowIdsRequest, GetSettingsRequest,
     GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorRequest, HasTableRequest,
-    RejectPendingContractRequest, SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
     TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 

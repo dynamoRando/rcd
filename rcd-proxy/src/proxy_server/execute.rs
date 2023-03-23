@@ -13,8 +13,8 @@ pub async fn execute_request(
 
     let request = request.into_inner();
 
-    if request.pw.is_some() {
-        let result_is_authorized = state.verify_login(&request.login, &request.pw.clone().unwrap());
+    if request.pw.is_some() && request.login.is_some() {
+        let result_is_authorized = state.verify_login(request.login.as_ref().unwrap(), &request.pw.clone().unwrap());
         match result_is_authorized {
             Ok(is_auth) => {
                 if !is_auth {
@@ -65,19 +65,19 @@ pub async fn execute_request(
         }
     }
 
-    let mut response = ExecuteReply {
+    let response = ExecuteReply {
         login_success: false,
         execute_success: false,
         reply: None,
     };
 
-    if let Some(login) = request.login {
+    if let Some(login) = request.login.clone() {
         let result_id = state.get_host_id_for_user(&login);
         let response = execute(result_id, state, &request).await;
         return (Status::Ok, Json(response))
     }
 
-    if let Some(jwt) = request.jwt {
+    if let Some(jwt) = request.jwt.clone() {
         let result_id = state.get_host_id_for_token(&jwt);
         let response = execute(result_id, state, &request).await;
         return (Status::Ok, Json(response))

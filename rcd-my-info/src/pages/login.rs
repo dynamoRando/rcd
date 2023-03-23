@@ -108,7 +108,7 @@ fn login_to_rcd_instance(un: &str, pw: &str) {
         let request = AuthRequest {
             user_name: un.to_string(),
             pw: pw.to_string(),
-            pw_hash: Vec::new*(),
+            pw_hash: Vec::new(),
             token: Vec::new(),
             jwt: "".to_string(),
             id: Some(id),
@@ -118,13 +118,13 @@ fn login_to_rcd_instance(un: &str, pw: &str) {
         let request_json = serde_json::to_string(&request).unwrap();
 
         let request = ExecuteRequest {
-            login: un.to_string(),
+            login: None,
             pw: None,
             jwt: Some(token.jwt.clone()),
             request_type: request_type.into(),
             request_json: request_json,
         };
 
-        let reply = 
+        todo!()
     }
 }

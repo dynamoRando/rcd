@@ -107,7 +107,7 @@ async fn token() {
 
         tokio::spawn(async move {
             let request = ExecuteRequest {
-                login: "tester".to_string(),
+                login: Some("tester".to_string()),
                 pw: Some("1234".to_string()),
                 jwt: None,
                 request_type: request_type,
@@ -211,7 +211,7 @@ async fn token() {
                 jwt = lock.jwt.clone();
             }
             let request = ExecuteRequest {
-                login: "tester".to_string(),
+                login: Some("tester".to_string()),
                 pw: None,
                 jwt: jwt,
                 request_type: request_type,
