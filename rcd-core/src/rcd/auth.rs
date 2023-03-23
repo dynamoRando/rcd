@@ -1,3 +1,4 @@
+use log::debug;
 use rcdproto::rcdp::{AuthRequest, RevokeReply, TokenReply};
 
 use crate::rcd::Rcd;
@@ -13,6 +14,8 @@ pub async fn auth_for_token(core: &Rcd, request: AuthRequest) -> TokenReply {
         jwt = result.0;
         expiration = result.1.to_rfc3339();
         is_successful = true;
+
+        debug!("created rcd token for {}", &request.user_name);
     }
 
     TokenReply {

@@ -2629,6 +2629,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "config",
+ "fern",
+ "ignore",
  "ignore-result",
  "log",
  "rcd-client",

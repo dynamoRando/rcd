@@ -72,12 +72,14 @@ pub async fn execute_request(
     };
 
     if let Some(login) = request.login.clone() {
+        debug!("getting host via login: {}", login);
         let result_id = state.get_host_id_for_user(&login);
         let response = execute(result_id, state, &request).await;
         return (Status::Ok, Json(response))
     }
 
     if let Some(jwt) = request.jwt.clone() {
+        debug!("getting host via token: {}", jwt);
         let result_id = state.get_host_id_for_token(&jwt);
         let response = execute(result_id, state, &request).await;
         return (Status::Ok, Json(response))

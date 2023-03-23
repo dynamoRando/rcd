@@ -3,9 +3,16 @@ use gloo::{
     storage::{SessionStorage, Storage},
 };
 use rcd_client_wasm::token::Token;
-use rcd_messages::proxy::server_messages::{
-    http::{REGISTER_URL, TOKEN_URL, REVOKE_TOKEN_URL},
-    AuthForTokenReply, AuthForTokenRequest, RegisterLoginReply, RegisterLoginRequest,
+use rcd_messages::{
+    client::AuthRequest,
+    proxy::{
+        request_type::RequestType,
+        server_messages::{
+            http::{EXECUTE, REGISTER_URL, REVOKE_TOKEN_URL, TOKEN_URL},
+            AuthForTokenReply, AuthForTokenRequest, ExecuteReply, ExecuteRequest,
+            RegisterLoginReply, RegisterLoginRequest,
+        },
+    },
 };
 use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{JsCast, JsValue};
@@ -62,26 +69,40 @@ impl RcdProxy {
         log_to_console(debug);
     }
 
-    pub async fn execute_request(&mut self, un: &str, pw: &str) -> Result<Token, String> {
-        let request = AuthForTokenRequest {
-            login: un.to_string(),
-            pw: pw.to_string(),
-        };
+    pub async fn execute_request_as<T: de::DeserializeOwned + std::clone::Clone>(
+        &mut self,
+        request_json: &str,
+        request_type: RequestType,
+    ) -> Result<T, String> {
+        let token = get_proxy_token();
 
-        let url = self.get_http_url(TOKEN_URL);
-        let result: Result<AuthForTokenReply, String> =
-            self.get_http_result_error(url, request).await;
-        let debug = format!("{result:?}");
-        log_to_console(debug);
-        match result {
-            Ok(r) => Ok(Token {
-                jwt: r.jwt.unwrap(),
-                jwt_exp: r.expiration_utc.unwrap(),
-                addr: self.addr.clone(),
-                is_logged_in: true,
-                id: r.id,
-            }),
-            Err(e) => Err(e),
+        if let Some(id) = token.id {
+            let request = ExecuteRequest {
+                login: None,
+                pw: None,
+                jwt: Some(token.jwt.clone()),
+                request_type: request_type.into(),
+                request_json: request_json.to_string(),
+            };
+
+            let url = self.get_http_url(EXECUTE);
+
+            let result: Result<ExecuteReply, String> =
+                self.get_http_result_error(url, request).await;
+            let debug = format!("{result:?}");
+
+            match result {
+                Ok(result) => {
+                    if result.execute_success {
+                        return Ok(serde_json::from_str::<T>(&result.reply.unwrap()).unwrap());
+                    } else {
+                        return Err("could not execute".to_string());
+                    }
+                }
+                Err(e) => return Err(e),
+            }
+        } else {
+            Err("Host Id not in token".to_string())
         }
     }
 
@@ -153,7 +174,7 @@ pub fn get_proxy() -> RcdProxy {
     }
 }
 
-pub fn clear_proxy_token(){
+pub fn clear_proxy_token() {
     SessionStorage::set(KEY, "").expect("failed to set");
 }
 

@@ -1,12 +1,23 @@
-use rcd_client_wasm::client::RcdClient;
-use rcd_messages::{client::AuthRequest, proxy::{server_messages::ExecuteRequest, request_type::RequestType}};
+use rcd_client_wasm::{client::RcdClient, token::Token};
+use rcd_messages::{
+    client::AuthRequest,
+    proxy::{
+        request_type::{self, RequestType},
+        server_messages::{AuthForTokenReply, ExecuteRequest},
+    },
+};
 use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::{PROXY_ADDR_PORT, PROXY_ADDR, PROXY_PORT},
+    con::{PROXY_ADDR, PROXY_ADDR_PORT, PROXY_PORT},
     log::log_to_console,
-    request::proxy::{set_proxy, set_proxy_token, RcdProxy, clear_proxy_token, get_proxy_token},
+    request::{
+        proxy::{
+            clear_proxy_token, get_proxy, get_proxy_token, set_proxy, set_proxy_token, RcdProxy,
+        },
+        rcd::{get_token, set_token},
+    },
 };
 
 #[function_component]
@@ -40,12 +51,15 @@ pub fn Login() -> Html {
 
             spawn_local(async move {
                 let result = proxy.auth_for_token(&u, &p).await;
-                log_to_console("{result:?}".to_string());
+                let message = format!("{result:?}");
+                log_to_console(message);
                 match result {
                     Ok(token) => {
                         if token.is_logged_in {
                             set_proxy_token(token);
-                            login_result.set("Login success! You can now admin your instance.".to_string());
+                            login_to_rcd_instance(&u, &p).await;
+                            login_result
+                                .set("Login success! You can now admin your instance.".to_string());
                         } else {
                             login_result.set("Login failed.".to_string());
                         }
@@ -100,31 +114,38 @@ pub fn Login() -> Html {
     }
 }
 
+async fn login_to_rcd_instance(un: &str, pw: &str) {
+    let mut proxy = get_proxy();
+    let token = get_token();
 
-fn login_to_rcd_instance(un: &str, pw: &str) {
-    let token = get_proxy_token();
+    let request = AuthRequest {
+        user_name: un.to_string(),
+        pw: pw.to_string(),
+        pw_hash: Vec::new(),
+        token: Vec::new(),
+        jwt: "".to_string(),
+        id: token.id,
+    };
 
-    if let Some(id) = token.id {
-        let request = AuthRequest {
-            user_name: un.to_string(),
-            pw: pw.to_string(),
-            pw_hash: Vec::new(),
-            token: Vec::new(),
-            jwt: "".to_string(),
-            id: Some(id),
-        };
+    let request_json = serde_json::to_string(&request).unwrap();
+    let request_type = RequestType::Auth;
 
-        let request_type = RequestType::Auth;
-        let request_json = serde_json::to_string(&request).unwrap();
+    let r = proxy
+        .execute_request_as::<AuthForTokenReply>(&request_json, request_type)
+        .await;
 
-        let request = ExecuteRequest {
-            login: None,
-            pw: None,
-            jwt: Some(token.jwt.clone()),
-            request_type: request_type.into(),
-            request_json: request_json,
-        };
+    if let Ok(r) = r {
+        if r.is_successful {
+            let token = Token {
+                jwt: r.jwt.unwrap(),
+                jwt_exp: r.expiration_utc.unwrap(),
+                addr: PROXY_ADDR_PORT.to_string(),
+                is_logged_in: true,
+                id: r.id,
+            };
 
-        todo!()
-    }
+            set_token(token);
+        }
+    };
+
 }

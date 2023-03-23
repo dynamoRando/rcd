@@ -1,10 +1,12 @@
+use fern::colors::{Color, ColoredLevelConfig};
+use log::LevelFilter;
 use rcd_proxy::{proxy_server::ProxyServer, RcdProxy};
-use simple_logger::SimpleLogger;
 use std::{env, path::Path};
 
 #[tokio::main]
 async fn main() {
-    SimpleLogger::new().env().init().unwrap();
+    // SimpleLogger::new().env().init().unwrap();
+    init_log_to_screen_fern(LevelFilter::Debug);
 
     let dir = &cwd();
     let result_proxy = RcdProxy::get_proxy_from_config(dir);
@@ -31,4 +33,35 @@ fn cwd() -> String {
     let cwd = wd.to_str().unwrap();
     let cur_dir = Path::new(cwd);
     cur_dir.to_str().unwrap().to_string()
+}
+
+fn init_log_to_screen_fern(level: LevelFilter) {
+    use ignore_result::Ignore;
+
+    let colors = ColoredLevelConfig::new()
+        .info(Color::Green)
+        .debug(Color::Blue)
+        .error(Color::BrightRed)
+        .warn(Color::Magenta);
+
+    fern::Dispatch::new()
+        .format(move |out, message, record| {
+            out.finish(format_args!(
+                "{}[{}][{}] {}",
+                chrono::Local::now().format("[%Y-%m-%d][%H:%M:%S]"),
+                record.target(),
+                colors.color(record.level()),
+                message
+            ))
+        })
+        .level(level)
+        .level_for("tokio", log::LevelFilter::Off)
+        .level_for("hyper", log::LevelFilter::Off)
+        .level_for("rocket", log::LevelFilter::Off)
+        .level_for("h2", log::LevelFilter::Off)
+        .level_for("tower", log::LevelFilter::Off)
+        .level_for("_", log::LevelFilter::Off)
+        .chain(std::io::stdout())
+        .apply()
+        .ignore();
 }
