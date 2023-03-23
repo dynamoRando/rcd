@@ -62,6 +62,29 @@ impl RcdProxy {
         log_to_console(debug);
     }
 
+    pub async fn execute_request(&mut self, un: &str, pw: &str) -> Result<Token, String> {
+        let request = AuthForTokenRequest {
+            login: un.to_string(),
+            pw: pw.to_string(),
+        };
+
+        let url = self.get_http_url(TOKEN_URL);
+        let result: Result<AuthForTokenReply, String> =
+            self.get_http_result_error(url, request).await;
+        let debug = format!("{result:?}");
+        log_to_console(debug);
+        match result {
+            Ok(r) => Ok(Token {
+                jwt: r.jwt.unwrap(),
+                jwt_exp: r.expiration_utc.unwrap(),
+                addr: self.addr.clone(),
+                is_logged_in: true,
+                id: r.id,
+            }),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn auth_for_token(&mut self, un: &str, pw: &str) -> Result<Token, String> {
         let request = AuthForTokenRequest {
             login: un.to_string(),
@@ -79,6 +102,7 @@ impl RcdProxy {
                 jwt_exp: r.expiration_utc.unwrap(),
                 addr: self.addr.clone(),
                 is_logged_in: true,
+                id: r.id,
             }),
             Err(e) => Err(e),
         }

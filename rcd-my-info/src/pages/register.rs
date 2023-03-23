@@ -2,7 +2,7 @@ use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::PROXY_ADDR,
+    con::PROXY_ADDR_PORT,
     log::log_to_console,
     request::proxy::{set_proxy, RcdProxy},
 };
@@ -30,7 +30,7 @@ pub fn Register() -> Html {
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
 
-            let mut proxy = RcdProxy::new(PROXY_ADDR);
+            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
             set_proxy(&proxy);
 
             let u = un_val;

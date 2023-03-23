@@ -24,11 +24,12 @@ pub struct AuthForTokenReply {
     pub is_successful: bool,
     pub expiration_utc: Option<String>,
     pub jwt: Option<String>,
+    pub id: Option<String>
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
 pub struct ExecuteRequest {
-    pub login: String,
+    pub login: Option<String>,
     pub pw: Option<String>,
     pub jwt: Option<String>,
     pub request_type: u16,

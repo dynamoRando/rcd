@@ -24,7 +24,7 @@ pub fn set_client(client: &RcdClient) {
 pub fn get_client() -> RcdClient {
     let client = SessionStorage::get(RCDCLIENT).unwrap_or_else(|_| String::from(""));
     if client.is_empty() {
-        RcdClient::new(String::from(""), 0)
+        RcdClient::new("", 0)
     } else {
         let client: RcdClient = serde_json::from_str(&client).unwrap();
         client

@@ -2,7 +2,7 @@ use log::debug;
 use rcd_messages::proxy::server_messages::{ExecuteReply, ExecuteRequest};
 use rocket::{http::Status, post, serde::json::Json, State};
 
-use crate::{proxy_server::process::process_request, RcdProxy};
+use crate::{proxy_server::process::process_request, RcdProxy, RcdProxyErr};
 
 #[post("/execute", format = "application/json", data = "<request>")]
 pub async fn execute_request(
@@ -65,11 +65,33 @@ pub async fn execute_request(
         }
     }
 
-    let result_id = state.get_host_id_for_user(&request.login);
-    let response = match result_id {
+    let mut response = ExecuteReply {
+        login_success: false,
+        execute_success: false,
+        reply: None,
+    };
+
+    if let Some(login) = request.login {
+        let result_id = state.get_host_id_for_user(&login);
+        let response = execute(result_id, state, &request).await;
+        return (Status::Ok, Json(response))
+    }
+
+    if let Some(jwt) = request.jwt {
+        let result_id = state.get_host_id_for_token(&jwt);
+        let response = execute(result_id, state, &request).await;
+        return (Status::Ok, Json(response))
+    }
+
+    (Status::Ok, Json(response))
+}
+
+
+async fn execute(result_id: Result<Option<String>, RcdProxyErr>, proxy: &RcdProxy, request: &ExecuteRequest) -> ExecuteReply {
+    match result_id {
         Ok(id) => match id {
             Some(id) => {
-                let result_core = state.get_rcd_core_for_existing_host(&id);
+                let result_core = proxy.get_rcd_core_for_existing_host(&id);
                 match result_core {
                     Ok(core) => {
                         let result_json_reply = process_request(request, &core).await;
@@ -104,7 +126,5 @@ pub async fn execute_request(
             execute_success: false,
             reply: Some(e.to_string()),
         },
-    };
-
-    (Status::Ok, Json(response))
+    }
 }

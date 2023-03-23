@@ -11,6 +11,8 @@ pub struct Token {
     pub addr: String,
     /// if we are logged in or not
     pub is_logged_in: bool,
+    /// the host id
+    pub id: Option<String>,
 }
 
 impl Default for Token {
@@ -26,6 +28,7 @@ impl Token {
             jwt_exp: "".to_string(),
             addr: "".to_string(),
             is_logged_in: false,
+            id: None,
         }
     }
 

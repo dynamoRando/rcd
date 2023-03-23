@@ -75,6 +75,13 @@ impl ProxySqlite {
         Ok(())
     }
 
+    pub fn get_user_with_token(&self, token: &str) -> Result<UserInfo, RcdProxyErr> {
+        let cmd = "SELECT username FROM TOKENS WHERE token = ':token'";
+        let cmd = cmd.replace(":token", token);
+        let un = self.get_scalar_as_string(&cmd);
+        self.get_user(&un)
+    }
+
     pub fn verify_token(&self, token: &str) -> bool {
         let mut cmd = String::from("SELECT COUNT(*) FROM TOKENS WHERE TOKEN = ':token'");
         cmd = cmd.replace(":token", token);
@@ -269,6 +276,23 @@ impl ProxySqlite {
 
         for item in rows {
             value = item.unwrap_or_default();
+        }
+
+        drop(statement);
+
+        value
+    }
+
+    fn get_scalar_as_string(&self, cmd: &str) -> String {
+        debug!("{cmd:?}");
+
+        let conn = self.conn();
+        let mut value = String::from("");
+        let mut statement = conn.prepare(&cmd).unwrap();
+        let rows = statement.query_map([], |row| row.get(0)).unwrap();
+
+        for item in rows {
+            value = item.unwrap();
         }
 
         drop(statement);

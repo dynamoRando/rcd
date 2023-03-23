@@ -92,6 +92,18 @@ impl ProxyDb {
         }
     }
 
+    pub fn get_user_with_token(&self, token: &str) ->  Result<UserInfo, RcdProxyErr> {
+        self.delete_expired_tokens();
+        match self.config {
+            ProxyDbConfig::Sqlite(_) => {
+                self.sqlite().get_user_with_token(&token)
+            }
+            ProxyDbConfig::Unknown => unimplemented!(),
+            ProxyDbConfig::MySql(_) => unimplemented!(),
+            ProxyDbConfig::Postgres(_) => unimplemented!(),
+        }
+    }
+
     pub fn verify_token(&self, token: &str) -> bool {
         self.delete_expired_tokens();
         match self.config {

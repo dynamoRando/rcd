@@ -433,10 +433,13 @@ impl RcdProxy {
             let jwt = token_data.0;
             let expiration_utc = token_data.1.to_string();
 
+            let u = self.db.get_user(un)?;
+    
             return Ok(AuthForTokenReply {
                 is_successful: true,
                 expiration_utc: Some(expiration_utc),
                 jwt: Some(jwt),
+                id: u.id,
             });
         }
 
@@ -444,6 +447,7 @@ impl RcdProxy {
             is_successful: false,
             expiration_utc: None,
             jwt: None,
+            id: None,
         })
     }
 
@@ -481,6 +485,16 @@ impl RcdProxy {
         let hash = hash(pw);
         self.db.register_user(un, &hash.0)
     }
+
+    pub fn get_host_id_for_token(&self, token: &str) -> Result<Option<String>, RcdProxyErr> {
+        if self.db.verify_token(token) {
+            let u = self.db.get_user_with_token(token)?;
+            return Ok(u.id)
+        }
+
+        return Ok(None);
+    }
+
 
     pub fn get_host_id_for_user(&self, un: &str) -> Result<Option<String>, RcdProxyErr> {
         let u = self.db.get_user(un)?;

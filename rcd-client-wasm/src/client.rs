@@ -21,7 +21,7 @@ pub struct RcdClient {
 }
 
 impl RcdClient {
-    pub fn new(ip: String, port: u32) -> Self {
+    pub fn new(ip: &str, port: u32) -> Self {
         let addr = format!("{}{}{}{}", "http://", ip, ":", port);
         Self { addr }
     }
@@ -218,6 +218,7 @@ impl RcdClient {
             jwt_exp: r.expiration_utc,
             addr: self.addr.clone(),
             is_logged_in: true,
+            id: None,
         })
     }
 
@@ -240,6 +241,7 @@ impl RcdClient {
                 jwt_exp: r.expiration_utc,
                 addr: self.addr.clone(),
                 is_logged_in: true,
+                id: None,
             }),
             Err(e) => Err(e),
         }

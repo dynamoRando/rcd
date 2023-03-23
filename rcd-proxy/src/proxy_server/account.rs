@@ -59,6 +59,7 @@ pub async fn token(
             is_successful: false,
             expiration_utc: None,
             jwt: None,
+            id: None,
         },
     };
 
@@ -83,6 +84,7 @@ pub async fn revoke_token(
         is_successful: true,
         expiration_utc: None,
         jwt: None,
+        id: None,
     };
 
     (Status::Ok, Json(response))

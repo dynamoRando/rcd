@@ -1,10 +1,12 @@
+use rcd_client_wasm::client::RcdClient;
+use rcd_messages::{client::AuthRequest, proxy::{server_messages::ExecuteRequest, request_type::RequestType}};
 use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::PROXY_ADDR,
+    con::{PROXY_ADDR_PORT, PROXY_ADDR, PROXY_PORT},
     log::log_to_console,
-    request::proxy::{set_proxy, set_proxy_token, RcdProxy, clear_proxy_token},
+    request::proxy::{set_proxy, set_proxy_token, RcdProxy, clear_proxy_token, get_proxy_token},
 };
 
 #[function_component]
@@ -30,7 +32,7 @@ pub fn Login() -> Html {
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
 
-            let mut proxy = RcdProxy::new(PROXY_ADDR);
+            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
             set_proxy(&proxy);
 
             let u = un_val;
@@ -60,7 +62,7 @@ pub fn Login() -> Html {
             let ui_un = ui_un.clone();
             let un = &ui_un;
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
-            let mut proxy = RcdProxy::new(PROXY_ADDR);
+            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
             set_proxy(&proxy);
             clear_proxy_token();
             spawn_local(async move {
@@ -95,5 +97,34 @@ pub fn Login() -> Html {
                 </div>
             </div>
         </div>
+    }
+}
+
+
+fn login_to_rcd_instance(un: &str, pw: &str) {
+    let token = get_proxy_token();
+
+    if let Some(id) = token.id {
+        let request = AuthRequest {
+            user_name: un.to_string(),
+            pw: pw.to_string(),
+            pw_hash: Vec::new*(),
+            token: Vec::new(),
+            jwt: "".to_string(),
+            id: Some(id),
+        };
+
+        let request_type = RequestType::Auth;
+        let request_json = serde_json::to_string(&request).unwrap();
+
+        let request = ExecuteRequest {
+            login: un.to_string(),
+            pw: None,
+            jwt: Some(token.jwt.clone()),
+            request_type: request_type.into(),
+            request_json: request_json,
+        };
+
+        let reply = 
     }
 }

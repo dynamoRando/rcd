@@ -16,7 +16,7 @@ use rcdproto::rcdp::{
     TryAuthAtParticipantRequest, ViewPendingContractsRequest,
 };
 
-pub async fn process_request(request: ExecuteRequest, core: &Rcd) -> Result<String, String> {
+pub async fn process_request(request: &ExecuteRequest, core: &Rcd) -> Result<String, String> {
     let result_request_type = RequestType::try_from(request.request_type);
     match result_request_type {
         Ok(request_type) => match request_type {
