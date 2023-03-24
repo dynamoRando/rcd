@@ -2,10 +2,10 @@ use rcd_http_common::url::client::NEW_DATABASE;
 use rcd_messages::client::{CreateUserDatabaseReply, CreateUserDatabaseRequest};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
+use rcd_messages::proxy::request_type::RequestType;
 
 use crate::{
-    log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    log::log_to_console, request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
 };
 
 #[function_component]
@@ -21,7 +21,7 @@ pub fn Create() -> Html {
             let last_created_result = last_created_result.clone();
             let db_name = ui_db_name.cast::<HtmlInputElement>().unwrap().value();
 
-            let token = get_token();
+            let token = get_rcd_token();
 
             let request = CreateUserDatabaseRequest {
                 authentication: Some(token.auth()),
@@ -56,7 +56,7 @@ pub fn Create() -> Html {
                 })
             };
 
-            request::post(url, json_request, cb);
+            request::post(RequestType::CreateUserDatabase, &json_request, cb);
         })
     };
 

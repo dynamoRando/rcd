@@ -3,40 +3,38 @@ use gloo::{
     storage::{SessionStorage, Storage},
 };
 use rcd_client_wasm::{client::RcdClient, token::Token};
-use rcd_messages::client::{DatabaseSchema, ParticipantStatus, AuthRequest};
+use rcd_messages::{
+    client::{AuthRequest, DatabaseSchema, ParticipantStatus},
+    proxy::request_type::RequestType,
+};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
 use crate::log::log_to_console;
 
+use self::{proxy::get_proxy, rcd::get_rcd_token};
 
-pub mod proxy; 
+pub mod proxy;
 pub mod rcd;
 
-
-/// sends an HTTP POST to the specified URL with the rcd-message as JSON, returning JSON if successful,
-/// otherwise a string describing the error that occurred
-pub fn post(url: String, body: String, callback: Callback<Result<AttrValue, String>>) {
-    let message = format!("{}{}", "outgoing message: ", body);
+pub fn post(
+    request_type: RequestType,
+    request_json: &str,
+    callback: Callback<Result<AttrValue, String>>,
+) {
+    let message = format!("{}{}", "outgoing message: ", request_json);
     log_to_console(message);
-    if !body.is_empty() {
+
+    let mut proxy = get_proxy();
+    let token = get_rcd_token();
+
+    if !request_json.is_empty() {
         spawn_local(async move {
-            let result = Request::new(&url)
-                .method(Method::POST)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .send()
-                .await;
+            let result = proxy.execute_request(&request_json, request_type).await;
 
-            if result.is_ok() {
-                let response = result.as_ref().unwrap().text().await;
-
-                if let Ok(data) = response {
-                    callback.emit(Ok(AttrValue::from(data)));
-                } else {
-                    let err = result.err().unwrap().to_string();
-                    callback.emit(Err(err))
-                }
-            }
+            match result {
+                Ok(result) => callback.emit(Ok(AttrValue::from(result))),
+                Err(e) => callback.emit(Err(e)),
+            };
         });
     }
 }

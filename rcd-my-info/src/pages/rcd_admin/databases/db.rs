@@ -6,6 +6,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::{function_component, html, use_state, use_state_eq, Callback, Html, UseStateHandle};
 use yew_router::prelude::use_navigator;
 
+
 use crate::{
     app::Route,
     log::log_to_console,

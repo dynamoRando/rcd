@@ -35,7 +35,7 @@ impl RcdProxy {
         let addr = format!("{}{}", "http://", addr);
         Self { addr }
     }
-    
+
     pub async fn register_account(
         &mut self,
         un: &str,
@@ -67,6 +67,43 @@ impl RcdProxy {
             self.get_http_result_error(url, request).await;
         let debug = format!("{result:?}");
         log_to_console(debug);
+    }
+
+    pub async fn execute_request(
+        &mut self,
+        request_json: &str,
+        request_type: RequestType,
+    ) -> Result<String, String> {
+        let token = get_proxy_token();
+
+        if let Some(id) = token.id {
+            let request = ExecuteRequest {
+                login: None,
+                pw: None,
+                jwt: Some(token.jwt.clone()),
+                request_type: request_type.into(),
+                request_json: request_json.to_string(),
+            };
+
+            let url = self.get_http_url(EXECUTE);
+
+            let result: Result<ExecuteReply, String> =
+                self.get_http_result_error(url, request).await;
+            let debug = format!("{result:?}");
+
+            match result {
+                Ok(result) => {
+                    if result.execute_success {
+                        return Ok(result.reply.unwrap());
+                    } else {
+                        return Err("could not execute".to_string());
+                    }
+                }
+                Err(e) => return Err(e),
+            }
+        } else {
+            Err("Host Id not in token".to_string())
+        }
     }
 
     pub async fn execute_request_as<T: de::DeserializeOwned + std::clone::Clone>(
