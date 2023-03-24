@@ -1,4 +1,4 @@
-use crate::{app::Route, request::proxy::has_proxy_token};
+use crate::{app::Route, request::proxy::{has_proxy_token, get_proxy_token}};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -66,7 +66,29 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
                         </Link<Route>>
                     </div>
                 </div>
-                    </nav>
+                <div class="buttons">
+                        {
+                            if *props.is_logged_in {
+                                let token = get_proxy_token();
+                                let id = token.id.as_ref().unwrap().clone();
+                                html! {
+                                    <div>
+                                        <button class="button is-warning">
+                                            { id }
+                                        </button>
+                                    </div>
+                                }
+                            }
+                            else {
+                                html! {
+                                    <button class="button is-light">
+                                    <span class="mdi mdi-account-cancel">{" Not Logged In"}</span>
+                                    </button>
+                                    }
+                            }
+                        }
+                        </div>
+            </nav>
         </div>
     )
 }

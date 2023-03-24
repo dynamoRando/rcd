@@ -1,6 +1,6 @@
 use yew::prelude::*;
 
-use crate::request::rcd::get_token;
+use crate::request::rcd::get_rcd_token;
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct StatusProps {
@@ -12,11 +12,11 @@ pub struct StatusProps {
 pub fn Status(props: &StatusProps) -> Html {
     let is_logged_in_state = props.is_logged_in.clone();
     let text = &*props.status_message.clone();
-    let addr = get_token().addr;
+    let addr = get_rcd_token().addr;
 
     html!(
         <div>
-            <nav class="navbar is-light">
+            <nav class="navbar is-link has-shadow">
                 <div class="navbar-brand">
                     <h3 class="navbar-item is-size-4">{"Status"}</h3>
                     <div class="navbar-item">
@@ -28,7 +28,7 @@ pub fn Status(props: &StatusProps) -> Html {
                                     <button class="button is-success">
                                         <span class="mdi mdi-account-check">{" Logged In"}</span>
                                     </button>
-                                    <button class="button is-info">{ addr }
+                                    <button class="button is-warning">{ addr }
                                     </button>
                                     </div>
                                 }

@@ -3,7 +3,7 @@ use gloo::{
     storage::{SessionStorage, Storage},
 };
 use rcd_client_wasm::{client::RcdClient, token::Token};
-use rcd_messages::client::{DatabaseSchema, ParticipantStatus};
+use rcd_messages::client::{DatabaseSchema, ParticipantStatus, AuthRequest};
 use yew::{platform::spawn_local, AttrValue, Callback};
 
 use crate::log::log_to_console;

@@ -1,2 +1,2 @@
-pub mod db;
+pub mod databases;
 pub mod sql;

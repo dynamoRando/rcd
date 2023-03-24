@@ -1,6 +1,7 @@
 use rcd_client_wasm::{client::RcdClient, token::Token};
+use rcd_http_common::url::client::GET_DATABASES;
 use rcd_messages::{
-    client::AuthRequest,
+    client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest},
     proxy::{
         request_type::{self, RequestType},
         server_messages::{AuthForTokenReply, ExecuteRequest},
@@ -13,10 +14,14 @@ use crate::{
     con::{PROXY_ADDR, PROXY_ADDR_PORT, PROXY_PORT},
     log::log_to_console,
     request::{
+        self,
         proxy::{
             clear_proxy_token, get_proxy, get_proxy_token, set_proxy, set_proxy_token, RcdProxy,
         },
-        rcd::{get_token, set_token},
+        rcd::{
+            clear_status, get_rcd_token, set_databases, set_rcd_token, set_status,
+            update_token_login_status,
+        },
     },
 };
 
@@ -58,6 +63,7 @@ pub fn Login() -> Html {
                         if token.is_logged_in {
                             set_proxy_token(token);
                             login_to_rcd_instance(&u, &p).await;
+                            databases().await;
                             login_result
                                 .set("Login success! You can now admin your instance.".to_string());
                         } else {
@@ -116,7 +122,7 @@ pub fn Login() -> Html {
 
 async fn login_to_rcd_instance(un: &str, pw: &str) {
     let mut proxy = get_proxy();
-    let token = get_token();
+    let token = get_rcd_token();
 
     let request = AuthRequest {
         user_name: un.to_string(),
@@ -144,8 +150,40 @@ async fn login_to_rcd_instance(un: &str, pw: &str) {
                 id: r.id,
             };
 
-            set_token(token);
+            set_rcd_token(token);
         }
     };
+}
 
+pub async fn databases() {
+    let mut proxy = get_proxy();
+    let token = get_rcd_token();
+    let auth_request = token.auth();
+
+    let db_request = GetDatabasesRequest {
+        authentication: Some(auth_request),
+    };
+
+    let request_json = serde_json::to_string(&db_request).unwrap();
+    let request_type = RequestType::GetDatabases;
+
+    let r = proxy
+        .execute_request_as::<GetDatabasesReply>(&request_json, request_type)
+        .await;
+
+    let message = format!("{r:?}");
+    log_to_console(message);
+
+    match r {
+        Ok(r) => {
+            let is_authenticated = r.authentication_result.as_ref().unwrap().is_authenticated;
+            update_token_login_status(is_authenticated);
+
+            if is_authenticated {
+                let databases = r.databases;
+                set_databases(databases.clone());
+            }
+        }
+        Err(e) => set_status(e),
+    };
 }

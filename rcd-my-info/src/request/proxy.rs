@@ -35,7 +35,7 @@ impl RcdProxy {
         let addr = format!("{}{}", "http://", addr);
         Self { addr }
     }
-
+    
     pub async fn register_account(
         &mut self,
         un: &str,

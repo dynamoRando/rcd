@@ -14,12 +14,12 @@ use crate::log::log_to_console;
 use crate::pages::home::Home;
 use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
-use crate::pages::rcd_admin::db::RcdDb;
+use crate::pages::rcd_admin::databases::db::RcdDb;
 use crate::pages::rcd_admin::sql::RcdSql;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
 use crate::request::proxy::get_proxy_token;
-use crate::request::rcd::{get_status, get_token};
+use crate::request::rcd::{get_rcd_token, get_status};
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -46,7 +46,6 @@ pub fn App() -> Html {
     let login_state = is_proxy_logged_in_state.clone();
 
     let status_state = use_state(move || String::from(""));
-    let status = status_state.clone();
 
     spawn_local(async move {
         IntervalStream::new(1_000)
@@ -57,19 +56,23 @@ pub fn App() -> Html {
             .await;
     });
 
-    spawn_local(async move {
-        IntervalStream::new(1_000)
-            .for_each(|_| {
-                check_and_set_status(status.clone());
-                ready(())
-            })
-            .await;
-    });
+    {
+        let status_state = status_state.clone();
+        spawn_local(async move {
+            IntervalStream::new(1_000)
+                .for_each(|_| {
+                    check_and_set_status(status_state.clone());
+                    ready(())
+                })
+                .await;
+        });
+    }
 
     html! {
         <BrowserRouter>
             <Nav />
-            <RcdNav is_logged_in={is_proxy_logged_in_state} status_message={status_state}/>
+            <RcdNav is_logged_in={is_proxy_logged_in_state.clone()} status_message={status_state.clone()}/>
+            <Status is_logged_in={is_proxy_logged_in_state.clone()} status_message={status_state.clone()}/>
             <main>
                 <Switch<Route> render={switch} />
             </main>
