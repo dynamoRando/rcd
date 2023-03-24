@@ -25,8 +25,8 @@ pub fn post(
     log_to_console(message);
 
     let mut proxy = get_proxy();
-    let token = get_rcd_token();
 
+    let request_json = request_json.clone().to_string();
     if !request_json.is_empty() {
         spawn_local(async move {
             let result = proxy.execute_request(&request_json, request_type).await;

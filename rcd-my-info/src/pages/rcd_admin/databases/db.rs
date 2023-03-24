@@ -1,29 +1,17 @@
-use rcd_messages::{
-    client::{AuthRequest, DatabaseSchema, GetDatabasesReply, GetDatabasesRequest},
-    proxy::request_type::RequestType,
-};
+use rcd_messages::client::DatabaseSchema;
 use wasm_bindgen_futures::spawn_local;
-use yew::{function_component, html, use_state, use_state_eq, Callback, Html, UseStateHandle};
+use yew::{function_component, html, use_state_eq, Callback, Html};
 use yew_router::prelude::use_navigator;
-
 
 use crate::{
     app::Route,
-    log::log_to_console,
     pages::{
         login,
-        rcd_admin::databases::{
-            add::Create,
-            enable_coop::EnableCoop,
-            tables::{self, Tables},
-        },
+        rcd_admin::databases::{add::Create, enable_coop::EnableCoop, tables::Tables},
     },
     request::{
-        proxy::{get_proxy, get_proxy_token, has_proxy_token},
-        rcd::{
-            get_database, get_databases, get_rcd_token, set_databases, set_status,
-            update_token_login_status,
-        },
+        proxy::has_proxy_token,
+        rcd::{get_database, get_databases},
     },
 };
 
@@ -49,8 +37,6 @@ pub fn RcdDb() -> Html {
             <Tables db={db.clone()} />
         }
     });
-
-    let selected_database = use_state_eq(|| None);
 
     let navigator = use_navigator().unwrap();
     if !has_proxy_token() {

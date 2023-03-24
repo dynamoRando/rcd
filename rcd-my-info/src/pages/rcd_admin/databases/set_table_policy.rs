@@ -1,12 +1,15 @@
 use crate::{
-    log::log_to_console,
-    pages::databases::columns::ColumnProps,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
+  
 };
 use rcd_http_common::url::client::SET_POLICY;
 use rcd_messages::client::{SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
+use rcd_messages::proxy::request_type::RequestType;
+use crate::{
+ request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
+};
 
 #[function_component]
 pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
@@ -51,7 +54,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
             let set_policy_result = set_policy_result.clone();
 
             Callback::from(move |_| {
-                let token = get_token();
+                let token = get_rcd_token();
                 let set_policy_result = set_policy_result.clone();
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
@@ -92,7 +95,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                 let message = format!("{}{}", "SENDING REQUEST FOR NEW POLICY: ", request_json);
                 log_to_console(message);
 
-                request::post(url, request_json, cb);
+                request::post(RequestType::SetLogicalStoragePolicy, &request_json, cb);
             })
         } else {
             Callback::from(move |_| {})

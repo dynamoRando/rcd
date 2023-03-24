@@ -3,7 +3,7 @@ use rcd_messages::client::{EnableCoooperativeFeaturesReply, EnableCoooperativeFe
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
-    log::log_to_console,
+    log::log_to_console, pages::rcd_admin::common::select_database::SelectDatabase,
 };
 
 use rcd_messages::proxy::request_type::RequestType;
@@ -23,7 +23,7 @@ pub fn EnableCoop() -> Html {
         Callback::from(move |_| {
             let active_database = active_database.clone();
             let enable_result = enable_result.clone();
-            let token = get_token();
+            let token = get_rcd_token();
 
             let request = EnableCoooperativeFeaturesRequest {
                 authentication: Some(token.auth()),
@@ -55,7 +55,7 @@ pub fn EnableCoop() -> Html {
                 }
             });
 
-            request::post(url, json_request, cb);
+            request::post(RequestType::EnableCooperativeFeatures, &json_request, cb);
         })
     };
 

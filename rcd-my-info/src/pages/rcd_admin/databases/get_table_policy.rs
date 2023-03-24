@@ -1,11 +1,15 @@
 use crate::{
-    log::log_to_console,
-    pages::databases::columns::ColumnProps,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
+
 };
 use rcd_http_common::url::client::GET_POLICY;
 use rcd_messages::client::{GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
+
+use rcd_messages::proxy::request_type::RequestType;
+use crate::{
+ request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
+};
 
 #[function_component]
 pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
@@ -53,7 +57,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
         }
     });
 
-    let token = get_token();
+    let token = get_rcd_token();
 
     let request = GetLogicalStoragePolicyRequest {
         authentication: Some(token.auth()),
@@ -63,7 +67,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
     let request_json = serde_json::to_string(&request).unwrap();
     let url = format!("{}{}", token.addr, GET_POLICY);
-    request::post(url, request_json, get_policy_response_cb);
+    request::post(RequestType::GetLogicalStoragePolicy, &request_json, get_policy_response_cb);
 
     html!(
         <div class="container">
