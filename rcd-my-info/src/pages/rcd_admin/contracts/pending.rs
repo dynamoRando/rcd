@@ -4,13 +4,14 @@ use rcd_messages::{
         AcceptPendingContractReply, AcceptPendingContractRequest, Contract,
         ViewPendingContractsReply, ViewPendingContractsRequest,
     },
+    proxy::request_type::RequestType,
     formatter,
 };
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{self, rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}},
 };
 
 #[function_component]
@@ -26,7 +27,7 @@ pub fn Pending() -> Html {
     let onclick = {
         let pending_contracts = pending_contracts.clone();
         Callback::from(move |_| {
-            let token = get_token();
+            let token = get_rcd_token();
             let pending_contracts = pending_contracts.clone();
 
             let request = ViewPendingContractsRequest {
@@ -57,7 +58,7 @@ pub fn Pending() -> Html {
                 }
             });
 
-            request::post(url, request_json, cb);
+            request::post(RequestType::ViewPendingContracts, &request_json, cb);
         })
     };
 
@@ -112,7 +113,7 @@ pub fn Pending() -> Html {
                                         let host_name = host_name.clone();
                                         let last_accept_reject_result = last_accept_reject_result.clone();
                                         Callback::from(move |_| {
-                                            let token = get_token().clone();
+                                            let token = get_rcd_token().clone();
                                             let request = AcceptPendingContractRequest{
                                                 authentication: Some(token.auth()),
                                                 host_alias: host_name.clone(),
@@ -141,7 +142,7 @@ pub fn Pending() -> Html {
                                                 }
                                             });
 
-                                            request::post(url, json_request, cb)
+                                            request::post(RequestType::AcceptPendingContract, &json_request, cb)
                                         }
                                     )}>
                                     <span class="mdi mdi-file-document-check">{" Accept"}</span>

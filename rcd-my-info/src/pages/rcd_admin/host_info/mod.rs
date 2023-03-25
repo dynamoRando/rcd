@@ -1,6 +1,6 @@
 use yew::{function_component, html, Html};
 
-use crate::pages::host_info::{generate_info::GenerateInfo, get_info::GetInfo};
+use crate::pages::rcd_admin::host_info::{generate_info::GenerateInfo, get_info::GetInfo};
 
 mod generate_info;
 mod get_info;

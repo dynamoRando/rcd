@@ -1,12 +1,12 @@
 use rcd_http_common::url::client::GENERATE_CONTRACT;
-use rcd_messages::client::{GenerateContractReply, GenerateContractRequest};
+use rcd_messages::{client::{GenerateContractReply, GenerateContractRequest}, proxy::request_type::RequestType};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
     pages::rcd_admin::common::select_database::SelectDatabase,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{self, rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}},
 };
 
 #[function_component]
@@ -36,7 +36,7 @@ pub fn Generate() -> Html {
                 .unwrap()
                 .value();
 
-            let token = get_token();
+            let token = get_rcd_token();
 
             let request = GenerateContractRequest {
                 authentication: Some(token.auth()),
@@ -75,7 +75,7 @@ pub fn Generate() -> Html {
                 })
             };
 
-            request::post(url, request_json, cb);
+            request::post(RequestType::GenerateContract, &request_json, cb);
         })
     };
 

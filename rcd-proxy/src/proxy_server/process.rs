@@ -166,7 +166,7 @@ pub async fn process_request(request: &ExecuteRequest, core: &Rcd) -> Result<Str
             RequestType::RejectPendingContract => {
                 todo!()
             }
-            RequestType::GeneratHostInfo => {
+            RequestType::GenerateHostInfo => {
                 let result_request =
                     serde_json::from_str::<GenerateHostInfoRequest>(&request.request_json);
                 match result_request {
