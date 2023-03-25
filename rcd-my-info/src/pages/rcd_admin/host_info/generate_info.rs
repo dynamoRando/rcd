@@ -1,4 +1,4 @@
-use rcd_http_common::url::client::GENERATE_HOST_INFO;
+
 use rcd_messages::client::{GenerateHostInfoReply, GenerateHostInfoRequest};
 use rcd_messages::proxy::request_type::RequestType;
 use web_sys::HtmlInputElement;
@@ -7,7 +7,7 @@ use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callb
 use crate::request;
 use crate::{
     log::log_to_console,
-    request::rcd::{self, clear_status, get_rcd_token, set_status, update_token_login_status},
+    request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
 };
 
 #[function_component]
@@ -32,7 +32,6 @@ pub fn GenerateInfo() -> Html {
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
-            let url = format!("{}{}", token.addr, GENERATE_HOST_INFO);
 
             let cb = {
                 let last_gen_result = last_gen_result;

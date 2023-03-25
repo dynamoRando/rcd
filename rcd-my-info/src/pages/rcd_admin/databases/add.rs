@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::NEW_DATABASE;
 use rcd_messages::client::{CreateUserDatabaseReply, CreateUserDatabaseRequest};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
@@ -29,8 +28,7 @@ pub fn Create() -> Html {
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
-            let url = format!("{}{}", token.addr, NEW_DATABASE);
-
+            
             let cb = {
                 let last_created_result = last_created_result;
                 Callback::from(move |response: Result<AttrValue, String>| {

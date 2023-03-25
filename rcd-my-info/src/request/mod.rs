@@ -1,17 +1,9 @@
-use gloo::{
-    net::http::{Method, Request},
-    storage::{SessionStorage, Storage},
-};
-use rcd_client_wasm::{client::RcdClient, token::Token};
-use rcd_messages::{
-    client::{AuthRequest, DatabaseSchema, ParticipantStatus},
-    proxy::request_type::RequestType,
-};
+use rcd_messages::proxy::request_type::RequestType;
 use yew::{platform::spawn_local, AttrValue, Callback};
 
 use crate::log::log_to_console;
 
-use self::{proxy::get_proxy, rcd::get_rcd_token};
+use self::proxy::get_proxy;
 
 pub mod proxy;
 pub mod rcd;

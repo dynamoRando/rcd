@@ -1,4 +1,4 @@
-use crate::{app::Route, request::proxy::{has_proxy_token, get_proxy_token}};
+use crate::{app::Route, request::proxy::{get_proxy_token}};
 use yew::prelude::*;
 use yew_router::prelude::*;
 

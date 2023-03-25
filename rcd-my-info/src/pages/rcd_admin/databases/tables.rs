@@ -6,12 +6,6 @@ use crate::{
 };
 
 use rcd_messages::client::{DatabaseSchema, TableSchema};
-
-use rcd_messages::proxy::request_type::RequestType;
-use crate::{
- request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
-};
-
 use yew::{function_component, html, use_state_eq, Html, Properties};
 
 #[derive(Properties, PartialEq)]

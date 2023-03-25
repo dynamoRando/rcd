@@ -2,7 +2,7 @@ use crate::{
     log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
 
 };
-use rcd_http_common::url::client::GET_POLICY;
+
 use rcd_messages::client::{GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
@@ -66,7 +66,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     };
 
     let request_json = serde_json::to_string(&request).unwrap();
-    let url = format!("{}{}", token.addr, GET_POLICY);
+    
     request::post(RequestType::GetLogicalStoragePolicy, &request_json, get_policy_response_cb);
 
     html!(

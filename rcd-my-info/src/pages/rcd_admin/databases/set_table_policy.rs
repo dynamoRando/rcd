@@ -2,7 +2,7 @@ use crate::{
     log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
   
 };
-use rcd_http_common::url::client::SET_POLICY;
+
 use rcd_messages::client::{SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
@@ -90,7 +90,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                 };
 
                 let request_json = serde_json::to_string(&request).unwrap();
-                let url = format!("{}{}", token.addr, SET_POLICY);
+                
 
                 let message = format!("{}{}", "SENDING REQUEST FOR NEW POLICY: ", request_json);
                 log_to_console(message);

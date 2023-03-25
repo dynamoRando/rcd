@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::{ACCEPT_PENDING_CONTRACT, VIEW_PENDING_CONTRACTS};
 use rcd_messages::{
     client::{
         AcceptPendingContractReply, AcceptPendingContractRequest, Contract,
@@ -35,7 +34,7 @@ pub fn Pending() -> Html {
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            let url = format!("{}{}", token.addr, VIEW_PENDING_CONTRACTS);
+            
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     log_to_console(x.to_string());
@@ -120,7 +119,7 @@ pub fn Pending() -> Html {
                                             };
 
                                             let json_request = serde_json::to_string(&request).unwrap();
-                                            let url = format!("{}{}", token.addr, ACCEPT_PENDING_CONTRACT);
+                                            
                                             let last_accept_reject_result = last_accept_reject_result.clone();
 
                                             let cb = Callback::from(move |response: Result<AttrValue, String>| {

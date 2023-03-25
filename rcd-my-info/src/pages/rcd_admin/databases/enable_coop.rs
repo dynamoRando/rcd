@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::ENABLE_COOPERATIVE_FEATURES;
 use rcd_messages::client::{EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
@@ -31,8 +30,7 @@ pub fn EnableCoop() -> Html {
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
-            let url = format!("{}{}", token.addr, ENABLE_COOPERATIVE_FEATURES);
-
+            
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     log_to_console(x.to_string());

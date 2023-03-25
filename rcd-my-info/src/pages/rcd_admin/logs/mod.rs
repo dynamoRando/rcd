@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::GET_LAST_LOGS;
 use rcd_messages::client::{GetLogsByLastNumberReply, GetLogsByLastNumberRequest, RcdLogEntry};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
@@ -34,7 +33,6 @@ pub fn Logs() -> Html {
                 number_of_logs: num_logs,
             };
 
-            let url = format!("{}{}", token.addr, GET_LAST_LOGS);
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {

@@ -3,15 +3,12 @@ use gloo::{
     storage::{SessionStorage, Storage},
 };
 use rcd_client_wasm::token::Token;
-use rcd_messages::{
-    client::AuthRequest,
-    proxy::{
-        request_type::RequestType,
-        server_messages::{
-            http::{EXECUTE, REGISTER_URL, REVOKE_TOKEN_URL, TOKEN_URL},
-            AuthForTokenReply, AuthForTokenRequest, ExecuteReply, ExecuteRequest,
-            RegisterLoginReply, RegisterLoginRequest,
-        },
+use rcd_messages::proxy::{
+    request_type::RequestType,
+    server_messages::{
+        http::{EXECUTE, REGISTER_URL, REVOKE_TOKEN_URL, TOKEN_URL},
+        AuthForTokenReply, AuthForTokenRequest, ExecuteReply, ExecuteRequest, RegisterLoginReply,
+        RegisterLoginRequest,
     },
 };
 use serde::{de, Deserialize, Serialize};
@@ -76,7 +73,7 @@ impl RcdProxy {
     ) -> Result<String, String> {
         let token = get_proxy_token();
 
-        if let Some(id) = token.id {
+        if let Some(_) = token.id {
             let request = ExecuteRequest {
                 login: None,
                 pw: None,
@@ -89,7 +86,6 @@ impl RcdProxy {
 
             let result: Result<ExecuteReply, String> =
                 self.get_http_result_error(url, request).await;
-            let debug = format!("{result:?}");
 
             match result {
                 Ok(result) => {
@@ -113,7 +109,7 @@ impl RcdProxy {
     ) -> Result<T, String> {
         let token = get_proxy_token();
 
-        if let Some(id) = token.id {
+        if let Some(_) = token.id {
             let request = ExecuteRequest {
                 login: None,
                 pw: None,
@@ -126,7 +122,6 @@ impl RcdProxy {
 
             let result: Result<ExecuteReply, String> =
                 self.get_http_result_error(url, request).await;
-            let debug = format!("{result:?}");
 
             match result {
                 Ok(result) => {

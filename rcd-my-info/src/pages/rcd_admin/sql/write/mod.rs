@@ -9,7 +9,7 @@ use crate::{
     request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
-pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>>, endpoint: &str) {
+pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>>, request_type: RequestType) {
     let token = get_rcd_token();
     let auth = token.auth();
 
@@ -22,8 +22,7 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
     };
 
     let write_request_json = serde_json::to_string(&request).unwrap();
-    let url = format!("{}{}", token.addr, endpoint);
-
+    
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
         if let Ok(ref x) = response {
             log_to_console(x.to_string());
@@ -62,15 +61,14 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
         }
     });
 
-    request::post(RequestType::WriteAtHost, &write_request_json, callback);
+    request::post(request_type, &write_request_json, callback);
 }
 
 pub fn cooperative_write(
     db_name: String,
     text: String,
     participant_alias: String,
-    state: UseStateHandle<Option<String>>,
-    endpoint: &str,
+    state: UseStateHandle<Option<String>>
 ) {
     let token = get_rcd_token();
     let auth = token.auth();
@@ -86,7 +84,6 @@ pub fn cooperative_write(
     };
 
     let write_request_json = serde_json::to_string(&request).unwrap();
-    let url = format!("{}{}", token.addr, endpoint);
 
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
         if let Ok(ref x) = response {

@@ -1,10 +1,9 @@
-use rcd_http_common::url::client::GET_SETTINGS;
 use rcd_messages::client::{GetSettingsReply, GetSettingsRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{rcd::{self, get_rcd_token, set_status, update_token_login_status}, self},
+    request::{rcd::{get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 #[function_component]
@@ -20,7 +19,6 @@ pub fn Settings() -> Html {
                 authentication: Some(token.auth()),
             };
 
-            let url = format!("{}{}", token.addr, GET_SETTINGS);
             let body = serde_json::to_string(&request).unwrap();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {

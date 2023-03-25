@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::GENERATE_CONTRACT;
 use rcd_messages::{client::{GenerateContractReply, GenerateContractRequest}, proxy::request_type::RequestType};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
@@ -47,8 +46,6 @@ pub fn Generate() -> Html {
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-
-            let url = format!("{}{}", token.addr, GENERATE_CONTRACT);
 
             let cb = {
                 Callback::from(move |response: Result<AttrValue, String>| {

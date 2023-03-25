@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::GET_ACTIVE_CONTRACT;
 use rcd_messages::{
     client::{GetActiveContractReply, GetActiveContractRequest},
     formatter, proxy::request_type::RequestType,
@@ -38,8 +37,7 @@ pub fn Active() -> Html {
                     };
 
                     let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
-                    let url = format!("{}{}", token.addr, GET_ACTIVE_CONTRACT);
-
+                    
                     let cb = Callback::from(move |response: Result<AttrValue, String>| {
                         if let Ok(ref x) = response {
                             log_to_console(x.to_string());

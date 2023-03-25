@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::GET_HOST_INFO;
 use rcd_messages::client::{Host, HostInfoReply};
 use rcd_messages::proxy::request_type::RequestType;
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
@@ -27,8 +26,7 @@ pub fn GetInfo() -> Html {
         Callback::from(move |_| {
             let host_info = host_info.clone();
             let token = get_rcd_token();
-            let url = format!("{}{}", token.addr, GET_HOST_INFO);
-
+            
             let request_json = token.auth_json();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {

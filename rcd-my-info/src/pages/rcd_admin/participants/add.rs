@@ -1,5 +1,4 @@
 use js_sys::Date;
-use rcd_http_common::url::client::ADD_PARTICIPANT;
 use rcd_messages::client::{AddParticipantReply, AddParticipantRequest};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
@@ -7,7 +6,7 @@ use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
     pages::rcd_admin::participants::ActiveDbProps,
-    request::{rcd::{self, clear_status, get_rcd_token, set_status, update_token_login_status}, self},
+    request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 #[function_component]
@@ -43,8 +42,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             let http_port = ui_http_port.cast::<HtmlInputElement>().unwrap().value();
 
             let token = get_rcd_token();
-            let url = format!("{}{}", token.addr, ADD_PARTICIPANT);
-
+            
             let request = AddParticipantRequest {
                 authentication: Some(token.auth()),
                 database_name: db_name,

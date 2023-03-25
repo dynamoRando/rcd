@@ -1,4 +1,3 @@
-use rcd_http_common::url::client::SEND_CONTRACT_TO_PARTICIPANT;
 use rcd_messages::client::{
     ParticipantStatus, SendParticipantContractReply, SendParticipantContractRequest,
 };
@@ -12,7 +11,7 @@ use crate::request;
 use crate::{
     log::log_to_console,
     pages::rcd_admin::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::rcd::{self, clear_status, get_rcd_client, get_rcd_token, set_status, update_token_login_status},
+    request::rcd::{clear_status, get_rcd_client, get_rcd_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -144,11 +143,7 @@ pub fn ViewParticipantsForDb(
                                                 let json_request = serde_json::to_string(&request).unwrap();
 
                                                 log_to_console(json_request.clone());
-
-                                                let url = format!("{}{}", token.addr, SEND_CONTRACT_TO_PARTICIPANT);
-
-                                                log_to_console(url.clone());
-
+                                                
                                                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
 
                                                     if let Ok(ref x) = response {

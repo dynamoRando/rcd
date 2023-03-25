@@ -1,12 +1,6 @@
-use gloo::{
-    net::http::{Method, Request},
-    storage::{SessionStorage, Storage},
-};
+use gloo::storage::{SessionStorage, Storage};
 use rcd_client_wasm::{client::RcdClient, token::Token};
 use rcd_messages::client::{DatabaseSchema, ParticipantStatus};
-use yew::{platform::spawn_local, AttrValue, Callback};
-
-use crate::log::log_to_console;
 
 const KEY: &str = "rcdmyinfo.key.rcd.instance";
 const DATABASES: &str = "rcdmyinfo.key.databases";
@@ -66,7 +60,7 @@ pub fn get_databases() -> Vec<DatabaseSchema> {
     let databases = SessionStorage::get(DATABASES).unwrap_or_else(|_| String::from(""));
     if databases.is_empty() {
         let _x: Vec<DatabaseSchema> = Vec::new();
-        return _x
+        return _x;
     }
     let databases: Vec<DatabaseSchema> = serde_json::from_str(&databases).unwrap();
     databases

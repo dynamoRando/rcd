@@ -1,27 +1,17 @@
-use rcd_client_wasm::{client::RcdClient, token::Token};
-use rcd_http_common::url::client::GET_DATABASES;
+use rcd_client_wasm::token::Token;
 use rcd_messages::{
     client::{AuthRequest, GetDatabasesReply, GetDatabasesRequest},
-    proxy::{
-        request_type::{self, RequestType},
-        server_messages::{AuthForTokenReply, ExecuteRequest},
-    },
+    proxy::{request_type::RequestType, server_messages::AuthForTokenReply},
 };
 use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::{PROXY_ADDR, PROXY_ADDR_PORT, PROXY_PORT},
+    con::PROXY_ADDR_PORT,
     log::log_to_console,
     request::{
-        self,
-        proxy::{
-            clear_proxy_token, get_proxy, get_proxy_token, set_proxy, set_proxy_token, RcdProxy,
-        },
-        rcd::{
-            clear_status, get_rcd_token, set_databases, set_rcd_token, set_status,
-            update_token_login_status,
-        },
+        proxy::{clear_proxy_token, get_proxy, set_proxy, set_proxy_token, RcdProxy},
+        rcd::{get_rcd_token, set_databases, set_rcd_token, set_status, update_token_login_status},
     },
 };
 

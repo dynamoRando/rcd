@@ -4,14 +4,11 @@ use crate::{
         sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
     request::rcd::{
-        clear_status, get_rcd_client, get_database, get_databases, get_rcd_token, set_status,
+        clear_status, get_database, get_databases, get_rcd_client, get_rcd_token, set_status,
         update_token_login_status,
     },
 };
-use rcd_http_common::url::client::{
-    COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
-    WRITE_SQL_AT_PARTICIPANT,
-};
+use rcd_messages::proxy::request_type::RequestType;
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
@@ -140,7 +137,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 db_name.to_string(),
                 text,
                 sql_result_state.clone(),
-                READ_SQL_AT_HOST,
+                RequestType::ReadAtHost,
             )
         })
     };
@@ -160,7 +157,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 db_name.to_string(),
                 text,
                 sql_result_state.clone(),
-                READ_SQL_AT_PARTICIPANT,
+                RequestType::ReadAtPart,
             )
         })
     };
@@ -179,7 +176,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 active_database.to_string(),
                 text,
                 sql_result_state.clone(),
-                WRITE_SQL_AT_HOST,
+                RequestType::WriteAtHost,
             )
         })
     };
@@ -198,7 +195,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 active_database.to_string(),
                 text,
                 sql_result_state.clone(),
-                WRITE_SQL_AT_PARTICIPANT,
+                RequestType::WriteAtPart,
             )
         })
     };
@@ -217,13 +214,7 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 .cast::<HtmlInputElement>()
                 .unwrap()
                 .value();
-            cooperative_write(
-                db_name.to_string(),
-                text,
-                alias,
-                sql_result_state.clone(),
-                COOPERATIVE_WRITE_SQL_AT_HOST,
-            )
+            cooperative_write(db_name.to_string(), text, alias, sql_result_state.clone())
         })
     };
 
@@ -255,7 +246,6 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                     <option value="SELECT PARTICIPANT">{"SELECT PARTICIPANT"}</option>
                     {
                         (*participant_aliases).as_ref().unwrap().clone().into_iter().map(|name| {
-                            // console::log_1(&name.clone().into());
                             html!{
                             <option value={name.clone()}>{name.clone()}</option>}
                         }).collect::<Html>()
