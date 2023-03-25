@@ -1,10 +1,10 @@
 use crate::{
-    pages::{
+    pages::rcd_admin::{
         common::select_database::SelectDatabase,
         sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
-    request::{
-        clear_status, get_client, get_database, get_databases, get_token, set_status,
+    request::rcd::{
+        clear_status, get_rcd_client, get_database, get_databases, get_rcd_token, set_status,
         update_token_login_status,
     },
 };
@@ -12,7 +12,6 @@ use rcd_http_common::url::client::{
     COOPERATIVE_WRITE_SQL_AT_HOST, READ_SQL_AT_HOST, READ_SQL_AT_PARTICIPANT, WRITE_SQL_AT_HOST,
     WRITE_SQL_AT_PARTICIPANT,
 };
-
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
@@ -57,9 +56,9 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 let participant_dropdown_enabled = participant_dropdown_enabled.clone();
                 if cooperation_enabled {
                     let participant_aliases = participant_aliases.clone();
-                    let token = get_token();
+                    let token = get_rcd_token();
                     //
-                    let mut client = get_client();
+                    let mut client = get_rcd_client();
                     spawn_local(async move {
                         let reply = client.get_participants(token.auth(), &db_name).await;
 

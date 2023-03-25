@@ -3,14 +3,14 @@ use rcd_messages::client::{
     ExecuteWriteRequest,
 };
 use yew::{AttrValue, Callback, UseStateHandle};
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>>, endpoint: &str) {
-    let token = get_token();
+    let token = get_rcd_token();
     let auth = token.auth();
 
     let request = ExecuteWriteRequest {
@@ -62,7 +62,7 @@ pub fn write(db_name: String, text: String, state: UseStateHandle<Option<String>
         }
     });
 
-    request::post(url, write_request_json, callback);
+    request::post(RequestType::WriteAtHost, &write_request_json, callback);
 }
 
 pub fn cooperative_write(
@@ -72,7 +72,7 @@ pub fn cooperative_write(
     state: UseStateHandle<Option<String>>,
     endpoint: &str,
 ) {
-    let token = get_token();
+    let token = get_rcd_token();
     let auth = token.auth();
 
     let request = ExecuteCooperativeWriteRequest {
@@ -115,5 +115,5 @@ pub fn cooperative_write(
         }
     });
 
-    request::post(url, write_request_json, callback);
+    request::post(RequestType::CooperativeWriteAtHost, &write_request_json, callback);
 }

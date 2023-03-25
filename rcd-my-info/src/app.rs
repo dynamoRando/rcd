@@ -10,16 +10,16 @@ use yew_router::prelude::*;
 use crate::components::nav::Nav;
 use crate::components::rcd_nav::RcdNav;
 use crate::components::status::Status;
-use crate::log::log_to_console;
+
 use crate::pages::home::Home;
 use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::rcd_admin::databases::db::RcdDb;
-use crate::pages::rcd_admin::sql::RcdSql;
+use crate::pages::rcd_admin::sql::sqlx::Sql;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
 use crate::request::proxy::get_proxy_token;
-use crate::request::rcd::{get_rcd_token, get_status};
+use crate::request::rcd::{get_status};
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -106,7 +106,7 @@ fn switch(routes: Route) -> Html {
             html! { <RcdDb /> }
         }
         Route::MyRcdSql => {
-            html! { <RcdSql /> }
+            html! { <Sql /> }
         }
         Route::NotFound => {
             html! { <PageNotFound /> }

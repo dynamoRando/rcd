@@ -1,10 +1,10 @@
 use rcd_http_common::url::client::GET_SETTINGS;
 use rcd_messages::client::{GetSettingsReply, GetSettingsRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{self, get_token, set_status, update_token_login_status},
+    request::{rcd::{self, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 #[function_component]
@@ -15,7 +15,7 @@ pub fn Settings() -> Html {
         let settings = settings.clone();
         Callback::from(move |_| {
             let settings = settings.clone();
-            let token = get_token();
+            let token = get_rcd_token();
             let request = GetSettingsRequest {
                 authentication: Some(token.auth()),
             };
@@ -40,7 +40,7 @@ pub fn Settings() -> Html {
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::GetSettings, &body, cb);
         })
     };
 

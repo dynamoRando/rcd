@@ -3,14 +3,14 @@ use rcd_messages::{
     formatter,
 };
 use yew::{AttrValue, Callback, UseStateHandle};
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{rcd::{self, clear_status, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>, endpoint: &str) {
-    let token = get_token();
+    let token = get_rcd_token();
     let auth = token.auth();
 
     let request = ExecuteReadRequest {
@@ -57,5 +57,5 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
         }
     });
 
-    request::post(url, read_request_json, callback);
+    request::post(RequestType::ReadAtHost, &read_request_json, callback);
 }

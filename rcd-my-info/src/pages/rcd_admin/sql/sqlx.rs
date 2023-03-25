@@ -1,4 +1,4 @@
-use crate::pages::sql::{enter_sql::EnterSql, sql_result::SqlResult};
+use crate::pages::rcd_admin::sql::{enter_sql::EnterSql, sql_result::SqlResult};
 use yew::{function_component, html, use_state_eq, Html, Properties, UseStateHandle};
 
 #[derive(Properties, PartialEq)]

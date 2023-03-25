@@ -1,4 +1,4 @@
-use crate::pages::sql::sqlx::SqlProps;
+use crate::pages::rcd_admin::sql::sqlx::SqlProps;
 use yew::{function_component, html, Html};
 
 #[function_component]

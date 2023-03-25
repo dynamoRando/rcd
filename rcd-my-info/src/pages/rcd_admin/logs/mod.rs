@@ -2,10 +2,10 @@ use rcd_http_common::url::client::GET_LAST_LOGS;
 use rcd_messages::client::{GetLogsByLastNumberReply, GetLogsByLastNumberRequest, RcdLogEntry};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{self, get_token, set_status, update_token_login_status},
+    request::{rcd::{get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 #[function_component]
@@ -28,7 +28,7 @@ pub fn Logs() -> Html {
                 .trim()
                 .parse()
                 .unwrap();
-            let token = get_token();
+            let token = get_rcd_token();
             let request = GetLogsByLastNumberRequest {
                 authentication: Some(token.auth()),
                 number_of_logs: num_logs,
@@ -54,7 +54,7 @@ pub fn Logs() -> Html {
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::GetLogsByLastNumber, &body, cb);
         })
     };
 

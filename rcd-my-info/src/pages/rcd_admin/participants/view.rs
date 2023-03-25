@@ -2,16 +2,17 @@ use rcd_http_common::url::client::SEND_CONTRACT_TO_PARTICIPANT;
 use rcd_messages::client::{
     ParticipantStatus, SendParticipantContractReply, SendParticipantContractRequest,
 };
-
+use rcd_messages::proxy::request_type::RequestType;
 use wasm_bindgen_futures::spawn_local;
 use yew::{
     function_component, html, use_state_eq, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
+use crate::request;
 use crate::{
     log::log_to_console,
-    pages::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::{self, clear_status, get_client, get_token, set_status, update_token_login_status},
+    pages::rcd_admin::{common::select_database::SelectDatabase, participants::ActiveDbProps},
+    request::rcd::{self, clear_status, get_rcd_client, get_rcd_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -36,8 +37,8 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             if !db_name.is_empty() && db_name != "SELECT DATABASE" {
                 let participant_details = participant_details.clone();
 
-                let mut client = get_client();
-                let token = get_token();
+                let mut client = get_rcd_client();
+                let token = get_rcd_token();
                 spawn_local(async move {
                     let reply = client.get_participants(token.auth(), &db_name).await;
 
@@ -132,7 +133,7 @@ pub fn ViewParticipantsForDb(
                                             move |_| {
                                                 let participant_send_contract_result = participant_send_contract_result.clone();
                                                 let alias = participant.alias.clone();
-                                                let token = get_token().clone();
+                                                let token = get_rcd_token().clone();
 
                                                 let request = SendParticipantContractRequest {
                                                     authentication: Some(token.auth().clone()),
@@ -176,7 +177,7 @@ pub fn ViewParticipantsForDb(
                                                     }
                                                 });
 
-                                                request::post(url, json_request.clone(), cb.clone())
+                                                request::post(RequestType::SendParticipantContract, &json_request.clone(), cb.clone())
                                             }
                                         }>{"Send Active Contract"}</button></td>
                                     </tr>

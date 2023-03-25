@@ -7,13 +7,13 @@ use rcdproto::rcdp::{
     ChangeUpdatesToHostBehaviorRequest, CreateUserDatabaseRequest,
     EnableCoooperativeFeaturesRequest, ExecuteCooperativeWriteRequest, ExecuteReadRequest,
     ExecuteWriteRequest, GenerateContractRequest, GenerateHostInfoRequest,
-    GetActiveContractRequest, GetCooperativeHostsRequest, GetDataHashRequest,
-    GetDatabasesRequest, GetDeletesFromHostBehaviorRequest,
-    GetDeletesToHostBehaviorRequest, GetLogicalStoragePolicyRequest, GetLogsByLastNumberRequest,
-    GetParticipantsRequest, GetPendingActionsRequest, GetReadRowIdsRequest, GetSettingsRequest,
+    GetActiveContractRequest, GetCooperativeHostsRequest, GetDataHashRequest, GetDatabasesRequest,
+    GetDeletesFromHostBehaviorRequest, GetDeletesToHostBehaviorRequest,
+    GetLogicalStoragePolicyRequest, GetLogsByLastNumberRequest, GetParticipantsRequest,
+    GetPendingActionsRequest, GetReadRowIdsRequest, GetSettingsRequest,
     GetUpdatesFromHostBehaviorRequest, GetUpdatesToHostBehaviorRequest, HasTableRequest,
-    SendParticipantContractRequest, SetLogicalStoragePolicyRequest,
-    TryAuthAtParticipantRequest, ViewPendingContractsRequest,
+    SendParticipantContractRequest, SetLogicalStoragePolicyRequest, TryAuthAtParticipantRequest,
+    ViewPendingContractsRequest,
 };
 
 pub async fn process_request(request: &ExecuteRequest, core: &Rcd) -> Result<String, String> {
@@ -446,6 +446,16 @@ pub async fn process_request(request: &ExecuteRequest, core: &Rcd) -> Result<Str
                 match result_request {
                     Ok(request) => {
                         let reply = core.get_data_hash_at_participant(request).await;
+                        return Ok(serde_json::to_string(&reply).unwrap());
+                    }
+                    Err(e) => return Err(e.to_string()),
+                }
+            }
+            RequestType::ViewHostInfo => {
+                let result_request = serde_json::from_str::<AuthRequest>(&request.request_json);
+                match result_request {
+                    Ok(request) => {
+                        let reply = core.get_host_info(request).await;
                         return Ok(serde_json::to_string(&reply).unwrap());
                     }
                     Err(e) => return Err(e.to_string()),

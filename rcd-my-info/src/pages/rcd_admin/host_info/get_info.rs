@@ -3,9 +3,10 @@ use rcd_messages::client::{Host, HostInfoReply};
 use rcd_messages::proxy::request_type::RequestType;
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
+use crate::request;
 use crate::{
     log::log_to_console,
-    request::rcd::{self, clear_status, get_rcd_token, set_status, update_token_login_status},
+    request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
 };
 
 #[function_component]

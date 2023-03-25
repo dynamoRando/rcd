@@ -1,6 +1,6 @@
 use yew::{function_component, html, use_state_eq, Html, Properties, UseStateHandle};
 
-use crate::pages::participants::{add::AddParticipant, view::ViewParticipants};
+use crate::pages::rcd_admin::participants::{add::AddParticipant, view::ViewParticipants};
 
 pub mod add;
 pub mod view;
