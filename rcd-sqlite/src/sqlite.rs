@@ -230,12 +230,12 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let cols = statement.columns();
     let mut table = Table::new();
 
-    debug!("{:?}", cmd);
+    trace!("{:?}", cmd);
 
     for col in cols {
         let col_idx = statement.column_index(col.name())?;
 
-        debug!("{:?}", col);
+        trace!("{:?}", col);
         let mut data_type = String::from("");
 
         let col_type = col.decl_type();
@@ -251,7 +251,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
             is_primary_key: false,
         };
 
-        info!("adding col {}", c.name);
+        trace!("adding col {}", c.name);
 
         table.add_column(c);
     }

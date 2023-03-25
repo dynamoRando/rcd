@@ -282,7 +282,6 @@ fn create_remotes_table(conn: &Connection) {
 }
 
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
-    debug!("get_db_schema");
     debug!("{db_name:?}");
 
     let mut cooperation_enabled = false;
@@ -413,7 +412,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             db_schema.tables.push(ts);
         }
 
-        debug!("db_schema: {:?}", db_schema);
+        trace!("db_schema: {:?}", db_schema);
 
         // get all remaining tables that don't have a policy defined, because we may want to set them
         let table_names = get_all_user_table_names_in_db(conn);
@@ -459,7 +458,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
                     };
 
                     for val in row.vals {
-                        debug!("{val:?}");
+                        trace!("{val:?}");
 
                         if val.col.name == "columnId" {
                             let item = val.data.clone().unwrap();
@@ -556,7 +555,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             };
 
             for val in row.vals {
-                debug!("{val:?}");
+                trace!("{val:?}");
 
                 if val.col.name == "columnId" {
                     let item = val.data.clone().unwrap();

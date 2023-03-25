@@ -11,7 +11,7 @@ use crate::{
     log::log_to_console,
     request::{
         proxy::{clear_proxy_token, get_proxy, set_proxy, set_proxy_token, RcdProxy},
-        rcd::{get_rcd_token, set_databases, set_rcd_token, set_status, update_token_login_status},
+        rcd::{get_rcd_token, set_databases, set_rcd_token, set_status, update_token_login_status, clear_status},
     },
 };
 
@@ -23,6 +23,7 @@ pub fn Login() -> Html {
     let login_result = use_state_eq(move || String::from(""));
 
     let onclick = {
+        clear_status();
         let ui_un = ui_un.clone();
         let ui_pw = ui_pw.clone();
         let login_result = login_result.clone();

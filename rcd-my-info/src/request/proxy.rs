@@ -92,7 +92,8 @@ impl RcdProxy {
                     if result.execute_success {
                         return Ok(result.reply.unwrap());
                     } else {
-                        return Err("could not execute".to_string());
+                        let message = format!("could not execute: {result:?}");
+                        return Err(message);
                     }
                 }
                 Err(e) => return Err(e),
@@ -128,7 +129,8 @@ impl RcdProxy {
                     if result.execute_success {
                         return Ok(serde_json::from_str::<T>(&result.reply.unwrap()).unwrap());
                     } else {
-                        return Err("could not execute".to_string());
+                        let message = format!("could not execute: {result:?}");
+                        return Err(message);
                     }
                 }
                 Err(e) => return Err(e),
