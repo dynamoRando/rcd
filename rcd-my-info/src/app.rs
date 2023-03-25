@@ -16,6 +16,7 @@ use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
 use crate::pages::rcd_admin::behaviors::Behaviors;
 use crate::pages::rcd_admin::contracts::Contracts;
+use crate::pages::rcd_admin::coop_hosts::CooperativeHosts;
 use crate::pages::rcd_admin::databases::db::RcdDb;
 use crate::pages::rcd_admin::host_info::HostInfo;
 use crate::pages::rcd_admin::logs::Logs;
@@ -131,10 +132,10 @@ fn switch(routes: Route) -> Html {
         Route::NotFound => {
             html! { <PageNotFound /> }
         }
-        Route::MyRcdContracts =>    html! { <Contracts /> },
-        Route::MyRcdHostInfo =>    html! { <HostInfo /> },
-        Route::MyRcdPart =>    html! { <Participants /> },
-        Route::MyRcdBehavior =>    html! { <Behaviors /> },
+        Route::MyRcdContracts => html! { <Contracts /> },
+        Route::MyRcdHostInfo => html! { <HostInfo /> },
+        Route::MyRcdPart => html! { <Participants /> },
+        Route::MyRcdBehavior => html! { <Behaviors /> },
         Route::MyRcdCoopHost => html! { <CooperativeHosts /> },
         Route::MyRcdSettings => html! { <Settings /> },
         Route::MyRcdLogs => html! { <Logs /> },

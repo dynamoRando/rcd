@@ -1,15 +1,15 @@
+use crate::request;
+use crate::{
+    log::log_to_console,
+    request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+};
 use rcd_enum::host_status::HostStatus;
-use rcd_http_common::url::client::{CHANGE_HOST_STATUS_NAME, GET_COOP_HOSTS};
 use rcd_messages::client::{
     ChangeHostStatusReply, ChangeHostStatusRequest, GetCooperativeHostsReply,
     GetCooperativeHostsRequest, HostInfoStatus,
 };
-use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 use rcd_messages::proxy::request_type::RequestType;
-use crate::{
-    log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
-};
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
 pub fn CooperativeHosts() -> Html {
@@ -21,8 +21,7 @@ pub fn CooperativeHosts() -> Html {
     let onclick = {
         let hosts_state = hosts_state.clone();
         Callback::from(move |_| {
-            let token = get_token();
-            let url = format!("{}{}", token.addr, GET_COOP_HOSTS);
+            let token = get_rcd_token();
 
             let request = GetCooperativeHostsRequest {
                 authentication: Some(token.auth()),
@@ -55,7 +54,7 @@ pub fn CooperativeHosts() -> Html {
                 }
             });
 
-            request::post(url, json_request, cb)
+            request::post(RequestType::GetCooperativeHosts, &json_request, cb)
         })
     };
 
@@ -115,8 +114,8 @@ pub fn CooperativeHosts() -> Html {
                                                     let name = name.clone();
                                                     Callback::from(move |_|{
                                                         let name = name.clone();
-                                                        let token = get_token();
-                                                        let url = format!("{}{}", token.addr, CHANGE_HOST_STATUS_NAME);
+                                                        let token = get_rcd_token();
+
                                                         let request = ChangeHostStatusRequest {
                                                             authentication: Some(token.auth()),
                                                             host_id: id.clone(),
@@ -148,7 +147,7 @@ pub fn CooperativeHosts() -> Html {
 
                                                             });
 
-                                                        request::post(url, body, cb);
+                                                        request::post(RequestType::ChangeHostStatus, &body, cb);
                                                     })
                                                 }>
                                                     <span class="mdi mdi-account-check">{" Allow"}</span>
@@ -159,8 +158,8 @@ pub fn CooperativeHosts() -> Html {
                                                     let name = name.clone();
                                                     Callback::from(move |_|{
                                                         let name = name.clone();
-                                                        let token = get_token();
-                                                        let url = format!("{}{}", token.addr, CHANGE_HOST_STATUS_NAME);
+                                                        let token = get_rcd_token();
+
                                                         let request = ChangeHostStatusRequest {
                                                             authentication: Some(token.auth()),
                                                             host_id: id.clone(),
@@ -191,7 +190,7 @@ pub fn CooperativeHosts() -> Html {
                                                             }
                                                             });
 
-                                                        request::post(url, body, cb);
+                                                        request::post(RequestType::ChangeHostStatus, &body, cb);
                                                     })
                                                 }>
                                                     <span class="mdi mdi-account-cancel">{" Deny"}</span>

@@ -12,7 +12,7 @@ use yew::{
 use crate::request;
 use crate::{
     log::log_to_console,
-    request::rcd::{self, clear_status, get_rcd_token, set_status, update_token_login_status},
+    request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]

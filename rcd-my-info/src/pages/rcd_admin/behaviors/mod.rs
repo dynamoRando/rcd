@@ -1,6 +1,6 @@
 use yew::{function_component, html, Html};
 
-use crate::pages::behaviors::{
+use crate::pages::rcd_admin::behaviors::{
     deletes_from_host::DeletesFromHost, deletes_to_host::DeletesToHost,
     updates_from_host::UpdatesFromHost, updates_to_host::UpdatesToHost,
 };

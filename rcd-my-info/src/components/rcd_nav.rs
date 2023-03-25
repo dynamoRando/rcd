@@ -1,4 +1,4 @@
-use crate::{app::Route, request::proxy::{get_proxy_token}};
+use crate::{app::Route, request::proxy::get_proxy_token};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -8,11 +8,9 @@ pub struct RcdStatusProps {
     pub status_message: UseStateHandle<String>,
 }
 
-
 #[function_component]
 pub fn RcdNav(props: &RcdStatusProps) -> Html {
-    
-    /* 
+    /*
         let navigator = use_navigator().unwrap();
 
         if !has_proxy_token() {
@@ -63,6 +61,27 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
                         </Link<Route>>
                         <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdSql}>
                         { "Sql" }
+                        </Link<Route>>
+                         <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdContracts}>
+                        { "Contracts" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdHostInfo}>
+                        { "Host Info" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdPart}>
+                        { "Participants" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdBehavior}>
+                        { "Behaviors" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdCoopHost}>
+                        { "Cooperative Hosts" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdSettings}>
+                        { "Settings" }
+                        </Link<Route>>
+                        <Link<Route> classes={classes!("navbar-item")} to={Route::MyRcdLogs}>
+                        { "Logs" }
                         </Link<Route>>
                     </div>
                 </div>
