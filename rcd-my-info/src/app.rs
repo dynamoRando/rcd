@@ -111,27 +111,13 @@ pub fn App() -> Html {
 
 fn switch(routes: Route) -> Html {
     match routes {
-        Route::Home => {
-            html! { <Home /> }
-        }
-        Route::Register => {
-            html! { <Register /> }
-        }
-        Route::Login => {
-            html! { <Login /> }
-        }
-        Route::SiteAdmin => {
-            html! { <SiteAdmin /> }
-        }
-        Route::MyRcdDb => {
-            html! { <RcdDb /> }
-        }
-        Route::MyRcdSql => {
-            html! { <Sql /> }
-        }
-        Route::NotFound => {
-            html! { <PageNotFound /> }
-        }
+        Route::Home => html! { <Home /> },
+        Route::Register => html! { <Register /> },
+        Route::Login => html! { <Login /> },
+        Route::SiteAdmin => html! { <SiteAdmin /> },
+        Route::MyRcdDb => html! { <RcdDb /> },
+        Route::MyRcdSql => html! { <Sql /> },
+        Route::NotFound => html! { <PageNotFound /> },
         Route::MyRcdContracts => html! { <Contracts /> },
         Route::MyRcdHostInfo => html! { <HostInfo /> },
         Route::MyRcdPart => html! { <Participants /> },
