@@ -2,7 +2,6 @@ use rcd_enum::{
     deletes_from_host_behavior::DeletesFromHostBehavior,
     updates_from_host_behavior::UpdatesFromHostBehavior,
 };
-use rcd_http_common::url::client::CHANGE_DELETES_FROM_HOST_BEHAVIOR;
 use rcd_messages::client::{
     ChangeDeletesFromHostBehaviorReply, ChangeDeletesFromHostBehaviorRequest,
 };
@@ -10,10 +9,10 @@ use web_sys::HtmlInputElement;
 use yew::{
     function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
+    request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
 };
 
 #[derive(Properties, PartialEq)]
@@ -46,8 +45,8 @@ pub fn ChangeBehavior(
                 UpdatesFromHostBehavior::from_u32(behavior.parse::<u32>().unwrap());
             let behavior_value = UpdatesFromHostBehavior::to_u32(behavior_value);
 
-            let token = get_token();
-            let url = format!("{}{}", token.addr, CHANGE_DELETES_FROM_HOST_BEHAVIOR);
+            let token = get_rcd_token();
+            
             let request = ChangeDeletesFromHostBehaviorRequest {
                 authentication: Some(token.auth()),
                 database_name: (*database).clone(),
@@ -111,7 +110,7 @@ pub fn ChangeBehavior(
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::ChangeDeletesFromHostBehavior, &body, cb);
         })
     };
 

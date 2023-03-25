@@ -5,7 +5,7 @@ use web_sys::HtmlInputElement;
 use yew::{
     function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
     request::{self, clear_status, get_token, set_status, update_token_login_status},

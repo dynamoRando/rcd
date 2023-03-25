@@ -14,12 +14,18 @@ use crate::components::status::Status;
 use crate::pages::home::Home;
 use crate::pages::login::Login;
 use crate::pages::page_not_found::PageNotFound;
+use crate::pages::rcd_admin::behaviors::Behaviors;
+use crate::pages::rcd_admin::contracts::Contracts;
 use crate::pages::rcd_admin::databases::db::RcdDb;
+use crate::pages::rcd_admin::host_info::HostInfo;
+use crate::pages::rcd_admin::logs::Logs;
+use crate::pages::rcd_admin::participants::Participants;
+use crate::pages::rcd_admin::settings::Settings;
 use crate::pages::rcd_admin::sql::sqlx::Sql;
 use crate::pages::register::Register;
 use crate::pages::site_admin::SiteAdmin;
 use crate::request::proxy::get_proxy_token;
-use crate::request::rcd::{get_status};
+use crate::request::rcd::get_status;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -35,6 +41,20 @@ pub enum Route {
     MyRcdDb,
     #[at("/my/sql")]
     MyRcdSql,
+    #[at("/my/contracts")]
+    MyRcdContracts,
+    #[at("/my/hostinfo")]
+    MyRcdHostInfo,
+    #[at("/my/part")]
+    MyRcdPart,
+    #[at("/my/behavior")]
+    MyRcdBehavior,
+    #[at("/my/coophost")]
+    MyRcdCoopHost,
+    #[at("/my/settings")]
+    MyRcdSettings,
+    #[at("/my/logs")]
+    MyRcdLogs,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -111,6 +131,13 @@ fn switch(routes: Route) -> Html {
         Route::NotFound => {
             html! { <PageNotFound /> }
         }
+        Route::MyRcdContracts =>    html! { <Contracts /> },
+        Route::MyRcdHostInfo =>    html! { <HostInfo /> },
+        Route::MyRcdPart =>    html! { <Participants /> },
+        Route::MyRcdBehavior =>    html! { <Behaviors /> },
+        Route::MyRcdCoopHost => html! { <CooperativeHosts /> },
+        Route::MyRcdSettings => html! { <Settings /> },
+        Route::MyRcdLogs => html! { <Logs /> },
     }
 }
 

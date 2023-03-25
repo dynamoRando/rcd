@@ -1,23 +1,23 @@
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
-use rcd_http_common::url::client::GET_UPDATES_FROM_HOST_BEHAVIOR;
-use yew::{function_component, html, Html};
 
+use crate::request;
 use rcd_messages::client::{GetUpdatesFromHostBehaviorReply, GetUpdatesFromHostBehaviorRequest};
+use rcd_messages::proxy::request_type::RequestType;
+use yew::{function_component, html, Html};
 use yew::{use_state_eq, AttrValue, Callback};
-
 mod change_behavior;
 mod view_pending_updates;
 
 use crate::{
     log::log_to_console,
-    pages::{
+    pages::rcd_admin::{
         behaviors::updates_from_host::{
             change_behavior::ChangeBehavior, view_pending_updates::ViewPendingUpdates,
         },
         common::{select_database::SelectDatabase, select_table::SelectTable},
     },
-    request::{
-        self, clear_status, get_databases, get_token, set_status, update_token_login_status,
+    request::rcd::{
+        clear_status, get_databases, get_rcd_token, set_status, update_token_login_status,
     },
 };
 
@@ -67,7 +67,7 @@ pub fn UpdatesFromHost() -> Html {
             if !table_name.is_empty() {
                 log_to_console(table_name.clone());
 
-                let token = get_token();
+                let token = get_rcd_token();
 
                 let request = GetUpdatesFromHostBehaviorRequest {
                     authentication: Some(token.auth()),
@@ -76,7 +76,6 @@ pub fn UpdatesFromHost() -> Html {
                 };
 
                 let body = serde_json::to_string(&request).unwrap();
-                let url = format!("{}{}", token.addr, GET_UPDATES_FROM_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if let Ok(ref x) = response {
@@ -104,7 +103,7 @@ pub fn UpdatesFromHost() -> Html {
                     }
                 });
 
-                request::post(url, body, cb);
+                request::post(RequestType::GetUpdatesFromHostBehavior, &body, cb);
             }
         })
     };

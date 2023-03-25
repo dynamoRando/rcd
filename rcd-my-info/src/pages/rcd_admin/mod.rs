@@ -6,3 +6,5 @@ pub mod logs;
 pub mod host_info;
 pub mod participants;
 pub mod contracts;
+pub mod behaviors;
+pub mod coop_hosts;

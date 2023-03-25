@@ -1,16 +1,16 @@
-use rcd_http_common::url::client::{ACCEPT_PENDING_ACTION, GET_PENDING_ACTIONS};
+use crate::request;
+use crate::{
+    log::log_to_console,
+    pages::rcd_admin::common::pending_actions::PendingActions,
+    request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+};
 use rcd_messages::client::{
     AcceptPendingActionReply, AcceptPendingActionRequest, GetPendingActionsReply,
     GetPendingActionsRequest, PendingStatement,
 };
+use rcd_messages::proxy::request_type::RequestType;
 use yew::{
     function_component, html, use_state_eq, AttrValue, Callback, Html, Properties, UseStateHandle,
-};
-
-use crate::{
-    log::log_to_console,
-    pages::common::pending_actions::PendingActions,
-    request::{self, clear_status, get_token, set_status, update_token_login_status},
 };
 
 #[derive(Properties, PartialEq)]
@@ -42,8 +42,8 @@ pub fn ViewPendingUpdates(
             let active_database = active_database.clone();
             let active_table = active_table.clone();
 
-            let token = get_token();
-            let url = format!("{}{}", token.addr, ACCEPT_PENDING_ACTION);
+            let token = get_rcd_token();
+
             let request = AcceptPendingActionRequest {
                 authentication: Some(token.auth()),
                 database_name: (*active_database).clone(),
@@ -75,7 +75,7 @@ pub fn ViewPendingUpdates(
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::AcceptPendingAction, &body, cb);
         })
     };
 
@@ -88,8 +88,8 @@ pub fn ViewPendingUpdates(
             let active_database = active_database.clone();
             let active_table = active_table.clone();
 
-            let token = get_token();
-            let url = format!("{}{}", token.addr, ACCEPT_PENDING_ACTION);
+            let token = get_rcd_token();
+
             let request = AcceptPendingActionRequest {
                 authentication: Some(token.auth()),
                 database_name: (*active_database).clone(),
@@ -121,7 +121,7 @@ pub fn ViewPendingUpdates(
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::AcceptPendingAction, &body, cb);
             todo!("LOL: We never wrote a reject message");
         })
     };
@@ -133,8 +133,8 @@ pub fn ViewPendingUpdates(
 
         Callback::from(move |_| {
             let pending_actions = pending_actions.clone();
-            let token = get_token();
-            let url = format!("{}{}", token.addr, GET_PENDING_ACTIONS);
+            let token = get_rcd_token();
+
             let request = GetPendingActionsRequest {
                 authentication: Some(token.auth()),
                 database_name: (*active_database).clone(),
@@ -167,7 +167,7 @@ pub fn ViewPendingUpdates(
                 }
             });
 
-            request::post(url, body, cb);
+            request::post(RequestType::GetPendingActions, &body, cb);
         })
     };
 

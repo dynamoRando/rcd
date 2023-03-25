@@ -1,19 +1,20 @@
-use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
-use rcd_http_common::url::client::GET_DELETES_FROM_HOST_BEHAVIOR;
-use rcd_messages::client::{GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest};
-use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
-
+use crate::request;
 use crate::{
     log::log_to_console,
-    pages::{
+    pages::rcd_admin::{
         behaviors::deletes_from_host::{
             change_behavior::ChangeBehavior, view_pending_deletes::ViewPendingDeletes,
         },
         common::{select_database::SelectDatabase, select_table::SelectTable},
     },
-    request::{self, clear_status, get_database, get_token, set_status, update_token_login_status},
+    request::rcd::{
+        clear_status, get_database, get_rcd_token, set_status, update_token_login_status,
+    },
 };
-
+use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
+use rcd_messages::client::{GetDeletesFromHostBehaviorReply, GetDeletesFromHostBehaviorRequest};
+use rcd_messages::proxy::request_type::RequestType;
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 mod change_behavior;
 mod view_pending_deletes;
 
@@ -57,7 +58,7 @@ pub fn DeletesFromHost() -> Html {
             if !table_name.is_empty() {
                 log_to_console(table_name.clone());
 
-                let token = get_token();
+                let token = get_rcd_token();
 
                 let request = GetDeletesFromHostBehaviorRequest {
                     authentication: Some(token.auth()),
@@ -66,7 +67,6 @@ pub fn DeletesFromHost() -> Html {
                 };
 
                 let body = serde_json::to_string(&request).unwrap();
-                let url = format!("{}{}", token.addr, GET_DELETES_FROM_HOST_BEHAVIOR);
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if response.is_ok() {
@@ -95,7 +95,7 @@ pub fn DeletesFromHost() -> Html {
                     }
                 });
 
-                request::post(url, body, cb);
+                request::post(RequestType::GetDeletesFromHostBehavior, &body, cb);
             }
         })
     };

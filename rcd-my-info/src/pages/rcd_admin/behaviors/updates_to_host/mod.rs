@@ -2,7 +2,7 @@ use rcd_enum::updates_to_host_behavior::UpdatesToHostBehavior;
 use rcd_http_common::url::client::GET_UPDATES_TO_HOST_BEHAVIOR;
 use rcd_messages::client::{GetUpdatesToHostBehaviorReply, GetUpdatesToHostBehaviorRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
-
+use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
     pages::{
