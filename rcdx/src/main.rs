@@ -127,15 +127,19 @@ fn process_cmd_args(args: Vec<String>) -> Option<String> {
         match cmd {
             "default_settings" => {
                 set_default_config();
-                return None;
+                return None
             }
             "make_test_db" => {
                 make_test_db();
-                return None;
+                return None
             }
             "alt-config" => {
                 let alt_settings = args[2].to_string();
                 return Some(alt_settings);
+            }
+            "init" =>{
+                init_host_id();
+                return None
             }
             _ => return None,
         }
@@ -268,4 +272,9 @@ fn make_test_db() {
 
 fn use_sqlite_logging() {
     SqliteLog::init(LevelFilter::Info).unwrap();
+}
+
+fn init_host_id() {
+    let mut service = get_service_from_config_file(None);
+    service.warn_init_host_info();
 }
