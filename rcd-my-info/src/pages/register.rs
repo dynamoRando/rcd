@@ -2,7 +2,6 @@ use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::PROXY_ADDR_PORT,
     log::log_to_console,
     request::proxy::{set_proxy, RcdProxy},
 };
@@ -11,26 +10,31 @@ use crate::{
 pub fn Register() -> Html {
     let ui_un = use_node_ref();
     let ui_pw = use_node_ref();
+    let ui_addr_port = use_node_ref();
 
     let register_result = use_state_eq(move || String::from(""));
 
     let onclick = {
         let ui_un = ui_un.clone();
         let ui_pw = ui_pw.clone();
+        let ui_addr_port = ui_addr_port.clone();
         let register_result = register_result.clone();
 
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
             let ui_pw = ui_pw.clone();
+            let ui_addr_port = ui_addr_port.clone();
             let register_result = register_result.clone();
 
             let un = &ui_un;
             let pw = &ui_pw;
+            let addr_port = &ui_addr_port;
 
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
+            let addr_port = addr_port.cast::<HtmlInputElement>().unwrap().value();
 
-            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
+            let mut proxy = RcdProxy::new(&addr_port);
             set_proxy(&proxy);
 
             let u = un_val;
@@ -69,6 +73,9 @@ pub fn Register() -> Html {
                 <div class="box">
                     <div class="has-text-centered">
                         <h1 class="subtitle"> {"Register For Account"} </h1>
+                        <label for="ip_address">{ "Address and Port" }</label>
+                        <input type="text" class="input" id ="addr_port" placeholder="127.0.0.1:50040" ref={&ui_addr_port}/>
+
                         <label for="ip_address">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>
 

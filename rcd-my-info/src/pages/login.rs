@@ -7,10 +7,9 @@ use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
 use crate::{
-    con::PROXY_ADDR_PORT,
     log::log_to_console,
     request::{
-        proxy::{clear_proxy_token, get_proxy, set_proxy, set_proxy_token, RcdProxy},
+        proxy::{clear_proxy_token, get_proxy, set_proxy, set_proxy_token, RcdProxy, get_proxy_token},
         rcd::{get_rcd_token, set_databases, set_rcd_token, set_status, update_token_login_status, clear_status},
     },
 };
@@ -19,6 +18,7 @@ use crate::{
 pub fn Login() -> Html {
     let ui_un = use_node_ref();
     let ui_pw = use_node_ref();
+    let ui_addr_port = use_node_ref();
 
     let login_result = use_state_eq(move || String::from(""));
 
@@ -26,20 +26,26 @@ pub fn Login() -> Html {
         clear_status();
         let ui_un = ui_un.clone();
         let ui_pw = ui_pw.clone();
+        let ui_addr_port = ui_addr_port.clone();
+
         let login_result = login_result.clone();
 
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
             let ui_pw = ui_pw.clone();
+            let ui_addr_port = ui_addr_port.clone();
+
             let login_result = login_result.clone();
 
             let un = &ui_un;
             let pw = &ui_pw;
+            let addr_port = &ui_addr_port;
 
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
+            let addr_port = addr_port.cast::<HtmlInputElement>().unwrap().value();
 
-            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
+            let mut proxy = RcdProxy::new(&addr_port);
             set_proxy(&proxy);
 
             let u = un_val;
@@ -69,11 +75,12 @@ pub fn Login() -> Html {
 
     let onclick_logout = {
         let ui_un = ui_un.clone();
+        let token = get_proxy_token();
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
             let un = &ui_un;
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
-            let mut proxy = RcdProxy::new(PROXY_ADDR_PORT);
+            let mut proxy = RcdProxy::new(&token.addr);
             set_proxy(&proxy);
             clear_proxy_token();
             spawn_local(async move {
@@ -88,6 +95,9 @@ pub fn Login() -> Html {
                 <div class="box">
                     <div class="has-text-centered">
                         <h1 class="subtitle"> {"Login"} </h1>
+                        <label for="ip_address">{ "Address and Port" }</label>
+                        <input type="text" class="input" id ="addr_port" placeholder="127.0.0.1:50040" ref={&ui_addr_port}/>
+
                         <label for="ip_address">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>
 
@@ -113,6 +123,7 @@ pub fn Login() -> Html {
 
 async fn login_to_rcd_instance(un: &str, pw: &str) {
     let mut proxy = get_proxy();
+    let proxy_token = get_proxy_token();
     let token = get_rcd_token();
 
     let request = AuthRequest {
@@ -136,7 +147,7 @@ async fn login_to_rcd_instance(un: &str, pw: &str) {
             let token = Token {
                 jwt: r.jwt.unwrap(),
                 jwt_exp: r.expiration_utc.unwrap(),
-                addr: PROXY_ADDR_PORT.to_string(),
+                addr: proxy_token.addr.clone(),
                 is_logged_in: true,
                 id: r.id,
             };
