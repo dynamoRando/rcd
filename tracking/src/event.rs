@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 
 */
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Event {
     id: u32,
     date: NaiveDateTime,
@@ -30,7 +30,7 @@ pub struct Event {
     associated_events: Option<Vec<AssociatedEvent>>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AssociatedEvent {
     event_id: u32,
     event_type: EventType,
