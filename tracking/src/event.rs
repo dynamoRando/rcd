@@ -1,5 +1,7 @@
 use chrono::NaiveDateTime;
+use num_derive::FromPrimitive;
 use serde::{Deserialize, Serialize};
+extern crate num;
 
 /*
 
@@ -24,33 +26,33 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
-    id: u32,
-    date: String,
-    notes: Option<String>,
-    associated_events: Option<Vec<SharkAssociatedEvent>>,
+    pub id: u32,
+    pub date: String,
+    pub notes: Option<String>,
+    pub associated_events: Option<Vec<SharkAssociatedEvent>>,
 }
 
 impl SharkEvent {
-    pub fn date(&self) -> NaiveDateTime {
+    pub fn date(&self) -> Result<NaiveDateTime, String> {
         todo!()
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SharkAssociatedEvent {
-    event_id: u32,
-    event_type: EventType,
-    date: String,
-    notes: Option<String>,
+    pub event_id: u32,
+    pub event_type: EventType,
+    pub date: String,
+    pub notes: Option<String>,
 }
 
 impl SharkAssociatedEvent {
-    pub fn date(&self) -> NaiveDateTime {
+    pub fn date(&self) -> Result<NaiveDateTime, String> {
         todo!()
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, FromPrimitive, ToPrimitive)]
 pub enum EventType {
     Unknown,
     Spotting,
@@ -68,7 +70,7 @@ impl EventType {
         }
     }
 
-    pub fn try_parse(value: &str) -> EventType {
+    pub fn try_parse_from_string(value: &str) -> EventType {
         if value == "Spotting" {
             return EventType::Spotting;
         }

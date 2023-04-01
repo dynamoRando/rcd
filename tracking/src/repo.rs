@@ -8,7 +8,7 @@ use wasm_bindgen_futures::spawn_local;
 use yew::{AttrValue, Callback};
 
 use crate::{
-    event::SharkEvent,
+    event::{SharkEvent, SharkAssociatedEvent, EventType},
     logging::log_to_console,
     settings::{request, Proxy, DB_NAME},
 };
@@ -72,13 +72,15 @@ impl Repo {
                     if is_authenticated {
                         let result = read_reply.results.first().unwrap();
                         if !result.is_error {
+                            let mut aes: Vec<SharkAssociatedEvent> = Vec::new();
+
                             let rows = result.clone().rows;
 
                             for row in &rows {
-                                let mut event_id: u32;
-                                let event_type: u32;
-                                let event_date: NaiveDateTime;
-                                let notes: String;
+                                let mut event_id: u32 = 0;
+                                let mut event_type: u32 = 0;
+                                let mut event_date: String = "".to_string();
+                                let mut notes: String = "".to_string();
 
                                 for value in &row.values {
                                     if let Some(column) = &value.column {
@@ -90,8 +92,34 @@ impl Repo {
                                                 event_id = 0;
                                             }
                                         }
+
+                                        if column.column_name == "event_type" {
+                                            let result_event_type = value.string_value.parse::<u32>();
+                                            if let Ok(et) = result_event_type {
+                                                event_type = et;
+                                            } else {
+                                                event_type = 0;
+                                            }
+                                        }
+
+                                        if column.column_name == "event_date" {
+                                            event_date = value.string_value.clone();
+                                        }
+
+                                        if column.column_name == "notes" {
+                                            notes = value.string_value.clone();
+                                        }
                                     }
                                 }
+
+                                let ae = SharkAssociatedEvent {
+                                    event_id: event_id,
+                                    event_type: num::FromPrimitive::from_u32(event_type).unwrap(),
+                                    date: event_date,
+                                    notes: Some(notes),
+                                };
+
+                                aes.push(ae);
                             }
 
                             todo!()

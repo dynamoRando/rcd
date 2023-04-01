@@ -15,6 +15,10 @@ pub mod view_events;
 pub mod token;
 pub mod repo;
 
+
+#[macro_use]
+extern crate num_derive;
+
 const SETTINGS_TOML: &str = "Settings.toml";
 const DEFAULT_SETTINGS: &str = r#"
 address = "proxy.home:50040"
