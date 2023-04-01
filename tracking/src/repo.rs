@@ -68,17 +68,17 @@ impl Repo {
                             let rows = result.clone().rows;
 
                             for row in &rows {
-                                let event_id: u32;
+                                let mut event_id: u32;
                                 let event_type: u32;
                                 let event_date: NaiveDateTime;
                                 let notes: String;
 
-                                for value in row.values {
-                                    if let Some(column) = value.column {
+                                for value in &row.values {
+                                    if let Some(column) = &value.column {
                                         if column.column_name == "event_id" {
                                             let result_event_id = value.string_value.parse::<u32>();
-                                            if let Ok(event_id) = result_event_id {
-                                                event_id = event_id;
+                                            if let Ok(eid) = result_event_id {
+                                                event_id = eid;
                                             } else {
                                                 event_id = 0;
                                             }
