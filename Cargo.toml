@@ -43,6 +43,8 @@ members = [
     "rcd-client-wasm", 
     # an example app that will use the wasm client 
     "tracking", 
+    # an example app api 
+    "tracking-api",
     # lib for managing containers that host an rcd instance: docker or k8s 
     "rcd-proxy-container",
     # core lib for managing rcd instances natively, abstracted via folder and host id
