@@ -22,20 +22,32 @@ use serde::{Deserialize, Serialize};
 
 */
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
     id: u32,
-    date: NaiveDateTime,
+    date: String,
     notes: Option<String>,
     associated_events: Option<Vec<SharkAssociatedEvent>>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+impl SharkEvent {
+    pub fn date(&self) -> NaiveDateTime {
+        todo!()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct SharkAssociatedEvent {
     event_id: u32,
     event_type: EventType,
-    date: NaiveDateTime,
+    date: String,
     notes: Option<String>,
+}
+
+impl SharkAssociatedEvent {
+    pub fn date(&self) -> NaiveDateTime {
+        todo!()
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]

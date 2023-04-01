@@ -18,21 +18,7 @@ pub fn ViewEvents(SharkEventProps { events }: &SharkEventProps) -> Html {
                                 <th>{"Notes"}</th>
                             </tr>
                         </thead>
-                        {
-                            (*events).clone().into_iter().map(|e|{
-                                let event_date = e.event_date;
-                                let event_type = e.event_type.as_string();
-                                let event_notes = e.notes;
 
-                                html!{
-                                    <tr>
-                                        <td>{event_date}</td>
-                                        <td>{event_type}</td>
-                                        <td>{event_notes}</td>
-                                    </tr>
-                                }
-                            }).collect::<Html>()
-                        }
                     </table>
                     </div>
         </div>
