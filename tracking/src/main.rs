@@ -1,20 +1,21 @@
 use crate::event::SharkEvent;
+use crate::repo::Repo;
 use crate::{enter_event::EnterEvent, view_events::ViewEvents};
 use settings::Proxy;
 use std::io::Write;
 use std::{env, fs::File};
+use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 
 pub mod enter_event;
 pub mod event;
 pub mod event_props;
 pub mod logging;
+pub mod repo;
 pub mod settings;
 pub mod storage;
-pub mod view_events;
 pub mod token;
-pub mod repo;
-
+pub mod view_events;
 
 #[macro_use]
 extern crate num_derive;
@@ -31,6 +32,16 @@ fn App() -> Html {
         let x: Vec<SharkEvent> = Vec::new();
         x
     });
+
+    {
+        let app_state = app_state.clone();
+        spawn_local(async move {
+            let events = Repo::get_events().await;
+            if let Ok(events) = events {
+                app_state.set(events);
+            }
+        });
+    }
 
     html!(
         <div>

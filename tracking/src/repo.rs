@@ -6,7 +6,9 @@ use rcd_messages::{
     proxy::request_type::RequestType,
 };
 use serde::{Deserialize, Serialize};
-use wasm_bindgen_futures::spawn_local;
+use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen_futures::{spawn_local, JsFuture};
+use web_sys::{Request, RequestInit, RequestMode, Response};
 use yew::{AttrValue, Callback};
 
 use crate::{
@@ -39,91 +41,64 @@ FROM
 pub struct Repo {}
 
 impl Repo {
-    pub fn get_events() -> Result<Vec<SharkEvent>, String> {
-        spawn_local(async move {
-            let mut proxy = Proxy::get_from_session_storage();
-            proxy.login().await;
-        });
+    pub async fn get_events() -> Result<Vec<SharkEvent>, String> {
+        log_to_console("getting events");
+        let addr = "http://localhost:8020/events/get";
+        let result_get = Self::get(addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
+                return Ok(result);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            },
+        }
+    }
 
-        let associated_events = Repo::get_associated_events();
-        let mut main_events = Repo::get_main_events();
+    pub async fn get(url: &str) -> Result<String, String> {
+        let mut opts = RequestInit::new();
+        opts.method("GET");
+        opts.mode(RequestMode::Cors);
 
-        for event in main_events.iter_mut() {
-            for ae in &associated_events {
-                if ae.event_id == event.id {
-                    if event.associated_events.is_none() {
-                        let x: Vec<SharkAssociatedEvent> = Vec::new();
-                        event.associated_events = Some(x);
+        let request = Request::new_with_str_and_init(url, &opts);
+
+        match request {
+            Ok(r) => {
+                r.headers().set("Content-Type", "application/json").unwrap();
+
+                let window = web_sys::window().unwrap();
+                let resp_value_result = JsFuture::from(window.fetch_with_request(&r)).await;
+                match resp_value_result {
+                    Ok(result) => {
+                        assert!(result.is_instance_of::<Response>());
+                        let resp: Response = result.dyn_into().unwrap();
+
+                        let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
+
+                        Ok(JsValue::as_string(&json).unwrap())
                     }
+                    Err(e) => {
+                        // let m = format!("{:?}", e);
+                        // log_to_console(m);
 
-                    event.associated_events.as_mut().unwrap().push(ae.clone());
+                        if JsValue::is_string(&e) {
+                            Err(JsValue::as_string(&e).unwrap())
+                        } else {
+                            Err("Unable to connect".to_string())
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                if JsValue::is_string(&e) {
+                    Err(JsValue::as_string(&e).unwrap())
+                } else {
+                    Err("Unable to connect".to_string())
                 }
             }
         }
-
-        Ok(main_events)
-    }
-
-    fn get_associated_events() -> Vec<SharkAssociatedEvent> {
-        let token = Proxy::get_rcd_token_from_session_storage();
-        let auth = token.auth();
-        let associated_events: Vec<SharkAssociatedEvent> = Vec::new();
-        let associated_events = Mutex::new(associated_events);
-        let associated_events = Arc::new(associated_events);
-
-        let request = ExecuteReadRequest {
-            authentication: Some(auth),
-            database_name: DB_NAME.to_string(),
-            sql_statement: SQL_GET_ASSOCIATED_EVENTS.to_string(),
-            database_type: 1,
-        };
-
-        let read_request_json = serde_json::to_string(&request).unwrap();
-
-        {
-            let associated_events = associated_events.clone();
-            let callback_associated_events =
-                Callback::from(move |response: Result<AttrValue, String>| {
-                    let associated_events = associated_events.clone();
-                    if let Ok(ref x) = response {
-                        log_to_console(x);
-
-                        let read_reply: ExecuteReadReply = serde_json::from_str(x).unwrap();
-
-                        let is_authenticated = read_reply
-                            .authentication_result
-                            .as_ref()
-                            .unwrap()
-                            .is_authenticated;
-
-                        if is_authenticated {
-                            
-                        } else {
-                            log_to_console("warning: we are not logged in to rcd");
-                        }
-                    } else {
-                        log_to_console("warning: we are not logged in to proxy");
-                    }
-                });
-
-                request::post(
-                    RequestType::ReadAtHost,
-                    &read_request_json,
-                    callback_associated_events,
-                );
-        }
-
-        let associated_events = associated_events.clone();
-        if let Ok(x) = associated_events.lock() {
-            let y = (*x).clone();
-            return y
-        } else {
-            let x: Vec<SharkAssociatedEvent> = Vec::new();
-            return x;
-        }
-    }
-
-    fn get_main_events() -> Vec<SharkEvent> {
-        todo!()
     }
 }
