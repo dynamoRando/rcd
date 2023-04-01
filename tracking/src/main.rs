@@ -45,7 +45,7 @@ fn process_settings() {
     let addr = std::option_env!("ADDRESS").unwrap();
     let account = std::option_env!("ACCOUNT").unwrap();
 
-    let settings = Proxy::new(&addr, &account);
+    let settings = Proxy::new(addr, account);
     settings.save_to_session_storage();
 }
 

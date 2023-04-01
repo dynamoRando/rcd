@@ -153,7 +153,7 @@ impl Proxy {
     ) -> Result<T, String> {
         let token = Proxy::get_token_from_session_storage();
 
-        if let Some(_) = token.id {
+        if token.id.is_some() {
             let request = ExecuteRequest {
                 login: None,
                 pw: None,
@@ -176,7 +176,7 @@ impl Proxy {
                         return Err(message);
                     }
                 }
-                Err(e) => return Err(e),
+                Err(e) => Err(e),
             }
         } else {
             Err("Host Id not in token".to_string())
