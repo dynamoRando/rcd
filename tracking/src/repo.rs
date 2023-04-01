@@ -4,6 +4,7 @@ use rcd_messages::{
     proxy::request_type::RequestType,
 };
 use serde::{Deserialize, Serialize};
+use wasm_bindgen_futures::spawn_local;
 use yew::{AttrValue, Callback};
 
 use crate::{
@@ -37,7 +38,13 @@ pub struct Repo {}
 
 impl Repo {
     pub fn get_events() -> Result<Vec<SharkEvent>, String> {
-        let token = Proxy::get_token_from_session_storage();
+        
+        spawn_local(async move {
+            let mut proxy = Proxy::get_from_session_storage();
+            proxy.login().await;
+        });
+        
+        let token = Proxy::get_rcd_token_from_session_storage();
         let auth = token.auth();
 
         let request = ExecuteReadRequest {

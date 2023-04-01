@@ -1,12 +1,12 @@
 use crate::{logging::log_to_console, token::Token, SETTINGS_TOML};
 use config::Config;
-use rcd_messages::proxy::{
+use rcd_messages::{proxy::{
     request_type::RequestType,
     server_messages::{
         http::{EXECUTE, REVOKE_TOKEN_URL, TOKEN_URL},
         AuthForTokenReply, AuthForTokenRequest, ExecuteReply, ExecuteRequest,
     },
-};
+}, client::AuthRequest};
 use serde::{de, Deserialize, Serialize};
 
 use gloo::{
@@ -15,7 +15,8 @@ use gloo::{
 };
 
 pub const PROXY: &str = "shark.proxy.settings";
-pub const TOKEN: &str = "shark.proxy.token.key";
+pub const PROXY_TOKEN: &str = "shark.proxy.token.key";
+pub const RCD_TOKEN: &str = "shark.rcd.token.key";
 pub const DB_NAME: &str = "shark.db";
 
 use wasm_bindgen::JsCast;
@@ -72,8 +73,30 @@ impl Proxy {
         SessionStorage::set(PROXY, json).expect("failed to set");
     }
 
-    pub fn get_token_from_session_storage() -> Token {
-        let token = SessionStorage::get(TOKEN).unwrap_or_else(|_| String::from(""));
+    /// Saves the JWT to Session Storage
+    pub fn save_proxy_token_to_storage(token: Token) {
+        let token = serde_json::to_string(&token).unwrap();
+        SessionStorage::set(PROXY_TOKEN, token).expect("failed to set");
+    }
+
+    /// Saves the JWT to Session Storage
+    pub fn save_rcd_token_to_storage(token: Token) {
+        let token = serde_json::to_string(&token).unwrap();
+        SessionStorage::set(RCD_TOKEN, token).expect("failed to set");
+    }
+
+    pub fn get_proxy_token_from_session_storage() -> Token {
+        let token = SessionStorage::get(PROXY_TOKEN).unwrap_or_else(|_| String::from(""));
+        if token.is_empty() {
+            Token::new()
+        } else {
+            let token: Token = serde_json::from_str(&token).unwrap();
+            token
+        }
+    }
+
+    pub fn get_rcd_token_from_session_storage() -> Token {
+        let token = SessionStorage::get(RCD_TOKEN).unwrap_or_else(|_| String::from(""));
         if token.is_empty() {
             Token::new()
         } else {
@@ -114,7 +137,7 @@ impl Proxy {
         request_json: &str,
         request_type: RequestType,
     ) -> Result<String, String> {
-        let token = Proxy::get_token_from_session_storage();
+        let token = Proxy::get_proxy_token_from_session_storage();
 
         if let Some(_) = token.id {
             let request = ExecuteRequest {
@@ -151,7 +174,7 @@ impl Proxy {
         request_json: &str,
         request_type: RequestType,
     ) -> Result<T, String> {
-        let token = Proxy::get_token_from_session_storage();
+        let token = Proxy::get_proxy_token_from_session_storage();
 
         if token.id.is_some() {
             let request = ExecuteRequest {
@@ -225,6 +248,41 @@ impl Proxy {
                 Ok(value)
             }
             Err(e) => Err(e),
+        }
+    }
+
+    pub async fn login(&mut self) {
+        let token = self.auth_for_token("shark", "shark").await.unwrap();
+        Proxy::save_proxy_token_to_storage(token.clone());
+
+        let request = AuthRequest {
+            user_name: "shark".to_string(),
+            pw: "shark".to_string(),
+            pw_hash: Vec::new(),
+            token: Vec::new(),
+            jwt: "".to_string(),
+            id: token.id,
+        };
+    
+        let request_json = serde_json::to_string(&request).unwrap();
+        let request_type = RequestType::Auth;
+    
+        let r = self
+            .execute_request_as::<AuthForTokenReply>(&request_json, request_type)
+            .await;
+    
+        if let Ok(r) = r {
+            if r.is_successful {
+                let token = Token {
+                    jwt: r.jwt.unwrap(),
+                    jwt_exp: r.expiration_utc.unwrap(),
+                    addr: token.addr.clone(),
+                    is_logged_in: true,
+                    id: r.id,
+                };
+    
+                Proxy::save_rcd_token_to_storage(token);
+            }
         }
     }
 
