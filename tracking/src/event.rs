@@ -23,15 +23,15 @@ use serde::{Deserialize, Serialize};
 */
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Event {
+pub struct SharkEvent {
     id: u32,
     date: NaiveDateTime,
     notes: Option<String>,
-    associated_events: Option<Vec<AssociatedEvent>>,
+    associated_events: Option<Vec<SharkAssociatedEvent>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct AssociatedEvent {
+pub struct SharkAssociatedEvent {
     event_id: u32,
     event_type: EventType,
     date: NaiveDateTime,

@@ -3,7 +3,6 @@ use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
 
 use crate::{
-    event::{SharkEvent, SharkEventType},
     event_props::SharkEventProps,
     storage::{add_event, get_events},
 };
@@ -29,33 +28,7 @@ pub fn EnterEvent(SharkEventProps { events }: &SharkEventProps) -> Html {
         let form_is_invalid = form_is_invalid.clone();
 
         Callback::from(move |_| {
-            let error_messages = error_messages.clone();
-            let event_date = event_date_ui.cast::<HtmlInputElement>().unwrap().value();
-            let event_type = event_type_ui.cast::<HtmlInputElement>().unwrap().value();
-            let event_notes = event_notes_ui.cast::<HtmlInputElement>().unwrap().value();
-            let events = events.clone();
-
-            let etype = SharkEventType::try_parse(&event_type);
-
-            let re = Regex::new(DATE_FORMAT).unwrap();
-
-            if !re.is_match(&event_date) {
-                let em = format!("{}{}", event_date, " is not a date");
-                error_messages.set(em);
-                form_is_invalid.set(true);
-            } else {
-                form_is_invalid.set(false);
-                let event = SharkEvent {
-                    event_date,
-                    event_type: etype,
-                    notes: event_notes,
-                };
-
-                add_event(event);
-                let x = get_events();
-                events.set(x);
-                error_messages.set(String::from(""));
-            }
+            todo!()
         })
     };
 

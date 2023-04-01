@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use yew::{AttrValue, Callback};
 
 use crate::{
-    event::Event,
+    event::SharkEvent,
     logging::log_to_console,
     settings::{request, Proxy, DB_NAME},
 };
@@ -36,7 +36,7 @@ FROM
 pub struct Repo {}
 
 impl Repo {
-    pub fn get_events() -> Result<Vec<Event>, String> {
+    pub fn get_events() -> Result<Vec<SharkEvent>, String> {
         let token = Proxy::get_token_from_session_storage();
         let auth = token.auth();
 
