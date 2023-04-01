@@ -3887,10 +3887,13 @@ dependencies = [
  "config",
  "gloo",
  "js-sys",
+ "rcd-messages",
  "regex",
  "serde",
  "serde_derive",
  "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "yew",
 ]

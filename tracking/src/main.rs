@@ -1,8 +1,7 @@
-use crate::{enter_event::EnterEvent, event::SharkEvent, view_events::ViewEvents};
-use serde_json::to_string;
-use settings::SharkSettings;
+use crate::{enter_event::EnterEvent, view_events::ViewEvents};
+use settings::Proxy;
 use std::io::Write;
-use std::{env, fs::File, io, path::Path};
+use std::{env, fs::File};
 use yew::prelude::*;
 
 pub mod enter_event;
@@ -12,6 +11,8 @@ pub mod logging;
 pub mod settings;
 pub mod storage;
 pub mod view_events;
+pub mod token;
+pub mod repo;
 
 const SETTINGS_TOML: &str = "Settings.toml";
 const DEFAULT_SETTINGS: &str = r#"
@@ -22,7 +23,7 @@ account = "shark"
 #[function_component]
 fn App() -> Html {
     let app_state = use_state_eq(move || {
-        let x: Vec<SharkEvent> = Vec::new();
+        let x: Vec<Event> = Vec::new();
         x
     });
 
@@ -43,7 +44,7 @@ fn process_settings() {
     let addr = std::option_env!("ADDRESS").unwrap();
     let account = std::option_env!("ACCOUNT").unwrap();
 
-    let settings = SharkSettings::new(&addr, &account);
+    let settings = Proxy::new(&addr, &account);
     settings.save_to_session_storage();
 }
 
