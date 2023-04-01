@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use num_derive::FromPrimitive;
+use num_derive::{FromPrimitive, ToPrimitive};
 use serde_derive::{Serialize, Deserialize};
 
 extern crate num;

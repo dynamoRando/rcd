@@ -1,4 +1,4 @@
-use log::{info, debug};
+use log::{debug, info};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
 use rocket::http::Header;
@@ -11,10 +11,10 @@ use rocket::{
 };
 use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
-
+use crate::srv::shark_event::get_events;
 mod shark_event;
 
-pub struct TrackingServer{
+pub struct TrackingServer {
     port: u16,
     addr: String,
 }
@@ -23,23 +23,11 @@ impl TrackingServer {
     pub fn new(addr: &str, port: u16) -> Self {
         Self {
             port: port,
-            addr: addr.to_string()
+            addr: addr.to_string(),
         }
     }
 
     pub async fn start(&self) -> Result<(), rocket::Error> {
-
-        let id = "59B2C8F5-9136-DBAC-F8A9-0903257B77D1";
-
-        let mut client = RcdClient::new_grpc_client(
-                    "proxy.home:50051".to_string(),
-                    "shark".to_string(),
-                    "shark".to_string(),
-                    60
-                ).await;
-        
-        client.set_host_id(id);
-     
         let config = Config {
             port: self.port,
             address: self.addr.parse().unwrap(),
@@ -49,15 +37,13 @@ impl TrackingServer {
         };
         let _ = rocket::custom(config)
             .attach(CORS)
-            .mount("/", routes![index])
-            .manage(client)
+            .mount("/", routes![index, get_events])
             .launch()
             .await?;
 
         Ok(())
     }
 }
-
 
 #[get("/")]
 fn index() -> &'static str {
@@ -85,4 +71,20 @@ impl Fairing for CORS {
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
         response.set_status(Status::Ok)
     }
+}
+
+pub async fn get_client() -> RcdClient {
+    let id = "59B2C8F5-9136-DBAC-F8A9-0903257B77D1";
+
+    let mut client = RcdClient::new_grpc_client(
+        "http://proxy.home:50051".to_string(),
+        "shark".to_string(),
+        "shark".to_string(),
+        60,
+    )
+    .await;
+
+    client.set_host_id(id);
+
+    client
 }
