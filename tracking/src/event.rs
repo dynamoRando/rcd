@@ -1,43 +1,74 @@
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
+/*
+
+# event
+
+| column_name | type     |
+| ----------  | -------- |
+| id          | int      |
+| event_date  | datetime |
+| notes       | text     |
+
+# associated_event
+
+| column_name | type     |
+| ----------  | -------- |
+| event_id    | int      |
+| event_type  | int      |
+| event_date  | datetime |
+| notes       | text     |
+
+*/
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub enum SharkEventType {
+pub struct Event {
+    id: u32,
+    date: NaiveDateTime,
+    notes: Option<String>,
+    associated_events: Option<Vec<AssociatedEvent>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct AssociatedEvent {
+    event_id: u32,
+    event_type: EventType,
+    date: NaiveDateTime,
+    notes: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum EventType {
     Unknown,
     Spotting,
-    StartPeriod,
-    EndPeriod,
+    End,
+    Other,
 }
 
-impl SharkEventType {
+impl EventType {
     pub fn as_string(&self) -> &str {
         match self {
-            SharkEventType::EndPeriod => "EndPeriod",
-            SharkEventType::StartPeriod => "StartPeriod",
-            SharkEventType::Spotting => "Spotting",
-            SharkEventType::Unknown => "Unknown",
+            EventType::Spotting => "Spotting",
+            EventType::End => "End",
+            EventType::Other => "Other",
+            EventType::Unknown => "Unknown",
         }
     }
 
-    pub fn try_parse(value: &str) -> SharkEventType {
-        if value == "EndPeriod" {
-            return SharkEventType::EndPeriod;
-        }
-
-        if value == "StartPeriod" {
-            return SharkEventType::StartPeriod;
-        }
-
+    pub fn try_parse(value: &str) -> EventType {
         if value == "Spotting" {
-            return SharkEventType::Spotting;
+            return EventType::Spotting;
         }
 
-        SharkEventType::Unknown
-    }
-}
+        if value == "End" {
+            return EventType::End;
+        }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct SharkEvent {
-    pub event_date: String,
-    pub event_type: SharkEventType,
-    pub notes: String,
+        if value == "Other" {
+            return EventType::Other;
+        }
+
+        EventType::Unknown
+    }
 }
