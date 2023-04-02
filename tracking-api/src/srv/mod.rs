@@ -1,3 +1,9 @@
+use crate::srv::create_shark_event::add_associated_event;
+use crate::srv::create_shark_event::add_event;
+use crate::srv::delete_shark_event::delete_event;
+use crate::srv::get_shark_event::get_events;
+use crate::srv::update_shark_event::update_associated_event;
+use crate::srv::update_shark_event::update_event;
 use log::{debug, info};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
@@ -11,8 +17,13 @@ use rocket::{
 };
 use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
-use crate::srv::shark_event::get_events;
-mod shark_event;
+
+use self::delete_shark_event::delete_associated_event;
+
+mod create_shark_event;
+mod delete_shark_event;
+mod get_shark_event;
+mod update_shark_event;
 
 pub struct TrackingServer {
     port: u16,
@@ -37,7 +48,19 @@ impl TrackingServer {
         };
         let _ = rocket::custom(config)
             .attach(CORS)
-            .mount("/", routes![index, get_events])
+            .mount(
+                "/",
+                routes![
+                    index,
+                    get_events,
+                    update_event,
+                    update_associated_event,
+                    add_event,
+                    add_associated_event,
+                    delete_event,
+                    delete_associated_event
+                ],
+            )
             .launch()
             .await?;
 
