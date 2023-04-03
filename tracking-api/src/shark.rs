@@ -31,6 +31,7 @@ pub struct SharkEvent {
     pub date: String,
     pub notes: Option<String>,
     pub associated_events: Option<Vec<SharkAssociatedEvent>>,
+    pub un: Option<String>,
 }
 
 impl SharkEvent {
@@ -45,6 +46,7 @@ pub struct SharkAssociatedEvent {
     pub event_type: EventType,
     pub date: String,
     pub notes: Option<String>,
+    pub un: Option<String>,
 }
 
 impl SharkAssociatedEvent {

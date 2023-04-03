@@ -26,6 +26,7 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
             let mut event_type: u32 = 0;
             let mut event_date: String = "".to_string();
             let mut notes: String = "".to_string();
+            let mut un: Option<String> = None;
 
             for value in &row.values {
                 if let Some(column) = &value.column {
@@ -54,6 +55,10 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
                     if column.column_name == "notes" {
                         notes = value.string_value.clone();
                     }
+
+                    if column.column_name == "un" {
+                        un = Some(value.string_value.clone());
+                    }
                 }
             }
 
@@ -62,6 +67,7 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
                 event_type: num::FromPrimitive::from_u32(event_type).unwrap(),
                 date: event_date,
                 notes: Some(notes),
+                un: un,
             };
 
             associated_events.push(ae);
@@ -79,6 +85,7 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
             let mut event_id: u32 = 0;
             let mut event_date: String = "".to_string();
             let mut notes: String = "".to_string();
+            let mut un: Option<String> = None;
 
             for value in &row.values {
                 if let Some(column) = &value.column {
@@ -94,8 +101,12 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
                     if column.column_name == "event_date" {
                         event_date = value.string_value.clone();
                     }
+
                     if column.column_name == "notes" {
                         notes = value.string_value.clone();
+                    }
+                    if column.column_name == "un" {
+                        un = Some(value.string_value.clone());
                     }
                 }
             }
@@ -105,6 +116,7 @@ pub async fn get_events() -> (Status, Json<Vec<SharkEvent>>) {
                 date: event_date,
                 notes: Some(notes),
                 associated_events: None,
+                un: un,
             };
 
             shark_events.push(e);
