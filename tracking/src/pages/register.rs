@@ -8,7 +8,7 @@ pub fn Register() -> Html {
             <div class="tile is-child hero">
                 <div class="hero-body container pb-0">
                     <div class="has-text-centered">
-                        <p><h1 class="title is-1">{ "Login" }</h1></p>
+                        <p><h1 class="title is-1">{ "Register" }</h1></p>
                         <p>{"Notes go here"}</p>
                     </div>
                 </div>
