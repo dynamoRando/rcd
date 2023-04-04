@@ -6,6 +6,9 @@ use std::io::Write;
 use std::{env, fs::File};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
+use yew_router::prelude::*;
+
+pub mod pages;
 
 pub mod enter_event;
 pub mod event;
@@ -16,6 +19,7 @@ pub mod settings;
 pub mod storage;
 pub mod token;
 pub mod view_events;
+pub mod components;
 
 #[macro_use]
 extern crate num_derive;
@@ -25,6 +29,23 @@ const DEFAULT_SETTINGS: &str = r#"
 address = "proxy.home:50040"
 account = "shark"
 "#;
+
+
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
+pub enum Route {
+    #[at("/")]
+    Home,
+    #[at("/register")]
+    Register,
+    #[at("/login")]
+    Login,
+    #[at("/entries")]
+    Entries,
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+
 
 #[function_component]
 fn App() -> Html {

@@ -26,6 +26,14 @@ extern crate num;
 */
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct User {
+    pub un: String, 
+    pub pw: String,
+    pub alias: Option<String>,
+    pub id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
     pub id: u32,
     pub date: String,

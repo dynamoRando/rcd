@@ -1,9 +1,3 @@
-use crate::srv::create_shark_event::add_associated_event;
-use crate::srv::create_shark_event::add_event;
-use crate::srv::delete_shark_event::delete_event;
-use crate::srv::get_shark_event::get_events;
-use crate::srv::update_shark_event::update_associated_event;
-use crate::srv::update_shark_event::update_event;
 use log::{debug, info};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
@@ -18,13 +12,16 @@ use rocket::{
 use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
 
-use self::delete_shark_event::delete_associated_event;
+use crate::srv::shark_event::delete::delete_event;
+use crate::srv::shark_event::delete::delete_associated_event;
+use crate::srv::shark_event::get::get_events;
+use crate::srv::shark_event::update::update_event;
+use crate::srv::shark_event::update::update_associated_event;
+use crate::srv::shark_event::create::add_event;
+use crate::srv::shark_event::create::add_associated_event;
 
-mod create_shark_event;
-mod delete_shark_event;
-mod get_shark_event;
-mod update_shark_event;
-
+mod shark_event;
+mod user;
 pub struct TrackingServer {
     port: u16,
     addr: String,
