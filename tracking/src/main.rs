@@ -1,6 +1,12 @@
+use crate::components::nav::Nav;
 use crate::event::SharkEvent;
 use crate::repo::Repo;
 use crate::{enter_event::EnterEvent, view_events::ViewEvents};
+use pages::events::Events;
+use pages::home::Home;
+use pages::login::Login;
+use pages::page_not_found::NotFound;
+use pages::register::Register;
 use settings::Proxy;
 use std::io::Write;
 use std::{env, fs::File};
@@ -10,6 +16,7 @@ use yew_router::prelude::*;
 
 pub mod pages;
 
+pub mod components;
 pub mod enter_event;
 pub mod event;
 pub mod event_props;
@@ -19,7 +26,6 @@ pub mod settings;
 pub mod storage;
 pub mod token;
 pub mod view_events;
-pub mod components;
 
 #[macro_use]
 extern crate num_derive;
@@ -29,7 +35,6 @@ const DEFAULT_SETTINGS: &str = r#"
 address = "proxy.home:50040"
 account = "shark"
 "#;
-
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
@@ -45,7 +50,6 @@ pub enum Route {
     #[at("/404")]
     NotFound,
 }
-
 
 #[function_component]
 fn App() -> Html {
@@ -65,11 +69,31 @@ fn App() -> Html {
     }
 
     html!(
-        <div>
-            < EnterEvent events={app_state.clone()} />
-            < ViewEvents events={app_state.clone()}/>
-        </div>
+        <BrowserRouter>
+        <Nav />
+        <main>
+            <Switch<Route> render={switch} />
+        </main>
+        <footer class="footer">
+            <div class="content has-text-centered">
+                { "Powered by " }
+                <a href="https://yew.rs">{ "Yew" }</a>
+                { " using " }
+                <a href="https://bulma.io">{ "Bulma" }</a>
+            </div>
+        </footer>
+    </BrowserRouter>
     )
+}
+
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::Home => html! { <Home /> },
+        Route::Register => html! { <Register /> },
+        Route::Login => html! { <Login /> },
+        Route::Entries => html! { <Events /> },
+        Route::NotFound => html! { <NotFound /> },
+    }
 }
 
 fn main() {
