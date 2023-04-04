@@ -1,5 +1,6 @@
 use rocket::{http::Status, serde::json::Json, State, put};
-use crate::shark::{SharkAssociatedEvent, SharkEvent};
+use tracking_model::event::SharkEvent;
+
 
 #[put("/events/update")]
 pub async fn update_event() -> (Status, Json<SharkEvent>) { 

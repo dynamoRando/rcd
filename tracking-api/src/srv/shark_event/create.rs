@@ -1,5 +1,5 @@
 use rocket::{http::Status, post, serde::json::Json, State};
-use crate::shark::{SharkAssociatedEvent, SharkEvent};
+use tracking_model::event::{SharkEvent, SharkAssociatedEvent};
 
 #[post("/events/add",
     format = "application/json",

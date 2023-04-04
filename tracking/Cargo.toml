@@ -16,6 +16,7 @@ regex = "1"
 config = "0.13.1"
 chrono = "0.4.24"
 rcd-messages = { path = "../rcd-messages" }
+tracking-model = { path = "../tracking-model" }
 wasm-bindgen = "0.2.83"
 wasm-bindgen-futures = "0.4"
 num = "0.4"

@@ -1,41 +1,10 @@
-use std::sync::{Arc, Mutex};
-
-use chrono::NaiveDateTime;
-use rcd_messages::{
-    client::{ExecuteReadReply, ExecuteReadRequest},
-    proxy::request_type::RequestType,
-};
 use serde::{Deserialize, Serialize};
+use tracking_model::event::SharkEvent;
 use wasm_bindgen::{JsCast, JsValue};
-use wasm_bindgen_futures::{spawn_local, JsFuture};
+use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
-use yew::{AttrValue, Callback};
 
-use crate::{
-    event::{EventType, SharkAssociatedEvent, SharkEvent},
-    logging::log_to_console,
-    settings::{request, Proxy, DB_NAME},
-};
-
-pub const SQL_GET_EVENTS: &str = "
-SELECT 
-    id, 
-    event_date, 
-    notes 
-FROM 
-    event
-;";
-
-pub const SQL_GET_ASSOCIATED_EVENTS: &str = "
-SELECT 
-    event_id,
-    event_type,
-    event_date,
-    notes
-FROM 
-    associated_event
-;
-";
+use crate::logging::log_to_console;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Repo {}
@@ -54,7 +23,7 @@ impl Repo {
             Err(e) => {
                 log_to_console(&e);
                 Err(e)
-            },
+            }
         }
     }
 

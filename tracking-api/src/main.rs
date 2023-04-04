@@ -2,7 +2,6 @@ use fern::colors::{Color, ColoredLevelConfig};
 use log::LevelFilter;
 use srv::TrackingServer;
 
-mod shark;
 mod srv;
 
 

@@ -1,5 +1,4 @@
 use crate::components::nav::Nav;
-use crate::event::SharkEvent;
 use crate::repo::Repo;
 use crate::{enter_event::EnterEvent, view_events::ViewEvents};
 use pages::events::Events;
@@ -8,6 +7,7 @@ use pages::login::Login;
 use pages::page_not_found::NotFound;
 use pages::register::Register;
 use settings::Proxy;
+use tracking_model::event::SharkEvent;
 use std::io::Write;
 use std::{env, fs::File};
 use wasm_bindgen_futures::spawn_local;
@@ -18,7 +18,6 @@ pub mod pages;
 
 pub mod components;
 pub mod enter_event;
-pub mod event;
 pub mod event_props;
 pub mod logging;
 pub mod repo;
@@ -27,8 +26,6 @@ pub mod storage;
 pub mod token;
 pub mod view_events;
 
-#[macro_use]
-extern crate num_derive;
 
 const SETTINGS_TOML: &str = "Settings.toml";
 const DEFAULT_SETTINGS: &str = r#"

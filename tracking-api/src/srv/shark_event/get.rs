@@ -1,8 +1,8 @@
 use crate::{
-    shark::{SharkAssociatedEvent, SharkEvent},
     srv::get_client,
 };
 use rocket::{http::Status, serde::json::Json, get};
+use tracking_model::event::{SharkEvent, SharkAssociatedEvent};
 
 pub const SQL_GET_EVENTS: &str = "SELECT * FROM event;";
 pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT * FROM associated_event;";

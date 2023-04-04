@@ -1,5 +1,5 @@
-use crate::event::SharkEvent;
 use gloo::storage::{SessionStorage, Storage};
+use tracking_model::event::SharkEvent;
 const KEY: &str = "shark.key.storage";
 
 pub fn get_events() -> Vec<SharkEvent> {

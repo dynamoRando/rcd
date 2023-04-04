@@ -1,6 +1,5 @@
+use tracking_model::event::SharkEvent;
 use yew::{Properties, UseStateHandle};
-
-use crate::event::SharkEvent;
 
 
 #[derive(Properties, PartialEq)]

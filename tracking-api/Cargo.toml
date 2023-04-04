@@ -10,6 +10,7 @@ serde_derive = "1"
 serde_json = "1"
 rcd-messages = { path = "../rcd-messages" }
 rcd-client = { path = "../rcd-client" }
+tracking-model = { path = "../tracking-model" }
 num = "0.4"
 num-derive = "0.3"
 num-traits = "0.2"

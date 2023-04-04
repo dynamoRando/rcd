@@ -1,6 +1,7 @@
 use chrono::NaiveDateTime;
-use num_derive::FromPrimitive;
-use serde::{Deserialize, Serialize};
+use num_derive::{FromPrimitive, ToPrimitive};
+use serde_derive::{Serialize, Deserialize};
+
 extern crate num;
 
 /*
@@ -23,14 +24,6 @@ extern crate num;
 | notes       | text     |
 
 */
-
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct User {
-    pub un: String, 
-    pub pw: String,
-    pub alias: Option<String>,
-    pub id: Option<String>,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
