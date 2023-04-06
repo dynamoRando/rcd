@@ -12,9 +12,15 @@ pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResu
     let has_account = has_account_with_name(&u.un).await;
     if !has_account {}
 
+    let mut result_message: Option<String> = None;
+
+    if has_account {
+        result_message = Some("account already exists".to_string());
+    }
+
     let result = CreateUserResult {
         is_successful: false,
-        message: None,
+        message: result_message,
     };
 
     return (Status::Ok, Json(result));
