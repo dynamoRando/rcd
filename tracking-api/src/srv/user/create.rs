@@ -8,9 +8,11 @@ use crate::srv::{get_client, shark_event::get::DB_NAME};
 pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResult>) {
     debug!("{request:?}");
 
-    let u = request.into_inner();
+    let u = request.clone().into_inner();
     let has_account = has_account_with_name(&u.un).await;
-    if !has_account {}
+    if !has_account {
+        create_new_account(&request).await;
+    }
 
     let mut result_message: Option<String> = None;
 
@@ -24,6 +26,10 @@ pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResu
     };
 
     return (Status::Ok, Json(result));
+}
+
+async fn create_new_account(request: &Json<User>) -> bool {
+    todo!();
 }
 
 async fn has_account_with_name(un: &str) -> bool {
