@@ -20,6 +20,8 @@ use crate::srv::shark_event::update::update_associated_event;
 use crate::srv::shark_event::create::add_event;
 use crate::srv::shark_event::create::add_associated_event;
 
+use self::user::create::create_account;
+
 const PROXY_ADDR: &str = "http://proxy.home:50051";
 const PROXY_USER: &str = "shark";
 const PROXY_AUTH: &str = "shark";
@@ -59,7 +61,8 @@ impl TrackingServer {
                     add_event,
                     add_associated_event,
                     delete_event,
-                    delete_associated_event
+                    delete_associated_event,
+                    create_account,
                 ],
             )
             .launch()

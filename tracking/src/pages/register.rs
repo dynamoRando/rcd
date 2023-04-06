@@ -28,7 +28,8 @@ pub fn Register() -> Html {
 
             spawn_local(async move {
                 let result = Repo::register_user(&un_val, &pw_val).await;
-                log_to_console("{result:?}");
+                let message = format!("{:?}", result);
+                log_to_console(&message);
 
                 match result {
                     Ok(_) => {
