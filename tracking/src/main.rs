@@ -26,12 +26,7 @@ pub mod storage;
 pub mod token;
 pub mod view_events;
 
-
-const SETTINGS_TOML: &str = "Settings.toml";
-const DEFAULT_SETTINGS: &str = r#"
-address = "proxy.home:50040"
-account = "shark"
-"#;
+const DEFAULT_REPO_ADDR: &str = "localhost:8020";
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {

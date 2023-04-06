@@ -20,6 +20,10 @@ use crate::srv::shark_event::update::update_associated_event;
 use crate::srv::shark_event::create::add_event;
 use crate::srv::shark_event::create::add_associated_event;
 
+const PROXY_ADDR: &str = "http://proxy.home:50051";
+const PROXY_USER: &str = "shark";
+const PROXY_AUTH: &str = "shark";
+
 mod shark_event;
 mod user;
 pub struct TrackingServer {
@@ -97,9 +101,9 @@ pub async fn get_client() -> RcdClient {
     let id = "59B2C8F5-9136-DBAC-F8A9-0903257B77D1";
 
     let mut client = RcdClient::new_grpc_client(
-        "http://proxy.home:50051".to_string(),
-        "shark".to_string(),
-        "shark".to_string(),
+        PROXY_ADDR.to_string(),
+        PROXY_USER.to_string(),
+        PROXY_AUTH.to_string(),
         60,
     )
     .await;
