@@ -33,7 +33,7 @@ pub fn Register() -> Html {
 
                 match result {
                     Ok(_) => {
-                        register_result.set("Account created!".to_string());
+                        register_result.set("Account created! Please accept the pending data contract at your data account before using this app".to_string());
                     },
                     Err(e) => {
                         register_result.set("Failed to create account".to_string());

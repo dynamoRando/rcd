@@ -8,27 +8,43 @@ use crate::srv::{get_client, shark_event::get::DB_NAME};
 pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResult>) {
     debug!("{request:?}");
 
+    let mut is_successful: bool = false;
+    let mut result_message: Option<String> = None;
+
     let u = request.clone().into_inner();
     let has_account = has_account_with_name(&u.un).await;
-    if !has_account {
-        create_new_account(&request).await;
-    }
 
-    let mut result_message: Option<String> = None;
+    if !has_account {
+        let create_account_result = create_new_account(&request).await;
+        match create_account_result {
+            Ok(()) => {
+                is_successful = true;
+            }
+            Err(e) => {
+                is_successful = false;
+                result_message = Some(e);
+            }
+        }
+    }
 
     if has_account {
         result_message = Some("account already exists".to_string());
     }
 
     let result = CreateUserResult {
-        is_successful: false,
+        is_successful: is_successful,
         message: result_message,
     };
 
     return (Status::Ok, Json(result));
 }
 
-async fn create_new_account(request: &Json<User>) -> bool {
+/// Attempts to create a new account with the specified un/pw
+async fn create_new_account(request: &Json<User>) -> Result<(), String> {
+    // we want to create a new account with the un/pw
+    // then we want to add a participant with the same un for the alias
+    // and then we want to let the UI know that the user should accept the pending contract
+
     todo!();
 }
 
