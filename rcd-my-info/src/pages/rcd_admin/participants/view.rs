@@ -1,5 +1,6 @@
 use rcd_messages::client::{
-    ParticipantStatus, SendParticipantContractReply, SendParticipantContractRequest,
+    GetParticipantsReply, GetParticipantsRequest, ParticipantStatus, SendParticipantContractReply,
+    SendParticipantContractRequest,
 };
 use rcd_messages::proxy::request_type::RequestType;
 use wasm_bindgen_futures::spawn_local;
@@ -11,7 +12,9 @@ use crate::request;
 use crate::{
     log::log_to_console,
     pages::rcd_admin::{common::select_database::SelectDatabase, participants::ActiveDbProps},
-    request::rcd::{clear_status, get_rcd_client, get_rcd_token, set_status, update_token_login_status},
+    request::rcd::{
+        clear_status, get_rcd_client, get_rcd_token, set_status, update_token_login_status,
+    },
 };
 
 #[derive(Properties, PartialEq)]
@@ -33,16 +36,22 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
         let participant_details = participant_details.clone();
 
         Callback::from(move |db_name: String| {
+            log_to_console(db_name.clone());
             if !db_name.is_empty() && db_name != "SELECT DATABASE" {
                 let participant_details = participant_details.clone();
-
-                let mut client = get_rcd_client();
                 let token = get_rcd_token();
-                spawn_local(async move {
-                    let reply = client.get_participants(token.auth(), &db_name).await;
 
-                    match reply {
+                let request = GetParticipantsRequest {
+                    authentication: Some(token.auth()),
+                    database_name: db_name.clone(),
+                };
+
+                let request_json = serde_json::to_string(&request).unwrap();
+
+                let callback =
+                    Callback::from(move |response: Result<AttrValue, String>| match response {
                         Ok(reply) => {
+                            let reply: GetParticipantsReply = serde_json::from_str(&reply).unwrap();
                             clear_status();
 
                             let is_authenticated = reply
@@ -59,8 +68,9 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                         Err(e) => {
                             set_status(e);
                         }
-                    }
-                });
+                    });
+
+                request::post(RequestType::GetParticipants, &request_json, callback);
             }
         })
     };
@@ -143,7 +153,7 @@ pub fn ViewParticipantsForDb(
                                                 let json_request = serde_json::to_string(&request).unwrap();
 
                                                 log_to_console(json_request.clone());
-                                                
+
                                                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
 
                                                     if let Ok(ref x) = response {

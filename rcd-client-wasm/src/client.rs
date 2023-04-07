@@ -13,7 +13,7 @@ use rcd_messages::client::{
 use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
+use web_sys::{Request, RequestInit, RequestMode, Response, console};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RcdClient {
@@ -256,8 +256,7 @@ pub async fn post_result(url: &str, body: &str) -> Result<String, String> {
                     Ok(JsValue::as_string(&json).unwrap())
                 }
                 Err(e) => {
-                    // let m = format!("{:?}", e);
-                    // log_to_console(m);
+                    console::log_1(&e);
 
                     if JsValue::is_string(&e) {
                         Err(JsValue::as_string(&e).unwrap())

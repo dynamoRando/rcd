@@ -45,7 +45,32 @@ async fn create_new_account(request: &Json<User>) -> Result<(), String> {
     // then we want to add a participant with the same un for the alias
     // and then we want to let the UI know that the user should accept the pending contract
 
-    todo!();
+    let sql = "INSERT INTO user_to_participant 
+    (
+        un,
+        pw
+    )
+    VALUES
+    (
+        ':un',
+        ':pw'
+    )";
+
+    let sql = sql.replace(":un", &request.un).replace(":pw", &request.pw);
+
+    let mut client = get_client().await;
+    let result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
+
+    if let Ok(result) = result {
+        if result {
+
+            
+
+            return Ok(())
+        }
+    }
+
+    return Err("Unable to create account".to_string())
 }
 
 async fn has_account_with_name(un: &str) -> bool {
