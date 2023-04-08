@@ -46,7 +46,8 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .info(Color::Green)
         .debug(Color::Blue)
         .error(Color::BrightRed)
-        .warn(Color::Magenta);
+        .warn(Color::Magenta)
+        .trace(Color::BrightWhite);
 
     fern::Dispatch::new()
         .format(move |out, message, record| {
@@ -66,6 +67,7 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .level_for("tower", log::LevelFilter::Off)
         .level_for("_", log::LevelFilter::Off)
         .level_for("mio", log::LevelFilter::Off)
+        .level_for("tracing", log::LevelFilter::Off)
         .chain(std::io::stdout())
         .apply()
         .ignore();
