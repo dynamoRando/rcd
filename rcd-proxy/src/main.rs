@@ -5,6 +5,10 @@ use std::{env, path::Path};
 
 #[tokio::main]
 async fn main() {
+
+    let args: Vec<String> = env::args().collect();
+    process_cmd_args(args);
+
     // SimpleLogger::new().env().init().unwrap();
     init_log_to_screen_fern(LevelFilter::Debug);
 
@@ -64,4 +68,19 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .chain(std::io::stdout())
         .apply()
         .ignore();
+}
+
+
+fn process_cmd_args(args: Vec<String>){
+    if args.len() >= 2 {
+        let cmd = args[1].as_str();
+
+        match cmd {
+            "-v" => {
+                let version = env!("CARGO_PKG_VERSION");
+                println!("rcd-proxy version: {}", version);
+            }
+            _ => {},
+        }
+    }
 }

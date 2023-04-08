@@ -15,6 +15,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
     let add_participant_result = use_state_eq(move || String::from(""));
 
+    let ui_id = use_node_ref();
     let ui_alias = use_node_ref();
     let ui_addr = use_node_ref();
     let ui_port = use_node_ref();
@@ -24,6 +25,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
     let onclick = {
         let add_participant_result = add_participant_result.clone();
 
+        let ui_id = ui_id.clone();
         let ui_alias = ui_alias.clone();
         let ui_addr = ui_addr.clone();
         let ui_port = ui_port.clone();
@@ -35,6 +37,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             let active_db = active_db.clone();
             let db_name = (*active_db).clone();
 
+            let host_id = ui_id.cast::<HtmlInputElement>().unwrap().value();
             let alias = ui_alias.cast::<HtmlInputElement>().unwrap().value();
             let addr = ui_addr.cast::<HtmlInputElement>().unwrap().value();
             let port = ui_port.cast::<HtmlInputElement>().unwrap().value();
@@ -42,6 +45,12 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             let http_port = ui_http_port.cast::<HtmlInputElement>().unwrap().value();
 
             let token = get_rcd_token();
+
+            let mut hid: Option<String> = None;
+
+            if !host_id.is_empty() {
+                hid = Some(host_id);
+            }
             
             let request = AddParticipantRequest {
                 authentication: Some(token.auth()),
@@ -51,10 +60,12 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
                 port: port.parse().unwrap(),
                 http_addr: http,
                 http_port: http_port.parse().unwrap(),
-                id: None,
+                id: hid,
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
+
+            log_to_console(&request_json);
 
             let callback = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
@@ -93,6 +104,9 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
         <div>
             <div class="container">
                 <p><h1 class="subtitle">{"Add Particpant"}</h1></p>
+
+                <p><label for="participant_id">{ "Participant Host Id" }</label>
+                <input type="text" class="input" id ="participant_id" placeholder="Host Id" ref={&ui_id}/></p>
 
                 <p><label for="participant_alias">{ "Participant Alias" }</label>
                 <input type="text" class="input" id ="participant_alias" placeholder="Alias" ref={&ui_alias}/></p>

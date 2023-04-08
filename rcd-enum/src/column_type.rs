@@ -1,4 +1,4 @@
-use log::trace;
+use log::{trace, debug};
 use substring::Substring;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -46,7 +46,7 @@ impl ColumnType {
             let idx_first = idx_first_paren.unwrap();
             let idx_last = desc.find(')').unwrap();
             let str_length = desc.substring(idx_first + 1, idx_last);
-            trace!("{str_length}");
+            debug!("column string length: {str_length}");
             let length: u32 = str_length.parse().unwrap();
             length
         }

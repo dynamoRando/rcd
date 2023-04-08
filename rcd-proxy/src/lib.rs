@@ -284,6 +284,10 @@ impl RcdProxy {
 
     /// initalizes the backing database
     pub fn start(&self) {
+        
+        let version = env!("CARGO_PKG_VERSION");
+        info!("rcd-proxy version: {}", version);
+
         self.db.config();
     }
 
