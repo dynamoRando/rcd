@@ -1,5 +1,6 @@
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::{DateTime, Utc};
+use log::debug;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
@@ -1198,10 +1199,23 @@ impl Dbi {
             )
         } else {
             let contracts = self.get_accepted_contracts();
+
+            debug!("{contracts:?}");
+
+            let mut name = "".to_string();
+
+            if db_name.contains(".dbpart") {
+                name = db_name.replace(".dbpart", ".db");
+            } else {
+                name = db_name.to_string();
+            }
+
+            debug!("{}", name);
+
             let contracts = contracts
                 .iter()
                 .enumerate()
-                .filter(|&(_, c)| c.schema.as_ref().unwrap().database_name == db_name)
+                .filter(|&(_, c)| c.schema.as_ref().unwrap().database_name == name)
                 .map(|(_, c)| c);
 
             return contracts.last().unwrap().clone();
