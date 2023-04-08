@@ -58,7 +58,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
 
             let callback = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
                     clear_status();
 
                     let reply: AddParticipantReply = serde_json::from_str(x).unwrap();

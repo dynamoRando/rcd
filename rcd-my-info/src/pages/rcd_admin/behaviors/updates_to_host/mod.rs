@@ -51,7 +51,7 @@ pub fn UpdatesToHost() -> Html {
         Callback::from(move |table_name: String| {
             let behavior_type_state = behavior_type_state.clone();
             if !table_name.is_empty() {
-                log_to_console(table_name.clone());
+                log_to_console(&table_name);
 
                 let token = get_rcd_token();
 
@@ -65,7 +65,7 @@ pub fn UpdatesToHost() -> Html {
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
+                        log_to_console(&x);
                         clear_status();
 
                         let reply: GetUpdatesToHostBehaviorReply = serde_json::from_str(x).unwrap();

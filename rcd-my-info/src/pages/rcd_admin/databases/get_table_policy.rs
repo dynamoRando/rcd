@@ -14,7 +14,7 @@ use crate::{
 #[function_component]
 pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     let message = format!("{}{}", "entered table policy for: ", table.table_name);
-    log_to_console(message);
+    log_to_console(&message);
 
     let database_name = table.database_name.clone();
     let table_name = table.table_name.clone();
@@ -24,7 +24,7 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
     let get_policy_response_cb = Callback::from(move |response: Result<AttrValue, String>| {
         if let Ok(ref x) = response {
-            log_to_console(x.to_string());
+            log_to_console(&x);
             clear_status();
 
             let table_policy = table_policy.clone();

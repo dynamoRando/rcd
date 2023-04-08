@@ -24,7 +24,7 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
     
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
         if let Ok(ref x) = response {
-            log_to_console(x.to_string());
+            log_to_console(&x);
             clear_status();
 
             let read_reply: ExecuteReadReply = serde_json::from_str(x).unwrap();

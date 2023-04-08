@@ -36,7 +36,7 @@ pub fn ViewParticipants(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
         let participant_details = participant_details.clone();
 
         Callback::from(move |db_name: String| {
-            log_to_console(db_name.clone());
+            log_to_console(&db_name);
             if !db_name.is_empty() && db_name != "SELECT DATABASE" {
                 let participant_details = participant_details.clone();
                 let token = get_rcd_token();
@@ -152,13 +152,13 @@ pub fn ViewParticipantsForDb(
 
                                                 let json_request = serde_json::to_string(&request).unwrap();
 
-                                                log_to_console(json_request.clone());
+                                                log_to_console(&json_request);
 
                                                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
 
                                                     if let Ok(ref x) = response {
                                                         let participant_send_contract_result = participant_send_contract_result.clone();
-                                                        log_to_console(x.to_string());
+                                                        log_to_console(&x);
 
                                                         let reply: SendParticipantContractReply =
                                                         serde_json::from_str(x).unwrap();

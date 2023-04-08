@@ -37,7 +37,7 @@ pub fn Pending() -> Html {
             
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
                     clear_status();
 
                     let reply: ViewPendingContractsReply = serde_json::from_str(x).unwrap();
@@ -125,7 +125,7 @@ pub fn Pending() -> Html {
                                             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                                                 if let Ok(ref x) = response {
                                                     clear_status();
-                                                    log_to_console(x.to_string());
+                                                    log_to_console(&x);
 
                                                     let reply: AcceptPendingContractReply = serde_json::from_str(x).unwrap();
                                                     let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;

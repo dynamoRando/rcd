@@ -57,7 +57,7 @@ pub fn ChangeBehavior(
                     let database = database.clone();
                     let table = table.clone();
                     clear_status();
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
 
                     let reply: ChangeUpdatesToHostBehaviorReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply

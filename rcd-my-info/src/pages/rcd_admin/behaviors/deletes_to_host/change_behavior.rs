@@ -57,7 +57,7 @@ pub fn ChangeBehavior(
                     let table = table.clone();
                     clear_status();
                     let response = response.unwrap();
-                    log_to_console(response.to_string());
+                    log_to_console(&response);
 
                     let reply: ChangeDeletesToHostBehaviorReply =
                         serde_json::from_str(&response).unwrap();

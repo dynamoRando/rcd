@@ -54,7 +54,7 @@ pub fn Login() -> Html {
             spawn_local(async move {
                 let result = proxy.auth_for_token(&u, &p).await;
                 let message = format!("{result:?}");
-                log_to_console(message);
+                log_to_console(&message);
                 match result {
                     Ok(token) => {
                         if token.is_logged_in {
@@ -67,7 +67,7 @@ pub fn Login() -> Html {
                             login_result.set("Login failed.".to_string());
                         }
                     }
-                    Err(e) => log_to_console(e),
+                    Err(e) => log_to_console(&e),
                 };
             })
         })
@@ -174,7 +174,7 @@ pub async fn databases() {
         .await;
 
     let message = format!("{r:?}");
-    log_to_console(message);
+    log_to_console(&message);
 
     match r {
         Ok(r) => {

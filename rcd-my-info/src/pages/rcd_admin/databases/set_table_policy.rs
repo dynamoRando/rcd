@@ -26,7 +26,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
         let ui_new_policy = ui_new_policy.clone();
 
         Callback::from(move |_| {
-            log_to_console("SetTablePolicy - Onchange".to_string());
+            log_to_console("SetTablePolicy - Onchange");
             let policy = ui_new_policy.cast::<HtmlInputElement>();
 
             if policy.is_some() {
@@ -37,14 +37,14 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     };
 
     let onclick: Callback<MouseEvent> = {
-        log_to_console("SetTablePolicy - Clicked".to_string());
+        log_to_console("SetTablePolicy - Clicked");
         let set_new_policy = set_new_policy;
 
         if set_new_policy.is_some() {
             let policy_val = set_new_policy.as_ref().unwrap();
 
             let message = format!("{}{}", "SetTablePolicy Value: ", policy_val.clone());
-            log_to_console(message);
+            log_to_console(&message);
 
             let policy_num: u32 = policy_val.parse().unwrap();
 
@@ -59,7 +59,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
 
                 let cb = Callback::from(move |response: Result<AttrValue, String>| {
                     if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
+                        log_to_console(&x);
                         clear_status();
 
                         let reply: SetLogicalStoragePolicyReply = serde_json::from_str(x).unwrap();
@@ -93,7 +93,7 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                 
 
                 let message = format!("{}{}", "SENDING REQUEST FOR NEW POLICY: ", request_json);
-                log_to_console(message);
+                log_to_console(&message);
 
                 request::post(RequestType::SetLogicalStoragePolicy, &request_json, cb);
             })

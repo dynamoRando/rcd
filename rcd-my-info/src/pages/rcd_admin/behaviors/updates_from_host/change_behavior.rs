@@ -63,7 +63,7 @@ pub fn ChangeBehavior(
                         let table = table.clone();
                         clear_status();
 
-                        log_to_console(response.to_string());
+                        log_to_console(&response);
 
                         let reply: ChangesUpdatesFromHostBehaviorReply =
                             serde_json::from_str(&response).unwrap();

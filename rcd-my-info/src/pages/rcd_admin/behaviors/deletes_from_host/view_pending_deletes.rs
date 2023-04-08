@@ -57,7 +57,7 @@ pub fn ViewPendingDeletes(
                 Ok(response) => {
                     clear_status();
 
-                    log_to_console(response.to_string());
+                    log_to_console(&response);
 
                     let reply: AcceptPendingActionReply = serde_json::from_str(&response).unwrap();
                     let is_authenticated = reply
@@ -103,7 +103,7 @@ pub fn ViewPendingDeletes(
             let cb = Callback::from(move |response: Result<AttrValue, String>| match response {
                 Ok(response) => {
                     clear_status();
-                    log_to_console(response.to_string());
+                    log_to_console(&response);
 
                     let reply: AcceptPendingActionReply = serde_json::from_str(&response).unwrap();
                     let is_authenticated = reply
@@ -149,7 +149,7 @@ pub fn ViewPendingDeletes(
                 Ok(response) => {
                     clear_status();
 
-                    log_to_console(response.to_string());
+                    log_to_console(&response);
 
                     let reply: GetPendingActionsReply = serde_json::from_str(&response).unwrap();
                     let is_authenticated = reply

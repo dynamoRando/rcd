@@ -42,7 +42,7 @@ pub fn Register() -> Html {
 
             spawn_local(async move {
                 let result = proxy.register_account(&u, &p).await;
-                log_to_console("{result:?}".to_string());
+                log_to_console("{result:?}");
                 match result {
                     Ok(registration) => {
                         if registration.is_successful {
@@ -61,7 +61,7 @@ pub fn Register() -> Html {
                             register_result.set(result_message);
                         }
                     }
-                    Err(e) => log_to_console(e),
+                    Err(e) => log_to_console(&e),
                 };
             })
         })

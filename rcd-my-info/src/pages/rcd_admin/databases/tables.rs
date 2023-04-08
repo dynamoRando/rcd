@@ -16,7 +16,7 @@ pub struct TableProps {
 #[function_component]
 pub fn Tables(TableProps { db }: &TableProps) -> Html {
     let message = format!("{}{}", "entered tables for: ", db.database_name);
-    log_to_console(message);
+    log_to_console(&message);
 
     let db = db.clone();
     let tables = db.tables.clone();

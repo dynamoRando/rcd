@@ -56,7 +56,7 @@ pub fn ViewPendingUpdates(
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     clear_status();
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
 
                     let reply: AcceptPendingActionReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
@@ -102,7 +102,7 @@ pub fn ViewPendingUpdates(
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     clear_status();
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
 
                     let reply: AcceptPendingActionReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply
@@ -147,7 +147,7 @@ pub fn ViewPendingUpdates(
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     clear_status();
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
 
                     let reply: GetPendingActionsReply = serde_json::from_str(x).unwrap();
                     let is_authenticated = reply

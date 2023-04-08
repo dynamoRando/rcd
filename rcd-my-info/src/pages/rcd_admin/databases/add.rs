@@ -33,7 +33,7 @@ pub fn Create() -> Html {
                 let last_created_result = last_created_result;
                 Callback::from(move |response: Result<AttrValue, String>| {
                     if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
+                        log_to_console(&x);
                         clear_status();
 
                         let reply: CreateUserDatabaseReply = serde_json::from_str(x).unwrap();

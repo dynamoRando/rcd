@@ -63,7 +63,7 @@ impl RcdProxy {
         let result: Result<AuthForTokenReply, String> =
             self.get_http_result_error(url, request).await;
         let debug = format!("{result:?}");
-        log_to_console(debug);
+        log_to_console(&debug);
     }
 
     pub async fn execute_request(
@@ -150,7 +150,7 @@ impl RcdProxy {
         let result: Result<AuthForTokenReply, String> =
             self.get_http_result_error(url, request).await;
         let debug = format!("{result:?}");
-        log_to_console(debug);
+        log_to_console(&debug);
         match result {
             Ok(r) => Ok(Token {
                 jwt: r.jwt.unwrap(),

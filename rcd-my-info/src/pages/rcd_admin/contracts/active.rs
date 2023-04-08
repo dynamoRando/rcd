@@ -40,7 +40,7 @@ pub fn Active() -> Html {
                     
                     let cb = Callback::from(move |response: Result<AttrValue, String>| {
                         if let Ok(ref x) = response {
-                            log_to_console(x.to_string());
+                            log_to_console(&x);
                             clear_status();
 
                             let reply: GetActiveContractReply = serde_json::from_str(x).unwrap();
@@ -66,7 +66,7 @@ pub fn Active() -> Html {
                     });
 
                     let message = format!("{}{}", "sending active contract request for: ", db_name);
-                    log_to_console(message);
+                    log_to_console(&message);
 
                     request::post(RequestType::GetActiveContract, &request_json, cb);
                 }

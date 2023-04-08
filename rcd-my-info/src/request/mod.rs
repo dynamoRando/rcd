@@ -14,7 +14,7 @@ pub fn post(
     callback: Callback<Result<AttrValue, String>>,
 ) {
     let message = format!("{}{}", "outgoing message: ", request_json);
-    log_to_console(message);
+    log_to_console(&message);
 
     let mut proxy = get_proxy();
 

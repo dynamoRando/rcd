@@ -33,7 +33,7 @@ pub fn CooperativeHosts() -> Html {
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
                     clear_status();
 
                     let coop_response: GetCooperativeHostsReply = serde_json::from_str(x).unwrap();
@@ -130,7 +130,7 @@ pub fn CooperativeHosts() -> Html {
                                                             if let Ok(ref x) = response {
                                                                 let name = name.clone();
                                                                 clear_status();
-                                                                log_to_console(x.to_string());
+                                                                log_to_console(&x);
 
                                                                 let reply: ChangeHostStatusReply = serde_json::from_str(x).unwrap();
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;
@@ -174,7 +174,7 @@ pub fn CooperativeHosts() -> Html {
                                                             if let Ok(ref x) = response {
                                                                 let name = name.clone();
                                                                 clear_status();
-                                                                log_to_console(x.to_string());
+                                                                log_to_console(&x);
 
                                                                 let reply: ChangeHostStatusReply = serde_json::from_str(x).unwrap();
                                                                 let is_authenticated = reply.authentication_result.as_ref().unwrap().is_authenticated;

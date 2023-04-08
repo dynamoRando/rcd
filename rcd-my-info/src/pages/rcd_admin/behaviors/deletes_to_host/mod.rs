@@ -51,7 +51,7 @@ pub fn DeletesToHost() -> Html {
         Callback::from(move |table_name: String| {
             let behavior_type_state = behavior_type_state.clone();
             if !table_name.is_empty() {
-                log_to_console(table_name.clone());
+                log_to_console(&table_name);
 
                 let token = get_rcd_token();
 
@@ -66,7 +66,7 @@ pub fn DeletesToHost() -> Html {
                 let cb =
                     Callback::from(move |response: Result<AttrValue, String>| match response {
                         Ok(response) => {
-                            log_to_console(response.to_string());
+                            log_to_console(&response);
                             clear_status();
 
                             let reply: GetDeletesToHostBehaviorReply =
