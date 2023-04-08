@@ -37,7 +37,7 @@ pub fn GenerateInfo() -> Html {
                 let last_gen_result = last_gen_result;
                 Callback::from(move |response: Result<AttrValue, String>| {
                     if let Ok(ref x) = response {
-                        log_to_console(x.to_string());
+                        log_to_console(&x);
                         clear_status();
 
                         let reply: GenerateHostInfoReply = serde_json::from_str(x).unwrap();

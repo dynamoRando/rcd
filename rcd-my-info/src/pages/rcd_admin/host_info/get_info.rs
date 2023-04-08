@@ -32,7 +32,7 @@ pub fn GetInfo() -> Html {
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     clear_status();
-                    log_to_console(x.to_string());
+                    log_to_console(&x);
                     let host_info = host_info.clone();
                     let reply: HostInfoReply = serde_json::from_str(x).unwrap();
 
