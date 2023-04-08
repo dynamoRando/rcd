@@ -80,7 +80,12 @@ impl RemoteGrpc {
 
         debug!("send_participant_contract: {request:?}");
 
-        let addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
+        let mut addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
+
+        if !addr_port.contains(":") {
+            addr_port = format!("{}:{}", participant.ip4addr, participant.db_port);
+            debug!("reformatted - sending request to rcd at: {}", addr_port);
+        }
 
         info!("sending request to rcd at: {}", addr_port);
 
