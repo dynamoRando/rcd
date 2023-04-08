@@ -622,8 +622,12 @@ pub fn has_enable_coooperative_features(
     if !has_database(config, db_name) {
         Err(RcdDbError::DbNotFound(db_name.to_string()))
     } else {
-        let conn = get_db_conn(config, db_name);
-        Ok(has_table("COOP_REMOTES", &conn))
+        if db_name.contains(".dbpart") {
+            Ok(true)
+        } else {
+            let conn = get_db_conn(config, db_name);
+            Ok(has_table("COOP_REMOTES", &conn))
+        }
     }
 }
 

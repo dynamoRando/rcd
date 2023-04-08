@@ -18,6 +18,7 @@ pub fn Active() -> Html {
     let onclick_db = {
         let active_contract_text = active_contract_text.clone();
         Callback::from(move |db_name: String| {
+            log_to_console(&db_name);
             let active_contract_text = active_contract_text.clone();
 
             if db_name.is_empty() || db_name == "SELECT DATABASE" {
@@ -25,6 +26,9 @@ pub fn Active() -> Html {
                 active_contract_text.set(String::from(""));
 
                 let database = get_database(&db_name);
+
+                log_to_console(&format!("{database:?}"));
+
                 let cooperation_enabled = database.cooperation_enabled;
 
                 if cooperation_enabled {
@@ -37,6 +41,8 @@ pub fn Active() -> Html {
                     };
 
                     let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
+
+                    log_to_console(&request_json);
                     
                     let cb = Callback::from(move |response: Result<AttrValue, String>| {
                         if let Ok(ref x) = response {
