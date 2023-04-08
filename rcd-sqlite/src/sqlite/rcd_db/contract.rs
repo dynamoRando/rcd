@@ -1,3 +1,4 @@
+use log::{debug, warn};
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, Participant, TableSchema};
 
 use crate::sqlite::{
@@ -449,6 +450,11 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
             participant_information: None,
         };
     } else {
+        warn!(
+            "contract already exists for: {} version: {}",
+            contract.contract_guid, contract.contract_version
+        );
+
         let cmd = "SELECT COUNT(*) cnt from CDS_CONTRACTS WHERE CONTRACT_ID = ':cid' AND CONTRACT_VERSION_ID = ':vid'";
         let cmd = cmd
             .replace(":cid", &contract.contract_version)
@@ -463,6 +469,8 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
             let contract_status = ContractStatus::from_u32(status);
 
             if contract_status == ContractStatus::Accepted {
+                debug!("contract was already accepted, sending back acceptance info");
+
                 let host_info = get_host_info(config.clone());
                 if let Some(host_info) = host_info {
                     let participant_information = Some(Participant {
@@ -477,31 +485,40 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
                         http_port: 0,
                     });
 
-                    return RcdSaveContractResult {
+                    let result = RcdSaveContractResult {
                         is_successful: true,
                         contract_status: contract_status,
                         participant_information: participant_information,
                     };
+
+                    debug!("{result:?}");
+                    return result;
                 } else {
-                    return RcdSaveContractResult {
+                    let result = RcdSaveContractResult {
                         is_successful: true,
                         contract_status: contract_status,
                         participant_information: None,
                     };
+                    debug!("{result:?}");
+                    return result;
                 }
             } else {
-                return RcdSaveContractResult {
+                let result = RcdSaveContractResult {
                     is_successful: true,
                     contract_status: contract_status,
                     participant_information: None,
                 };
+                debug!("{result:?}");
+                return result;
             }
         } else {
-            return RcdSaveContractResult {
+            let result = RcdSaveContractResult {
                 is_successful: false,
                 contract_status: ContractStatus::Unknown,
                 participant_information: None,
             };
+            debug!("{result:?}");
+            return result;
         }
     }
 }

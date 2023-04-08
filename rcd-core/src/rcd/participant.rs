@@ -1,3 +1,4 @@
+use log::debug;
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
     AddParticipantReply, AddParticipantRequest, SendParticipantContractReply,
@@ -97,8 +98,12 @@ pub async fn send_participant_contract(
             )
             .await;
 
+        debug!("send participant contract result: {result:?}");
+
         is_successful = result.is_successful;
         contract_status = ContractStatus::to_u32(result.contract_status);
+
+
 
         let participant_contract_status = ContractStatus::from_u32(contract_status);
 
