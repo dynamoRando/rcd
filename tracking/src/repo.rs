@@ -11,7 +11,7 @@ const REPO_LOCATION: &str = "http://localhost:8020/";
 pub struct Repo {}
 
 impl Repo {
-    pub async fn register_user(un: &str, pw: &str) -> Result<(), String> {
+    pub async fn register_user(un: &str, pw: &str, host_id: &str) -> Result<(), String> {
         log_to_console("register user");
         let addr = format!("{}{}", REPO_LOCATION, r#"user/create"#);
 

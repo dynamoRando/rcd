@@ -91,11 +91,13 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
                                 let token = get_proxy_token();
                                 let id = token.id.as_ref().unwrap().clone();
                                 html! {
-                                    <div>
-                                        <button class="button is-warning">
-                                            { id }
-                                        </button>
+                                    <div class="navbar-item">
+                                        <div class="field">
+                                        <input type="text" class="input" size=36
+                                        id ="account_id" placeholder="Account Id"
+                                        value={id} readonly=true />
                                     </div>
+                                </div>
                                 }
                             }
                             else {

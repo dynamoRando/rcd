@@ -1321,7 +1321,7 @@ impl RcdClient {
         participant_alias: &str,
         participant_ip4addr: &str,
         participant_db_port: u32,
-        participant_http_addr: String,
+        participant_http_addr: &str,
         participant_http_port: u16,
         participant_id: Option<String>,
     ) -> Result<bool, Box<dyn Error>> {
@@ -1333,7 +1333,7 @@ impl RcdClient {
             alias: participant_alias.to_string(),
             ip4_address: participant_ip4addr.to_string(),
             port: participant_db_port,
-            http_addr: participant_http_addr,
+            http_addr: participant_http_addr.to_string(),
             http_port: participant_http_port as u32,
             id: participant_id,
         };

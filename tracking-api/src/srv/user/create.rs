@@ -59,12 +59,23 @@ async fn create_new_account(request: &Json<User>) -> Result<(), String> {
     let sql = sql.replace(":un", &request.un).replace(":pw", &request.pw);
 
     let mut client = get_client().await;
-    let result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
+    let add_user_result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
 
-    if let Ok(result) = result {
-        if result {
+    if let Ok(added_user) = add_user_result {
+        if added_user {
 
-            
+            let add_participant_result = client.
+            add_participant(
+                DB_NAME, 
+                &request.un, 
+                "proxy.home", 
+                50052, 
+                "proxy.home", 
+                50040, 
+                None)
+            .await.unwrap();
+
+            todo!()
 
             return Ok(())
         }
