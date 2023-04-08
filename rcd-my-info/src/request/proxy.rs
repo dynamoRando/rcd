@@ -21,6 +21,7 @@ use crate::log::log_to_console;
 
 const RCDPROXY: &str = "rcdmyinfo.key.proxy";
 const KEY: &str = "rcdmyinfo.key.rcdproxy.instance";
+const INFO_UN: &str = "rcdmyinfo.current.un";
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RcdProxy {
@@ -196,6 +197,14 @@ impl RcdProxy {
 pub fn set_proxy(client: &RcdProxy) {
     let client_json = serde_json::to_string(&client).unwrap();
     SessionStorage::set(RCDPROXY, client_json).expect("failed to set");
+}
+
+pub fn set_un(un: &str) {
+    SessionStorage::set(INFO_UN, un).expect("failed to set");
+}
+
+pub fn get_un() -> String {
+    SessionStorage::get(INFO_UN).unwrap_or_else(|_| String::from(""))
 }
 
 pub fn get_proxy() -> RcdProxy {

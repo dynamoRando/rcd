@@ -184,6 +184,7 @@ pub fn create_partial_database_from_contract(
     config: &DbiConfigSqlite,
 ) -> bool {
     trace!("{config:?}");
+    trace!("{contract:?}");
 
     let db_name = contract.schema.as_ref().unwrap().database_name.clone();
     let _ = create_partial_database(&db_name, config);
@@ -264,6 +265,9 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
 }
 
 fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
+
+    trace!("{table_schema:?}");
+
     let table_name = table_schema.table_name.clone();
     let mut cmd = String::from("CREATE TABLE IF NOT EXISTS :tablename ");
     cmd = cmd.replace(":tablename", &table_name);
@@ -297,6 +301,9 @@ fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
         cmd = cmd + &col_statement;
     }
     cmd += " ) ";
+
+    trace!("{cmd:?}");
+
     execute_write(conn, &cmd);
 }
 

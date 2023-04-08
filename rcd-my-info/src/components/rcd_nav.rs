@@ -1,4 +1,7 @@
-use crate::{app::Route, request::proxy::get_proxy_token};
+use crate::{
+    app::Route,
+    request::proxy::{get_proxy_token, get_un},
+};
 use yew::prelude::*;
 use yew_router::prelude::*;
 
@@ -41,6 +44,9 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
         })
     };
     let active_class = if !*navbar_active { "is-invisible" } else { "" };
+
+    let un = get_un();
+
     html!(
         <div>
             <nav class="navbar is-light">
@@ -85,30 +91,35 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
                         </Link<Route>>
                     </div>
                 </div>
-                <div class="buttons">
-                        {
-                            if *props.is_logged_in {
-                                let token = get_proxy_token();
-                                let id = token.id.as_ref().unwrap().clone();
-                                html! {
+                    {
+                        if *props.is_logged_in {
+                            let token = get_proxy_token();
+                            let id = token.id.as_ref().unwrap().clone();
+                            html! {
+                                <div>
                                     <div class="navbar-item">
-                                        <div class="field">
                                         <input type="text" class="input" size=36
                                         id ="account_id" placeholder="Account Id"
                                         value={id} readonly=true />
+                                    <div class="navbar-item">
+                                            <div class="buttons">
+                                                <button class="button is-warning">
+                                                {"User Name: "}{un}
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                }
-                            }
-                            else {
-                                html! {
-                                    <button class="button is-light">
-                                    <span class="mdi mdi-account-cancel">{" Not Logged In"}</span>
-                                    </button>
-                                    }
                             }
                         }
-                        </div>
+                        else {
+                            html! {
+                                <button class="button is-light">
+                                <span class="mdi mdi-account-cancel">{" Not Logged In"}</span>
+                                </button>
+                                }
+                        }
+                    }
             </nav>
         </div>
     )
