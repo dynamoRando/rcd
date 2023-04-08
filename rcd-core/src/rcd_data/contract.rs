@@ -1,3 +1,4 @@
+use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
     ParticipantAcceptsContractRequest, ParticipantAcceptsContractResult, SaveContractRequest,
     SaveContractResult,
@@ -40,10 +41,12 @@ pub async fn accept_contract(
 pub async fn save_contract(core: &RcdData, request: SaveContractRequest) -> SaveContractResult {
     let contract = request.contract.unwrap();
 
-    let save_is_successful = core.dbi().save_contract(contract);
+    let save_result = core.dbi().save_contract(contract);
+    let status = ContractStatus::to_u32(save_result.contract_status);
 
     SaveContractResult {
-        is_saved: save_is_successful.0,
-        error_message: save_is_successful.1,
+        is_saved: save_result.is_successful,
+        contract_status: status,
+        participant_info: save_result.participant_information,
     }
 }

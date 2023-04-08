@@ -5,7 +5,7 @@ use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
-    table::Table,
+    table::Table, save_contract_result::RcdSaveContractResult,
 };
 
 use rcd_enum::{
@@ -778,7 +778,7 @@ impl Dbi {
         }
     }
 
-    pub fn save_contract(&self, contract: Contract) -> (bool, String) {
+    pub fn save_contract(&self, contract: Contract) -> RcdSaveContractResult {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();

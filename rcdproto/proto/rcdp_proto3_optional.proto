@@ -365,7 +365,7 @@ message SendParticipantContractRequest {
 message SendParticipantContractReply {
 	AuthResult authenticationResult = 1;
 	bool isSent = 2;
-	string message = 3;
+	uint32 contractStatus = 3;
 }
 
 // a message representing the results of a SQL query
@@ -670,7 +670,8 @@ message SaveContractRequest {
 
 message SaveContractResult {
 	bool isSaved = 1;
-	string errorMessage = 2;
+	uint32 contractStatus = 2;
+	optional Participant participant_info = 3;
 }
 
 message ParticipantAcceptsContractRequest {

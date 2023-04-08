@@ -167,7 +167,7 @@ pub fn ViewParticipantsForDb(
                                                                 participant_send_contract_result.set(message);
                                                             } else {
                                                                 let message = format!("{}{}{}{}","Contract sent to
-                                                                participant ", alias.clone(), " is NOT successful. Reason: ", reply.message);
+                                                                participant ", alias.clone(), " is NOT successful. Reason: ", reply.contract_status);
                                                                 participant_send_contract_result.set(message);
                                                             }
                                                         }

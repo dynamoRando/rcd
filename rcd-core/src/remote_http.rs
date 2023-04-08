@@ -14,6 +14,7 @@ use rcd_common::{
     data_info::DataInfo,
     db::CdsHosts,
     host_info::HostInfo,
+    save_contract_result::RcdSaveContractResult,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcd_http_common::url::data::{
@@ -366,7 +367,7 @@ impl RemoteHttp {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> (bool, String) {
+    ) -> RcdSaveContractResult {
         let message_info = get_message_info(&host_info, "".to_string());
 
         let contract = contract.to_cdata_contract(
@@ -408,7 +409,11 @@ impl RemoteHttp {
             .unwrap();
             */
 
-        (reply.is_saved, reply.error_message)
+        RcdSaveContractResult {
+            is_successful: reply.is_saved,
+            contract_status: ContractStatus::from_u32(reply.contract_status),
+            participant_information: reply.participant_info.clone(),
+        }
     }
 }
 

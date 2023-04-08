@@ -573,8 +573,8 @@ pub struct SendParticipantContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     #[prost(bool, tag = "2")]
     pub is_sent: bool,
-    #[prost(string, tag = "3")]
-    pub message: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "3")]
+    pub contract_status: u32,
 }
 /// a message representing the results of a SQL query
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -1098,8 +1098,10 @@ pub struct SaveContractRequest {
 pub struct SaveContractResult {
     #[prost(bool, tag = "1")]
     pub is_saved: bool,
-    #[prost(string, tag = "2")]
-    pub error_message: ::prost::alloc::string::String,
+    #[prost(uint32, tag = "2")]
+    pub contract_status: u32,
+    #[prost(message, optional, tag = "3")]
+    pub participant_info: ::core::option::Option<Participant>,
 }
 #[derive(serde::Serialize, serde::Deserialize)]
 #[allow(clippy::derive_partial_eq_without_eq)]

@@ -3,7 +3,7 @@ use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     data_info::DataInfo,
     db::CdsHosts,
-    host_info::HostInfo,
+    host_info::HostInfo, save_contract_result::RcdSaveContractResult,
 };
 use rcdproto::rcdp::{
     Contract, DatabaseSchema, DeleteDataResult, GetRowFromPartialDatabaseResult, InsertDataResult,
@@ -75,7 +75,7 @@ impl RcdRemoteDbClient {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> (bool, String) {
+    ) -> RcdSaveContractResult {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
             RcdCommunication::Grpc => {

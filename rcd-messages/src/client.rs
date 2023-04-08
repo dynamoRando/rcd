@@ -337,7 +337,7 @@ pub struct SendParticipantContractRequest {
 pub struct SendParticipantContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     pub is_sent: bool,
-    pub message: String,
+    pub contract_status: u32,
 }
 /// a message representing the results of a SQL query
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
@@ -413,7 +413,7 @@ pub struct GenerateContractRequest {
 pub struct GenerateContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     pub is_successful: bool,
-    pub message: String,
+    pub contract_status: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetLogicalStoragePolicyRequest {
@@ -629,6 +629,7 @@ pub struct SaveContractRequest {
 pub struct SaveContractResult {
     pub is_saved: bool,
     pub error_message: String,
+    pub participant_info: Option<Participant>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct ParticipantAcceptsContractRequest {

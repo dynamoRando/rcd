@@ -1,9 +1,12 @@
+use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
     AddParticipantReply, AddParticipantRequest, SendParticipantContractReply,
     SendParticipantContractRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
 };
 
 use super::Rcd;
+
+const AUTO_UPDATE_PARTICIPANT_STATUS: bool = true;
 
 pub async fn try_auth_at_participant(
     core: &Rcd,
@@ -74,7 +77,7 @@ pub async fn send_participant_contract(
     let participant_alias = request.participant_alias;
 
     let mut is_successful = false;
-    let mut error_message = String::from("");
+    let mut contract_status: u32 = 0;
 
     if auth_result.0 && core.dbi().has_participant(&db_name, &participant_alias) {
         let participant = core
@@ -86,16 +89,35 @@ pub async fn send_participant_contract(
         let host_info = core.dbi().rcd_get_host_info().expect("no host info is set");
         let result = core
             .remote()
-            .send_participant_contract(participant, host_info, active_contract, db_schema)
+            .send_participant_contract(
+                participant.clone(),
+                host_info,
+                active_contract.clone(),
+                db_schema,
+            )
             .await;
 
-        is_successful = result.0;
-        error_message = result.1;
+        is_successful = result.is_successful;
+        contract_status = ContractStatus::to_u32(result.contract_status);
+
+        let participant_contract_status = ContractStatus::from_u32(contract_status);
+
+        if AUTO_UPDATE_PARTICIPANT_STATUS
+            && !is_successful
+            && (participant_contract_status != ContractStatus::Pending)
+        {
+            core.dbi().update_participant_accepts_contract(
+                &db_name,
+                participant.clone(),
+                result.participant_information.unwrap(),
+                &active_contract.contract_id.to_string(),
+            );
+        }
     };
 
     SendParticipantContractReply {
         authentication_result: Some(auth_result.1),
         is_sent: is_successful,
-        message: error_message,
+        contract_status: contract_status,
     }
 }

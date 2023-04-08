@@ -1,14 +1,15 @@
-use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, TableSchema};
+use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, Participant, TableSchema};
 
 use crate::sqlite::{
     db::{has_enable_coooperative_features, has_participants},
-    execute_write, get_scalar_as_string, has_any_rows,
+    execute_write, get_scalar_as_string, get_scalar_as_u32, has_any_rows,
 };
 
-use super::{get_rcd_conn, has_contract};
+use super::{get_host_info, get_rcd_conn, has_contract};
 use chrono::Utc;
-use rcd_common::db::{
-    CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite,
+use rcd_common::{
+    db::{CdsContracts, CdsContractsTables, CdsContractsTablesColumns, CdsHosts, DbiConfigSqlite},
+    save_contract_result::RcdSaveContractResult,
 };
 use rcd_enum::{contract_status::ContractStatus, host_status::HostStatus};
 use rusqlite::{named_params, Connection, Result};
@@ -431,7 +432,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
 /// this means that we'll create a partial database with the contract's schema
 /// and also notify the host that we are willing to be a participant of the database.
 
-pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, String) {
+pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveContractResult {
     let conn = get_rcd_conn(config);
 
     // trace!("save_contract called with {:?}", contract);
@@ -441,10 +442,68 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> (bool, Str
         save_contract_table_data(&contract, &conn);
         save_contract_table_schema_data(&contract, &conn);
         save_contract_host_data(&contract, &conn);
-        return (true, "".to_string());
-    }
 
-    (false, "Contract already exists".to_string())
+        return RcdSaveContractResult {
+            is_successful: true,
+            contract_status: ContractStatus::Pending,
+            participant_information: None,
+        };
+    } else {
+        let cmd = "SELECT COUNT(*) cnt from CDS_CONTRACTS WHERE CONTRACT_ID = ':cid' AND CONTRACT_VERSION_ID = ':vid'";
+        let cmd = cmd
+            .replace(":cid", &contract.contract_version)
+            .replace(":vid", &contract.contract_version);
+        if has_any_rows(cmd, &conn) {
+            let cmd = "SELECT CONTRACT_STATUS FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid' AND CONTRACT_VERSION_ID = ':vid'";
+            let cmd = cmd
+                .replace(":cid", &contract.contract_version)
+                .replace(":vid", &contract.contract_version);
+
+            let status = get_scalar_as_u32(cmd, &conn);
+            let contract_status = ContractStatus::from_u32(status);
+
+            if contract_status == ContractStatus::Accepted {
+                let host_info = get_host_info(config.clone());
+                if let Some(host_info) = host_info {
+                    let participant_information = Some(Participant {
+                        participant_guid: host_info.id.clone(),
+                        alias: host_info.name.clone(),
+                        ip4_address: "".to_string(),
+                        ip6_address: String::from(""),
+                        database_port_number: 0,
+                        token: host_info.token.clone(),
+                        internal_participant_guid: "".to_string(),
+                        http_addr: "".to_string(),
+                        http_port: 0,
+                    });
+
+                    return RcdSaveContractResult {
+                        is_successful: true,
+                        contract_status: contract_status,
+                        participant_information: participant_information,
+                    };
+                } else {
+                    return RcdSaveContractResult {
+                        is_successful: true,
+                        contract_status: contract_status,
+                        participant_information: None,
+                    };
+                }
+            } else {
+                return RcdSaveContractResult {
+                    is_successful: true,
+                    contract_status: contract_status,
+                    participant_information: None,
+                };
+            }
+        } else {
+            return RcdSaveContractResult {
+                is_successful: false,
+                contract_status: ContractStatus::Unknown,
+                participant_information: None,
+            };
+        }
+    }
 }
 
 /// saves a contract's table information to CDS_CONTRACTS_TABLES

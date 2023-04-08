@@ -854,7 +854,7 @@ impl SqlClient for ProxyClientGrpc {
                 let reply = SendParticipantContractReply {
                     authentication_result: Some(auth_result),
                     is_sent: false,
-                    message: "".to_string(),
+                    contract_status: 0,
                 };
 
                 return Ok(Response::new(reply));
@@ -1428,10 +1428,11 @@ impl DataService for ProxyDbGrpc {
                 let response = core.save_contract(request).await;
                 return Ok(Response::new(response));
             }
-            Err(auth_result) => {
+            Err(_) => {
                 let reply = SaveContractResult {
                     is_saved: false,
-                    error_message: auth_result.authentication_message.clone(),
+                    contract_status: 0,
+                    participant_info: None,
                 };
 
                 return Ok(Response::new(reply));

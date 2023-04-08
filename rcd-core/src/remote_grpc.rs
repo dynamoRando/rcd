@@ -14,7 +14,7 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     data_info::DataInfo,
-    host_info::HostInfo,
+    host_info::HostInfo, save_contract_result::RcdSaveContractResult,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
@@ -58,7 +58,7 @@ impl RemoteGrpc {
         host_info: HostInfo,
         contract: CoopDatabaseContract,
         db_schema: DatabaseSchema,
-    ) -> (bool, String) {
+    ) -> RcdSaveContractResult {
         let message_info = get_message_info(&host_info, self.db_addr_port.clone());
 
         let contract = contract.to_cdata_contract(
@@ -93,9 +93,14 @@ impl RemoteGrpc {
         let response = client.await.save_contract(request).await.unwrap();
 
         let is_saved = response.get_ref().is_saved;
-        let error_message = response.get_ref().error_message.clone();
+        let contract_status = response.get_ref().contract_status.clone();
+        let participant_info = response.get_ref().participant_info.clone();
 
-        (is_saved, error_message)
+        RcdSaveContractResult {
+            is_successful: is_saved,
+            contract_status: ContractStatus::from_u32(contract_status),
+            participant_information: participant_info,
+        } 
     }
 
     pub async fn notify_host_of_removed_row(
