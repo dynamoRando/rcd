@@ -105,6 +105,8 @@ pub async fn send_participant_contract(
 
         let participant_contract_status = ContractStatus::from_u32(contract_status);
 
+        debug!("returned result was: {result:?}");
+
         if AUTO_UPDATE_PARTICIPANT_STATUS
             && !is_successful
             && (participant_contract_status != ContractStatus::Pending)
