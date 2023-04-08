@@ -1,7 +1,7 @@
 use log::debug;
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
-    AddParticipantReply, AddParticipantRequest, SendParticipantContractReply,
+    AddParticipantReply, AddParticipantRequest, Participant, SendParticipantContractReply,
     SendParticipantContractRequest, TryAuthAtParticipantRequest, TryAuthAtPartipantReply,
 };
 
@@ -103,18 +103,26 @@ pub async fn send_participant_contract(
         is_successful = result.is_successful;
         contract_status = ContractStatus::to_u32(result.contract_status);
 
-
-
         let participant_contract_status = ContractStatus::from_u32(contract_status);
 
         if AUTO_UPDATE_PARTICIPANT_STATUS
             && !is_successful
             && (participant_contract_status != ContractStatus::Pending)
         {
+            debug!("saving updated contract status for participant: {result:?}");
+
+            let _participant = participant.clone();
+
+            let mut p = result.participant_information.unwrap().clone();
+            p.ip4_address = _participant.ip4addr;
+            p.ip6_address = _participant.ip6addr;
+            p.http_addr = _participant.http_addr;
+            p.http_port = _participant.http_port as u32;
+
             core.dbi().update_participant_accepts_contract(
                 &db_name,
                 participant.clone(),
-                result.participant_information.unwrap(),
+                p,
                 &active_contract.contract_id.to_string(),
             );
         }
