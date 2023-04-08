@@ -386,7 +386,9 @@ pub fn update_participant_accepts_contract(
     rows_affected > 0
 }
 
+
 pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDatabaseContract {
+
     let conn = &get_db_conn(&config, db_name);
 
     let cmd = String::from(

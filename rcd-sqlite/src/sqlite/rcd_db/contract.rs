@@ -54,10 +54,13 @@ pub fn accept_pending_contract(host_name: &str, config: &DbiConfigSqlite) -> boo
     false
 }
 
-pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
+pub fn get_contracts_by_status(
+    config: &DbiConfigSqlite,
+    contract_status: ContractStatus,
+) -> Vec<Contract> {
     let conn = get_rcd_conn(config);
 
-    let pending_status = ContractStatus::to_u32(ContractStatus::Pending);
+    let u32_contract_status = ContractStatus::to_u32(contract_status);
 
     let cmd = String::from(
         "
@@ -73,7 +76,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
         FROM 
             CDS_CONTRACTS 
         WHERE 
-            CONTRACT_STATUS = :pending",
+            CONTRACT_STATUS = :u32_contract_status",
     );
 
     let mut statement = conn.prepare(&cmd).unwrap();
@@ -108,7 +111,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
     };
 
     let contract_metadata = statement
-        .query_and_then(&[(":pending", &pending_status.to_string())], |row| {
+        .query_and_then(&[(":pending", &u32_contract_status.to_string())], |row| {
             row_to_contract(
                 row.get(0).unwrap(),
                 row.get(1).unwrap(),
@@ -192,7 +195,7 @@ pub fn get_pending_contracts(config: &DbiConfigSqlite) -> Vec<Contract> {
             COLUMN_ORDINAL,
             IS_NULLABLE 
         FROM 
-        CDS_CONTRACTS_TABLE_SCHEMAS 
+            CDS_CONTRACTS_TABLE_SCHEMAS 
         WHERE 
             TABLE_ID = :tid",
         );

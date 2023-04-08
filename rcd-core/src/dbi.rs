@@ -5,7 +5,8 @@ use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     db::{CdsHosts, DbiConfigMySql, DbiConfigPostgres, DbiConfigSqlite, PartialDataResult},
     host_info::HostInfo,
-    table::Table, save_contract_result::RcdSaveContractResult,
+    save_contract_result::RcdSaveContractResult,
+    table::Table,
 };
 
 use rcd_enum::{
@@ -769,7 +770,26 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::rcd_db::contract::get_pending_contracts(&settings)
+                sqlite::rcd_db::contract::get_contracts_by_status(
+                    &settings,
+                    ContractStatus::Pending,
+                )
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
+    pub fn get_accepted_contracts(&self) -> Vec<Contract> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                sqlite::rcd_db::contract::get_contracts_by_status(
+                    &settings,
+                    ContractStatus::Accepted,
+                )
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),
@@ -941,13 +961,13 @@ impl Dbi {
         db_port: u32,
         http_addr: String,
         http_port: u16,
-        id: Option<String>
+        id: Option<String>,
     ) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
                 sqlite::db::participant::add_participant(
-                    db_name, alias, ip4addr, db_port, settings, http_addr, http_port, id
+                    db_name, alias, ip4addr, db_port, settings, http_addr, http_port, id,
                 )
             }
             DatabaseType::Unknown => unimplemented!(),
@@ -1162,19 +1182,30 @@ impl Dbi {
     }
 
     pub fn get_active_contract_proto(&self, db_name: &str) -> Contract {
-        let active_contract = self.get_active_contract(db_name);
-        let db_schema = self.get_database_schema(db_name);
-        let host_info = self.rcd_get_host_info().expect("no host info is set");
-        active_contract.to_cdata_contract(
-            &host_info,
-            "",
-            "",
-            0,
-            ContractStatus::Unknown,
-            db_schema,
-            "",
-            0,
-        )
+        if !db_name.contains(".dbpart") {
+            let active_contract = self.get_active_contract(db_name);
+            let db_schema = self.get_database_schema(db_name);
+            let host_info = self.rcd_get_host_info().expect("no host info is set");
+            active_contract.to_cdata_contract(
+                &host_info,
+                "",
+                "",
+                0,
+                ContractStatus::Unknown,
+                db_schema,
+                "",
+                0,
+            )
+        } else {
+            let contracts = self.get_accepted_contracts();
+            let contracts = contracts
+                .iter()
+                .enumerate()
+                .filter(|&(_, c)| c.schema.as_ref().unwrap().database_name == db_name)
+                .map(|(_, c)| c);
+
+            return contracts.last().unwrap().clone();
+        }
     }
 
     pub fn get_participants_for_database(
