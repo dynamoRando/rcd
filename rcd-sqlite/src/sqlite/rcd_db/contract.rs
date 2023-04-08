@@ -446,7 +446,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
 
         return RcdSaveContractResult {
             is_successful: true,
-            contract_status: ContractStatus::Pending,
+            contract_status: ContractStatus::from_u32(contract.status),
             participant_information: None,
         };
     } else {
@@ -486,7 +486,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
                     });
 
                     let result = RcdSaveContractResult {
-                        is_successful: true,
+                        is_successful: false,
                         contract_status: contract_status,
                         participant_information: participant_information,
                     };
@@ -495,7 +495,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
                     return result;
                 } else {
                     let result = RcdSaveContractResult {
-                        is_successful: true,
+                        is_successful: false,
                         contract_status: contract_status,
                         participant_information: None,
                     };
@@ -504,7 +504,7 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
                 }
             } else {
                 let result = RcdSaveContractResult {
-                    is_successful: true,
+                    is_successful: false,
                     contract_status: contract_status,
                     participant_information: None,
                 };
