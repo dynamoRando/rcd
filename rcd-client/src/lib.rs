@@ -1,4 +1,5 @@
 use client_type::RcdClientType;
+use error::RcdClientError;
 use log::{debug, info};
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::{
@@ -54,6 +55,7 @@ use std::time::Duration;
 use tonic::transport::Channel;
 
 pub mod client_type;
+pub mod error;
 
 /// An abstraction over the protobuff definition in Rust. Effectively exposes all the calls to the
 /// `SQLClient` service and is used to talk to an rcd instance as a client
@@ -82,7 +84,6 @@ impl RcdClient {
         grpc_client_addr_port: String,
         timeout_in_seconds: u32,
     ) -> SqlClientClient<Channel> {
-
         debug!("{grpc_client_addr_port:?}");
 
         let endpoint = tonic::transport::Channel::builder(grpc_client_addr_port.parse().unwrap())
@@ -147,7 +148,7 @@ impl RcdClient {
             http_client: None,
             jwt: String::from(""),
             send_jwt_if_available: false,
-            host_id: None
+            host_id: None,
         }
     }
 
@@ -175,7 +176,7 @@ impl RcdClient {
             http_client: Some(http_client),
             jwt: String::from(""),
             send_jwt_if_available: false,
-            host_id: None
+            host_id: None,
         }
     }
 
@@ -1281,7 +1282,7 @@ impl RcdClient {
         &mut self,
         db_name: &str,
         participant_alias: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool, RcdClientError> {
         let auth = self.gen_auth_request();
 
         let request = SendParticipantContractRequest {
@@ -1324,7 +1325,7 @@ impl RcdClient {
         participant_http_addr: &str,
         participant_http_port: u16,
         participant_id: Option<String>,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool, RcdClientError> {
         let auth = self.gen_auth_request();
 
         let request = AddParticipantRequest {
@@ -1521,7 +1522,7 @@ impl RcdClient {
         sql_statement: &str,
         db_type: u32,
         where_clause: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool, RcdClientError> {
         let auth = self.gen_auth_request();
 
         let request = ExecuteWriteRequest {

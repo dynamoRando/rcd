@@ -3,6 +3,7 @@ use log::LevelFilter;
 use srv::TrackingServer;
 
 mod srv;
+pub mod error;
 
 
 #[tokio::main]

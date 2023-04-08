@@ -21,4 +21,5 @@ fern = { version =  "0.6.1", features = ["colored"] }
 serde = "1.0.159"
 tokio = { version = "1", features = ["full"] }
 ignore-result = "0.2.0"
+thiserror = "1.0.40"
 

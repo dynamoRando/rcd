@@ -22,6 +22,7 @@ lazy_static = "1.4.0"
 reqwest = { version = "0.11", features = ["json"] }
 serde_json = "1"
 serde = "1"
+thiserror = "1.0.40"
 
 [build-dependencies]
 tonic-build = "0.8.0"

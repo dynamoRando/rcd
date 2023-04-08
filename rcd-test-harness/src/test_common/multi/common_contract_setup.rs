@@ -78,7 +78,7 @@ pub async fn client(
             "participant",
             &participant_db_addr.ip4_addr,
             participant_db_addr.port,
-            participant_db_addr.ip4_addr.clone(),
+            &participant_db_addr.ip4_addr.clone(),
             participant_db_addr.port as u16,
             participant_id,
         )

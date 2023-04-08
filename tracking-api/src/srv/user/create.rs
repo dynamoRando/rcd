@@ -2,7 +2,10 @@ use log::debug;
 use rocket::{http::Status, post, serde::json::Json};
 use tracking_model::user::{CreateUserResult, User};
 
-use crate::srv::{get_client, shark_event::get::DB_NAME};
+use crate::{
+    error::TrackingApiError,
+    srv::{get_client, shark_event::get::DB_NAME},
+};
 
 #[post("/user/create", format = "application/json", data = "<request>")]
 pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResult>) {
@@ -22,7 +25,7 @@ pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResu
             }
             Err(e) => {
                 is_successful = false;
-                result_message = Some(e);
+                result_message = Some(e.to_string());
             }
         }
     }
@@ -40,7 +43,11 @@ pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResu
 }
 
 /// Attempts to create a new account with the specified un/pw
-async fn create_new_account(request: &Json<User>) -> Result<(), String> {
+async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError> {
+    if request.id.is_none() {
+        return Err(TrackingApiError::HostIdMissing(request.un.clone()));
+    }
+
     // we want to create a new account with the un/pw
     // then we want to add a participant with the same un for the alias
     // and then we want to let the UI know that the user should accept the pending contract
@@ -63,25 +70,41 @@ async fn create_new_account(request: &Json<User>) -> Result<(), String> {
 
     if let Ok(added_user) = add_user_result {
         if added_user {
+            let add_participant_result = client
+                .add_participant(
+                    DB_NAME,
+                    &request.un,
+                    "proxy.home",
+                    50052,
+                    "proxy.home",
+                    50040,
+                    Some(request.id.as_ref().unwrap().clone()),
+                )
+                .await;
 
-            let add_participant_result = client.
-            add_participant(
-                DB_NAME, 
-                &request.un, 
-                "proxy.home", 
-                50052, 
-                "proxy.home", 
-                50040, 
-                None)
-            .await.unwrap();
-
-            todo!()
-
-            return Ok(())
+            if let Ok(added_participant) = add_participant_result {
+                if added_participant {
+                    let send_contract_result =
+                        client.send_participant_contract(DB_NAME, &request.un).await;
+                    if let Ok(send_contract) = send_contract_result {
+                        if send_contract {
+                            return Ok(());
+                        } else {
+                            return Err(TrackingApiError::SendContract(request.un.to_string()));
+                        }
+                    }
+                } else {
+                    return Err(TrackingApiError::AddParticipant(request.un.to_string()));
+                }
+            }
+        } else {
+            return Err(TrackingApiError::AddUser(request.un.to_string()));
         }
     }
 
-    return Err("Unable to create account".to_string())
+    Err(TrackingApiError::CreateAccountFailed(
+        request.un.to_string(),
+    ))
 }
 
 async fn has_account_with_name(un: &str) -> bool {
