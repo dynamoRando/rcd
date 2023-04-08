@@ -11,15 +11,14 @@ const REPO_LOCATION: &str = "http://localhost:8020/";
 pub struct Repo {}
 
 impl Repo {
-    pub async fn register_user(un: &str, pw: &str, host_id: &str) -> Result<(), String> {
+    pub async fn register_user(un: &str, host_id: &str) -> Result<(), String> {
         log_to_console("register user");
         let addr = format!("{}{}", REPO_LOCATION, r#"user/create"#);
 
         let u = User {
             un: un.to_string(),
-            pw: pw.to_string(),
             alias: Some(un.to_string()),
-            id: None,
+            id: Some(host_id.to_string()),
         };
 
         let ju = serde_json::to_string(&u).unwrap();
@@ -30,6 +29,22 @@ impl Repo {
         }
 
         Ok(())
+    }
+
+    pub async fn get_api_version() -> Result<String, String> {
+        log_to_console("getting events");
+        let addr = format!("{}{}", REPO_LOCATION, r#"version"#);
+        let result_get = Self::get(&addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                return Ok(result);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
     }
 
     pub async fn get_events() -> Result<Vec<SharkEvent>, String> {

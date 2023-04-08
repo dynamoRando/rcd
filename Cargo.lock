@@ -3942,7 +3942,7 @@ dependencies = [
 
 [[package]]
 name = "tracking"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "chrono",
  "config",
@@ -3966,7 +3966,7 @@ dependencies = [
 
 [[package]]
 name = "tracking-api"
-version = "0.1.0"
+version = "0.0.1"
 dependencies = [
  "chrono",
  "fern",

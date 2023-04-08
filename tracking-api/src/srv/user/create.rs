@@ -54,16 +54,21 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
 
     let sql = "INSERT INTO user_to_participant 
     (
-        un,
-        pw
+        user_name,
+        participant_alias,
+        participant_id
     )
     VALUES
     (
         ':un',
-        ':pw'
+        ':alias',
+        ':id'
     )";
 
-    let sql = sql.replace(":un", &request.un).replace(":pw", &request.pw);
+    let sql = sql
+        .replace(":un", &request.un)
+        .replace(":alias", &request.alias.as_ref().unwrap())
+        .replace(":id", &request.id.as_ref().unwrap());
 
     let mut client = get_client().await;
     let add_user_result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
@@ -110,7 +115,7 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
 async fn has_account_with_name(un: &str) -> bool {
     let mut client = get_client().await;
 
-    let sql = "SELECT COUNT(*) cnt FROM user_to_participant WHERE un = ':un'";
+    let sql = "SELECT COUNT(*) cnt FROM user_to_participant WHERE user_name = ':un'";
     let sql = sql.replace(":un", un);
 
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();

@@ -63,6 +63,7 @@ impl TrackingServer {
                     delete_event,
                     delete_associated_event,
                     create_account,
+                    version
                 ],
             )
             .launch()
@@ -76,6 +77,12 @@ impl TrackingServer {
 fn index() -> &'static str {
     "Hello, world!"
 }
+
+#[get("/version")]
+fn version() -> &'static str {
+    return env!("CARGO_PKG_VERSION");
+}
+
 
 pub struct CORS;
 
