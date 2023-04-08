@@ -457,12 +457,12 @@ pub fn save_contract(contract: Contract, config: &DbiConfigSqlite) -> RcdSaveCon
 
         let cmd = "SELECT COUNT(*) cnt from CDS_CONTRACTS WHERE CONTRACT_ID = ':cid' AND CONTRACT_VERSION_ID = ':vid'";
         let cmd = cmd
-            .replace(":cid", &contract.contract_version)
+            .replace(":cid", &contract.contract_guid)
             .replace(":vid", &contract.contract_version);
         if has_any_rows(cmd, &conn) {
             let cmd = "SELECT CONTRACT_STATUS FROM CDS_CONTRACTS WHERE CONTRACT_ID = ':cid' AND CONTRACT_VERSION_ID = ':vid'";
             let cmd = cmd
-                .replace(":cid", &contract.contract_version)
+                .replace(":cid", &contract.contract_guid)
                 .replace(":vid", &contract.contract_version);
 
             let status = get_scalar_as_u32(cmd, &conn);
