@@ -78,8 +78,8 @@ pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
-    debug!("get_scalar_as_u32: {cmd:?}");
-    debug!("get_scalar_as_u32: {conn:?}");
+    trace!("get_scalar_as_u32: {cmd:?}");
+    trace!("get_scalar_as_u32: {conn:?}");
 
     let mut value: u32 = 0;
     let mut statement = conn.prepare(&cmd).unwrap();

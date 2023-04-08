@@ -1,6 +1,6 @@
+use log::trace;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::{DateTime, Utc};
-use log::debug;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
@@ -1202,7 +1202,7 @@ impl Dbi {
 
             trace!("{contracts:?}");
 
-            let mut name = "".to_string();
+            let name: String;
 
             if db_name.contains(".dbpart") {
                 name = db_name.replace(".dbpart", ".db");

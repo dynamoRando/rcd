@@ -267,7 +267,7 @@ impl ProxySqlite {
     }
 
     fn get_scalar_as_u32(&self, cmd: &str) -> u32 {
-        debug!("{cmd:?}");
+        trace!("{cmd:?}");
 
         let mut value: u32 = 0;
         let conn = self.conn();
@@ -284,7 +284,7 @@ impl ProxySqlite {
     }
 
     fn get_scalar_as_string(&self, cmd: &str) -> String {
-        debug!("{cmd:?}");
+        trace!("{cmd:?}");
 
         let conn = self.conn();
         let mut value = String::from("");
