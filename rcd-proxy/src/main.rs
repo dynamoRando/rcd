@@ -10,7 +10,7 @@ async fn main() {
     process_cmd_args(args);
 
     // SimpleLogger::new().env().init().unwrap();
-    init_log_to_screen_fern(LevelFilter::Debug);
+    init_log_to_screen_fern(LevelFilter::Trace);
 
     let dir = &cwd();
     let result_proxy = RcdProxy::get_proxy_from_config(dir);

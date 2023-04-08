@@ -1200,7 +1200,7 @@ impl Dbi {
         } else {
             let contracts = self.get_accepted_contracts();
 
-            debug!("{contracts:?}");
+            trace!("{contracts:?}");
 
             let mut name = "".to_string();
 
@@ -1210,7 +1210,7 @@ impl Dbi {
                 name = db_name.to_string();
             }
 
-            debug!("{}", name);
+            trace!("{}", name);
 
             let contracts = contracts
                 .iter()
