@@ -68,6 +68,9 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .level_for("_", log::LevelFilter::Off)
         .level_for("mio", log::LevelFilter::Off)
         .level_for("tracing", log::LevelFilter::Off)
+        .level_for("tokio_util", log::LevelFilter::Off)
+        .level_for("want", log::LevelFilter::Off)
+        .level_for("tonic", log::LevelFilter::Off)
         .chain(std::io::stdout())
         .apply()
         .ignore();
