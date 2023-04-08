@@ -1,17 +1,24 @@
 use crate::{
+    log::log_to_console,
     pages::rcd_admin::{
         common::select_database::SelectDatabase,
         sql::{read::read, sqlx::SqlProps, write::cooperative_write, write::write},
     },
-    request::rcd::{
-        clear_status, get_database, get_databases, get_rcd_client, get_rcd_token, set_status,
-        update_token_login_status,
+    request::{
+        self,
+        rcd::{
+            clear_status, get_database, get_databases, get_rcd_client, get_rcd_token, set_status,
+            update_token_login_status,
+        },
     },
 };
-use rcd_messages::proxy::request_type::RequestType;
+use rcd_messages::{
+    client::{GetParticipantsReply, GetParticipantsRequest},
+    proxy::request_type::RequestType,
+};
 use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
-use yew::{function_component, html, use_node_ref, use_state_eq, Callback, Html};
+use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
 pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
@@ -54,17 +61,22 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                 if cooperation_enabled {
                     let participant_aliases = participant_aliases.clone();
                     let token = get_rcd_token();
-                    //
-                    let mut client = get_rcd_client();
-                    spawn_local(async move {
-                        let reply = client.get_participants(token.auth(), &db_name).await;
 
-                        match reply {
-                            Ok(response) => {
+                    let request = GetParticipantsRequest {
+                        authentication: Some(token.auth()),
+                        database_name: db_name.clone(),
+                    };
+
+                    let request_json = serde_json::to_string(&request).unwrap();
+
+                    let callback =
+                        Callback::from(move |response: Result<AttrValue, String>| match response {
+                            Ok(reply) => {
+                                let reply: GetParticipantsReply =
+                                    serde_json::from_str(&reply).unwrap();
                                 clear_status();
-                                let participant_aliases = participant_aliases.clone();
 
-                                let is_authenticated = response
+                                let is_authenticated = reply
                                     .authentication_result
                                     .as_ref()
                                     .unwrap()
@@ -72,33 +84,23 @@ pub fn EnterSql(SqlProps { sql_result_state }: &SqlProps) -> Html {
                                 update_token_login_status(is_authenticated);
 
                                 if is_authenticated {
-                                    if !response.is_error {
-                                        let participants = response.participants;
+                                    let participants = reply.participants;
+                                    participant_dropdown_enabled.set(true);
 
-                                        let mut aliases: Vec<String> = Vec::new();
-                                        for p in &participants {
-                                            aliases.push(
-                                                p.participant.as_ref().unwrap().alias.clone(),
-                                            );
-                                        }
-
-                                        participant_dropdown_enabled.set(true);
-                                        participant_aliases.set(Some(aliases));
-                                    } else {
-                                        let message = format!(
-                                            "{} - {}",
-                                            response.error.as_ref().unwrap().message,
-                                            response.error.as_ref().unwrap().help
-                                        );
-                                        set_status(message);
+                                    let mut aliases: Vec<String> = Vec::new();
+                                    for p in &participants {
+                                        aliases.push(p.participant.as_ref().unwrap().alias.clone());
                                     }
+
+                                    participant_aliases.set(Some(aliases));
                                 }
                             }
                             Err(e) => {
                                 set_status(e);
                             }
-                        }
-                    });
+                        });
+
+                    request::post(RequestType::GetParticipants, &request_json, callback);
                 }
             }
         })

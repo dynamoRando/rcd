@@ -18,6 +18,9 @@ pub fn SelectDatabase(
         onclick_db,
     }: &SelectDatabaseProps,
 ) -> Html {
+
+    // log_to_console(&format!("{active_db_name:?}"));
+
     let databases = get_databases();
     let mut database_names: Vec<String> = Vec::new();
 
@@ -37,7 +40,7 @@ pub fn SelectDatabase(
             let onclick_db = onclick_db.clone();
             let selected_db = ui_active_database.cast::<HtmlInputElement>();
 
-            log_to_console("{selected_db:?}");
+            
 
             if selected_db.is_some() {
                 let selected_db_val = ui_active_database
