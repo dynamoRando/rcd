@@ -47,6 +47,7 @@ impl ColumnType {
             let idx_last = desc.find(')').unwrap();
             let str_length = desc.substring(idx_first + 1, idx_last);
             debug!("column string length: {str_length}");
+            let str_length = str_length.trim();
             let length: u32 = str_length.parse().unwrap();
             length
         }
