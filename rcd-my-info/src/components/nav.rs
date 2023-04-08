@@ -15,6 +15,7 @@ pub fn Nav() -> Html {
     };
 
     let active_class = if !*navbar_active { "is-active" } else { "" };
+    let version = env!("CARGO_PKG_VERSION");
 
     html! {
         <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
@@ -45,6 +46,11 @@ pub fn Nav() -> Html {
                     { "Site Admin" }
                     </Link<Route>>
                 </div>
+            </div>
+            <div class="buttons">
+                    <button class="button is-light">
+                        {version}
+                    </button>
             </div>
         </nav>
     }
