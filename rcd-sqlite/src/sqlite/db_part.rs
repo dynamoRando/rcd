@@ -4,7 +4,7 @@ use super::{
     get_table_col_names, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use chrono::Utc;
-use log::trace;
+use log::{debug, trace, warn};
 use rcd_common::db::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
     PartialDataResult,
@@ -265,10 +265,15 @@ pub fn get_partial_db_connection(db_name: &str, cwd: &str) -> Connection {
 }
 
 fn create_table_from_schema(table_schema: &TableSchema, conn: &Connection) {
-
     trace!("{table_schema:?}");
 
     let table_name = table_schema.table_name.clone();
+
+    if table_name.contains("_COOP_") {
+        warn!("create_table_from_schema - skipping table: {table_name:?}");
+        return;
+    }
+
     let mut cmd = String::from("CREATE TABLE IF NOT EXISTS :tablename ");
     cmd = cmd.replace(":tablename", &table_name);
     cmd += " ( ";
