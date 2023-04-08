@@ -436,7 +436,13 @@ async fn get_client(
     participant: CoopDatabaseParticipant,
     timeout_in_seconds: u32,
 ) -> DataServiceClient<Channel> {
-    let addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
+    let mut addr_port = format!("{}{}", participant.ip4addr, participant.db_port);
+
+    if !addr_port.contains(":") {
+        addr_port = format!("{}:{}", participant.ip4addr, participant.db_port);
+        debug!("reformatted addr_port: {}", addr_port);
+    }
+
     let http_addr_port = format!("{}{}", String::from("http://"), addr_port);
     info!("configuring to connect to rcd at: {}", addr_port);
 
