@@ -1012,6 +1012,27 @@ impl Dbi {
         }
     }
 
+    pub fn get_participant_by_id(
+        &self,
+        db_name: &str,
+        participant_id: &str,
+    ) -> Option<CoopDatabaseParticipant> {
+        match self.db_type {
+            DatabaseType::Sqlite => {
+                let settings = self.get_sqlite_settings();
+                sqlite::db::participant::get_participant_by_id(
+                    db_name,
+                    participant_id,
+                    settings,
+                )
+            }
+            DatabaseType::Unknown => unimplemented!(),
+            DatabaseType::Mysql => unimplemented!(),
+            DatabaseType::Postgres => unimplemented!(),
+            DatabaseType::Sqlserver => unimplemented!(),
+        }
+    }
+
     pub fn has_participant(&self, db_name: &str, participant_alias: &str) -> bool {
         match self.db_type {
             DatabaseType::Sqlite => {

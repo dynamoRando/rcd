@@ -254,6 +254,99 @@ pub fn get_participant_by_internal_id(
     return results.first().unwrap().clone();
 }
 
+pub fn get_participant_by_id(
+    db_name: &str,
+    id: &str,
+    config: DbiConfigSqlite,
+) -> Option<CoopDatabaseParticipant> {
+    let conn = get_db_conn(&config, db_name);
+    let cmd = String::from(
+        "
+        SELECT 
+            INTERNAL_PARTICIPANT_ID,
+            ALIAS,
+            IP4ADDRESS,
+            IP6ADDRESS,
+            PORT,
+            CONTRACT_STATUS,
+            ACCEPTED_CONTRACT_VERSION_ID,
+            TOKEN,
+            PARTICIPANT_ID,
+            HTTP_ADDR,
+            HTTP_PORT
+        FROM
+            COOP_PARTICIPANT
+        WHERE
+        PARTICIPANT_ID = :id
+        ;
+        ",
+    );
+    // cmd = cmd.replace(":alias", &alias);
+
+    // trace!("{:?}", cmd);
+    // trace!("{}", alias);
+
+    let row_to_participant = |internal_id: String,
+                              alias: String,
+                              ip4addr: String,
+                              ip6addr: String,
+                              port: u32,
+                              contract_status: u32,
+                              accepted_contract_version_id: String,
+                              token: Vec<u8>,
+                              id: String,
+                              http_addr: String,
+                              http_port: u16|
+     -> Result<CoopDatabaseParticipant> {
+        let participant = CoopDatabaseParticipant {
+            internal_id: GUID::parse(&internal_id).unwrap(),
+            alias,
+            ip4addr,
+            ip6addr,
+            db_port: port,
+            contract_status: ContractStatus::from_i64(contract_status as i64),
+            accepted_contract_version: GUID::parse(&accepted_contract_version_id).unwrap(),
+            token,
+            id: GUID::parse(&id).unwrap(),
+            http_addr,
+            http_port,
+        };
+
+        Ok(participant)
+    };
+
+    let mut results: Vec<CoopDatabaseParticipant> = Vec::new();
+
+    let mut statement = conn.prepare(&cmd).unwrap();
+    let participants = statement
+        .query_and_then(&[(":id", &id)], |row| {
+            row_to_participant(
+                row.get(0).unwrap(),
+                row.get(1).unwrap(),
+                row.get(2).unwrap(),
+                row.get(3).unwrap(),
+                row.get(4).unwrap(),
+                row.get(5).unwrap(),
+                row.get(6).unwrap(),
+                row.get(7).unwrap(),
+                row.get(8).unwrap(),
+                row.get(9).unwrap(),
+                row.get(10).unwrap(),
+            )
+        })
+        .unwrap();
+
+    for participant in participants {
+        results.push(participant.unwrap());
+    }
+
+    if !results.is_empty() {
+        Some(results.first().unwrap().clone())
+    } else {
+        None
+    }
+}
+
 pub fn get_participant_by_alias(
     db_name: &str,
     alias: &str,
