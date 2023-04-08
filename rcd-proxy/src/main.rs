@@ -65,6 +65,7 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .level_for("h2", log::LevelFilter::Off)
         .level_for("tower", log::LevelFilter::Off)
         .level_for("_", log::LevelFilter::Off)
+        .level_for("mio", log::LevelFilter::Off)
         .chain(std::io::stdout())
         .apply()
         .ignore();
