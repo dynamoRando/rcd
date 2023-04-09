@@ -12,6 +12,26 @@ use crate::{
     },
 };
 
+
+#[post("/user/logout", format = "application/json", data = "<request>")]
+pub async fn logout(request: Json<User>) -> Status {
+    debug!("{request:?}");
+
+    let un = &request.un;
+
+    let delete_tokens_result = delete_expired_tokens().await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let delete_tokens_result = delete_existing_tokens_for_user(&un).await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete existing tokens for user {}", un);
+    }
+
+    return Status::Ok
+}
+
 #[post("/user/auth", format = "application/json", data = "<request>")]
 pub async fn auth_for_token(request: Json<User>) -> (Status, Json<Token>) {
     debug!("{request:?}");

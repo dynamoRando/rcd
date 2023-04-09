@@ -20,7 +20,7 @@ use crate::srv::shark_event::update::update_associated_event;
 use crate::srv::shark_event::create::add_event;
 use crate::srv::shark_event::create::add_associated_event;
 use crate::srv::user::get::auth_for_token;
-
+use crate::srv::user::get::logout;
 use self::user::create::create_account;
 
 const PROXY_ADDR: &str = "http://proxy.home:50051";
@@ -67,7 +67,8 @@ impl TrackingServer {
                     delete_associated_event,
                     create_account,
                     version,
-                    auth_for_token
+                    auth_for_token,
+                    logout
                 ],
             )
             .launch()

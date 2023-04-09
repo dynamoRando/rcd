@@ -14,6 +14,26 @@ const REPO_LOCATION: &str = "http://localhost:8020/";
 pub struct Repo {}
 
 impl Repo {
+    pub async fn logout(un: &str) -> Result<(), String> {
+        log_to_console("login");
+        let addr = format!("{}{}", REPO_LOCATION, r#"user/logout"#);
+
+        let u = User {
+            un: un.to_string(),
+            alias: Some(un.to_string()),
+            id: None,
+        };
+
+        let ju = serde_json::to_string(&u).unwrap();
+
+        let result_post = Self::post(&addr, &ju).await;
+
+        match result_post {
+            Ok(_) => return Ok(()),
+            Err(e) => Err(e.to_string()),
+        }
+    }
+
     pub async fn login(un: &str) -> Result<Token, String> {
         log_to_console("login");
         let addr = format!("{}{}", REPO_LOCATION, r#"user/auth"#);

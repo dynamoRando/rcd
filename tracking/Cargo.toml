@@ -23,6 +23,7 @@ num = "0.4"
 num-derive = "0.3"
 num-traits = "0.2"
 yew-router = "0.17"
+futures-util = "0.3"
 
 [dependencies.web-sys]
 version = "0.3"

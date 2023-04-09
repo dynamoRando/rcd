@@ -114,9 +114,11 @@ pub fn RcdNav(props: &RcdStatusProps) -> Html {
                         }
                         else {
                             html! {
-                                <button class="button is-light">
-                                <span class="mdi mdi-account-cancel">{" Not Logged In"}</span>
-                                </button>
+                                <div class="navbar-item">
+                                    <button class="button is-light">
+                                        <span class="mdi mdi-account-cancel">{" Not Logged In"}</span>
+                                    </button>
+                                </div>
                                 }
                         }
                     }

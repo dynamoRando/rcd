@@ -1,10 +1,14 @@
 use crate::components::nav::Nav;
 use crate::repo::Repo;
+use futures_util::StreamExt;
+use futures_util::future::ready;
+use gloo::timers::future::IntervalStream;
 use pages::events::Events;
 use pages::home::Home;
 use pages::login::Login;
 use pages::page_not_found::NotFound;
 use pages::register::Register;
+use storage::get_token;
 use tracking_model::event::SharkEvent;
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
@@ -39,24 +43,38 @@ pub enum Route {
 
 #[function_component]
 fn App() -> Html {
-    let app_state = use_state_eq(move || {
-        let x: Vec<SharkEvent> = Vec::new();
-        x
-    });
+    // let app_state = use_state_eq(move || {
+    //     let x: Vec<SharkEvent> = Vec::new();
+    //     x
+    // });
 
+    // {
+    //     let app_state = app_state.clone();
+    //     spawn_local(async move {
+    //         let events = Repo::get_events().await;
+    //         if let Ok(events) = events {
+    //             app_state.set(events);
+    //         }
+    //     });
+    // }
+
+    let is_logged_in_state = use_state(move || false);
+    
     {
-        let app_state = app_state.clone();
+        let is_logged_in_state = is_logged_in_state.clone();
         spawn_local(async move {
-            let events = Repo::get_events().await;
-            if let Ok(events) = events {
-                app_state.set(events);
-            }
+            IntervalStream::new(1_000)
+                .for_each(|_| {
+                    check_and_set_login_status(is_logged_in_state.clone());
+                    ready(())
+                })
+                .await;
         });
     }
 
     html!(
         <BrowserRouter>
-        <Nav />
+        <Nav is_logged_in={is_logged_in_state.clone()}/>
         <main>
             <Switch<Route> render={switch} />
         </main>
@@ -82,6 +100,10 @@ fn switch(routes: Route) -> Html {
     }
 }
 
+fn check_and_set_login_status(is_logged_in_state: UseStateHandle<bool>) {
+    let is_logged_in = get_token().is_logged_in;
+    is_logged_in_state.set(is_logged_in);
+}
 fn main() {
     yew::Renderer::<App>::new().render();
 }
