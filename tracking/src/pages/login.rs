@@ -28,6 +28,10 @@ pub fn Login() -> Html {
 
                 match result {
                     Ok(token) => {
+
+                        let message = format!("{token:?}");
+                        log_to_console(&message);
+                        
                         if token.is_logged_in {
                             login_result.set("Logged In!".to_string());
                         }

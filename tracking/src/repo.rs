@@ -1,6 +1,9 @@
 use crate::logging::log_to_console;
 use serde::{Deserialize, Serialize};
-use tracking_model::{event::SharkEvent, user::{User, Token}};
+use tracking_model::{
+    event::SharkEvent,
+    user::{Token, User},
+};
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
@@ -12,7 +15,26 @@ pub struct Repo {}
 
 impl Repo {
     pub async fn login(un: &str) -> Result<Token, String> {
-        todo!()
+        log_to_console("login");
+        let addr = format!("{}{}", REPO_LOCATION, r#"user/auth"#);
+
+        let u = User {
+            un: un.to_string(),
+            alias: Some(un.to_string()),
+            id: None,
+        };
+
+        let ju = serde_json::to_string(&u).unwrap();
+
+        let result_post = Self::post(&addr, &ju).await;
+
+        match result_post {
+            Ok(token) => {
+                let t: Token = serde_json::from_str(&token).unwrap();
+                return Ok(t);
+            }
+            Err(e) => Err(e.to_string()),
+        }
     }
 
     pub async fn register_user(un: &str, host_id: &str) -> Result<(), String> {
