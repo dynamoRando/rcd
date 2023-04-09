@@ -18,7 +18,6 @@ pub mod event_props;
 pub mod logging;
 pub mod repo;
 pub mod storage;
-pub mod token;
 pub mod view_events;
 
 const DEFAULT_REPO_ADDR: &str = "localhost:8020";

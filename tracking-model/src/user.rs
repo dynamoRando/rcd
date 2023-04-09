@@ -1,4 +1,5 @@
 use serde_derive::{Serialize, Deserialize};
+use rcd_messages::client::AuthRequest;
 
 /*
 CREATE TABLE IF NOT EXISTS user_to_participant
@@ -43,9 +44,62 @@ pub struct Token {
     pub id: Option<String>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct LoginRequest {
+    pub jwt: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct LoginReply {
+    pub is_logged_in: bool,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct CreateUserResult {
     pub is_successful: bool,
     pub message: Option<String>,
+}
+
+impl Default for Token {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Token {
+    pub fn new() -> Token {
+        Token {
+            jwt: "".to_string(),
+            jwt_exp: "".to_string(),
+            addr: "".to_string(),
+            is_logged_in: false,
+            id: None,
+        }
+    }
+
+    /// Returns an AuthRequest in JSON format with this JWT as the authentication method
+    pub fn auth_json(&self) -> String {
+        let request = AuthRequest {
+            user_name: "".to_string(),
+            pw: "".to_string(),
+            pw_hash: Vec::new(),
+            token: Vec::new(),
+            jwt: self.jwt.clone(),
+            id: None,
+        };
+
+        serde_json::to_string(&request).unwrap()
+    }
+
+    /// Returns an AuthRequest with this JWT as the authentication method
+    pub fn auth(&self) -> AuthRequest {
+        AuthRequest {
+            user_name: "".to_string(),
+            pw: "".to_string(),
+            pw_hash: Vec::new(),
+            token: Vec::new(),
+            jwt: self.jwt.clone(),
+            id: None,
+        }
+    }
 }

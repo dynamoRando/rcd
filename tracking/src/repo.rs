@@ -1,6 +1,6 @@
 use crate::logging::log_to_console;
 use serde::{Deserialize, Serialize};
-use tracking_model::{event::SharkEvent, user::User};
+use tracking_model::{event::SharkEvent, user::{User, Token}};
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, RequestMode, Response};
@@ -11,6 +11,10 @@ const REPO_LOCATION: &str = "http://localhost:8020/";
 pub struct Repo {}
 
 impl Repo {
+    pub async fn login(un: &str) -> Result<Token, String> {
+        todo!()
+    }
+
     pub async fn register_user(un: &str, host_id: &str) -> Result<(), String> {
         log_to_console("register user");
         let addr = format!("{}{}", REPO_LOCATION, r#"user/create"#);

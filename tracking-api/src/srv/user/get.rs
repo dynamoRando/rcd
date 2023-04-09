@@ -63,6 +63,18 @@ pub async fn auth_for_token(request: Json<User>) -> (Status, Json<Token>) {
     return (Status::Ok, Json(token));
 }
 
+pub async fn verify_token(jwt: &str) -> Result<bool, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens().await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let sql = "SELECT COUNT(*) cnt from user_auth WHERE token = ':jwt'";
+    let sql = sql.replace(":jwt", jwt);
+
+    has_any_rows(&sql).await
+}
+
 async fn delete_existing_tokens_for_user(un: &str) -> Result<(), TrackingApiError> {
     let mut cmd = String::from("DELETE FROM user_auth WHERE user_name < ':un'");
     cmd = cmd.replace(":un", &un);
@@ -103,5 +115,34 @@ async fn save_token(
     token: &str,
     expiration: DateTime<Utc>,
 ) -> Result<bool, TrackingApiError> {
-    todo!()
+    let sql = "INSERT INTO user_auth
+    (
+        user_name,
+        token,
+        issued_utc,
+        expiration_utc
+    )
+    VALUES
+    (
+        ':un',
+        ':jwt',
+        ':iss',
+        ':exp'
+    );
+    ";
+
+    let sql = sql
+        .replace(":un", un)
+        .replace(":jwt", token)
+        .replace(":exp", &expiration.to_string())
+        .replace(":iss", &Utc::now().to_rfc3339().to_string());
+
+    let mut client = get_client().await;
+
+    let result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
+
+    match result {
+        Ok(is_saved) => Ok(is_saved),
+        Err(_) => Err(TrackingApiError::Unknown),
+    }
 }
