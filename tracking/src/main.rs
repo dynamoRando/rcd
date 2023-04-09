@@ -34,8 +34,8 @@ pub enum Route {
     Register,
     #[at("/login")]
     Login,
-    #[at("/entries")]
-    Entries,
+    #[at("/events")]
+    Events,
     #[not_found]
     #[at("/404")]
     NotFound,
@@ -95,7 +95,7 @@ fn switch(routes: Route) -> Html {
         Route::Home => html! { <Home /> },
         Route::Register => html! { <Register /> },
         Route::Login => html! { <Login /> },
-        Route::Entries => html! { <Events /> },
+        Route::Events => html! { <Events /> },
         Route::NotFound => html! { <NotFound /> },
     }
 }

@@ -12,7 +12,6 @@ use crate::{
     },
 };
 
-
 #[post("/user/logout", format = "application/json", data = "<request>")]
 pub async fn logout(request: Json<User>) -> Status {
     debug!("{request:?}");
@@ -29,7 +28,7 @@ pub async fn logout(request: Json<User>) -> Status {
         error!("Unable to delete existing tokens for user {}", un);
     }
 
-    return Status::Ok
+    return Status::Ok;
 }
 
 #[post("/user/auth", format = "application/json", data = "<request>")]
@@ -93,6 +92,35 @@ pub async fn verify_token(jwt: &str) -> Result<bool, TrackingApiError> {
     let sql = sql.replace(":jwt", jwt);
 
     has_any_rows(&sql).await
+}
+
+pub async fn get_user_name_for_token(jwt: &str) -> Result<String, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens().await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let sql = "SELECT user_name from user_auth WHERE token = ':jwt'";
+    let sql = sql.replace(":jwt", jwt);
+
+    let mut client = get_client().await;
+
+    let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
+
+    if !result.is_error {
+        let rows = result.clone().rows;
+        for row in &rows {
+            for value in &row.values {
+                if let Some(column) = &value.column {
+                    if column.column_name == "user_name" {
+                        return Ok(value.string_value.clone());
+                    }
+                }
+            }
+        }
+    }
+
+    Err(TrackingApiError::Unknown)
 }
 
 async fn delete_existing_tokens_for_user(un: &str) -> Result<(), TrackingApiError> {

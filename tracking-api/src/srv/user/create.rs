@@ -4,7 +4,11 @@ use tracking_model::user::{CreateUserResult, User};
 
 use crate::{
     error::TrackingApiError,
-    srv::{get_client, shark_event::get::DB_NAME, util::has_any_rows},
+    srv::{
+        get_client,
+        shark_event::get::DB_NAME,
+        util::{get_count, has_any_rows},
+    },
 };
 
 #[post("/user/create", format = "application/json", data = "<request>")]
@@ -51,21 +55,27 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
     // we want to create a new account with the un/pw
     // then we want to add a participant with the same un for the alias
     // and then we want to let the UI know that the user should accept the pending contract
+    let sql = "SELECT COUNT(*) cnt FROM user_to_participant";
+    let total_users = get_count(sql).await?;
+    let id = total_users + 1;
 
     let sql = "INSERT INTO user_to_participant 
     (
+        user_id,
         user_name,
         participant_alias,
         participant_id
     )
     VALUES
     (
+        :uid,
         ':un',
         ':alias',
         ':id'
     )";
 
     let sql = sql
+        .replace(":uid", &id.to_string())
         .replace(":un", &request.un)
         .replace(":alias", &request.alias.as_ref().unwrap())
         .replace(":id", &request.id.as_ref().unwrap());

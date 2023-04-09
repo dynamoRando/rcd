@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS event
 (
     id INT,
     event_date DATETIME,
-    notes TEXT
+    notes TEXT,
+    user_id INT
 );
 
 CREATE TABLE IF NOT EXISTS associated_event
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS associated_event
     event_id INT,
     event_type INT,
     event_date DATETIME,
-    notes TEXT
+    notes TEXT,
+    user_id iNT
 );
 
 # event
@@ -28,6 +30,7 @@ CREATE TABLE IF NOT EXISTS associated_event
 | id          | int      |
 | event_date  | datetime |
 | notes       | text     |
+| user_id     | int      |
 
 # associated_event
 
@@ -36,9 +39,15 @@ CREATE TABLE IF NOT EXISTS associated_event
 | event_id    | int      |
 | event_type  | int      |
 | event_date  | datetime |
-| notes       | text     |
+| user_id     | int      |
 
 */
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct SharkEventReply {
+    pub is_logged_in: bool,
+    pub events: Vec<SharkEvent>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
@@ -46,7 +55,7 @@ pub struct SharkEvent {
     pub date: String,
     pub notes: Option<String>,
     pub associated_events: Option<Vec<SharkAssociatedEvent>>,
-    pub un: Option<String>,
+    pub user_id: Option<u32>,
 }
 
 impl SharkEvent {
@@ -61,7 +70,7 @@ pub struct SharkAssociatedEvent {
     pub event_type: EventType,
     pub date: String,
     pub notes: Option<String>,
-    pub un: Option<String>,
+    pub user_id: Option<u32>,
 }
 
 impl SharkAssociatedEvent {

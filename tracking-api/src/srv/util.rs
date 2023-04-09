@@ -12,6 +12,12 @@ use std::collections::BTreeMap;
 
 /// returns a count of rows where the expected column is "cnt"
 pub async fn has_any_rows(sql: &str) -> Result<bool, TrackingApiError> {
+    let count = get_count(sql).await?;
+    Ok(count > 0)
+}
+
+/// returns a count of rows where the expected column is "cnt"
+pub async fn get_count(sql: &str) -> Result<u32, TrackingApiError> {
     let mut client = get_client().await;
 
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
@@ -24,7 +30,7 @@ pub async fn has_any_rows(sql: &str) -> Result<bool, TrackingApiError> {
                     if column.column_name == "cnt" {
                         let rv = value.string_value.parse::<u32>();
                         if let Ok(v) = rv {
-                            return Ok(v > 0);
+                            return Ok(v);
                         } else {
                             return Err(TrackingApiError::Unknown);
                         }

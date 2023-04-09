@@ -53,8 +53,8 @@ pub fn Nav(props: &NavProps) -> Html {
                     <Link<Route> classes={classes!("navbar-item")} to={Route::Login}>
                     { "Login" }
                     </Link<Route>>
-                    <Link<Route> classes={classes!("navbar-item")} to={Route::Entries}>
-                    { "Entries" }
+                    <Link<Route> classes={classes!("navbar-item")} to={Route::Events}>
+                    { "Events" }
                     </Link<Route>>
                 </div>
             </div>

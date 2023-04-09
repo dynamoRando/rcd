@@ -44,14 +44,9 @@ pub struct Token {
     pub id: Option<String>,
 }
 
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct LoginRequest {
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct Auth {
     pub jwt: String,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
-pub struct LoginReply {
-    pub is_logged_in: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
