@@ -9,7 +9,7 @@ use rocket::{
     http::Status,
     routes,
 };
-use rocket::{Config, Shutdown};
+use rocket::{Config};
 use rocket::{Request, Response};
 
 use crate::srv::shark_event::delete::delete_event;
@@ -19,6 +19,7 @@ use crate::srv::shark_event::update::update_event;
 use crate::srv::shark_event::update::update_associated_event;
 use crate::srv::shark_event::create::add_event;
 use crate::srv::shark_event::create::add_associated_event;
+use crate::srv::user::get::auth_for_token;
 
 use self::user::create::create_account;
 
@@ -28,6 +29,8 @@ const PROXY_AUTH: &str = "shark";
 
 mod shark_event;
 mod user;
+mod util;
+
 pub struct TrackingServer {
     port: u16,
     addr: String,
@@ -63,7 +66,8 @@ impl TrackingServer {
                     delete_event,
                     delete_associated_event,
                     create_account,
-                    version
+                    version,
+                    auth_for_token
                 ],
             )
             .launch()

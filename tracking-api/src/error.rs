@@ -12,6 +12,8 @@ pub enum TrackingApiError {
     SendContract(String),
     #[error("No host id for user: `{0}` ")]
     HostIdMissing(String),
+    #[error("Expired Tokens Not Cleared")]
+    ExpiredTokens,
     #[error("Unknown Error")]
     Unknown,
 }

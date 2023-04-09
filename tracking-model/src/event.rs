@@ -6,6 +6,21 @@ extern crate num;
 
 /*
 
+CREATE TABLE IF NOT EXISTS event 
+(
+    id INT,
+    event_date DATETIME,
+    notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS associated_event
+(
+    event_id INT,
+    event_type INT,
+    event_date DATETIME,
+    notes TEXT
+);
+
 # event
 
 | column_name | type     |

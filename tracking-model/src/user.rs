@@ -1,9 +1,45 @@
 use serde_derive::{Serialize, Deserialize};
 
+/*
+CREATE TABLE IF NOT EXISTS user_to_participant
+(
+    user_id INT,
+    user_name VARCHAR(25),
+    participant_alias VARCHAR(50),
+    participant_id CHAR(36)
+);
+
+| cid    | name                 | type           | notnull    | dflt_value    | pk    |
+| ------ | -------------------- | -------------- | ---------- | ------------- | ----- |
+| 0      | user_id              | INT            | 0          |               | 0     |
+| 1      | user_name            | varchar(25)    | 0          |               | 0     |
+| 2      | participant_alias    | varchar(50)    | 0          |               | 0     |
+| 3      | participant_id       | char(36)       | 0          |               | 0     |
+ */
+
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct User {
     pub un: String, 
     pub alias: Option<String>,
+    pub id: Option<String>,
+}
+
+/* 
+CREATE TABLE IF NOT EXISTS user_auth
+(
+    user_name VARCHAR(25) NOT NULL,
+    token TEXT NOT NULL,
+    issued_utc DATETIME,
+    expiration_utc DATETIME
+);
+*/
+
+#[derive(Clone, Debug, Eq, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Token {
+    pub jwt: String,
+    pub jwt_exp: String,
+    pub addr: String,
+    pub is_logged_in: bool,
     pub id: Option<String>,
 }
 

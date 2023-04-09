@@ -3970,7 +3970,9 @@ version = "0.0.1"
 dependencies = [
  "chrono",
  "fern",
+ "hmac",
  "ignore-result",
+ "jwt",
  "log",
  "num",
  "num-derive",
@@ -3981,6 +3983,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "serde_json",
+ "sha2",
  "thiserror",
  "tokio",
  "tracking-model",
