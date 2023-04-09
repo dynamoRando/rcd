@@ -94,13 +94,57 @@ pub async fn verify_token(jwt: &str) -> Result<bool, TrackingApiError> {
     has_any_rows(&sql).await
 }
 
+pub async fn get_user_id_for_user_name(un: &str) -> Result<u32, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens().await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let sql = "SELECT user_id FROM user_to_participant WHERE user_name = ':un'";
+    let sql = sql.replace(":un", &un);
+
+    let mut client = get_client().await;
+
+    let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
+
+    if !result.is_error {
+        let rows = result.clone().rows;
+        for row in &rows {
+            for value in &row.values {
+                if let Some(column) = &value.column {
+                    if column.column_name == "user_id" {
+                        let rid = value.string_value.parse::<u32>();
+                        if let Ok(id) = rid {
+                            return Ok(id);
+                        } else {
+                            return Err(TrackingApiError::Unknown);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    Err(TrackingApiError::Unknown)
+}
+
+pub async fn get_user_id_for_token(jwt: &str) -> Result<u32, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens().await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let user_name = get_user_name_for_token(jwt).await?;
+    get_user_id_for_user_name(&user_name).await
+}
+
 pub async fn get_user_name_for_token(jwt: &str) -> Result<String, TrackingApiError> {
     let delete_tokens_result = delete_expired_tokens().await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
 
-    let sql = "SELECT user_name from user_auth WHERE token = ':jwt'";
+    let sql = "SELECT user_name FROM user_auth WHERE token = ':jwt'";
     let sql = sql.replace(":jwt", jwt);
 
     let mut client = get_client().await;
