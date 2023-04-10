@@ -3970,10 +3970,12 @@ name = "tracking-api"
 version = "0.0.1"
 dependencies = [
  "chrono",
+ "config",
  "fern",
  "hmac",
  "ignore-result",
  "jwt",
+ "lazy_static",
  "log",
  "num",
  "num-derive",

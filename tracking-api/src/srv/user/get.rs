@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use log::{debug, error};
-use rocket::{http::Status, post, serde::json::Json};
+use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::user::{Token, User};
 
 use crate::{
@@ -9,21 +9,21 @@ use crate::{
         get_client,
         shark_event::get::DB_NAME,
         util::{create_jwt, has_any_rows},
-    },
+    }, ApiSettings,
 };
 
 #[post("/user/logout", format = "application/json", data = "<request>")]
-pub async fn logout(request: Json<User>) -> Status {
+pub async fn logout(request: Json<User>, settings: &State<ApiSettings>) -> Status {
     debug!("{request:?}");
 
     let un = &request.un;
 
-    let delete_tokens_result = delete_expired_tokens().await;
+    let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
 
-    let delete_tokens_result = delete_existing_tokens_for_user(&un).await;
+    let delete_tokens_result = delete_existing_tokens_for_user(&un, settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete existing tokens for user {}", un);
     }
@@ -32,26 +32,26 @@ pub async fn logout(request: Json<User>) -> Status {
 }
 
 #[post("/user/auth", format = "application/json", data = "<request>")]
-pub async fn auth_for_token(request: Json<User>) -> (Status, Json<Token>) {
+pub async fn auth_for_token(request: Json<User>, settings: &State<ApiSettings>) -> (Status, Json<Token>) {
     debug!("{request:?}");
 
     let un = &request.un;
 
-    let delete_tokens_result = delete_expired_tokens().await;
+    let delete_tokens_result = delete_expired_tokens(&settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
 
-    let delete_tokens_result = delete_existing_tokens_for_user(&un).await;
+    let delete_tokens_result = delete_existing_tokens_for_user(&un, settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete existing tokens for user {}", un);
     }
 
-    let has_login_result = has_login(&un).await;
+    let has_login_result = has_login(&un, settings).await;
     if let Ok(has_login) = has_login_result {
         if has_login {
             let token = create_jwt("tracking-api", un);
-            let save_token_result = save_token(&un, &token.0, token.1).await;
+            let save_token_result = save_token(&un, &token.0, token.1, settings).await;
 
             if let Ok(is_token_saved) = save_token_result {
                 if is_token_saved {
@@ -82,8 +82,8 @@ pub async fn auth_for_token(request: Json<User>) -> (Status, Json<Token>) {
     return (Status::Ok, Json(token));
 }
 
-pub async fn verify_token(jwt: &str) -> Result<bool, TrackingApiError> {
-    let delete_tokens_result = delete_expired_tokens().await;
+pub async fn verify_token(jwt: &str, settings: &ApiSettings) -> Result<bool, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
@@ -91,11 +91,11 @@ pub async fn verify_token(jwt: &str) -> Result<bool, TrackingApiError> {
     let sql = "SELECT COUNT(*) cnt from user_auth WHERE token = ':jwt'";
     let sql = sql.replace(":jwt", jwt);
 
-    has_any_rows(&sql).await
+    has_any_rows(&sql, settings).await
 }
 
-pub async fn get_user_id_for_user_name(un: &str) -> Result<u32, TrackingApiError> {
-    let delete_tokens_result = delete_expired_tokens().await;
+pub async fn get_user_id_for_user_name(un: &str, settings: &ApiSettings) -> Result<u32, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
@@ -103,7 +103,7 @@ pub async fn get_user_id_for_user_name(un: &str) -> Result<u32, TrackingApiError
     let sql = "SELECT user_id FROM user_to_participant WHERE user_name = ':un'";
     let sql = sql.replace(":un", &un);
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
 
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
 
@@ -128,18 +128,18 @@ pub async fn get_user_id_for_user_name(un: &str) -> Result<u32, TrackingApiError
     Err(TrackingApiError::Unknown)
 }
 
-pub async fn get_user_id_for_token(jwt: &str) -> Result<u32, TrackingApiError> {
-    let delete_tokens_result = delete_expired_tokens().await;
+pub async fn get_user_id_for_token(jwt: &str, settings: &ApiSettings) -> Result<u32, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
 
-    let user_name = get_user_name_for_token(jwt).await?;
-    get_user_id_for_user_name(&user_name).await
+    let user_name = get_user_name_for_token(jwt, settings).await?;
+    get_user_id_for_user_name(&user_name, settings).await
 }
 
-pub async fn get_user_name_for_token(jwt: &str) -> Result<String, TrackingApiError> {
-    let delete_tokens_result = delete_expired_tokens().await;
+pub async fn get_user_name_for_token(jwt: &str, settings: &ApiSettings) -> Result<String, TrackingApiError> {
+    let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
@@ -147,7 +147,7 @@ pub async fn get_user_name_for_token(jwt: &str) -> Result<String, TrackingApiErr
     let sql = "SELECT user_name FROM user_auth WHERE token = ':jwt'";
     let sql = sql.replace(":jwt", jwt);
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
 
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
 
@@ -167,11 +167,11 @@ pub async fn get_user_name_for_token(jwt: &str) -> Result<String, TrackingApiErr
     Err(TrackingApiError::Unknown)
 }
 
-async fn delete_existing_tokens_for_user(un: &str) -> Result<(), TrackingApiError> {
+async fn delete_existing_tokens_for_user(un: &str, settings: &ApiSettings) -> Result<(), TrackingApiError> {
     let mut cmd = String::from("DELETE FROM user_auth WHERE user_name < ':un'");
     cmd = cmd.replace(":un", &un);
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
 
     let delete_expired_tokens_result = client.execute_write_at_host(DB_NAME, &cmd, 1, "").await;
 
@@ -181,12 +181,12 @@ async fn delete_existing_tokens_for_user(un: &str) -> Result<(), TrackingApiErro
     }
 }
 
-async fn delete_expired_tokens() -> Result<(), TrackingApiError> {
+async fn delete_expired_tokens(settings: &ApiSettings) -> Result<(), TrackingApiError> {
     let now = Utc::now().to_rfc3339();
     let mut cmd = String::from("DELETE FROM user_auth WHERE expiration_utc < ':now'");
     cmd = cmd.replace(":now", &now);
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
 
     let delete_expired_tokens_result = client.execute_write_at_host(DB_NAME, &cmd, 1, "").await;
 
@@ -196,16 +196,17 @@ async fn delete_expired_tokens() -> Result<(), TrackingApiError> {
     }
 }
 
-async fn has_login(un: &str) -> Result<bool, TrackingApiError> {
+async fn has_login(un: &str, settings: &ApiSettings) -> Result<bool, TrackingApiError> {
     let sql = "SELECT COUNT(*) cnt FROM user_to_participant WHERE user_name = ':un'";
     let sql = sql.replace(":un", un);
-    has_any_rows(&sql).await
+    has_any_rows(&sql, settings).await
 }
 
 async fn save_token(
     un: &str,
     token: &str,
     expiration: DateTime<Utc>,
+    settings: &ApiSettings
 ) -> Result<bool, TrackingApiError> {
     let sql = "INSERT INTO user_auth
     (
@@ -229,7 +230,7 @@ async fn save_token(
         .replace(":exp", &expiration.to_string())
         .replace(":iss", &Utc::now().to_rfc3339().to_string());
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
 
     let result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
 

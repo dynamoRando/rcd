@@ -1,31 +1,31 @@
-use log::{debug, info};
+
+use log::{debug, trace};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
 use rocket::http::Header;
 use rocket::log::LogLevel;
+use rocket::Config;
 use rocket::{
     fairing::{Fairing, Info},
     get,
     http::Status,
     routes,
 };
-use rocket::{Config};
 use rocket::{Request, Response};
 
-use crate::srv::shark_event::delete::delete_event;
-use crate::srv::shark_event::delete::delete_associated_event;
-use crate::srv::shark_event::get::get_events;
-use crate::srv::shark_event::update::update_event;
-use crate::srv::shark_event::update::update_associated_event;
-use crate::srv::shark_event::create::add_event;
-use crate::srv::shark_event::create::add_associated_event;
-use crate::srv::user::get::auth_for_token;
-use crate::srv::user::get::logout;
 use self::user::create::create_account;
 
-const PROXY_ADDR: &str = "http://proxy.home:50051";
-const PROXY_USER: &str = "shark";
-const PROXY_AUTH: &str = "shark";
+use crate::ApiSettings;
+use crate::srv::shark_event::create::add_associated_event;
+use crate::srv::shark_event::create::add_event;
+use crate::srv::shark_event::delete::delete_associated_event;
+use crate::srv::shark_event::delete::delete_event;
+use crate::srv::shark_event::get::get_events;
+use crate::srv::shark_event::update::update_associated_event;
+use crate::srv::shark_event::update::update_event;
+use crate::srv::user::get::auth_for_token;
+use crate::srv::user::get::logout;
+
 
 mod shark_event;
 mod user;
@@ -44,7 +44,7 @@ impl TrackingServer {
         }
     }
 
-    pub async fn start(&self) -> Result<(), rocket::Error> {
+    pub async fn start(&self, settings: ApiSettings) -> Result<(), rocket::Error> {
         let config = Config {
             port: self.port,
             address: self.addr.parse().unwrap(),
@@ -71,6 +71,7 @@ impl TrackingServer {
                     logout
                 ],
             )
+            .manage(settings)
             .launch()
             .await?;
 
@@ -87,7 +88,6 @@ fn index() -> &'static str {
 fn version() -> &'static str {
     return env!("CARGO_PKG_VERSION");
 }
-
 
 pub struct CORS;
 
@@ -112,18 +112,19 @@ impl Fairing for CORS {
     }
 }
 
-pub async fn get_client() -> RcdClient {
-    let id = "871551FA-34EE-61A7-D792-F4401B8C8318";
+pub async fn get_client(settings: &ApiSettings) -> RcdClient {
+    
+    trace!("{settings:?}");
 
     let mut client = RcdClient::new_grpc_client(
-        PROXY_ADDR.to_string(),
-        PROXY_USER.to_string(),
-        PROXY_AUTH.to_string(),
+        settings.proxy_addr.clone(),
+        settings.proxy_user.clone(),
+        settings.proxy_auth.clone(),
         60,
     )
     .await;
 
-    client.set_host_id(id);
+    client.set_host_id(&settings.id);
 
     client
 }

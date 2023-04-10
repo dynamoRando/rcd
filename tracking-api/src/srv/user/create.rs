@@ -1,5 +1,5 @@
 use log::debug;
-use rocket::{http::Status, post, serde::json::Json};
+use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::user::{CreateUserResult, User};
 
 use crate::{
@@ -8,21 +8,21 @@ use crate::{
         get_client,
         shark_event::get::DB_NAME,
         util::{get_count, has_any_rows},
-    },
+    }, ApiSettings,
 };
 
 #[post("/user/create", format = "application/json", data = "<request>")]
-pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResult>) {
+pub async fn create_account(request: Json<User>, settings: &State<ApiSettings> ) -> (Status, Json<CreateUserResult>) {
     debug!("{request:?}");
 
     let mut is_successful: bool = false;
     let mut result_message: Option<String> = None;
 
     let u = request.clone().into_inner();
-    let has_account = has_account_with_name(&u.un).await;
+    let has_account = has_account_with_name(&u.un, settings).await;
 
     if !has_account {
-        let create_account_result = create_new_account(&request).await;
+        let create_account_result = create_new_account(&request, settings).await;
         match create_account_result {
             Ok(()) => {
                 is_successful = true;
@@ -47,7 +47,7 @@ pub async fn create_account(request: Json<User>) -> (Status, Json<CreateUserResu
 }
 
 /// Attempts to create a new account with the specified un/pw
-async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError> {
+async fn create_new_account(request: &Json<User>, settings: &ApiSettings) -> Result<(), TrackingApiError> {
     if request.id.is_none() {
         return Err(TrackingApiError::HostIdMissing(request.un.clone()));
     }
@@ -56,7 +56,7 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
     // then we want to add a participant with the same un for the alias
     // and then we want to let the UI know that the user should accept the pending contract
     let sql = "SELECT COUNT(*) cnt FROM user_to_participant";
-    let total_users = get_count(sql).await?;
+    let total_users = get_count(sql, settings).await?;
     let id = total_users + 1;
 
     let sql = "INSERT INTO user_to_participant 
@@ -80,7 +80,7 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
         .replace(":alias", &request.alias.as_ref().unwrap())
         .replace(":id", &request.id.as_ref().unwrap());
 
-    let mut client = get_client().await;
+    let mut client = get_client(settings).await;
     let add_user_result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
 
     if let Ok(added_user) = add_user_result {
@@ -122,11 +122,11 @@ async fn create_new_account(request: &Json<User>) -> Result<(), TrackingApiError
     ))
 }
 
-async fn has_account_with_name(un: &str) -> bool {
+async fn has_account_with_name(un: &str, settings: &ApiSettings) -> bool {
     let sql = "SELECT COUNT(*) cnt FROM user_to_participant WHERE user_name = ':un'";
     let sql = sql.replace(":un", un);
 
-    let has_account_result = has_any_rows(&sql).await;
+    let has_account_result = has_any_rows(&sql, settings).await;
     match has_account_result {
         Ok(has_account) => has_account,
         Err(_) => true,

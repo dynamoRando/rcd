@@ -1,0 +1,4 @@
+id = "871551FA-34EE-61A7-D792-F4401B8C8318"
+proxy_addr = "http://proxy.home:50051"
+proxy_user = "shark"
+proxy_auth = "shark"

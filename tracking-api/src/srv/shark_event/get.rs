@@ -1,5 +1,5 @@
-use crate::srv::{get_client, user::get::verify_token};
-use rocket::{http::Status, post, serde::json::Json};
+use crate::{srv::{get_client, user::get::verify_token}, ApiSettings};
+use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::{
     event::{SharkAssociatedEvent, SharkEvent, SharkEventReply},
     user::Auth,
@@ -10,15 +10,15 @@ pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT * FROM associated_event;";
 pub const DB_NAME: &str = "shark.db";
 
 #[post("/events/get", format = "application/json", data = "<request>")]
-pub async fn get_events(request: Json<Auth>) -> (Status, Json<SharkEventReply>) {
-    let is_logged_in_result = verify_token(&request.jwt).await;
+pub async fn get_events(request: Json<Auth>, settings: &State<ApiSettings>) -> (Status, Json<SharkEventReply>) {
+    let is_logged_in_result = verify_token(&request.jwt, settings).await;
 
     if let Ok(is_logged_in) = is_logged_in_result {
         if is_logged_in {
             let mut associated_events: Vec<SharkAssociatedEvent> = Vec::new();
             let mut shark_events: Vec<SharkEvent> = Vec::new();
 
-            let mut client = get_client().await;
+            let mut client = get_client(settings).await;
             let result = client
                 .execute_read_at_host(DB_NAME, SQL_GET_ASSOCIATED_EVENTS, 1)
                 .await
