@@ -114,7 +114,7 @@ impl Fairing for CORS {
 
 pub async fn get_client(settings: &ApiSettings) -> RcdClient {
     
-    trace!("{settings:?}");
+    // trace!("{settings:?}");
 
     let mut client = RcdClient::new_grpc_client(
         settings.proxy_addr.clone(),
