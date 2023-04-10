@@ -9,7 +9,7 @@ pub mod view;
 #[function_component]
 pub fn Events() -> Html {
 
-    let events = Repo::get_events().await;
+    // let events = Repo::get_events().await;
 
     html! {
         <div class="tile is-ancestor is-vertical">
