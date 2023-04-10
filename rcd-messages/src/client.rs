@@ -413,7 +413,6 @@ pub struct GenerateContractRequest {
 pub struct GenerateContractReply {
     pub authentication_result: ::core::option::Option<AuthResult>,
     pub is_successful: bool,
-    pub contract_status: u32,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq)]
 pub struct SetLogicalStoragePolicyRequest {
