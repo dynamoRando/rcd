@@ -2,6 +2,7 @@ use config::Config;
 use fern::colors::{Color, ColoredLevelConfig};
 use lazy_static::lazy_static;
 use log::{debug, info, LevelFilter};
+use rcd_client::RcdClient;
 use srv::TrackingServer;
 use std::env;
 use std::path::Path;
@@ -16,6 +17,21 @@ pub struct ApiSettings {
     pub proxy_addr: String,
     pub proxy_user: String,
     pub proxy_auth: String,
+}
+
+impl ApiSettings {
+    pub async fn get_rcd_client(&self) -> RcdClient {
+        let mut client = RcdClient::new_grpc_client(
+            self.proxy_addr.clone(),
+            self.proxy_user.clone(),
+            self.proxy_auth.clone(),
+            60,
+        )
+        .await;
+
+        client.set_host_id(&self.id);
+        client
+    }
 }
 
 #[tokio::main]
