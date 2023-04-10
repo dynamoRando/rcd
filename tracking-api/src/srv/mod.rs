@@ -113,7 +113,7 @@ impl Fairing for CORS {
 }
 
 pub async fn get_client() -> RcdClient {
-    let id = "59B2C8F5-9136-DBAC-F8A9-0903257B77D1";
+    let id = "871551FA-34EE-61A7-D792-F4401B8C8318";
 
     let mut client = RcdClient::new_grpc_client(
         PROXY_ADDR.to_string(),

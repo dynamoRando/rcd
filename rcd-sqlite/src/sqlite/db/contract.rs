@@ -1,6 +1,6 @@
 use chrono::{TimeZone, Utc};
 use guid_create::GUID;
-use log::trace;
+use log::{trace, warn, error};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, db::DbiConfigSqlite, defaults,
@@ -386,9 +386,7 @@ pub fn update_participant_accepts_contract(
     rows_affected > 0
 }
 
-
 pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDatabaseContract {
-
     let conn = &get_db_conn(&config, db_name);
 
     let cmd = String::from(
@@ -446,6 +444,10 @@ pub fn get_active_contract(db_name: &str, config: DbiConfigSqlite) -> CoopDataba
 
     for contract in contracts {
         results.push(contract.unwrap());
+    }
+
+    if results.is_empty() {
+        error!("there is no active contract!");
     }
 
     return results.first().unwrap().clone();
