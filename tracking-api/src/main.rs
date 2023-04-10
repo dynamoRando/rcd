@@ -35,7 +35,6 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .error(Color::BrightRed)
         .warn(Color::Magenta)
         .trace(Color::BrightWhite);
-    
 
     fern::Dispatch::new()
         .format(move |out, message, record| {
@@ -98,10 +97,13 @@ fn read_settings() -> ApiSettings {
     let proxy_user = settings.get_string(&String::from("proxy_user")).unwrap();
     let proxy_auth = settings.get_string(&String::from("proxy_auth")).unwrap();
 
-    ApiSettings {
+    let settings = ApiSettings {
         id: id,
         proxy_addr: proxy_addr,
         proxy_user: proxy_user,
         proxy_auth: proxy_auth,
-    }
+    };
+
+    debug!("{settings:?}");
+    settings
 }
