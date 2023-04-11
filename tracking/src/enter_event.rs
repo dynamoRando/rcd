@@ -27,9 +27,7 @@ pub fn EnterEvent(SharkEventProps { events }: &SharkEventProps) -> Html {
         let events = events;
         let form_is_invalid = form_is_invalid.clone();
 
-        Callback::from(move |_| {
-            todo!()
-        })
+        Callback::from(move |_| todo!())
     };
 
     html! {

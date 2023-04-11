@@ -1,14 +1,14 @@
-use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
-use rcd_messages::client::{ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest};
-use web_sys::HtmlInputElement;
-use yew::{
-    function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
-};
 use crate::request;
-use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
     request::rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+};
+use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
+use rcd_messages::client::{ChangeDeletesToHostBehaviorReply, ChangeDeletesToHostBehaviorRequest};
+use rcd_messages::proxy::request_type::RequestType;
+use web_sys::HtmlInputElement;
+use yew::{
+    function_component, html, use_node_ref, AttrValue, Callback, Html, Properties, UseStateHandle,
 };
 
 #[derive(Properties, PartialEq)]
@@ -41,7 +41,7 @@ pub fn ChangeBehavior(
             let behavior_value = DeletesToHostBehavior::to_u32(behavior_value);
 
             let token = get_rcd_token();
-            
+
             let request = ChangeDeletesToHostBehaviorRequest {
                 authentication: Some(token.auth()),
                 database_name: (*database).clone(),

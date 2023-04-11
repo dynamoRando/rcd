@@ -1,12 +1,12 @@
 use chrono::NaiveDateTime;
 use num_derive::{FromPrimitive, ToPrimitive};
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 extern crate num;
 
 /*
 
-CREATE TABLE IF NOT EXISTS event 
+CREATE TABLE IF NOT EXISTS event
 (
     id INT,
     event_date DATETIME,

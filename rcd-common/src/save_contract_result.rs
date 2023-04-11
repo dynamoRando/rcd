@@ -1,7 +1,6 @@
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::Participant;
 
-
 #[derive(Debug, Clone)]
 pub struct RcdSaveContractResult {
     pub is_successful: bool,

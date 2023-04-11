@@ -2,7 +2,11 @@ use tracking_model::user::Token;
 use web_sys::HtmlInputElement;
 use yew::{platform::spawn_local, prelude::*};
 
-use crate::{logging::log_to_console, repo::Repo, storage::{save_token, save_un}};
+use crate::{
+    logging::log_to_console,
+    repo::Repo,
+    storage::{save_token, save_un},
+};
 
 #[function_component]
 pub fn Login() -> Html {

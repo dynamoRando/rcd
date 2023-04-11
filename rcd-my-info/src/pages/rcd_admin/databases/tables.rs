@@ -1,9 +1,7 @@
+use crate::log::log_to_console;
 use crate::pages::rcd_admin::databases::columns::Columns;
 use crate::pages::rcd_admin::databases::get_table_policy::GetTablePolicy;
 use crate::pages::rcd_admin::databases::set_table_policy::SetTablePolicy;
-use crate::{
-    log::log_to_console,
-};
 
 use rcd_messages::client::{DatabaseSchema, TableSchema};
 use yew::{function_component, html, use_state_eq, Html, Properties};

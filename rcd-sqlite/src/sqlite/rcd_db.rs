@@ -774,7 +774,6 @@ fn create_user_role_table(conn: &Connection) {
 }
 
 fn create_host_info_table(conn: &Connection) {
-
     trace!("creating CDS_HOST_INFO on: {conn:?}");
 
     conn.execute(&Cds::text_create_host_info_table(), [])
@@ -920,13 +919,9 @@ pub fn verify_login(login: &str, pw: &str, config: DbiConfigSqlite) -> bool {
         let returned_value = user.unwrap();
 
         let mut padded = [0u8; 128];
-        returned_value
-            .hash
-            .iter()
-            .enumerate()
-            .for_each(|(i, val)| {
-                padded[i] = *val;
-            });
+        returned_value.hash.iter().enumerate().for_each(|(i, val)| {
+            padded[i] = *val;
+        });
 
         if crypt::verify(padded, pw) {
             is_verified = true;

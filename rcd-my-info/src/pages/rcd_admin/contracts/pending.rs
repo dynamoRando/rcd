@@ -3,14 +3,17 @@ use rcd_messages::{
         AcceptPendingContractReply, AcceptPendingContractRequest, Contract,
         ViewPendingContractsReply, ViewPendingContractsRequest,
     },
-    proxy::request_type::RequestType,
     formatter,
+    proxy::request_type::RequestType,
 };
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
-    request::{self, rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}},
+    request::{
+        self,
+        rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+    },
 };
 
 #[function_component]
@@ -34,7 +37,7 @@ pub fn Pending() -> Html {
             };
 
             let request_json = serde_json::to_string(&request).unwrap();
-            
+
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     log_to_console(&x);
@@ -119,7 +122,7 @@ pub fn Pending() -> Html {
                                             };
 
                                             let json_request = serde_json::to_string(&request).unwrap();
-                                            
+
                                             let last_accept_reject_result = last_accept_reject_result.clone();
 
                                             let cb = Callback::from(move |response: Result<AttrValue, String>| {

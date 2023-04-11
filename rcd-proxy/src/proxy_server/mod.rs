@@ -1,4 +1,4 @@
-use log::{info, debug};
+use log::{debug, info};
 use rocket::fairing::Kind;
 use rocket::http::Header;
 use rocket::log::LogLevel;
@@ -11,14 +11,14 @@ use rocket::{
 use rocket::{Config, Shutdown};
 use rocket::{Request, Response};
 
-use crate::RcdProxy;
-use crate::proxy_server::account::{register, token, revoke_token};
+use crate::proxy_server::account::{register, revoke_token, token};
 use crate::proxy_server::execute::execute_request;
+use crate::RcdProxy;
 
 mod account;
 mod execute;
-mod process;
 pub mod http_endpoint;
+mod process;
 
 #[derive(Debug, Clone)]
 pub struct ProxyServer {
@@ -49,7 +49,10 @@ impl ProxyServer {
         };
         let _ = rocket::custom(config)
             .attach(CORS)
-            .mount("/", routes![index, register, execute_request, token, revoke_token])
+            .mount(
+                "/",
+                routes![index, register, execute_request, token, revoke_token],
+            )
             .manage(proxy)
             .launch()
             .await?;

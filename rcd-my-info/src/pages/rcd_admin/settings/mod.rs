@@ -1,10 +1,13 @@
-use rcd_messages::client::{GetSettingsReply, GetSettingsRequest};
-use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
-use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
-    request::{rcd::{get_rcd_token, set_status, update_token_login_status}, self},
+    request::{
+        self,
+        rcd::{get_rcd_token, set_status, update_token_login_status},
+    },
 };
+use rcd_messages::client::{GetSettingsReply, GetSettingsRequest};
+use rcd_messages::proxy::request_type::RequestType;
+use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
 pub fn Settings() -> Html {

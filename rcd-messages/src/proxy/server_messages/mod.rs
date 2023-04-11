@@ -24,7 +24,7 @@ pub struct AuthForTokenReply {
     pub is_successful: bool,
     pub expiration_utc: Option<String>,
     pub jwt: Option<String>,
-    pub id: Option<String>
+    pub id: Option<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]

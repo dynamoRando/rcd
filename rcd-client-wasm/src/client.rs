@@ -13,7 +13,7 @@ use rcd_messages::client::{
 use serde::{de, Deserialize, Serialize};
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response, console};
+use web_sys::{console, Request, RequestInit, RequestMode, Response};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct RcdClient {

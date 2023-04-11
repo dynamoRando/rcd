@@ -8,11 +8,15 @@ use crate::{
         get_client,
         shark_event::get::DB_NAME,
         util::{get_count, has_any_rows},
-    }, ApiSettings,
+    },
+    ApiSettings,
 };
 
 #[post("/user/create", format = "application/json", data = "<request>")]
-pub async fn create_account(request: Json<User>, settings: &State<ApiSettings> ) -> (Status, Json<CreateUserResult>) {
+pub async fn create_account(
+    request: Json<User>,
+    settings: &State<ApiSettings>,
+) -> (Status, Json<CreateUserResult>) {
     debug!("{request:?}");
 
     let mut is_successful: bool = false;
@@ -47,7 +51,10 @@ pub async fn create_account(request: Json<User>, settings: &State<ApiSettings> )
 }
 
 /// Attempts to create a new account with the specified un/pw
-async fn create_new_account(request: &Json<User>, settings: &ApiSettings) -> Result<(), TrackingApiError> {
+async fn create_new_account(
+    request: &Json<User>,
+    settings: &ApiSettings,
+) -> Result<(), TrackingApiError> {
     if request.id.is_none() {
         return Err(TrackingApiError::HostIdMissing(request.un.clone()));
     }

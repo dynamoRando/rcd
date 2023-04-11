@@ -1,5 +1,5 @@
-use serde_derive::{Serialize, Deserialize};
 use rcd_messages::client::AuthRequest;
+use serde_derive::{Deserialize, Serialize};
 
 /*
 CREATE TABLE IF NOT EXISTS user_to_participant
@@ -20,12 +20,12 @@ CREATE TABLE IF NOT EXISTS user_to_participant
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct User {
-    pub un: String, 
+    pub un: String,
     pub alias: Option<String>,
     pub id: Option<String>,
 }
 
-/* 
+/*
 CREATE TABLE IF NOT EXISTS user_auth
 (
     user_name VARCHAR(25) NOT NULL,

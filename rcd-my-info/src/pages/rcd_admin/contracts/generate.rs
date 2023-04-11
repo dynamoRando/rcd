@@ -1,11 +1,17 @@
-use rcd_messages::{client::{GenerateContractReply, GenerateContractRequest}, proxy::request_type::RequestType};
+use rcd_messages::{
+    client::{GenerateContractReply, GenerateContractRequest},
+    proxy::request_type::RequestType,
+};
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
     pages::rcd_admin::common::select_database::SelectDatabase,
-    request::{self, rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}},
+    request::{
+        self,
+        rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+    },
 };
 
 #[function_component]

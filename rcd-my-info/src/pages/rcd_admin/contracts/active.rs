@@ -1,13 +1,17 @@
 use rcd_messages::{
     client::{GetActiveContractReply, GetActiveContractRequest},
-    formatter, proxy::request_type::RequestType,
+    formatter,
+    proxy::request_type::RequestType,
 };
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
 use crate::{
     log::log_to_console,
     pages::rcd_admin::common::select_database::SelectDatabase,
-    request::{self, rcd::{get_database, get_rcd_token, clear_status, update_token_login_status, set_status}},
+    request::{
+        self,
+        rcd::{clear_status, get_database, get_rcd_token, set_status, update_token_login_status},
+    },
 };
 
 #[function_component]
@@ -43,7 +47,7 @@ pub fn Active() -> Html {
                     let request_json = serde_json::to_string(&get_active_contract_request).unwrap();
 
                     log_to_console(&request_json);
-                    
+
                     let cb = Callback::from(move |response: Result<AttrValue, String>| {
                         if let Ok(ref x) = response {
                             log_to_console(&x);

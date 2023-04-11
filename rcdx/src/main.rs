@@ -127,19 +127,19 @@ fn process_cmd_args(args: Vec<String>) -> Option<String> {
         match cmd {
             "default_settings" => {
                 set_default_config();
-                return None
+                return None;
             }
             "make_test_db" => {
                 make_test_db();
-                return None
+                return None;
             }
             "alt-config" => {
                 let alt_settings = args[2].to_string();
                 return Some(alt_settings);
             }
-            "init" =>{
+            "init" => {
                 init_host_id();
-                return None
+                return None;
             }
             _ => return None,
         }

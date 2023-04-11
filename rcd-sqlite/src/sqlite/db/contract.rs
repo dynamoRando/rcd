@@ -1,6 +1,6 @@
 use chrono::{TimeZone, Utc};
 use guid_create::GUID;
-use log::{trace, warn, error};
+use log::{error, trace, warn};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::CoopDatabaseParticipant, db::DbiConfigSqlite, defaults,

@@ -1,14 +1,13 @@
 use rcd_messages::client::{EnableCoooperativeFeaturesReply, EnableCoooperativeFeaturesRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
-use crate::{
-    log::log_to_console, pages::rcd_admin::common::select_database::SelectDatabase,
-};
+use crate::{log::log_to_console, pages::rcd_admin::common::select_database::SelectDatabase};
 
-use rcd_messages::proxy::request_type::RequestType;
-use crate::{
- request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
+use crate::request::{
+    self,
+    rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
 };
+use rcd_messages::proxy::request_type::RequestType;
 
 #[function_component]
 pub fn EnableCoop() -> Html {
@@ -30,7 +29,7 @@ pub fn EnableCoop() -> Html {
             };
 
             let json_request = serde_json::to_string(&request).unwrap();
-            
+
             let cb = Callback::from(move |response: Result<AttrValue, String>| {
                 if let Ok(ref x) = response {
                     log_to_console(&x);

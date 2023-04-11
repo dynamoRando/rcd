@@ -3,7 +3,8 @@ use rcd_common::{
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     data_info::DataInfo,
     db::CdsHosts,
-    host_info::HostInfo, save_contract_result::RcdSaveContractResult,
+    host_info::HostInfo,
+    save_contract_result::RcdSaveContractResult,
 };
 use rcdproto::rcdp::{
     Contract, DatabaseSchema, DeleteDataResult, GetRowFromPartialDatabaseResult, InsertDataResult,

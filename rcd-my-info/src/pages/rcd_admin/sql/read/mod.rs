@@ -1,15 +1,23 @@
+use crate::{
+    log::log_to_console,
+    request::{
+        self,
+        rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+    },
+};
+use rcd_messages::proxy::request_type::RequestType;
 use rcd_messages::{
     client::{ExecuteReadReply, ExecuteReadRequest},
     formatter,
 };
 use yew::{AttrValue, Callback, UseStateHandle};
-use rcd_messages::proxy::request_type::RequestType;
-use crate::{
-    log::log_to_console,
-    request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
-};
 
-pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>, request_type: RequestType) {
+pub fn read(
+    db_name: String,
+    text: String,
+    state: UseStateHandle<Option<String>>,
+    request_type: RequestType,
+) {
     let token = get_rcd_token();
     let auth = token.auth();
 
@@ -21,7 +29,7 @@ pub fn read(db_name: String, text: String, state: UseStateHandle<Option<String>>
     };
 
     let read_request_json = serde_json::to_string(&request).unwrap();
-    
+
     let callback = Callback::from(move |response: Result<AttrValue, String>| {
         if let Ok(ref x) = response {
             log_to_console(&x);

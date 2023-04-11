@@ -1,8 +1,7 @@
-
 use yew::prelude::*;
 use yew_router::prelude::*;
 
-use crate::{Route, storage::get_un};
+use crate::{storage::get_un, Route};
 
 #[derive(Properties, PartialEq, Debug)]
 pub struct NavProps {
@@ -32,7 +31,7 @@ pub fn Nav(props: &NavProps) -> Html {
                         <span class="mdi mdi-shark-fin">
                         </span>
                     </h1>
-                
+
                 <button class={classes!("navbar-burger", "burger", active_class)}
                     aria-label="menu" aria-expanded="false"
                     onclick={toggle_navbar}

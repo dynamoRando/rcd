@@ -1,15 +1,13 @@
-use crate::{
-    log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
-
-};
+use crate::{log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps};
 
 use rcd_messages::client::{GetLogicalStoragePolicyReply, GetLogicalStoragePolicyRequest};
 use yew::{function_component, html, use_state_eq, AttrValue, Callback, Html};
 
-use rcd_messages::proxy::request_type::RequestType;
-use crate::{
- request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
+use crate::request::{
+    self,
+    rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
 };
+use rcd_messages::proxy::request_type::RequestType;
 
 #[function_component]
 pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
@@ -66,8 +64,12 @@ pub fn GetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
     };
 
     let request_json = serde_json::to_string(&request).unwrap();
-    
-    request::post(RequestType::GetLogicalStoragePolicy, &request_json, get_policy_response_cb);
+
+    request::post(
+        RequestType::GetLogicalStoragePolicy,
+        &request_json,
+        get_policy_response_cb,
+    );
 
     html!(
         <div class="container">

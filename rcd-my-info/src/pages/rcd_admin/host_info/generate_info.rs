@@ -1,4 +1,3 @@
-
 use rcd_messages::client::{GenerateHostInfoReply, GenerateHostInfoRequest};
 use rcd_messages::proxy::request_type::RequestType;
 use web_sys::HtmlInputElement;

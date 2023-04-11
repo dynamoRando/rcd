@@ -63,7 +63,12 @@ impl ProxyDb {
         }
     }
 
-    pub fn save_token(&self, login: &str, token: &str, expiration: DateTime<Utc>) -> Result<(), RcdProxyErr> {
+    pub fn save_token(
+        &self,
+        login: &str,
+        token: &str,
+        expiration: DateTime<Utc>,
+    ) -> Result<(), RcdProxyErr> {
         match self.config {
             ProxyDbConfig::Unknown => todo!(),
             ProxyDbConfig::Sqlite(_) => self.sqlite().save_token(login, token, expiration),
@@ -92,12 +97,10 @@ impl ProxyDb {
         }
     }
 
-    pub fn get_user_with_token(&self, token: &str) ->  Result<UserInfo, RcdProxyErr> {
+    pub fn get_user_with_token(&self, token: &str) -> Result<UserInfo, RcdProxyErr> {
         self.delete_expired_tokens();
         match self.config {
-            ProxyDbConfig::Sqlite(_) => {
-                self.sqlite().get_user_with_token(&token)
-            }
+            ProxyDbConfig::Sqlite(_) => self.sqlite().get_user_with_token(&token),
             ProxyDbConfig::Unknown => unimplemented!(),
             ProxyDbConfig::MySql(_) => unimplemented!(),
             ProxyDbConfig::Postgres(_) => unimplemented!(),
@@ -107,9 +110,7 @@ impl ProxyDb {
     pub fn verify_token(&self, token: &str) -> bool {
         self.delete_expired_tokens();
         match self.config {
-            ProxyDbConfig::Sqlite(_) => {
-                self.sqlite().verify_token(&token)
-            }
+            ProxyDbConfig::Sqlite(_) => self.sqlite().verify_token(&token),
             ProxyDbConfig::Unknown => unimplemented!(),
             ProxyDbConfig::MySql(_) => unimplemented!(),
             ProxyDbConfig::Postgres(_) => unimplemented!(),

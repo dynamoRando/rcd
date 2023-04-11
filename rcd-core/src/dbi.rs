@@ -1020,11 +1020,7 @@ impl Dbi {
         match self.db_type {
             DatabaseType::Sqlite => {
                 let settings = self.get_sqlite_settings();
-                sqlite::db::participant::get_participant_by_id(
-                    db_name,
-                    participant_id,
-                    settings,
-                )
+                sqlite::db::participant::get_participant_by_id(db_name, participant_id, settings)
             }
             DatabaseType::Unknown => unimplemented!(),
             DatabaseType::Mysql => unimplemented!(),

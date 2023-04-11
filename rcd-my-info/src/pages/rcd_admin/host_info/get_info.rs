@@ -26,7 +26,7 @@ pub fn GetInfo() -> Html {
         Callback::from(move |_| {
             let host_info = host_info.clone();
             let token = get_rcd_token();
-            
+
             let request_json = token.auth_json();
 
             let cb = Callback::from(move |response: Result<AttrValue, String>| {

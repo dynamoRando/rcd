@@ -6,6 +6,6 @@ pub mod db;
 pub mod defaults;
 pub mod host_info;
 pub mod rcd_settings;
+pub mod save_contract_result;
 pub mod table;
 pub mod user;
-pub mod save_contract_result;

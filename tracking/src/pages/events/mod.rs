@@ -5,10 +5,8 @@ use crate::repo::Repo;
 pub mod add;
 pub mod view;
 
-
 #[function_component]
 pub fn Events() -> Html {
-
     // let events = Repo::get_events().await;
 
     html! {
@@ -23,8 +21,8 @@ pub fn Events() -> Html {
                         //      {"Events"}
                         //     </p>
                         //     <ul class="menu-list">
-                        //         <li><a>{"Main Events"}</a></li>    
-                        //         <li><a>{"Associated Events"}</a></li>    
+                        //         <li><a>{"Main Events"}</a></li>
+                        //         <li><a>{"Associated Events"}</a></li>
                         //     </ul>
                         // </aside>
 

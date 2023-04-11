@@ -14,7 +14,10 @@ pub async fn execute_request(
     let request = request.into_inner();
 
     if request.pw.is_some() && request.login.is_some() {
-        let result_is_authorized = state.verify_login(request.login.as_ref().unwrap(), &request.pw.clone().unwrap());
+        let result_is_authorized = state.verify_login(
+            request.login.as_ref().unwrap(),
+            &request.pw.clone().unwrap(),
+        );
         match result_is_authorized {
             Ok(is_auth) => {
                 if !is_auth {
@@ -75,21 +78,24 @@ pub async fn execute_request(
         debug!("getting host via login: {}", login);
         let result_id = state.get_host_id_for_user(&login);
         let response = execute(result_id, state, &request).await;
-        return (Status::Ok, Json(response))
+        return (Status::Ok, Json(response));
     }
 
     if let Some(jwt) = request.jwt.clone() {
         debug!("getting host via token: {}", jwt);
         let result_id = state.get_host_id_for_token(&jwt);
         let response = execute(result_id, state, &request).await;
-        return (Status::Ok, Json(response))
+        return (Status::Ok, Json(response));
     }
 
     (Status::Ok, Json(response))
 }
 
-
-async fn execute(result_id: Result<Option<String>, RcdProxyErr>, proxy: &RcdProxy, request: &ExecuteRequest) -> ExecuteReply {
+async fn execute(
+    result_id: Result<Option<String>, RcdProxyErr>,
+    proxy: &RcdProxy,
+    request: &ExecuteRequest,
+) -> ExecuteReply {
     match result_id {
         Ok(id) => match id {
             Some(id) => {

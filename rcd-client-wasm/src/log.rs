@@ -1,5 +1,4 @@
-
-/* 
+/*
 use js_sys::Date;
 use web_sys::console;
 
@@ -12,4 +11,3 @@ pub fn log_to_console(message: String) {
 }
 
 */
-

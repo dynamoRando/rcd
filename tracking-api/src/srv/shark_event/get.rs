@@ -1,4 +1,7 @@
-use crate::{srv::{get_client, user::get::verify_token}, ApiSettings};
+use crate::{
+    srv::{get_client, user::get::verify_token},
+    ApiSettings,
+};
 use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::{
     event::{SharkAssociatedEvent, SharkEvent, SharkEventReply},
@@ -10,7 +13,10 @@ pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT * FROM associated_event;";
 pub const DB_NAME: &str = "shark.db";
 
 #[post("/events/get", format = "application/json", data = "<request>")]
-pub async fn get_events(request: Json<Auth>, settings: &State<ApiSettings>) -> (Status, Json<SharkEventReply>) {
+pub async fn get_events(
+    request: Json<Auth>,
+    settings: &State<ApiSettings>,
+) -> (Status, Json<SharkEventReply>) {
     let is_logged_in_result = verify_token(&request.jwt, settings).await;
 
     if let Ok(is_logged_in) = is_logged_in_result {

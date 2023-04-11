@@ -1,13 +1,16 @@
-use js_sys::Date;
-use rcd_messages::client::{AddParticipantReply, AddParticipantRequest};
-use web_sys::HtmlInputElement;
-use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
-use rcd_messages::proxy::request_type::RequestType;
 use crate::{
     log::log_to_console,
     pages::rcd_admin::participants::ActiveDbProps,
-    request::{rcd::{clear_status, get_rcd_token, set_status, update_token_login_status}, self},
+    request::{
+        self,
+        rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+    },
 };
+use js_sys::Date;
+use rcd_messages::client::{AddParticipantReply, AddParticipantRequest};
+use rcd_messages::proxy::request_type::RequestType;
+use web_sys::HtmlInputElement;
+use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
 
 #[function_component]
 pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
@@ -51,7 +54,7 @@ pub fn AddParticipant(ActiveDbProps { active_db }: &ActiveDbProps) -> Html {
             if !host_id.is_empty() {
                 hid = Some(host_id);
             }
-            
+
             let request = AddParticipantRequest {
                 authentication: Some(token.auth()),
                 database_name: db_name,

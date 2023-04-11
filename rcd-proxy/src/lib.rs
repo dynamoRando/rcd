@@ -284,7 +284,6 @@ impl RcdProxy {
 
     /// initalizes the backing database
     pub fn start(&self) {
-        
         let version = env!("CARGO_PKG_VERSION");
         info!("rcd-proxy version: {}", version);
 
@@ -438,7 +437,7 @@ impl RcdProxy {
             let expiration_utc = token_data.1.to_string();
 
             let u = self.db.get_user(un)?;
-    
+
             return Ok(AuthForTokenReply {
                 is_successful: true,
                 expiration_utc: Some(expiration_utc),
@@ -493,12 +492,11 @@ impl RcdProxy {
     pub fn get_host_id_for_token(&self, token: &str) -> Result<Option<String>, RcdProxyErr> {
         if self.db.verify_token(token) {
             let u = self.db.get_user_with_token(token)?;
-            return Ok(u.id)
+            return Ok(u.id);
         }
 
         return Ok(None);
     }
-
 
     pub fn get_host_id_for_user(&self, un: &str) -> Result<Option<String>, RcdProxyErr> {
         let u = self.db.get_user(un)?;

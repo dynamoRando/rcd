@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::{path::Path };
+use std::path::Path;
 
 pub fn get_test_temp_dir(test_name: &str) -> String {
     let dir = env::temp_dir();

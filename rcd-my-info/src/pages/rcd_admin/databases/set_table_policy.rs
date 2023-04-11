@@ -1,15 +1,13 @@
-use crate::{
-    log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps,
-  
-};
+use crate::{log::log_to_console, pages::rcd_admin::databases::columns::ColumnProps};
 
+use crate::request::{
+    self,
+    rcd::{clear_status, get_rcd_token, set_status, update_token_login_status},
+};
 use rcd_messages::client::{SetLogicalStoragePolicyReply, SetLogicalStoragePolicyRequest};
+use rcd_messages::proxy::request_type::RequestType;
 use web_sys::{HtmlInputElement, MouseEvent};
 use yew::{function_component, html, use_node_ref, use_state_eq, AttrValue, Callback, Html};
-use rcd_messages::proxy::request_type::RequestType;
-use crate::{
- request::{rcd::{clear_status, update_token_login_status, get_rcd_token, set_status}, self}
-};
 
 #[function_component]
 pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
@@ -90,7 +88,6 @@ pub fn SetTablePolicy(ColumnProps { table }: &ColumnProps) -> Html {
                 };
 
                 let request_json = serde_json::to_string(&request).unwrap();
-                
 
                 let message = format!("{}{}", "SENDING REQUEST FOR NEW POLICY: ", request_json);
                 log_to_console(&message);

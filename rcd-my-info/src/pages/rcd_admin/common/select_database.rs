@@ -1,7 +1,7 @@
 use web_sys::HtmlInputElement;
 use yew::{function_component, html, use_node_ref, Callback, Html, Properties, UseStateHandle};
 
-use crate::{request::rcd::get_databases, log::log_to_console};
+use crate::{log::log_to_console, request::rcd::get_databases};
 
 #[derive(Properties, PartialEq)]
 /// Represents a state handle with the selected database name
@@ -18,7 +18,6 @@ pub fn SelectDatabase(
         onclick_db,
     }: &SelectDatabaseProps,
 ) -> Html {
-
     // log_to_console(&format!("{active_db_name:?}"));
 
     let databases = get_databases();
@@ -39,8 +38,6 @@ pub fn SelectDatabase(
             let active_db_name = active_db_name.clone();
             let onclick_db = onclick_db.clone();
             let selected_db = ui_active_database.cast::<HtmlInputElement>();
-
-            
 
             if selected_db.is_some() {
                 let selected_db_val = ui_active_database

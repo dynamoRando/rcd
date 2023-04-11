@@ -1,4 +1,3 @@
-
 use log::{debug, trace};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
@@ -15,7 +14,6 @@ use rocket::{Request, Response};
 
 use self::user::create::create_account;
 
-use crate::ApiSettings;
 use crate::srv::shark_event::create::add_associated_event;
 use crate::srv::shark_event::create::add_event;
 use crate::srv::shark_event::delete::delete_associated_event;
@@ -25,7 +23,7 @@ use crate::srv::shark_event::update::update_associated_event;
 use crate::srv::shark_event::update::update_event;
 use crate::srv::user::get::auth_for_token;
 use crate::srv::user::get::logout;
-
+use crate::ApiSettings;
 
 mod shark_event;
 mod user;
@@ -113,7 +111,6 @@ impl Fairing for CORS {
 }
 
 pub async fn get_client(settings: &ApiSettings) -> RcdClient {
-    
     // trace!("{settings:?}");
 
     let mut client = RcdClient::new_grpc_client(

@@ -1,4 +1,4 @@
-use log::{trace, debug};
+use log::{debug, trace};
 use substring::Substring;
 
 #[derive(Debug, PartialEq, Copy, Clone)]

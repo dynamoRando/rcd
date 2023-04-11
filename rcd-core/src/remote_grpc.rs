@@ -14,7 +14,8 @@ use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},
     data_info::DataInfo,
-    host_info::HostInfo, save_contract_result::RcdSaveContractResult,
+    host_info::HostInfo,
+    save_contract_result::RcdSaveContractResult,
 };
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
@@ -100,7 +101,7 @@ impl RemoteGrpc {
             is_successful: is_saved,
             contract_status: ContractStatus::from_u32(contract_status),
             participant_information: participant_info,
-        } 
+        }
     }
 
     pub async fn notify_host_of_removed_row(
@@ -112,7 +113,7 @@ impl RemoteGrpc {
         row_id: u32,
     ) -> bool {
         let auth = get_auth_request(own_host_info, Some(host.host_id.clone()));
-       
+
         debug!("remote-grpc::notify_host_of_removed_row::auth: {auth:?}");
 
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());
@@ -159,8 +160,8 @@ impl RemoteGrpc {
         sql: &str,
         where_clause: &str,
     ) -> DeleteDataResult {
-        let  auth = get_auth_request(own_host_info, Some(participant.id.to_string()));
-        
+        let auth = get_auth_request(own_host_info, Some(participant.id.to_string()));
+
         let request = DeleteDataRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
@@ -218,8 +219,8 @@ impl RemoteGrpc {
         table_name: &str,
         sql: &str,
     ) -> InsertDataResult {
-        let  auth = get_auth_request(own_host_info, Some(participant.id.to_string()));
-      
+        let auth = get_auth_request(own_host_info, Some(participant.id.to_string()));
+
         let request = InsertDataRequest {
             authentication: Some(auth),
             database_name: db_name.to_string(),
@@ -244,7 +245,7 @@ impl RemoteGrpc {
     ) -> GetRowFromPartialDatabaseResult {
         let message_info = get_message_info(&own_host_info, self.db_addr_port.clone());
         let auth = get_auth_request(&own_host_info, Some(participant.participant.id.to_string()));
-     
+
         let row_address = RowParticipantAddress {
             database_name: participant.db_name.clone(),
             table_name: participant.table_name.clone(),
@@ -276,7 +277,7 @@ impl RemoteGrpc {
         data_info: &DataInfo,
     ) -> bool {
         let auth = get_auth_request(own_host_info, Some(host.host_id.clone()));
-  
+
         debug!("notify_host_of_updated_hash::auth: {auth:?}");
 
         let message_info = get_message_info(own_host_info, self.db_addr_port.clone());

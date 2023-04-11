@@ -1,6 +1,6 @@
 use yew::{platform::spawn_local, prelude::*};
 
-use crate::{repo::Repo, logging::log_to_console};
+use crate::{logging::log_to_console, repo::Repo};
 
 #[function_component]
 pub fn Home() -> Html {

@@ -1,6 +1,5 @@
 use yew::prelude::*;
 
-
 #[function_component]
 pub fn Home() -> Html {
     const VERSION: &str = env!("CARGO_PKG_VERSION");

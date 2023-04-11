@@ -52,7 +52,7 @@ pub fn Register() -> Html {
                                 registration.host_id.as_ref().unwrap().clone()
                             );
                             register_result.set(result_message);
-                        } else  {
+                        } else {
                             let result_message = format!(
                                 "result: {} message: {}",
                                 registration.is_successful,

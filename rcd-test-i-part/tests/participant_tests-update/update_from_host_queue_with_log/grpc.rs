@@ -3,7 +3,7 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 
 #[test]
 fn test() {
-     // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
 
     let test_name = "updates_from_host_queue_with_log_grpc";
     let contract = String::from("insert read remote row");

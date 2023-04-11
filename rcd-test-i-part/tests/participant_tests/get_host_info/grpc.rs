@@ -14,10 +14,8 @@ fn test() {
     TestRunner::run_grpc_test(config, test_core);
 }
 
-
 #[test]
 fn proxy() {
-  
     let test_name = "get_host_info_grpc-proxy";
 
     let config = RunnerConfig {

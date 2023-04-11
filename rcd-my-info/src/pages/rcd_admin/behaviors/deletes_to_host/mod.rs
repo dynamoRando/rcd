@@ -62,7 +62,7 @@ pub fn DeletesToHost() -> Html {
                 };
 
                 let body = serde_json::to_string(&request).unwrap();
-                
+
                 let cb =
                     Callback::from(move |response: Result<AttrValue, String>| match response {
                         Ok(response) => {

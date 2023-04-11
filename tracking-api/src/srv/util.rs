@@ -1,6 +1,7 @@
 use crate::{
     error::TrackingApiError,
-    srv::{get_client, shark_event::get::DB_NAME}, ApiSettings,
+    srv::{get_client, shark_event::get::DB_NAME},
+    ApiSettings,
 };
 
 use chrono::{DateTime, Duration, Utc};
@@ -42,7 +43,6 @@ pub async fn get_count(sql: &str, settings: &ApiSettings) -> Result<u32, Trackin
 
     Err(TrackingApiError::Unknown)
 }
-
 
 pub fn create_jwt(host_name: &str, login: &str) -> (String, DateTime<Utc>) {
     // this duration should be a config item

@@ -9,7 +9,8 @@ use crate::{
         get_client,
         shark_event::get::DB_NAME,
         util::{create_jwt, has_any_rows},
-    }, ApiSettings,
+    },
+    ApiSettings,
 };
 
 #[post("/user/logout", format = "application/json", data = "<request>")]
@@ -32,7 +33,10 @@ pub async fn logout(request: Json<User>, settings: &State<ApiSettings>) -> Statu
 }
 
 #[post("/user/auth", format = "application/json", data = "<request>")]
-pub async fn auth_for_token(request: Json<User>, settings: &State<ApiSettings>) -> (Status, Json<Token>) {
+pub async fn auth_for_token(
+    request: Json<User>,
+    settings: &State<ApiSettings>,
+) -> (Status, Json<Token>) {
     debug!("{request:?}");
 
     let un = &request.un;
@@ -94,7 +98,10 @@ pub async fn verify_token(jwt: &str, settings: &ApiSettings) -> Result<bool, Tra
     has_any_rows(&sql, settings).await
 }
 
-pub async fn get_user_id_for_user_name(un: &str, settings: &ApiSettings) -> Result<u32, TrackingApiError> {
+pub async fn get_user_id_for_user_name(
+    un: &str,
+    settings: &ApiSettings,
+) -> Result<u32, TrackingApiError> {
     let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
@@ -128,7 +135,10 @@ pub async fn get_user_id_for_user_name(un: &str, settings: &ApiSettings) -> Resu
     Err(TrackingApiError::Unknown)
 }
 
-pub async fn get_user_id_for_token(jwt: &str, settings: &ApiSettings) -> Result<u32, TrackingApiError> {
+pub async fn get_user_id_for_token(
+    jwt: &str,
+    settings: &ApiSettings,
+) -> Result<u32, TrackingApiError> {
     let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
@@ -138,7 +148,10 @@ pub async fn get_user_id_for_token(jwt: &str, settings: &ApiSettings) -> Result<
     get_user_id_for_user_name(&user_name, settings).await
 }
 
-pub async fn get_user_name_for_token(jwt: &str, settings: &ApiSettings) -> Result<String, TrackingApiError> {
+pub async fn get_user_name_for_token(
+    jwt: &str,
+    settings: &ApiSettings,
+) -> Result<String, TrackingApiError> {
     let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
@@ -167,7 +180,10 @@ pub async fn get_user_name_for_token(jwt: &str, settings: &ApiSettings) -> Resul
     Err(TrackingApiError::Unknown)
 }
 
-async fn delete_existing_tokens_for_user(un: &str, settings: &ApiSettings) -> Result<(), TrackingApiError> {
+async fn delete_existing_tokens_for_user(
+    un: &str,
+    settings: &ApiSettings,
+) -> Result<(), TrackingApiError> {
     let mut cmd = String::from("DELETE FROM user_auth WHERE user_name < ':un'");
     cmd = cmd.replace(":un", &un);
 
@@ -206,7 +222,7 @@ async fn save_token(
     un: &str,
     token: &str,
     expiration: DateTime<Utc>,
-    settings: &ApiSettings
+    settings: &ApiSettings,
 ) -> Result<bool, TrackingApiError> {
     let sql = "INSERT INTO user_auth
     (

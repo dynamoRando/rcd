@@ -111,18 +111,21 @@ pub fn get_contracts_by_status(
     };
 
     let contract_metadata = statement
-        .query_and_then(&[(":u32_contract_status", &u32_contract_status.to_string())], |row| {
-            row_to_contract(
-                row.get(0).unwrap(),
-                row.get(1).unwrap(),
-                row.get(2).unwrap(),
-                row.get(3).unwrap(),
-                row.get(4).unwrap(),
-                row.get(5).unwrap(),
-                row.get(6).unwrap(),
-                row.get(7).unwrap(),
-            )
-        })
+        .query_and_then(
+            &[(":u32_contract_status", &u32_contract_status.to_string())],
+            |row| {
+                row_to_contract(
+                    row.get(0).unwrap(),
+                    row.get(1).unwrap(),
+                    row.get(2).unwrap(),
+                    row.get(3).unwrap(),
+                    row.get(4).unwrap(),
+                    row.get(5).unwrap(),
+                    row.get(6).unwrap(),
+                    row.get(7).unwrap(),
+                )
+            },
+        )
         .unwrap();
 
     for c in contract_metadata {

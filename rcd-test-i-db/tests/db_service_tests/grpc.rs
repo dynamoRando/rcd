@@ -20,7 +20,6 @@ fn test() {
     TestRunner::run_grpc_test_multi(config, test_core);
 }
 
-
 #[test]
 fn proxy() {
     // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);

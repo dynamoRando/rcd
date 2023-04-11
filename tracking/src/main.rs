@@ -1,7 +1,7 @@
 use crate::components::nav::Nav;
 use crate::repo::Repo;
-use futures_util::StreamExt;
 use futures_util::future::ready;
+use futures_util::StreamExt;
 use gloo::timers::future::IntervalStream;
 use pages::events::Events;
 use pages::home::Home;
@@ -59,7 +59,7 @@ fn App() -> Html {
     // }
 
     let is_logged_in_state = use_state(move || false);
-    
+
     {
         let is_logged_in_state = is_logged_in_state.clone();
         spawn_local(async move {
@@ -107,6 +107,3 @@ fn check_and_set_login_status(is_logged_in_state: UseStateHandle<bool>) {
 fn main() {
     yew::Renderer::<App>::new().render();
 }
-
-
-

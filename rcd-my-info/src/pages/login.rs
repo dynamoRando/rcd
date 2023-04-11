@@ -9,8 +9,14 @@ use yew::{platform::spawn_local, prelude::*};
 use crate::{
     log::log_to_console,
     request::{
-        proxy::{clear_proxy_token, get_proxy, set_proxy, set_proxy_token, RcdProxy, get_proxy_token, set_un},
-        rcd::{get_rcd_token, set_databases, set_rcd_token, set_status, update_token_login_status, clear_status},
+        proxy::{
+            clear_proxy_token, get_proxy, get_proxy_token, set_proxy, set_proxy_token, set_un,
+            RcdProxy,
+        },
+        rcd::{
+            clear_status, get_rcd_token, set_databases, set_rcd_token, set_status,
+            update_token_login_status,
+        },
     },
 };
 
