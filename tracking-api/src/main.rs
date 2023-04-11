@@ -1,12 +1,12 @@
 use config::Config;
 use fern::colors::{Color, ColoredLevelConfig};
-use lazy_static::lazy_static;
 use log::{debug, info, LevelFilter};
 use rcd_client::RcdClient;
 use srv::TrackingServer;
 use std::env;
+use std::fs::File;
+use std::io::Write;
 use std::path::Path;
-use std::sync::Mutex;
 
 pub mod error;
 mod srv;
@@ -37,7 +37,17 @@ impl ApiSettings {
 #[tokio::main]
 async fn main() {
     init_log_to_screen_fern(LevelFilter::Trace);
-    let settings = read_settings();
+
+    let settings_location: String;
+
+    let settings_status = has_settings();
+    if !settings_status.0 {
+        settings_location = create_default_settings();
+    } else {
+        settings_location = settings_status.1.as_ref().unwrap().to_string();
+    }
+
+    let settings = read_settings(&settings_location);
     let server = TrackingServer::new("0.0.0.0", 8020);
     server.start(settings).await.unwrap();
 }
@@ -79,7 +89,7 @@ fn init_log_to_screen_fern(level: LevelFilter) {
         .ignore();
 }
 
-fn read_settings() -> ApiSettings {
+fn has_settings() -> (bool, Option<String>) {
     let wd = env::current_dir().unwrap();
     let cwd = wd.to_str().unwrap();
     let settings_filename = "Settings.toml";
@@ -92,10 +102,18 @@ fn read_settings() -> ApiSettings {
         "src/Settings"
     };
 
+    if Path::exists(Path::new(settings_location)) {
+        return (true, Some(settings_location.to_string()));
+    }
+
+    (false, None)
+}
+
+fn read_settings(settings_location: &str) -> ApiSettings {
     let error_message = format!(
         "{}{}{}{}",
         "Could not find ",
-        settings_filename,
+        "Settings.toml",
         "in current directory or in default ",
         settings_location
     );
@@ -122,4 +140,42 @@ fn read_settings() -> ApiSettings {
 
     debug!("{settings:?}");
     settings
+}
+
+fn create_default_settings() -> String {
+    let cwd = get_current_directory();
+    let default_settings_content = String::from(
+        r#"
+id = "871551FA-34EE-61A7-D792-F4401B8C8318"
+proxy_addr = "http://proxy.home:50051"
+proxy_user = "shark"
+proxy_auth = "shark"
+    "#,
+    );
+
+    let default_src_path = Path::new(&cwd).join("src/Settings.toml");
+    let path = Path::new(&cwd).join("Settings.toml");
+    if !Path::exists(&default_src_path) && !Path::exists(&path) {
+        println!(
+            "creating default Settings.toml at: {}",
+            &path.to_str().unwrap()
+        );
+        let mut output = File::create(path.clone()).unwrap();
+        write!(output, "{default_settings_content}").unwrap();
+        return path.clone().to_str().unwrap().to_string();
+    } else {
+        println!("Settings.toml was found, skipping default settings");
+
+        if Path::exists(&path) {
+            return path.to_str().unwrap().to_string();
+        } else {
+            return default_src_path.to_str().unwrap().to_string();
+        }
+    }
+}
+
+fn get_current_directory() -> String {
+    let wd = env::current_dir().unwrap();
+    let cwd = wd.to_str().unwrap().to_string();
+    cwd
 }
