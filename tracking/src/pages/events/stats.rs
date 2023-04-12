@@ -1,12 +1,11 @@
-
 use yew::prelude::*;
 
 
 #[function_component]
-pub fn ViewEvents() -> Html { 
+pub fn Stats() -> Html { 
     html!(
         <div>
-            <p>{"View Events Placeholder"}</p>
+            <p>{"Stats Placeholder"}</p>
         </div>
     )
 }

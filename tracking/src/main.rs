@@ -1,5 +1,4 @@
 use crate::components::nav::Nav;
-use crate::repo::Repo;
 use futures_util::future::ready;
 use futures_util::StreamExt;
 use gloo::timers::future::IntervalStream;
@@ -9,7 +8,7 @@ use pages::login::Login;
 use pages::page_not_found::NotFound;
 use pages::register::Register;
 use storage::get_token;
-use tracking_model::event::SharkEvent;
+
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
