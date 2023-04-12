@@ -77,6 +77,33 @@ impl Repo {
         Ok(())
     }
 
+    pub async fn get_uid_for_un(un: &str) -> Result<u32, String> {
+        log_to_console("getting uid");
+        let addr = format!("{}{}", REPO_LOCATION, r#"user/get/id"#);
+
+        let u = User {
+            un: un.to_string(),
+            alias: None,
+            id: None,
+        };
+
+        let ju = serde_json::to_string(&u).unwrap();
+
+        let result_get = Self::post(&addr, &ju).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                let u: User = serde_json::from_str(&result).unwrap();
+                let uid: u32 = u.id.unwrap().parse().unwrap();
+                return Ok(uid);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
+    }
+
     pub async fn get_api_version() -> Result<String, String> {
         log_to_console("getting events");
         let addr = format!("{}{}", REPO_LOCATION, r#"version"#);

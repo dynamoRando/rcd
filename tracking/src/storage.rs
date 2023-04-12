@@ -4,6 +4,7 @@ use tracking_model::{event::SharkEvent, user::Token};
 const EVENTS: &str = "shark.key.storage.events";
 const AUTH: &str = "shark.key.storage.auth";
 const UN: &str = "shark.key.storage.auth.un";
+const UID: &str = "shark.key.storage.auth.un.id";
 
 pub fn get_events() -> Vec<SharkEvent> {
     let events_json = SessionStorage::get(EVENTS).unwrap_or_else(|_| String::from(""));
@@ -37,6 +38,14 @@ pub fn save_un(un: &str) {
 
 pub fn get_un() -> String {
     SessionStorage::get(UN).unwrap_or_else(|_| String::from(""))
+}
+
+pub fn save_uid(uid: u32) {
+    SessionStorage::set(UID, uid).expect("failed to set");
+}
+
+pub fn get_uid() -> u32 {
+    SessionStorage::get(UN).unwrap_or_else(|_| 0)
 }
 
 pub fn get_token() -> Token {

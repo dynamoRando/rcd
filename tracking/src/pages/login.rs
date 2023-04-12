@@ -5,7 +5,7 @@ use yew::{platform::spawn_local, prelude::*};
 use crate::{
     logging::log_to_console,
     repo::Repo,
-    storage::{save_token, save_un},
+    storage::{save_token, save_uid, save_un},
 };
 
 #[function_component]
@@ -37,6 +37,9 @@ pub fn Login() -> Html {
                             login_result.set("Logged In!".to_string());
                             save_token(token);
                             save_un(&un_val);
+                            spawn_local(async move {
+                                get_and_save_uid(&un_val).await;
+                            });
                         }
                     }
                     Err(_) => {
@@ -69,6 +72,7 @@ pub fn Login() -> Html {
                     Ok(_) => {
                         save_token(Token::default());
                         save_un("");
+                        save_uid(0);
                         login_result.set("Logged Out!".to_string());
                     }
                     Err(_) => {
@@ -104,5 +108,18 @@ pub fn Login() -> Html {
             </div>
 
         </div>
+    }
+}
+
+async fn get_and_save_uid(un: &str) {
+    let result = Repo::get_uid_for_un(un).await;
+    match result {
+        Ok(uid) => {
+            log_to_console(&uid.to_string());
+            save_uid(uid);
+        }
+        Err(_) => {
+            log_to_console("unable to get uid for un");
+        }
     }
 }

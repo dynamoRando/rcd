@@ -24,6 +24,7 @@ use crate::srv::shark_event::update::update_event;
 use crate::srv::user::get::auth_for_token;
 use crate::srv::user::get::logout;
 use crate::ApiSettings;
+use crate::srv::user::get::user_id;
 
 mod shark_event;
 mod user;
@@ -66,7 +67,8 @@ impl TrackingServer {
                     create_account,
                     version,
                     auth_for_token,
-                    logout
+                    logout,
+                    user_id
                 ],
             )
             .manage(settings)

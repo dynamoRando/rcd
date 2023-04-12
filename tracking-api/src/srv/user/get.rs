@@ -32,6 +32,36 @@ pub async fn logout(request: Json<User>, settings: &State<ApiSettings>) -> Statu
     return Status::Ok;
 }
 
+#[post("/user/get/id", format = "application/json", data = "<request>")]
+pub async fn user_id(request: Json<User>, settings: &State<ApiSettings>) -> (Status, Json<User>) {
+    debug!("{request:?}");
+
+    let un = &request.un;
+    let mut uid: u32 = 0;
+
+    let delete_tokens_result = delete_expired_tokens(settings).await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let get_id_result = get_user_id_for_user_name(&un, settings).await;
+
+    match get_id_result {
+        Ok(id) => uid = id,
+        Err(_) => {
+            error!("Unable to get id for user: {}", un);
+        }
+    };
+
+    let u = User {
+        un: un.clone(),
+        alias: None,
+        id: Some(uid.to_string()),
+    };
+
+    return (Status::Ok, Json(u));
+}
+
 #[post("/user/auth", format = "application/json", data = "<request>")]
 pub async fn auth_for_token(
     request: Json<User>,
