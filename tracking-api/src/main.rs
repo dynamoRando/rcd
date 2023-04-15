@@ -17,6 +17,8 @@ pub struct ApiSettings {
     pub proxy_addr: String,
     pub proxy_user: String,
     pub proxy_auth: String,
+    pub shark_ip: String,
+    pub shark_port: u16,
 }
 
 impl ApiSettings {
@@ -48,7 +50,7 @@ async fn main() {
     }
 
     let settings = read_settings(&settings_location);
-    let server = TrackingServer::new("0.0.0.0", 8020);
+    let server = TrackingServer::new(&settings.shark_ip, settings.shark_port);
     server.start(settings).await.unwrap();
 }
 
@@ -130,12 +132,16 @@ fn read_settings(settings_location: &str) -> ApiSettings {
     let proxy_addr = settings.get_string(&String::from("proxy_addr")).unwrap();
     let proxy_user = settings.get_string(&String::from("proxy_user")).unwrap();
     let proxy_auth = settings.get_string(&String::from("proxy_auth")).unwrap();
+    let shark_ip = settings.get_string(&String::from("shark_ip")).unwrap();
+    let shark_port = settings.get_string(&String::from("shark_port")).unwrap();
 
     let settings = ApiSettings {
         id: id,
         proxy_addr: proxy_addr,
         proxy_user: proxy_user,
         proxy_auth: proxy_auth,
+        shark_ip: shark_ip,
+        shark_port: shark_port.parse().unwrap(),
     };
 
     debug!("{settings:?}");

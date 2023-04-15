@@ -82,7 +82,7 @@ impl Repo {
         let addr = format!("{}{}{}", REPO_LOCATION, r#"user/get/"#, un);
 
         log_to_console(&addr);
-        
+
         let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
@@ -202,7 +202,7 @@ impl Repo {
         if !token.jwt.is_empty() {
             let headers = Headers::new().unwrap();
             let val = format!("{}{}", "Bearer ", token.jwt);
-            headers.append("Authorization", &val);
+            headers.append("Authorization", &val).unwrap();
             opts.headers(&headers);
         }
 
