@@ -48,10 +48,17 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
 
                     let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
 
+                    trace!("execute_read_at_host: cooperative_tables: {cooperative_tables:?}");
+
                     for ct in &cooperative_tables {
                         let participants_for_table =
                             core.dbi().get_participants_for_table(&db_name, ct.as_str());
+
+                        trace!("execute_read_at_host: participants_for_table: {participants_for_table:?}");
+
                         for participant in &participants_for_table {
+                            trace!("execute_read_at_host: participant: {participant:?}");
+
                             // we would need to get rows for that table from the participant
                             let host_info =
                                 core.dbi().rcd_get_host_info().expect("no host info is set");
@@ -59,6 +66,10 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
                                 .remote()
                                 .get_row_from_participant(participant.clone(), host_info)
                                 .await;
+
+                            trace!(
+                                "execute_read_at_host: remote_data_result: {remote_data_result:?}"
+                            );
 
                             if !remote_data_result.is_successful {
                                 warn!("remote data result failed: {remote_data_result:?}");
