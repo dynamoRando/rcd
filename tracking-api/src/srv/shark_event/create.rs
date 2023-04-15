@@ -34,13 +34,16 @@ pub async fn add_event(
                 .expect("could not get user name for token");
 
             let get_events_result = get_events(token.clone(), settings).await;
-            if get_events_result.0 == Status::Ok && get_events_result.1.is_some() {
-                let events = get_events_result.1.as_ref().unwrap().clone();
-
+            if get_events_result.0 == Status::Ok {
                 let mut max_id = 0;
-                for event in &events {
-                    if event.id > max_id {
-                        max_id = event.id;
+
+                if get_events_result.1.is_some() {
+                    let events = get_events_result.1.as_ref().unwrap().clone();
+
+                    for event in &events {
+                        if event.id > max_id {
+                            max_id = event.id;
+                        }
                     }
                 }
 
@@ -49,22 +52,22 @@ pub async fn add_event(
 
                 match request.notes {
                     None => {
-                        let cmd = "
-                        INSERT INTO event
-                        (
-                            id,
-                            event_date,
-                            notes,
-                            user_id
-                        )
-                        VALUES
-                        (
-                            :id,
-                            ':event_date',
-                            NULL,
-                            :uid
-                        )
-                        ;";
+                        let cmd = r#"
+INSERT INTO event
+(
+    id,
+    event_date,
+    notes,
+    user_id
+)
+VALUES
+(
+    :id,
+    ':event_date',
+    '',
+    :uid
+)
+;"#;
 
                         let id = request.id.to_string();
                         let uid = request.user_id.unwrap().to_string();

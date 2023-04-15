@@ -45,7 +45,7 @@ pub fn save_uid(uid: u32) {
 }
 
 pub fn get_uid() -> u32 {
-    SessionStorage::get(UN).unwrap_or_else(|_| 0)
+    SessionStorage::get(UID).unwrap_or_else(|_| 0)
 }
 
 pub fn get_token() -> Token {

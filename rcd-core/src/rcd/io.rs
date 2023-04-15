@@ -56,6 +56,10 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
 
                         trace!("execute_read_at_host: participants_for_table: {participants_for_table:?}");
 
+                        if participants_for_table.is_empty() {
+                            warn!("WARN: execute_read_at_host: no participants found for table: {ct:?}");
+                        }
+
                         for participant in &participants_for_table {
                             trace!("execute_read_at_host: participant: {participant:?}");
 
