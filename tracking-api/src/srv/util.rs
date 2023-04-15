@@ -8,12 +8,14 @@ use chrono::{DateTime, Duration, Utc};
 
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token};
+use log::debug;
 use sha2::Sha384;
 use std::collections::BTreeMap;
 
 /// returns a count of rows where the expected column is "cnt"
 pub async fn has_any_rows(sql: &str, settings: &ApiSettings) -> Result<bool, TrackingApiError> {
     let count = get_count(sql, settings).await?;
+    debug!("has any rows: {}", count);
     Ok(count > 0)
 }
 

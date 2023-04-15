@@ -1,4 +1,4 @@
-use crate::logging::log_to_console;
+use crate::{logging::log_to_console, storage::get_token};
 use serde::{Deserialize, Serialize};
 use tracking_model::{
     event::SharkEvent,
@@ -6,7 +6,7 @@ use tracking_model::{
 };
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
+use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
 
 const REPO_LOCATION: &str = "http://localhost:8020/";
 
@@ -79,17 +79,11 @@ impl Repo {
 
     pub async fn get_uid_for_un(un: &str) -> Result<u32, String> {
         log_to_console("getting uid");
-        let addr = format!("{}{}", REPO_LOCATION, r#"user/get/id"#);
+        let addr = format!("{}{}{}", REPO_LOCATION, r#"user/get/"#, un);
 
-        let u = User {
-            un: un.to_string(),
-            alias: None,
-            id: None,
-        };
-
-        let ju = serde_json::to_string(&u).unwrap();
-
-        let result_get = Self::post(&addr, &ju).await;
+        log_to_console(&addr);
+        
+        let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
                 log_to_console(&result);
@@ -111,6 +105,23 @@ impl Repo {
         match result_get {
             Ok(result) => {
                 log_to_console(&result);
+                return Ok(result);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
+    }
+
+    pub async fn add_event(event: SharkEvent) -> Result<Vec<SharkEvent>, String> {
+        log_to_console("getting events");
+        let addr = format!("{}{}", REPO_LOCATION, r#"events/get"#);
+        let result_get = Self::get(&addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
                 return Ok(result);
             }
             Err(e) => {
@@ -186,6 +197,14 @@ impl Repo {
         let mut opts = RequestInit::new();
         opts.method("GET");
         opts.mode(RequestMode::Cors);
+
+        let token = get_token();
+        if !token.jwt.is_empty() {
+            let headers = Headers::new().unwrap();
+            let val = format!("{}{}", "Bearer ", token.jwt);
+            headers.append("Authorization", &val);
+            opts.headers(&headers);
+        }
 
         let request = Request::new_with_str_and_init(url, &opts);
 

@@ -31,5 +31,6 @@ features = [
 	"HtmlInputElement",
     "HtmlSelectElement",
     "console",
+    "RequestInit"
 ]
 

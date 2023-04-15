@@ -44,6 +44,39 @@ CREATE TABLE IF NOT EXISTS associated_event
 */
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct SharkAuth {
+    pub jwt: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub enum SharkAction {
+    Unknown,
+    Add,
+    Update,
+    Delete,
+    Get,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct SharkActionMessage {
+    pub auth: SharkAuth,
+    pub action: SharkAction,
+    pub event: Option<SharkEvent>,
+    pub associated_event: Option<SharkEvent>,
+    pub user_id: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+pub struct SharkActionResult {
+    pub is_logged_in: bool,
+    pub is_successful: bool,
+    pub message: Option<String>,
+    pub events: Option<Vec<SharkEvent>>,
+    pub associated_events: Option<Vec<SharkAssociatedEvent>>,
+}
+
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEventReply {
     pub is_logged_in: bool,
     pub events: Vec<SharkEvent>,

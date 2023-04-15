@@ -1,9 +1,9 @@
-use log::{debug, trace};
 use rcd_client::RcdClient;
 use rocket::fairing::Kind;
 use rocket::http::Header;
 use rocket::log::LogLevel;
-use rocket::Config;
+use rocket::{Config};
+use rocket::request::FromRequest;
 use rocket::{
     fairing::{Fairing, Info},
     get,
@@ -25,10 +25,45 @@ use crate::srv::user::get::auth_for_token;
 use crate::srv::user::get::logout;
 use crate::ApiSettings;
 use crate::srv::user::get::user_id;
+use rocket::request::Outcome;
 
 mod shark_event;
 mod user;
 mod util;
+
+#[derive(Debug)]
+pub struct ApiToken<'r>(&'r str);
+
+impl ApiToken<'_> {
+    pub fn jwt(&self) -> String {
+        self.0.replace("Bearer", "").trim().to_string()
+    }
+}
+
+#[derive(Debug)]
+pub enum ApiKeyError {
+    Missing,
+    Invalid,
+}
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for ApiToken<'r> {
+    type Error = ApiKeyError;
+
+    async fn from_request(req: &'r Request<'_>) -> Outcome<Self, Self::Error> {
+        /// Returns true if `key` is a valid API key string.
+        fn is_valid(key: &str) -> bool {
+            !key.is_empty() && key.contains("Bearer")
+        }
+
+        match req.headers().get_one("Authorization") {
+            None => Outcome::Failure((Status::BadRequest, ApiKeyError::Missing)),
+            Some(key) if is_valid(key) => Outcome::Success(ApiToken(key)),
+            Some(_) => Outcome::Failure((Status::BadRequest, ApiKeyError::Invalid)),
+        }
+    }
+}
+
 
 pub struct TrackingServer {
     port: u16,

@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use log::{debug, error};
-use rocket::{http::Status, post, serde::json::Json, State};
+use log::{debug, error, warn, trace};
+use rocket::{http::Status, post, serde::json::Json, State, get};
 use tracking_model::user::{Token, User};
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
     srv::{
         get_client,
         shark_event::get::DB_NAME,
-        util::{create_jwt, has_any_rows},
+        util::{create_jwt, has_any_rows}, ApiToken,
     },
     ApiSettings,
 };
@@ -32,34 +32,47 @@ pub async fn logout(request: Json<User>, settings: &State<ApiSettings>) -> Statu
     return Status::Ok;
 }
 
-#[post("/user/get/id", format = "application/json", data = "<request>")]
-pub async fn user_id(request: Json<User>, settings: &State<ApiSettings>) -> (Status, Json<User>) {
-    debug!("{request:?}");
+#[get("/user/get/<name>")]
+pub async fn user_id(token: ApiToken<'_>, name: String, settings: &State<ApiSettings>) -> (Status, Json<User>) {
+    debug!("{name:?}");
+    debug!("{token:?}");
 
-    let un = &request.un;
+    debug!("token: '{}'", &token.jwt());
+
     let mut uid: u32 = 0;
+    let mut request_status: Status = Status::Unauthorized;
 
     let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
         error!("Unable to delete expired tokens");
     }
 
-    let get_id_result = get_user_id_for_user_name(&un, settings).await;
+    let is_authenticated_result = verify_token(&token.jwt(), settings).await;
 
-    match get_id_result {
-        Ok(id) => uid = id,
-        Err(_) => {
-            error!("Unable to get id for user: {}", un);
+    if let Ok(authenticated) = is_authenticated_result {
+        if authenticated {
+            let get_id_result = get_user_id_for_user_name(&name, settings).await;
+            match get_id_result {
+                Ok(id) => {
+                    uid = id;
+                    request_status = Status::Ok;
+                },
+                Err(_) => {
+                    error!("Unable to get id for user: {}", name);
+                }
+            };
+        } else {
+            warn!("invalid authentication for: {}", &token.jwt());
         }
-    };
+    }
 
     let u = User {
-        un: un.clone(),
+        un: name.clone(),
         alias: None,
         id: Some(uid.to_string()),
     };
 
-    return (Status::Ok, Json(u));
+    return (request_status, Json(u));
 }
 
 #[post("/user/auth", format = "application/json", data = "<request>")]
@@ -84,11 +97,13 @@ pub async fn auth_for_token(
     let has_login_result = has_login(&un, settings).await;
     if let Ok(has_login) = has_login_result {
         if has_login {
+            trace!("auth_for_token - login found for {}", &un);
             let token = create_jwt("tracking-api", un);
             let save_token_result = save_token(&un, &token.0, token.1, settings).await;
 
             if let Ok(is_token_saved) = save_token_result {
                 if is_token_saved {
+
                     let token = Token {
                         jwt: token.0.clone(),
                         jwt_exp: token.1.to_string(),
@@ -96,6 +111,8 @@ pub async fn auth_for_token(
                         is_logged_in: true,
                         id: None,
                     };
+
+                    trace!("sending token: {token:?}");
 
                     return (Status::Ok, Json(token));
                 }
@@ -221,6 +238,8 @@ async fn delete_existing_tokens_for_user(
 
     let delete_expired_tokens_result = client.execute_write_at_host(DB_NAME, &cmd, 1, "").await;
 
+    trace!("delete_existing_tokens_for_user: {} result: {delete_expired_tokens_result:?}", &un);
+
     match delete_expired_tokens_result {
         Ok(_) => Ok(()),
         Err(_) => Err(TrackingApiError::ExpiredTokens),
@@ -231,10 +250,14 @@ async fn delete_expired_tokens(settings: &ApiSettings) -> Result<(), TrackingApi
     let now = Utc::now().to_rfc3339();
     let mut cmd = String::from("DELETE FROM user_auth WHERE expiration_utc < ':now'");
     cmd = cmd.replace(":now", &now);
-
+    
     let mut client = get_client(settings).await;
 
+    trace!("delete_expired_tokens - sending cmd: {cmd:?}");
+
     let delete_expired_tokens_result = client.execute_write_at_host(DB_NAME, &cmd, 1, "").await;
+
+    trace!("delete_expired_tokens - cmd: {cmd:?} result: {delete_expired_tokens_result:?}");
 
     match delete_expired_tokens_result {
         Ok(_) => Ok(()),
@@ -273,15 +296,20 @@ async fn save_token(
     let sql = sql
         .replace(":un", un)
         .replace(":jwt", token)
-        .replace(":exp", &expiration.to_string())
+        .replace(":exp", &expiration.to_rfc3339().to_string())
         .replace(":iss", &Utc::now().to_rfc3339().to_string());
+
+    trace!("save_token: cmd: {sql:?}");
 
     let mut client = get_client(settings).await;
 
     let result = client.execute_write_at_host(DB_NAME, &sql, 1, "").await;
 
     match result {
-        Ok(is_saved) => Ok(is_saved),
+        Ok(is_saved) => {
+            trace!("saved token: {}", &token);
+            return Ok(is_saved)
+        },
         Err(_) => Err(TrackingApiError::Unknown),
     }
 }
