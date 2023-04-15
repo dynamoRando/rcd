@@ -18,7 +18,7 @@ pub fn AddMainEvent() -> Html {
                 <div class="box">
                     <p><h1 class="subtitle"> {"Main Event"} </h1></p>
                     <p>{"This is the start of your period."}</p>
-                    <p><label for="main_event">{"Date:" }</label>
+                    <p><label for="main_event">{"Date" }</label>
                     <input type="date" id="main_event" name="main_event" /></p>
 
                     <div class="buttons">

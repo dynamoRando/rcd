@@ -86,7 +86,8 @@ impl Repo {
         let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
-                log_to_console(&result);
+                let message = format!("get_uid_for_un: {} ", &result);
+                log_to_console(&message);
                 let u: User = serde_json::from_str(&result).unwrap();
                 let uid: u32 = u.id.unwrap().parse().unwrap();
                 return Ok(uid);
@@ -154,6 +155,14 @@ impl Repo {
         opts.mode(RequestMode::Cors);
         opts.body(Some(&JsValue::from_str(json_body)));
 
+        let token = get_token();
+        if !token.jwt.is_empty() {
+            let headers = Headers::new().unwrap();
+            let val = format!("{}{}", "Bearer ", token.jwt);
+            headers.append("Authorization", &val).unwrap();
+            opts.headers(&headers);
+        }
+
         let request = Request::new_with_str_and_init(url, &opts);
 
         match request {
@@ -162,6 +171,10 @@ impl Repo {
 
                 let window = web_sys::window().unwrap();
                 let resp_value_result = JsFuture::from(window.fetch_with_request(&r)).await;
+
+                let message = format!("{resp_value_result:?}");
+                log_to_console(&message);
+
                 match resp_value_result {
                     Ok(result) => {
                         assert!(result.is_instance_of::<Response>());
@@ -214,6 +227,10 @@ impl Repo {
 
                 let window = web_sys::window().unwrap();
                 let resp_value_result = JsFuture::from(window.fetch_with_request(&r)).await;
+
+                let message = format!("{resp_value_result:?}");
+                log_to_console(&message);
+
                 match resp_value_result {
                     Ok(result) => {
                         assert!(result.is_instance_of::<Response>());

@@ -28,7 +28,7 @@ pub fn Login() -> Html {
             spawn_local(async move {
                 let login_result = login_result.clone();
                 let result = Repo::login(&un_val).await;
-                let message = format!("{:?}", result);
+                let message = format!("login response: {:?}", result);
                 log_to_console(&message);
 
                 match result {

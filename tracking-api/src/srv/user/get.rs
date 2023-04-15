@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
-use log::{debug, error, warn, trace};
-use rocket::{http::Status, post, serde::json::Json, State, get};
+use log::{debug, error, trace, warn};
+use rocket::{get, http::Status, post, serde::json::Json, State};
 use tracking_model::user::{Token, User};
 
 use crate::{
@@ -8,7 +8,8 @@ use crate::{
     srv::{
         get_client,
         shark_event::get::DB_NAME,
-        util::{create_jwt, has_any_rows}, ApiToken,
+        util::{create_jwt, has_any_rows},
+        ApiToken,
     },
     ApiSettings,
 };
@@ -33,14 +34,17 @@ pub async fn logout(request: Json<User>, settings: &State<ApiSettings>) -> Statu
 }
 
 #[get("/user/get/<name>")]
-pub async fn user_id(token: ApiToken<'_>, name: String, settings: &State<ApiSettings>) -> (Status, Json<User>) {
+pub async fn user_id(
+    token: ApiToken<'_>,
+    name: String,
+    settings: &State<ApiSettings>,
+) -> (Status, Json<Option<User>>) {
     debug!("{name:?}");
     debug!("{token:?}");
-
     debug!("token: '{}'", &token.jwt());
 
-    let mut uid: u32 = 0;
     let mut request_status: Status = Status::Unauthorized;
+    let mut user: Option<User> = None;
 
     let delete_tokens_result = delete_expired_tokens(settings).await;
     if let Err(_) = delete_tokens_result {
@@ -54,11 +58,21 @@ pub async fn user_id(token: ApiToken<'_>, name: String, settings: &State<ApiSett
             let get_id_result = get_user_id_for_user_name(&name, settings).await;
             match get_id_result {
                 Ok(id) => {
-                    uid = id;
+                    user = Some(User {
+                        un: name.clone(),
+                        alias: None,
+                        id: Some(id.to_string()),
+                    });
+
                     request_status = Status::Ok;
-                },
-                Err(_) => {
-                    error!("Unable to get id for user: {}", name);
+                }
+                Err(e) => {
+                    request_status = Status::InternalServerError;
+                    error!(
+                        "Unable to get id for user: {} error: {}",
+                        name,
+                        &e.to_string()
+                    );
                 }
             };
         } else {
@@ -66,13 +80,7 @@ pub async fn user_id(token: ApiToken<'_>, name: String, settings: &State<ApiSett
         }
     }
 
-    let u = User {
-        un: name.clone(),
-        alias: None,
-        id: Some(uid.to_string()),
-    };
-
-    return (request_status, Json(u));
+    return (request_status, Json(user));
 }
 
 #[post("/user/auth", format = "application/json", data = "<request>")]
@@ -103,7 +111,6 @@ pub async fn auth_for_token(
 
             if let Ok(is_token_saved) = save_token_result {
                 if is_token_saved {
-
                     let token = Token {
                         jwt: token.0.clone(),
                         jwt_exp: token.1.to_string(),
@@ -238,7 +245,10 @@ async fn delete_existing_tokens_for_user(
 
     let delete_expired_tokens_result = client.execute_write_at_host(DB_NAME, &cmd, 1, "").await;
 
-    trace!("delete_existing_tokens_for_user: {} result: {delete_expired_tokens_result:?}", &un);
+    trace!(
+        "delete_existing_tokens_for_user: {} result: {delete_expired_tokens_result:?}",
+        &un
+    );
 
     match delete_expired_tokens_result {
         Ok(_) => Ok(()),
@@ -246,11 +256,11 @@ async fn delete_existing_tokens_for_user(
     }
 }
 
-async fn delete_expired_tokens(settings: &ApiSettings) -> Result<(), TrackingApiError> {
+pub async fn delete_expired_tokens(settings: &ApiSettings) -> Result<(), TrackingApiError> {
     let now = Utc::now().to_rfc3339();
     let mut cmd = String::from("DELETE FROM user_auth WHERE expiration_utc < ':now'");
     cmd = cmd.replace(":now", &now);
-    
+
     let mut client = get_client(settings).await;
 
     trace!("delete_expired_tokens - sending cmd: {cmd:?}");
@@ -308,8 +318,8 @@ async fn save_token(
     match result {
         Ok(is_saved) => {
             trace!("saved token: {}", &token);
-            return Ok(is_saved)
-        },
+            return Ok(is_saved);
+        }
         Err(_) => Err(TrackingApiError::Unknown),
     }
 }
