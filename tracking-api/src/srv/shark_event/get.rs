@@ -1,10 +1,15 @@
 use crate::{
-    srv::{get_client, user::get::verify_token},
+    srv::{
+        get_client,
+        user::get::{delete_expired_tokens, verify_token},
+        ApiToken,
+    },
     ApiSettings,
 };
-use rocket::{http::Status, post, serde::json::Json, State};
+use log::{debug, error, trace};
+use rocket::{get, http::Status, post, serde::json::Json, State};
 use tracking_model::{
-    event::{SharkAssociatedEvent, SharkEvent, SharkEventReply},
+    event::{SharkAssociatedEvent, SharkEvent},
     user::Auth,
 };
 
@@ -12,15 +17,26 @@ pub const SQL_GET_EVENTS: &str = "SELECT * FROM event;";
 pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT * FROM associated_event;";
 pub const DB_NAME: &str = "shark.db";
 
-#[post("/events/get", format = "application/json", data = "<request>")]
+#[get("/events/get")]
 pub async fn get_events(
-    request: Json<Auth>,
+    token: ApiToken<'_>,
     settings: &State<ApiSettings>,
-) -> (Status, Json<SharkEventReply>) {
-    let is_logged_in_result = verify_token(&request.jwt, settings).await;
+) -> (Status, Json<Option<Vec<SharkEvent>>>) {
+    debug!("{token:?}");
+    debug!("token: '{}'", &token.jwt());
 
-    if let Ok(is_logged_in) = is_logged_in_result {
-        if is_logged_in {
+    let mut request_status: Status = Status::Unauthorized;
+    let mut response: Option<Vec<SharkEvent>> = None;
+
+    let delete_tokens_result = delete_expired_tokens(settings).await;
+    if let Err(_) = delete_tokens_result {
+        error!("Unable to delete expired tokens");
+    }
+
+    let is_authenticated_result = verify_token(&token.jwt(), settings).await;
+
+    if let Ok(authenticated) = is_authenticated_result {
+        if authenticated {
             let mut associated_events: Vec<SharkAssociatedEvent> = Vec::new();
             let mut shark_events: Vec<SharkEvent> = Vec::new();
 
@@ -29,6 +45,8 @@ pub async fn get_events(
                 .execute_read_at_host(DB_NAME, SQL_GET_ASSOCIATED_EVENTS, 1)
                 .await
                 .unwrap();
+
+            trace!("get_events: {result:?}");
 
             if !result.is_error {
                 let rows = result.clone().rows;
@@ -86,6 +104,9 @@ pub async fn get_events(
 
                     associated_events.push(ae);
                 }
+            } else {
+                error!("{}", result.result_message);
+                return (Status::InternalServerError, Json(response));
             }
 
             let result = client
@@ -139,6 +160,9 @@ pub async fn get_events(
 
                     shark_events.push(e);
                 }
+            } else {
+                error!("{}", result.result_message);
+                return (Status::InternalServerError, Json(response));
             }
 
             for event in shark_events.iter_mut() {
@@ -154,19 +178,10 @@ pub async fn get_events(
                 }
             }
 
-            let response = SharkEventReply {
-                is_logged_in: true,
-                events: shark_events,
-            };
-
-            return (Status::Ok, Json(response));
+            response = Some(shark_events);
+            request_status = Status::Ok;
         }
     }
 
-    let response = SharkEventReply {
-        is_logged_in: false,
-        events: Vec::new(),
-    };
-
-    return (Status::Ok, Json(response));
+    return (request_status, Json(response));
 }
