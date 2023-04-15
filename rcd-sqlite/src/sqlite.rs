@@ -230,7 +230,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let cols = statement.columns();
     let mut table = Table::new();
 
-    trace!("{:?}", cmd);
+    trace!("execute_read: {:?}", cmd);
 
     for col in cols {
         let col_idx = statement.column_index(col.name())?;

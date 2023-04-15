@@ -13,8 +13,8 @@ use tracking_model::{
     user::Auth,
 };
 
-pub const SQL_GET_EVENTS: &str = "SELECT * FROM event;";
-pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT * FROM associated_event;";
+pub const SQL_GET_EVENTS: &str = "SELECT id, event_date, notes, user_id FROM event;";
+pub const SQL_GET_ASSOCIATED_EVENTS: &str = "SELECT event_id, event_type, event_date, user_id FROM associated_event;";
 pub const DB_NAME: &str = "shark.db";
 
 #[get("/events/get")]
@@ -105,7 +105,7 @@ pub async fn get_events(
                     associated_events.push(ae);
                 }
             } else {
-                error!("{}", result.result_message);
+                error!("unable to get events: {}", result.result_message);
                 return (Status::InternalServerError, Json(response));
             }
 
@@ -161,7 +161,7 @@ pub async fn get_events(
                     shark_events.push(e);
                 }
             } else {
-                error!("{}", result.result_message);
+                error!("unable to get associated events: {}", result.result_message);
                 return (Status::InternalServerError, Json(response));
             }
 

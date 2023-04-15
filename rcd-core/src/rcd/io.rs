@@ -2,7 +2,7 @@ use super::Rcd;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use log::{info, trace, warn};
+use log::{error, info, trace, warn};
 use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
@@ -40,6 +40,12 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
         match result {
             Ok(has_cooperative_tables) => {
                 if has_cooperative_tables {
+                    trace!(
+                        "execute_read_at_host: found cooperative tables for: {} w/ sql {}",
+                        &db_name,
+                        &sql
+                    );
+
                     let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
 
                     for ct in &cooperative_tables {
@@ -82,19 +88,23 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
                 } else {
                     let query_result = core.dbi().execute_read_at_host(&db_name, &sql);
 
-                    if query_result.is_ok() {
-                        let result_rows = query_result.unwrap().to_cdata_rows();
-                        statement_result_set.number_of_rows_affected =
-                            u64::value_from(result_rows.len()).unwrap_ok();
-                        statement_result_set.rows = result_rows;
-                        statement_result_set.is_error = false;
-                    } else {
-                        statement_result_set.execution_error_message =
-                            query_result.unwrap_err().to_string();
+                    match query_result {
+                        Ok(result) => {
+                            let result_rows = result.to_cdata_rows();
+                            statement_result_set.number_of_rows_affected =
+                                u64::value_from(result_rows.len()).unwrap_ok();
+                            statement_result_set.rows = result_rows;
+                            statement_result_set.is_error = false;
+                        }
+                        Err(e) => {
+                            error!("execute_read_at_host: {}", &e.to_string());
+                            statement_result_set.execution_error_message = e.to_string();
+                        }
                     }
                 }
             }
             Err(e) => {
+                error!("execute_read_at_host: {e:?}");
                 is_error = true;
                 error = Some(RcdError {
                     number: 0,

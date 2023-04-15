@@ -31,7 +31,7 @@ mod shark_event;
 mod user;
 mod util;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ApiToken<'r>(&'r str);
 
 impl ApiToken<'_> {

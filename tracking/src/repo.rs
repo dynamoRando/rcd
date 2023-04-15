@@ -115,15 +115,18 @@ impl Repo {
         }
     }
 
-    pub async fn add_event(event: SharkEvent) -> Result<Vec<SharkEvent>, String> {
-        log_to_console("getting events");
-        let addr = format!("{}{}", REPO_LOCATION, r#"events/get"#);
-        let result_get = Self::get(&addr).await;
+    pub async fn add_event(event: &SharkEvent) -> Result<bool, String> {
+        log_to_console("adding event");
+        let addr = format!("{}{}", REPO_LOCATION, r#"events/add"#);
+
+        let body = serde_json::to_string(&event).unwrap();
+
+        let result_get = Self::post(&addr, &body).await;
+        
         match result_get {
             Ok(result) => {
-                log_to_console(&result);
-                let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
-                return Ok(result);
+                log_to_console(&result);   
+                return Ok(true);
             }
             Err(e) => {
                 log_to_console(&e);
