@@ -282,7 +282,6 @@ fn create_remotes_table(conn: &Connection) {
     conn.execute(&cmd, []).unwrap();
 }
 
-#[instrument]
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
 
     let mut cooperation_enabled = false;
