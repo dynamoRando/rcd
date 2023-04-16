@@ -6,7 +6,8 @@ use super::{
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
-use tracing::{debug, trace};
+use stdext::function_name;
+use tracing::{debug, trace, instrument};
 use rcd_common::table::*;
 use rcd_enum::{
     column_type::ColumnType, database_type::DatabaseType,
@@ -281,15 +282,15 @@ fn create_remotes_table(conn: &Connection) {
     conn.execute(&cmd, []).unwrap();
 }
 
+#[instrument]
 pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
-    debug!("{db_name:?}");
 
     let mut cooperation_enabled = false;
     let mut db_has_participants = false;
 
     let conn = &get_db_conn(&config, db_name);
 
-    debug!("{conn:?}");
+    trace!("[{}]: {conn:?}", function_name!());
 
     // if this is a host db
     if has_table("COOP_DATA_HOST", conn) {
@@ -361,7 +362,8 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             // 5. defaultValue
             // 6. IsPK
 
-            trace!("schema_of_table:{}, {:?}", t.1.to_string(), schema);
+            let table = t.1.clone();
+            trace!("[{}]: schema of table: {table:?} {schema:?}", function_name!());
 
             for row in schema.unwrap().rows {
                 let mut cs = ColumnSchema {
@@ -412,7 +414,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             db_schema.tables.push(ts);
         }
 
-        trace!("db_schema: {:?}", db_schema);
+        trace!("[{}]: {db_schema:?}", function_name!());
 
         // get all remaining tables that don't have a policy defined, because we may want to set them
         let table_names = get_all_user_table_names_in_db(conn);
@@ -555,7 +557,7 @@ pub fn get_db_schema(db_name: &str, config: DbiConfigSqlite) -> DatabaseSchema {
             };
 
             for val in row.vals {
-                trace!("{val:?}");
+                trace!("[{}]: {val:?}", function_name!());
 
                 if val.col.name == "columnId" {
                     let item = val.data.clone().unwrap();
