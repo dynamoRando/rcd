@@ -8,6 +8,7 @@ use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;
 use rcd_core::remote_grpc::RemoteGrpc;
 use rcd_sqlite_log::SqliteLog;
+use stdext::function_name;
 use std::env;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
@@ -250,7 +251,7 @@ impl RcdService {
 
     /// initializes the service from the settings, overriding the current working directory with the specified value
     pub fn start_at_dir(&mut self, root_dir: &str) {
-        trace!("start at dir: {root_dir:?}");
+        trace!("[{}]: {root_dir:?}", function_name!());
 
         configure_backing_store_at_dir(
             self.rcd_settings.database_type,

@@ -2944,6 +2944,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "sodiumoxide",
+ "stdext",
  "substring",
  "tokio",
  "tonic",

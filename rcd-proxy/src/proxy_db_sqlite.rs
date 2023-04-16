@@ -7,6 +7,7 @@ use crate::user_info::UserInfo;
 use crate::PROXY_DB;
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
 use chrono::{DateTime, Utc};
+use stdext::function_name;
 use tracing::{debug, trace, warn};
 use rusqlite::named_params;
 use rusqlite::{Connection, Result};
@@ -262,12 +263,12 @@ impl ProxySqlite {
 
     fn conn(&self) -> Connection {
         let path = Path::new(&self.config.dir).join(&self.config.db_name);
-        trace!("{path:?}");
+        trace!("[{}]: {path:?}", function_name!());
         Connection::open(path).unwrap()
     }
 
     fn get_scalar_as_u32(&self, cmd: &str) -> u32 {
-        trace!("{cmd:?}");
+        trace!("[{}]: {cmd:?}", function_name!());
 
         let mut value: u32 = 0;
         let conn = self.conn();
@@ -284,7 +285,7 @@ impl ProxySqlite {
     }
 
     fn get_scalar_as_string(&self, cmd: &str) -> String {
-        trace!("{cmd:?}");
+        trace!("[{}]: {cmd:?}", function_name!());
 
         let conn = self.conn();
         let mut value = String::from("");

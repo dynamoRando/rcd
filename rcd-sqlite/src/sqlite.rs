@@ -1,5 +1,4 @@
 use self::db_part::get_partial_db_connection;
-use tracing::{debug, info, trace};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
 use rcd_enum::column_type::ColumnType;
 use rcd_error::rcd_db_error::RcdDbError;
@@ -7,11 +6,13 @@ use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
+use tracing::{debug, info, trace};
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
 use stdext::function_name;
+use tracing::instrument;
 
 pub fn get_last_log_entries(number_of_entries: u32, config: &DbiConfigSqlite) -> Vec<LogEntry> {
     SqliteLog::get_last_x_logs(number_of_entries, &config.root_folder)
@@ -51,8 +52,7 @@ pub fn get_scalar_as_vec_u8(cmd: String, conn: &Connection) -> Option<Vec<u8>> {
 }
 
 pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
-    debug!("{:?}", cmd);
-    debug!("{:?}", conn);
+    trace!("[{}]: {cmd:?} {conn:?}", function_name!());
 
     let mut statement = conn.prepare(&cmd).unwrap();
     let mut returned_arrays: Vec<Vec<u8>> = Vec::new();
@@ -79,8 +79,7 @@ pub fn get_scalar_as_u64(cmd: String, conn: &Connection) -> Option<u64> {
 /// Runs any SQL statement that returns a single value and attempts
 /// to return the result as a u32
 pub fn get_scalar_as_u32(cmd: String, conn: &Connection) -> u32 {
-    trace!("get_scalar_as_u32: {cmd:?}");
-    trace!("get_scalar_as_u32: {conn:?}");
+    trace!("[{}]: {cmd:?} {conn:?}", function_name!());
 
     let mut value: u32 = 0;
     let mut statement = conn.prepare(&cmd).unwrap();
@@ -112,8 +111,7 @@ pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
 }
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
-    trace!("{cmd}");
-    trace!("{conn:?}");
+    trace!("[{}]: {cmd:?} {conn:?}", function_name!());
     conn.execute(cmd, []).unwrap()
 }
 
@@ -236,7 +234,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     for col in cols {
         let col_idx = statement.column_index(col.name())?;
 
-        trace!("{:?}", col);
+        trace!("[{}]: {col:?}", function_name!());
         let mut data_type = String::from("");
 
         let col_type = col.decl_type();
@@ -252,7 +250,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
             is_primary_key: false,
         };
 
-        trace!("adding col {}", c.name);
+        trace!("[{}]: adding col {}", function_name!(), c.name);
 
         table.add_column(c);
     }
@@ -345,6 +343,7 @@ fn has_table(table_name: &str, conn: &Connection) -> bool {
     has_any_rows(cmd, conn)
 }
 
+#[instrument]
 pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
     let mut db_exists_as_regular_db = false;
     let mut db_exists_as_partial_db = false;
@@ -377,7 +376,7 @@ pub fn has_database(config: &DbiConfigSqlite, db_name: &str) -> bool {
 
 pub fn get_db_conn(config: &DbiConfigSqlite, db_name: &str) -> Connection {
     let db_path = Path::new(&config.root_folder).join(db_name);
-    trace!("{db_path:?}");
+    trace!("[{}]: {db_path:?}", function_name!());
     Connection::open(db_path).unwrap()
 }
 
@@ -397,8 +396,7 @@ pub fn execute_write_on_connection_at_host(
 
     let conn = get_db_conn(config, db_name);
 
-    debug!("{:?}", conn);
-    debug!("{:?}", cmd);
+    trace!("[{}]: {conn:?} {cmd:?}", function_name!());
 
     let result = conn.execute(cmd, []);
 
@@ -438,11 +436,11 @@ pub fn get_table_col_names_with_data_type_as_string(
         col_names = format!("{} {} {}{}", col_names, col_name, data_type, ",");
     }
 
-    debug!("{:?}", col_names);
+    trace!("[{}]: {col_names:?}", function_name!());
 
     let result: &str = &col_names[1..col_names.len() - 1];
 
-    debug!("{:?}", result);
+    trace!("[{}]: {result:?}", function_name!());
 
     result.to_string()
 }
