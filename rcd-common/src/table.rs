@@ -1,5 +1,5 @@
 use guid_create::GUID;
-use log::trace;
+use tracing::trace;
 use rcd_enum::column_type::ColumnType;
 use substring::Substring;
 

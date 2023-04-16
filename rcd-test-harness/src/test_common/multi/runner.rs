@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_client::client_type::RcdClientType;
 use std::{
     sync::{mpsc, Arc, Mutex},

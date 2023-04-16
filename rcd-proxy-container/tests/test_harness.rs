@@ -1,6 +1,6 @@
 use std::{env, fs, path::Path};
 
-use log::info;
+use tracing::info;
 use rcd_proxy_container::rcd_docker::RcdDocker;
 
 #[allow(dead_code)]

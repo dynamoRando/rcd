@@ -1,4 +1,4 @@
-use log::{info, LevelFilter};
+use tracing::{info};
 use rcd_common::defaults;
 
 use rcd_enum::{
@@ -271,7 +271,7 @@ fn make_test_db() {
 }
 
 fn use_sqlite_logging() {
-    SqliteLog::init(LevelFilter::Info).unwrap();
+    SqliteLog::init(log::LevelFilter::Info).unwrap();
 }
 
 fn init_host_id() {

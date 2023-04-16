@@ -7,7 +7,7 @@ use crate::{
     },
     ApiSettings,
 };
-use log::{debug, error, trace, info};
+use tracing::{debug, error, trace, info};
 use rocket::{get, http::Status, post, serde::json::Json, State};
 use tracking_model::{
     event::{SharkAssociatedEvent, SharkEvent},

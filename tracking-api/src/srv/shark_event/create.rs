@@ -1,4 +1,4 @@
-use log::{debug, error};
+use tracing::{debug, error};
 use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::event::{SharkAssociatedEvent, SharkEvent};
 

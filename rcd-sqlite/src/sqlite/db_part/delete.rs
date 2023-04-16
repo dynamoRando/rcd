@@ -1,5 +1,5 @@
 use chrono::Utc;
-use log::debug;
+use tracing::debug;
 use rusqlite::named_params;
 
 use crate::sqlite::{

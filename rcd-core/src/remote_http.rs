@@ -7,7 +7,7 @@ Represents a HTTP client talking to a remote Data Service endpoint.
 use chrono::Utc;
 use endianness::{read_i32, ByteOrder};
 use guid_create::GUID;
-use log::{info, trace};
+use tracing::{info, trace};
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},

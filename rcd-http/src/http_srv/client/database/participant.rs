@@ -1,5 +1,5 @@
 use crate::http_srv::Core;
-use log::trace;
+use tracing::trace;
 use rcdproto::rcdp::{
     AddParticipantReply, AddParticipantRequest, GetParticipantsReply, GetParticipantsRequest,
     SendParticipantContractReply, SendParticipantContractRequest,

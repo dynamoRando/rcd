@@ -1,5 +1,5 @@
 use antlr_rust::{parser_rule_context::ParserRuleContext, tree::ParseTreeListener};
-use log::trace;
+use tracing::trace;
 
 use super::{
     sqlitelistener::SQLiteListener,

@@ -1,4 +1,3 @@
-use log::LevelFilter;
 use rcd_test_harness::{
     init_log_to_screen,
     test_common::multi::runner::{RunnerConfig, TestRunner},
@@ -9,7 +8,7 @@ use super::test_core::test_core;
 #[test]
 fn test() {
     let test_name = "create_db_enable_coop_read_write_grpc";
-    init_log_to_screen(LevelFilter::Info);
+    init_log_to_screen(log::LevelFilter::Info);
 
     let config = RunnerConfig {
         test_name: test_name.to_string(),
@@ -22,7 +21,7 @@ fn test() {
 
 #[test]
 fn proxy() {
-    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen_fern(tracing::LevelFilter::Debug);
 
     let test_name = "create_db_enable_coop_read_write_grpc-proxy";
 

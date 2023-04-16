@@ -1,4 +1,4 @@
-use log::LevelFilter;
+
 use rcd_test_harness::{
     init_log_to_screen,
     test_common::multi::runner::{RunnerConfig, TestRunner},
@@ -8,7 +8,7 @@ use super::test_core::test_core;
 
 #[test]
 fn test() {
-    init_log_to_screen(LevelFilter::Debug);
+    init_log_to_screen(log::LevelFilter::Debug);
 
     let test_name = "generate_contract_positive_grpc";
     let config = RunnerConfig {
@@ -22,7 +22,7 @@ fn test() {
 
 #[test]
 fn proxy() {
-    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen_fern(tracing::LevelFilter::Debug);
 
     let test_name = "generate_contract_positive_grpc-proxy";
 

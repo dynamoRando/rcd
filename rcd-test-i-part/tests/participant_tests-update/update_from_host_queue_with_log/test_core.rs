@@ -1,4 +1,4 @@
-use log::trace;
+use tracing::trace;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;
 use rcd_test_harness::{
     test_common::multi::common_contract_setup::main_and_participant_setup, CoreTestConfig,

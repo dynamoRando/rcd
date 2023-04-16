@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use serde::de;
 
 pub async fn get_http_result<

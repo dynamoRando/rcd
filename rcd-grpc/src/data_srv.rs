@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_core::rcd_data::RcdData;
 use rcdproto::rcdp::*;
 use rcdproto::rcdp::{data_service_server::DataService, data_service_server::DataServiceServer};

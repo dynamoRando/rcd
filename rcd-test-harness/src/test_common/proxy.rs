@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_proxy::{RcdProxy, RcdProxySettings};
 
 use crate::{get_next_avail_port, ServiceAddr};

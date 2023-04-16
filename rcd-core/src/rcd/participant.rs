@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_enum::contract_status::ContractStatus;
 use rcdproto::rcdp::{
     AddParticipantReply, AddParticipantRequest, Participant, SendParticipantContractReply,

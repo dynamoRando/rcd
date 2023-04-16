@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use tracing::{debug, warn};
 use rcd_client::client_type::RcdClientType;
 use rcdx::rcd_service::get_service_from_config_file;
 

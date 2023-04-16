@@ -1,5 +1,5 @@
 use super::RcdService;
-use log::info;
+use tracing::info;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
 use rcd_core::dbi::Dbi;

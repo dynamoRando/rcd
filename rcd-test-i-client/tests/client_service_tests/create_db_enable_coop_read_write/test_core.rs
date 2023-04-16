@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_enum::database_type::DatabaseType;
 use rcd_test_harness::{CoreTestConfig, RcdClientConfig};
 

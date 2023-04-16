@@ -1,6 +1,6 @@
 use config::Config;
 use fern::colors::{Color, ColoredLevelConfig};
-use log::{debug, info, LevelFilter};
+use tracing::{debug, info};
 use rcd_client::RcdClient;
 use srv::TrackingServer;
 use std::env;
@@ -38,7 +38,7 @@ impl ApiSettings {
 
 #[tokio::main]
 async fn main() {
-    init_log_to_screen_fern(LevelFilter::Trace);
+    init_log_to_screen_fern(log::LevelFilter::Trace);
 
     let settings_location: String;
 
@@ -54,7 +54,7 @@ async fn main() {
     server.start(settings).await.unwrap();
 }
 
-fn init_log_to_screen_fern(level: LevelFilter) {
+fn init_log_to_screen_fern(level: log::LevelFilter) {
     use ignore_result::Ignore;
 
     let colors = ColoredLevelConfig::new()

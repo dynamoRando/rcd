@@ -1,6 +1,6 @@
 pub mod grpc {
 
-    use log::{info, debug};
+    use tracing::{info, debug};
     use rcdx::rcd_service::get_service_from_config_file;
     use std::sync::mpsc;
     use std::thread;
@@ -9,7 +9,7 @@ pub mod grpc {
 
     #[test]
     pub fn test() {
-        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        test_harness::init_log_to_screen(tracing::LevelFilter::Info);
         let test_name = "revoke_token_grpc";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();
@@ -123,7 +123,7 @@ pub mod grpc {
 
 pub mod http {
 
-    use log::{info, debug};
+    use tracing::{info, debug};
     use rcdx::rcd_service::{get_service_from_config_file, RcdService};
     use std::sync::mpsc;
     use std::thread;
@@ -132,7 +132,7 @@ pub mod http {
 
     #[test]
     pub fn test() {
-        test_harness::init_log_to_screen(log::LevelFilter::Info);
+        test_harness::init_log_to_screen(tracing::LevelFilter::Info);
         let test_name = "revoke_token_http";
         let test_db_name = format!("{}{}", test_name, ".db");
         let (tx, rx) = mpsc::channel();

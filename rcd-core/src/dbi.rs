@@ -1,6 +1,6 @@
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::{DateTime, Utc};
-use log::trace;
+use tracing::trace;
 use rcd_common::{
     coop_database_contract::CoopDatabaseContract,
     coop_database_participant::{CoopDatabaseParticipant, CoopDatabaseParticipantData},

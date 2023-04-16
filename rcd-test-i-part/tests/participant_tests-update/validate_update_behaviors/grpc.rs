@@ -3,7 +3,7 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 
 #[test]
 fn test() {
-    // rcd_test_harness::init_log_to_screen(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen(tracing::LevelFilter::Debug);
 
     let test_name = "get_update_from_part_gprc";
     let contract = String::from("");
@@ -18,7 +18,7 @@ fn test() {
 
 #[test]
 fn proxy() {
-    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen_fern(tracing::LevelFilter::Debug);
 
     let test_name = "get_update_from_part_gprc-proxy";
 

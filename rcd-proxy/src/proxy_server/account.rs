@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_messages::proxy::server_messages::{
     AuthForTokenReply, AuthForTokenRequest, RegisterLoginReply, RegisterLoginRequest,
 };

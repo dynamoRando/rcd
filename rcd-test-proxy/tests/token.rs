@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use log::{debug, info};
+use tracing::{debug, info};
 use rcd_messages::{
     client::{AuthRequest, CreateUserDatabaseReply, CreateUserDatabaseRequest},
     proxy::{
@@ -28,7 +28,6 @@ struct TestToken {
 
 #[tokio::test]
 async fn token() {
-    // init_log_to_screen_fern(log::LevelFilter::Debug);
     init_log_to_screen(log::LevelFilter::Debug);
 
     let id = TestId { id: None };

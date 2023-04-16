@@ -4,7 +4,7 @@ use rcd_proxy_container::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::thread;
 
-use log::{debug, error, info, warn};
+use tracing::{debug, error, info, warn};
 
 use std::sync::{Arc, Mutex};
 

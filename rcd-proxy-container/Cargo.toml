@@ -12,6 +12,7 @@ anyhow = "1"
 rusqlite = { version = "0.28.0", features = ["column_decltype", "bundled", "bundled-sqlcipher"] }
 rcd-common = { path = "../rcd-common" }
 rcd-sqlite = { path = "../rcd-sqlite" }
-log = "0.4"
+tracing = "0.1"
 simple_logger = "4"
 thiserror = "1"
+log = "0.4"

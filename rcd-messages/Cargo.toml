@@ -11,5 +11,5 @@ serde_derive = "1"
 serde = { version = "1.0", features = ["derive"] }
 indexmap = "1.9.1"
 rcd-markdown = { path = "../rcd-markdown" }
-log = "0.4"
+tracing = "0.1"
 num_enum = "0.5.11"

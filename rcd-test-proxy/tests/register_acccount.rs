@@ -1,15 +1,14 @@
-use log::debug;
 use rcd_messages::proxy::server_messages::{RegisterLoginReply, RegisterLoginRequest};
 use rcd_proxy::proxy_server::ProxyServer;
 use rcd_test_harness::{
-    init_log_to_screen, init_log_to_screen_fern, sleep_test,
+    init_log_to_screen,
     test_common::proxy::{configure_proxy_for_test, RcdProxyTestType},
 };
 use rcd_test_proxy::get_http_result;
+use tracing::debug;
 
 #[tokio::test]
 async fn register_account() {
-    // init_log_to_screen_fern(log::LevelFilter::Debug);
     init_log_to_screen(log::LevelFilter::Debug);
 
     let setup = configure_proxy_for_test("proxy-i-register-user", RcdProxyTestType::Grpc);

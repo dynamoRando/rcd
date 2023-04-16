@@ -1,5 +1,5 @@
 use chrono::{DateTime, Utc};
-use log::{debug, error, trace, warn};
+use tracing::{debug, error, trace, warn};
 use rocket::{get, http::Status, post, serde::json::Json, State};
 use tracking_model::user::{Token, User};
 

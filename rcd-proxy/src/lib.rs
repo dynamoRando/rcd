@@ -3,9 +3,9 @@ use std::{fs, path::Path};
 use crate::proxy_grpc::{ProxyClientGrpc, ProxyDbGrpc};
 use chrono::{DateTime, Utc};
 use config::Config;
-use log::warn;
+use tracing::warn;
 #[allow(unused_imports)]
-use log::{debug, error, info, trace};
+use tracing::{debug, error, info, trace};
 use proxy_db::ProxyDb;
 use rcd_common::{crypt, rcd_settings::RcdSettings};
 use rcd_core::{auth, rcd::Rcd, rcd_data::RcdData};

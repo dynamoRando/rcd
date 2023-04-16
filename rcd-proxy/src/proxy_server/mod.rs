@@ -1,4 +1,4 @@
-use log::{debug, info};
+use tracing::{debug, info};
 use rocket::fairing::Kind;
 use rocket::http::Header;
 use rocket::log::LogLevel;

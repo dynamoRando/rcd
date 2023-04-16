@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_messages::{
     client::{ColumnSchema, Contract, DatabaseSchema, Host, Row, RowValue, TableSchema},
     formatter::{

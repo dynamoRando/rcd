@@ -3,7 +3,6 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 use rcd_test_harness::CoreTestConfig;
 
 pub mod grpc {
-    use log::LevelFilter;
     use rcd_test_harness::{
         init_log_to_screen,
         test_common::multi::runner::{RunnerConfig, TestRunner},
@@ -13,8 +12,7 @@ pub mod grpc {
 
     #[test]
     fn proxy() {
-        // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
-
+        
         let test_name = "add_read_delete_remote_gprc-proxy";
 
         let config = RunnerConfig {
@@ -29,7 +27,7 @@ pub mod grpc {
     #[test]
     fn grpc() {
         let test_name = "add_read_delete_remote_gprc";
-        init_log_to_screen(LevelFilter::Debug);
+        init_log_to_screen(log::LevelFilter::Debug);
 
         let config = RunnerConfig {
             test_name: test_name.to_string(),

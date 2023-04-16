@@ -7,7 +7,7 @@ use crate::user_info::UserInfo;
 use crate::PROXY_DB;
 use crate::{proxy_db::DbConfigSqlite, RcdProxyErr};
 use chrono::{DateTime, Utc};
-use log::{debug, trace, warn};
+use tracing::{debug, trace, warn};
 use rusqlite::named_params;
 use rusqlite::{Connection, Result};
 use std::path::Path;

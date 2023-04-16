@@ -1,5 +1,5 @@
 use crate::test_harness::DOCKER_NOT_RUNNING_MESSAGE;
-use log::info;
+use tracing::info;
 use rcd_proxy_container::rcd_docker::RcdDocker;
 use std::thread;
 

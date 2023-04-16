@@ -8,7 +8,7 @@ use chrono::{DateTime, Duration, Utc};
 
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token};
-use log::debug;
+use tracing::debug;
 use sha2::Sha384;
 use std::collections::BTreeMap;
 

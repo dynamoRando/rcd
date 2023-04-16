@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 serde = "1"
 substring = "1.4.5"
-log = "0.4"
+tracing = "0.1"
 serde_derive = "1"

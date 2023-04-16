@@ -1,5 +1,5 @@
 use crate::{get_rcd_client, CoreTestConfig, RcdClientConfig, ServiceAddr};
-use log::{debug, trace, warn};
+use tracing::{debug, trace, warn};
 
 /// has a main and participant establish a new contract and verifies that the main has read/write
 /// to the participant

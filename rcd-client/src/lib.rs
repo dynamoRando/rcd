@@ -1,6 +1,5 @@
 use client_type::RcdClientType;
 use error::RcdClientError;
-use log::{debug, info, trace};
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::{
     database_type::DatabaseType, deletes_from_host_behavior::DeletesFromHostBehavior,
@@ -50,6 +49,7 @@ use rcdproto::rcdp::{
 };
 use reqwest::Client;
 use serde::de;
+use tracing::{trace, debug, info};
 use std::error::Error;
 use std::time::Duration;
 use stdext::function_name;

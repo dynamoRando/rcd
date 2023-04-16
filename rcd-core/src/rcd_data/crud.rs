@@ -1,5 +1,5 @@
 use super::RcdData;
-use log::{trace, warn};
+use tracing::{trace, warn};
 use rcd_common::db::PartialDataResult;
 use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
 use rcd_enum::updates_from_host_behavior::UpdatesFromHostBehavior;

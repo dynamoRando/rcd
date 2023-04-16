@@ -1,7 +1,7 @@
 use crate::sqlite::{
     db_part::get_partial_db_connection, execute_write, get_scalar_as_u32, has_table, sql_text,
 };
-use log::debug;
+use tracing::debug;
 use rcd_common::db::*;
 use rcd_common::{
     crypt,

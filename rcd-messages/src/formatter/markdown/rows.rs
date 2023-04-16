@@ -1,5 +1,5 @@
 use crate::{client::Row, formatter::build_max_lengths_for_columns};
-use log::trace;
+use tracing::trace;
 
 /// takes a Vec of rows and formats a table similiar to Markdown
 pub fn rows_to_string_markdown_table(rows: &[Row]) -> String {

@@ -3,7 +3,7 @@ use docker_api::{
     opts::{ContainerCreateOpts, ContainerListOptsBuilder, PublishPort},
     Docker,
 };
-use log::{debug, error};
+use tracing::{debug, error};
 
 use crate::{container_error::CreateContainerError, port_setup::PortSetup};
 

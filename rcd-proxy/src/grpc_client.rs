@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcdproto::rcdp::{sql_client_client::SqlClientClient, GetLogsByLastNumberRequest};
 use serde::de;
 use std::time::Duration;

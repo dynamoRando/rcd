@@ -1,4 +1,4 @@
-use log::{trace, warn};
+use tracing::{trace, warn};
 use rcd_common::{data_info::DataInfo, host_info::HostInfo};
 
 use super::Rcd;

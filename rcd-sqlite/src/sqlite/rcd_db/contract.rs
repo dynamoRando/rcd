@@ -1,4 +1,4 @@
-use log::{debug, warn};
+use tracing::{debug, warn};
 use rcdproto::rcdp::{ColumnSchema, Contract, DatabaseSchema, Host, Participant, TableSchema};
 
 use crate::sqlite::{

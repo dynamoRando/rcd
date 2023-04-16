@@ -1,7 +1,7 @@
 use antlr_rust::{
     common_token_stream::CommonTokenStream, token_factory::CommonTokenFactory, InputStream,
 };
-use log::trace;
+use tracing::trace;
 use rcd_enum::dml_type::DmlType;
 
 use self::{

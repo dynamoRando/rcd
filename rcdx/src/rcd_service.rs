@@ -1,6 +1,5 @@
 use config::Config;
 use guid_create::GUID;
-use log::{error, info, trace, LevelFilter};
 use rcd_common::db::DbiConfigSqlite;
 use rcd_common::rcd_settings::RcdSettings;
 use rcd_core::comm::{RcdCommunication, RcdRemoteDbClient};
@@ -13,7 +12,7 @@ use std::env;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use triggered::Listener;
-
+use tracing::{error, info, trace};
 use rcd_enum::database_type::DatabaseType;
 
 mod grpc;
@@ -287,7 +286,7 @@ impl RcdService {
         }
     }
 
-    pub fn enable_internal_logging(&self, root_dir: &str, log_level: LevelFilter) {
+    pub fn enable_internal_logging(&self, root_dir: &str, log_level: log::LevelFilter) {
         if let Err(e) = SqliteLog::init_at_dir(log_level, root_dir.to_string()) {
             error!("{}", e);
         }

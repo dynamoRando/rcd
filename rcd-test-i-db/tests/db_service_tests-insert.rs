@@ -2,11 +2,10 @@ use rcd_enum::database_type::DatabaseType;
 use rcd_test_harness::test_common::multi::common_contract_setup::main_and_participant_setup;
 use rcd_test_harness::CoreTestConfig;
 
-use log::debug;
+use tracing::debug;
 use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 
 pub mod grpc {
-    use log::LevelFilter;
     use rcd_test_harness::{
         init_log_to_screen,
         test_common::multi::runner::{RunnerConfig, TestRunner},
@@ -17,7 +16,7 @@ pub mod grpc {
     #[test]
     fn grpc() {
         let test_name = "add_read_update_remote_grpc";
-        init_log_to_screen(LevelFilter::Info);
+        init_log_to_screen(log::LevelFilter::Info);
 
         let config = RunnerConfig {
             test_name: test_name.to_string(),
@@ -30,7 +29,7 @@ pub mod grpc {
 
     #[test]
     fn proxy() {
-        // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+        // rcd_test_harness::init_log_to_screen_fern(tracing::LevelFilter::Debug);
 
         let test_name = "add_read_update_remote_grpc-proxy";
 

@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use log::debug;
+use tracing::debug;
 use rcd_messages::{
     client::{AuthRequest, CreateUserDatabaseReply, CreateUserDatabaseRequest},
     proxy::{
@@ -10,7 +10,7 @@ use rcd_messages::{
 };
 use rcd_proxy::proxy_server::ProxyServer;
 use rcd_test_harness::{
-    init_log_to_screen, init_log_to_screen_fern,
+    init_log_to_screen, 
     test_common::proxy::{configure_proxy_for_test, RcdProxyTestType},
 };
 use rcd_test_proxy::get_http_result;
@@ -21,7 +21,6 @@ struct TestId {
 
 #[tokio::test]
 async fn create_database() {
-    // init_log_to_screen_fern(log::LevelFilter::Debug);
     init_log_to_screen(log::LevelFilter::Debug);
 
     let id = TestId { id: None };

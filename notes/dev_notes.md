@@ -104,7 +104,7 @@ let default_addr_port = "http://127.0.0.1:50051";
         #[cfg(test)]
         use rcdproto::rcdp::{CreateUserDatabaseRequest, TestRequest};
         #[cfg(test)]
-        use log::info;
+        use tracing::info;
         extern crate futures;
         extern crate tokio;
         #[cfg(test)]

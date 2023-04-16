@@ -6,7 +6,7 @@ use super::{
 };
 use crate::sqlite::has_any_rows;
 use guid_create::GUID;
-use log::{debug, trace};
+use tracing::{debug, trace};
 use rcd_common::table::*;
 use rcd_enum::{
     column_type::ColumnType, database_type::DatabaseType,

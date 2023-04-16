@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_core::rcd::Rcd;
 use rcdproto::rcdp::sql_client_server::{SqlClient, SqlClientServer};
 use rcdproto::rcdp::*;

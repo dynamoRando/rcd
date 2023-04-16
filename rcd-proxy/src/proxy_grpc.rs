@@ -1,6 +1,6 @@
 use crate::RcdProxy;
 use chrono::Utc;
-use log::{debug, warn};
+use tracing::{debug, warn};
 use rcd_common::defaults;
 use rcd_core::{rcd::Rcd, rcd_data::RcdData};
 use rcdproto::rcdp::data_service_server::DataService;

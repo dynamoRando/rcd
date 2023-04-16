@@ -16,7 +16,7 @@ fn test() {
 
 #[test]
 fn proxy() {
-    // rcd_test_harness::init_log_to_screen_fern(log::LevelFilter::Debug);
+    // rcd_test_harness::init_log_to_screen_fern(tracing::LevelFilter::Debug);
 
     let test_name = "create_user_database_positive_grpc-proxy";
 

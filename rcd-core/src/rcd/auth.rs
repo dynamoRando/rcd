@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcdproto::rcdp::{AuthRequest, RevokeReply, TokenReply};
 
 use crate::rcd::Rcd;

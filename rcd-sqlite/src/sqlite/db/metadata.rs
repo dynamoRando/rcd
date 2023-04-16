@@ -1,5 +1,5 @@
 use crate::sqlite::{execute_write, get_db_conn, get_scalar_as_u64, has_table, sql_text};
-use log::trace;
+use tracing::trace;
 use rcd_common::db::{get_metadata_table_name, DbiConfigSqlite};
 use rusqlite::named_params;
 

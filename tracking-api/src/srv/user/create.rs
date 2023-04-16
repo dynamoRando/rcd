@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::user::{CreateUserResult, User};
 

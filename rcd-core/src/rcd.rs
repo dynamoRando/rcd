@@ -10,7 +10,7 @@ This 'core' will handle most client actions by way of the defined proto types.
 */
 
 use chrono::Utc;
-use log::trace;
+use tracing::trace;
 use rcd_common::defaults;
 use rcd_common::rcd_settings::RcdSettings;
 use rcdproto::rcdp::{

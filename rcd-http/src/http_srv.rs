@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use log::info;
+use tracing::info;
 use rcd_core::rcd::Rcd;
 use rcd_core::rcd_data::RcdData;
 use rocket::fairing::Kind;

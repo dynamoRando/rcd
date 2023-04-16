@@ -1,4 +1,4 @@
-use log::debug;
+use tracing::debug;
 use rcd_core::rcd::Rcd;
 use rcd_messages::proxy::{request_type::RequestType, server_messages::ExecuteRequest};
 use rcdproto::rcdp::{

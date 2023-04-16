@@ -6,7 +6,7 @@ use rcdproto::rcdp::{
 };
 
 use super::RcdData;
-use log::{error, trace};
+use tracing::{error, trace};
 
 pub async fn accept_contract(
     core: &RcdData,

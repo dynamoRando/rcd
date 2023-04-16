@@ -1,4 +1,4 @@
-use log::{debug, error, info};
+use tracing::{debug, error, info};
 use rcd_proxy_container::rcd_docker::RcdDocker;
 use simple_logger::SimpleLogger;
 use std::{

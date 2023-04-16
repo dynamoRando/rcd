@@ -4,7 +4,7 @@ use super::{
     get_table_col_names, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use chrono::Utc;
-use log::{debug, trace, warn};
+use tracing::{debug, trace, warn};
 use rcd_common::db::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
     PartialDataResult,

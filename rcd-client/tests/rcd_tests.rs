@@ -1,4 +1,4 @@
-use log::info;
+use tracing::info;
 use rcd_common::db::DbiConfigSqlite;
 use rcd_enum::database_type::DatabaseType;
 

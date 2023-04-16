@@ -2,9 +2,8 @@ use core::time;
 use fern::colors::Color;
 use fern::colors::ColoredLevelConfig;
 use lazy_static::lazy_static;
-use log::error;
-use log::info;
-use log::LevelFilter;
+use tracing::error;
+use tracing::info;
 use rcd_client::client_type::RcdClientType;
 use rcd_client::RcdClient;
 use rcd_test_harness_common::get_test_temp_dir;
@@ -130,14 +129,14 @@ pub fn sleep_instance() {
 }
 
 /// overrides RCD's default logger to log to screen for the specified logging level with Simple Logger
-pub fn init_log_to_screen(level: LevelFilter) {
+pub fn init_log_to_screen(level: log::LevelFilter) {
     let res_log = SimpleLogger::new().with_level(level).init();
     if let Err(e) = res_log {
         error!("{e}");
     }
 }
 
-pub fn init_log_to_screen_fern(level: LevelFilter) {
+pub fn init_log_to_screen_fern(level: log::LevelFilter) {
     use ignore_result::Ignore;
 
     let colors = ColoredLevelConfig::new()

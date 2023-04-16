@@ -1,5 +1,4 @@
 use fern::colors::{Color, ColoredLevelConfig};
-use log::LevelFilter;
 use rcd_proxy::{proxy_server::ProxyServer, RcdProxy};
 use std::{env, path::Path};
 
@@ -9,7 +8,7 @@ async fn main() {
     process_cmd_args(args);
 
     // SimpleLogger::new().env().init().unwrap();
-    init_log_to_screen_fern(LevelFilter::Trace);
+    init_log_to_screen_fern(log::LevelFilter::Trace);
 
     let dir = &cwd();
     let result_proxy = RcdProxy::get_proxy_from_config(dir);
@@ -38,7 +37,7 @@ fn cwd() -> String {
     cur_dir.to_str().unwrap().to_string()
 }
 
-fn init_log_to_screen_fern(level: LevelFilter) {
+fn init_log_to_screen_fern(level: log::LevelFilter) {
     use ignore_result::Ignore;
 
     let colors = ColoredLevelConfig::new()

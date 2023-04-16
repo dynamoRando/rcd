@@ -1,5 +1,5 @@
 use self::db_part::get_partial_db_connection;
-use log::{debug, info, trace};
+use tracing::{debug, info, trace};
 use rcd_common::{db::DbiConfigSqlite, defaults, table::*};
 use rcd_enum::column_type::ColumnType;
 use rcd_error::rcd_db_error::RcdDbError;

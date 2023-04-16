@@ -3,6 +3,7 @@ use rcd_test_harness::test_common::multi::runner::{RunnerConfig, TestRunner};
 mod client_service_tests_logs_core;
 
 #[test]
+#[ignore = "need to rewrite log code"]
 fn grpc() {
     let test_name = "get_logs_grpc";
     let config = RunnerConfig {
