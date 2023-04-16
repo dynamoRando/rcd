@@ -34,3 +34,4 @@ chrono = "0.4.24"
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 fern = { version =  "0.6.1", features = ["colored"] }
 ignore = "0.4.20"
+stdext = "0.3"

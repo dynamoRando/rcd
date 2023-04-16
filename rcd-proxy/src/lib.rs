@@ -20,6 +20,7 @@ use tonic::transport::Server;
 use triggered::{Listener, Trigger};
 use user_info::UserInfo;
 use uuid::Uuid;
+use stdext::function_name;
 
 const SETTINGS: &str = "Settings.toml";
 const PROXY_DB: &str = "Proxy.db";
@@ -625,7 +626,7 @@ impl RcdProxy {
     }
 
     fn get_user_root_dir(&self, u: &UserInfo) -> Result<String, RcdProxyErr> {
-        trace!("get_user_root_dir: {u:?}");
+        trace!("{}: {u:?}", function_name!());
 
         if u.folder.as_ref().is_none() {
             return Err(RcdProxyErr::UserFolderNotSet(u.username.clone()));

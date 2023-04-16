@@ -53,6 +53,7 @@ use serde::de;
 use std::error::Error;
 use std::time::Duration;
 use tonic::transport::Channel;
+use stdext::function_name;
 
 pub mod client_type;
 pub mod error;
@@ -254,8 +255,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -268,7 +267,6 @@ impl RcdClient {
                 Ok(response)
             }
             RcdClientType::Http => {
-                info!("sending request");
                 let url = self.get_http_url(GET_LAST_LOGS);
                 let result = self.get_http_result(url, request).await;
                 Ok(result)
@@ -284,8 +282,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -298,7 +294,6 @@ impl RcdClient {
                 Ok(response)
             }
             RcdClientType::Http => {
-                info!("sending request");
                 let url = self.get_http_url(GET_SETTINGS);
                 let result = self.get_http_result(url, request).await;
                 Ok(result)
@@ -310,7 +305,6 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let response = self
                     .grpc_client
@@ -325,7 +319,7 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let request = self.gen_auth_request();
-                info!("sending request");
+
                 let url = self.get_http_url(GET_HOST_INFO);
                 let result = self.get_http_result(url, request).await;
                 Ok(result)
@@ -340,7 +334,6 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let request = GetActiveContractRequest {
                     authentication: Some(auth),
@@ -360,7 +353,6 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let request = GetActiveContractRequest {
                     authentication: Some(auth),
@@ -379,7 +371,6 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let response = self
                     .grpc_client
@@ -394,7 +385,6 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let url = self.get_http_url(REVOKE_TOKEN);
                 let result = self.get_http_result(url, auth).await;
@@ -408,7 +398,6 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let response = self
                     .grpc_client
@@ -430,7 +419,6 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let url = self.get_http_url(AUTH_FOR_TOKEN);
                 let result: TokenReply = self.get_http_result(url, auth).await;
@@ -456,7 +444,6 @@ impl RcdClient {
         match self.client_type {
             RcdClientType::Grpc => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let request = AcceptPendingActionRequest {
                     authentication: Some(auth),
@@ -478,7 +465,6 @@ impl RcdClient {
             }
             RcdClientType::Http => {
                 let auth = self.gen_auth_request();
-                info!("sending request");
 
                 let request = AcceptPendingActionRequest {
                     authentication: Some(auth),
@@ -506,8 +492,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -516,7 +500,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("{}: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -542,8 +526,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -552,7 +534,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("{}: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -582,8 +564,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -622,8 +602,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -662,8 +640,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -702,8 +678,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -739,8 +713,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -780,8 +752,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -817,8 +787,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -858,8 +826,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -897,8 +863,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -938,8 +902,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -976,8 +938,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -985,7 +945,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response)
             }
@@ -1013,8 +973,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1022,7 +980,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("{}: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response.is_successful)
             }
@@ -1051,8 +1009,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1060,7 +1016,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1089,8 +1045,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1098,7 +1052,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1120,7 +1074,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
                 let client = self.get_client();
 
                 let response = client
@@ -1128,8 +1081,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1151,12 +1103,10 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
                 let response = client.get_databases(request).await.unwrap().into_inner();
 
-                debug!("{:?}", response);
+                trace!("{}: {:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -1191,8 +1141,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
                 let response = client
                     .execute_cooperative_write_at_host(request)
@@ -1200,7 +1148,7 @@ impl RcdClient {
                     .unwrap()
                     .into_inner();
 
-                trace!("{:?}", response);
+                trace!("{}: {:?}", function_name!(), response);
 
                 Ok(response.is_successful)
             }
@@ -1222,8 +1170,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1231,7 +1177,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.contracts)
             }
@@ -1257,8 +1203,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1266,8 +1210,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1295,8 +1238,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1304,8 +1245,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_sent)
             }
@@ -1343,13 +1283,10 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client.add_participant(request).await.unwrap().into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1381,8 +1318,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1390,8 +1325,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1419,13 +1353,10 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client.has_table(request).await.unwrap().into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.has_table)
             }
@@ -1453,8 +1384,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1462,8 +1391,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
 
@@ -1495,8 +1423,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1504,8 +1430,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1537,8 +1462,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1546,8 +1469,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1579,8 +1501,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1588,8 +1508,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1614,8 +1533,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1655,8 +1572,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1664,8 +1579,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.results[0].clone())
             }
@@ -1697,8 +1611,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1706,8 +1618,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.results[0].clone())
             }
@@ -1733,8 +1644,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let client = self.get_client();
 
                 let response = client
@@ -1742,8 +1651,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1767,8 +1675,6 @@ impl RcdClient {
 
         match self.client_type {
             RcdClientType::Grpc => {
-                info!("sending request");
-
                 let response = self
                     .grpc_client
                     .as_mut()
@@ -1777,8 +1683,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("RESPONSE={response:?}");
-                info!("response back");
+                trace!("{}: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_created)
             }
