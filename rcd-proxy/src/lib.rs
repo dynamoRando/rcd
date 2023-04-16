@@ -546,7 +546,7 @@ impl RcdProxy {
 
         let mut service = rcdx::rcd_service::get_service_from_config(settings, full_folder_path);
 
-        trace!("{service:?}");
+        trace!("[{}]: {service:?}", function_name!());
 
         service.init_at_dir(&full_folder_path, un, u.hash.clone());
         service.warn_init_host_info();
