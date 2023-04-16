@@ -49,7 +49,7 @@ use rcdproto::rcdp::{
 };
 use reqwest::Client;
 use serde::de;
-use tracing::{trace, debug, info};
+use tracing::{trace, debug, info, instrument};
 use std::error::Error;
 use std::time::Duration;
 use stdext::function_name;
@@ -81,11 +81,11 @@ pub struct RcdClient {
 }
 
 impl RcdClient {
+    #[instrument]
     async fn get_grpc_client(
         grpc_client_addr_port: String,
         timeout_in_seconds: u32,
     ) -> SqlClientClient<Channel> {
-        debug!("{grpc_client_addr_port:?}");
 
         let endpoint = tonic::transport::Channel::builder(grpc_client_addr_port.parse().unwrap())
             .timeout(Duration::from_secs(timeout_in_seconds.into()));
@@ -1698,7 +1698,7 @@ impl RcdClient {
     }
 
     fn get_client(&mut self) -> &mut SqlClientClient<Channel> {
-        debug!("get_client addr_port {}", self.grpc_client_addr_port);
+        trace!("[{}]: {}", function_name!(), self.grpc_client_addr_port);
         return self.grpc_client.as_mut().unwrap();
     }
 

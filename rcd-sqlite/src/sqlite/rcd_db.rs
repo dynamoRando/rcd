@@ -4,6 +4,8 @@ use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use chrono::DateTime;
 use chrono::Utc;
 use guid_create::GUID;
+use stdext::function_name;
+use tracing::instrument;
 use tracing::{info, trace, warn};
 use rcd_common::crypt;
 use rcd_common::db::*;
@@ -230,14 +232,14 @@ pub fn check_database_name_for_contract_format(db_name: &str, conn: &Connection)
             "{}{}",
             "WARNING: check_database_name_for_contract_format no database named: ", db_name
         );
-        warn!("{}", message);
+        warn!("[{}]: {}", function_name!(), message);
 
         if db_name.contains(".dbpart") {
             let message = "check_database_name_for_contract_format: renaming database name to contract version of database";
-            info!("{}", message);
+            info!("[{}]: {}", function_name!(), message);
             db_name = db_name.replace(".dbpart", ".db");
             let message = format!("New database name is: {db_name}");
-            info!("{}", message);
+            info!("[{}]: {}", function_name!(), message);
         }
     }
 
@@ -422,9 +424,9 @@ pub fn verify_host_by_id(host_id: &str, token: Vec<u8>, config: &DbiConfigSqlite
     }
 }
 
+#[instrument]
 pub fn verify_host_by_name(host_name: &str, token: Vec<u8>, config: &DbiConfigSqlite) -> bool {
-    trace!("host_name: {host_name}");
-
+    
     let conn = get_rcd_conn(config);
     let mut cmd = String::from(
         "
@@ -558,11 +560,10 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
     let root = &config.root_folder;
     let db_name = &config.rcd_db_name;
 
-    info!("cwd is {}", &root);
-    info!("db_name is {}", &db_name);
-
+    trace!("[{}]: cwd is {}, db_name is {}", function_name!(), &root, &db_name);
+    
     let db_path = Path::new(&root).join(db_name);
-    info!("db_path is {}", db_path.as_os_str().to_str().unwrap());
+    trace!("[{}]: db_path is {}", function_name!(), db_path.as_os_str().to_str().unwrap());
 
     if !db_path.exists() {
         let db_conn = Connection::open(&db_path).unwrap();
@@ -583,7 +584,7 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
             execute_write_on_connection(db_name, &statement, config);
         }
     } else {
-        warn!("configure_rcd_db: dir already exists: {db_path:?}");
+        warn!("[{}]: dir already exists: {db_path:?}", function_name!());
     }
 }
 
