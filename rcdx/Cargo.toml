@@ -32,7 +32,7 @@ guid-create = "0.3.0"
 substring = "1.4.5"
 endianness = "0.2.0"
 antlr-rust = "0.3.0-beta"
-tracing = "0.1"
+tracing = { version = "0.1", features = ["attributes"] }
 triggered = "0.1"
 serde = "1"
 serde_derive = "1"

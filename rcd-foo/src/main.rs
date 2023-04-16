@@ -18,8 +18,9 @@ fn main() {
 }
 
 mod yak_shave{
-    use tracing::info;
+    use tracing::{info, instrument};
 
+    #[instrument]
     pub fn shave_all(number_of_yaks: u32) -> u32 {
         info!("this is a message");
         number_of_yaks

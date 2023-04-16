@@ -3,7 +3,7 @@ use std::{fs, path::Path};
 use crate::proxy_grpc::{ProxyClientGrpc, ProxyDbGrpc};
 use chrono::{DateTime, Utc};
 use config::Config;
-use tracing::warn;
+use tracing::{warn, instrument};
 #[allow(unused_imports)]
 use tracing::{debug, error, info, trace};
 use proxy_db::ProxyDb;
@@ -164,6 +164,7 @@ impl RcdProxy {
         };
     }
 
+    #[instrument]
     fn get_settings(dir: &str) -> Result<RcdProxySettings, RcdProxyErr> {
         let config = Path::new(&dir).join(SETTINGS);
 

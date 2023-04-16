@@ -1,6 +1,8 @@
 use fern::colors::{Color, ColoredLevelConfig};
 use rcd_proxy::{proxy_server::ProxyServer, RcdProxy};
 use std::{env, path::Path};
+use tracing_subscriber::{self, util::SubscriberInitExt};
+use tracing_subscriber::EnvFilter;
 
 #[tokio::main]
 async fn main() {
@@ -8,7 +10,8 @@ async fn main() {
     process_cmd_args(args);
 
     // SimpleLogger::new().env().init().unwrap();
-    init_log_to_screen_fern(log::LevelFilter::Trace);
+    // init_log_to_screen_fern(log::LevelFilter::Trace);
+    init_to_screen();
 
     let dir = &cwd();
     let result_proxy = RcdProxy::get_proxy_from_config(dir);
@@ -37,6 +40,24 @@ fn cwd() -> String {
     cur_dir.to_str().unwrap().to_string()
 }
 
+ fn init_to_screen() {
+    let filter = EnvFilter::builder()
+       .parse_lossy("rcd=trace");
+
+    println!("{filter:?}");
+
+    let subscriber = 
+    tracing_subscriber::fmt().compact()
+    .with_file(true)
+    .with_line_number(true)
+    .with_target(true)
+    .with_env_filter(filter)
+    .finish();
+    
+    subscriber.init();
+ }
+
+#[allow(dead_code)]
 fn init_log_to_screen_fern(level: log::LevelFilter) {
     use ignore_result::Ignore;
 

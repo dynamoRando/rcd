@@ -12,7 +12,7 @@ use std::env;
 use std::path::Path;
 use std::sync::mpsc::{Receiver, Sender};
 use triggered::Listener;
-use tracing::{error, info, trace};
+use tracing::{error, info, trace, instrument};
 use rcd_enum::database_type::DatabaseType;
 
 mod grpc;
@@ -406,6 +406,7 @@ impl RcdService {
         return grpc::start_grpc_client_service_alt(self);
     }
 
+    #[instrument]
     pub fn start_grpc_client_service_at_addr(
         &self,
         address_port: String,
