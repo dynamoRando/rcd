@@ -231,7 +231,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let cols = statement.columns();
     let mut table = Table::new();
 
-    trace!("{}: {:?}", function_name!(), cmd);
+    trace!("[{}]: {:?}", function_name!(), cmd);
 
     for col in cols {
         let col_idx = statement.column_index(col.name())?;

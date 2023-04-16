@@ -626,7 +626,7 @@ impl RcdProxy {
     }
 
     fn get_user_root_dir(&self, u: &UserInfo) -> Result<String, RcdProxyErr> {
-        trace!("{}: {u:?}", function_name!());
+        trace!("[{}]: {u:?}", function_name!());
 
         if u.folder.as_ref().is_none() {
             return Err(RcdProxyErr::UserFolderNotSet(u.username.clone()));

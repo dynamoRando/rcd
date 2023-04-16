@@ -500,7 +500,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={:?}", function_name!(), response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -534,7 +534,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={:?}", function_name!(), response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -572,7 +572,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -610,7 +610,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response.row_ids)
             }
@@ -945,7 +945,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response)
             }
@@ -980,7 +980,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={:?}", function_name!(), response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response.is_successful)
             }
@@ -1016,7 +1016,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1052,7 +1052,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1081,7 +1081,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1106,7 +1106,7 @@ impl RcdClient {
                 let client = self.get_client();
                 let response = client.get_databases(request).await.unwrap().into_inner();
 
-                trace!("{}: {:?}", function_name!(), response);
+                trace!("[{}]: {:?}", function_name!(), response);
 
                 Ok(response)
             }
@@ -1148,7 +1148,7 @@ impl RcdClient {
                     .unwrap()
                     .into_inner();
 
-                trace!("{}: {:?}", function_name!(), response);
+                trace!("[{}]: {:?}", function_name!(), response);
 
                 Ok(response.is_successful)
             }
@@ -1177,7 +1177,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.contracts)
             }
@@ -1210,7 +1210,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1245,7 +1245,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_sent)
             }
@@ -1286,7 +1286,7 @@ impl RcdClient {
                 let client = self.get_client();
 
                 let response = client.add_participant(request).await.unwrap().into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1325,7 +1325,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1356,7 +1356,7 @@ impl RcdClient {
                 let client = self.get_client();
 
                 let response = client.has_table(request).await.unwrap().into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.has_table)
             }
@@ -1391,7 +1391,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 let policy = LogicalStoragePolicy::from_i64(response.policy_mode as i64);
 
@@ -1430,7 +1430,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1469,7 +1469,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1508,7 +1508,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1540,7 +1540,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={:?}", function_name!(), response);
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 response.is_successful
             }
@@ -1579,7 +1579,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.results[0].clone())
             }
@@ -1618,7 +1618,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.results[0].clone())
             }
@@ -1651,7 +1651,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_successful)
             }
@@ -1683,7 +1683,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("{}: RESPONSE={response:?}", function_name!());
+                trace!("[{}]: RESPONSE={response:?}", function_name!());
 
                 Ok(response.is_created)
             }
@@ -1714,7 +1714,7 @@ impl RcdClient {
                 id: self.host_id.clone(),
             };
 
-            trace!("{}: {auth:?}", function_name!());
+            trace!("[{}]: {auth:?}", function_name!());
 
             return auth;
         }
@@ -1728,7 +1728,7 @@ impl RcdClient {
             id: self.host_id.clone(),
         };
 
-        trace!("{}: {:?}", function_name!(), auth);
+        trace!("[{}]: {:?}", function_name!(), auth);
 
         auth
     }
@@ -1736,8 +1736,8 @@ impl RcdClient {
     async fn send_http_message(&self, json_message: String, url: String) -> String {
         let client = self.http_client.as_ref().unwrap();
 
-        trace!("{}: {json_message}", function_name!());
-        trace!("{}: {url}", function_name!());
+        trace!("[{}]: {json_message}", function_name!());
+        trace!("[{}]: {url}", function_name!());
 
         return client
             .post(url)
@@ -1771,7 +1771,7 @@ impl RcdClient {
         let http_base = format!("{}{}:{}", "http://", self.http_addr, self.http_port);
 
         let result = format!("{http_base}{action_url}");
-        trace!("{}: {}", function_name!(), result);
+        trace!("[{}]: {}", function_name!(), result);
         result
     }
 }

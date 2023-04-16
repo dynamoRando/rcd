@@ -2571,13 +2571,8 @@ dependencies = [
 name = "rcd-foo"
 version = "0.1.0"
 dependencies = [
- "log",
- "prost",
- "simple_logger",
- "tokio",
- "tonic",
- "tonic-build",
- "tonic-web-wasm-client",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
