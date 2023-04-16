@@ -52,8 +52,8 @@ use reqwest::Client;
 use serde::de;
 use std::error::Error;
 use std::time::Duration;
-use tonic::transport::Channel;
 use stdext::function_name;
+use tonic::transport::Channel;
 
 pub mod client_type;
 pub mod error;
@@ -1540,7 +1540,7 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                debug!("RESPONSE={:?}", response);
+                trace!("{}: RESPONSE={:?}", function_name!(), response);
 
                 response.is_successful
             }
@@ -1607,7 +1607,7 @@ impl RcdClient {
             database_type: db_type,
         };
 
-        trace!("REQUEST={request:?}");
+        trace!("{}: REQUEST={request:?}", function_name!());
 
         match self.client_type {
             RcdClientType::Grpc => {
@@ -1714,7 +1714,7 @@ impl RcdClient {
                 id: self.host_id.clone(),
             };
 
-            debug!("{auth:?}");
+            trace!("{}: {auth:?}", function_name!());
 
             return auth;
         }
@@ -1728,7 +1728,7 @@ impl RcdClient {
             id: self.host_id.clone(),
         };
 
-        debug!("{:?}", auth);
+        trace!("{}: {:?}", function_name!(), auth);
 
         auth
     }
@@ -1736,8 +1736,8 @@ impl RcdClient {
     async fn send_http_message(&self, json_message: String, url: String) -> String {
         let client = self.http_client.as_ref().unwrap();
 
-        debug!("{json_message}");
-        debug!("{url}");
+        trace!("{}: {json_message}", function_name!());
+        trace!("{}: {url}", function_name!());
 
         return client
             .post(url)
@@ -1771,7 +1771,7 @@ impl RcdClient {
         let http_base = format!("{}{}:{}", "http://", self.http_addr, self.http_port);
 
         let result = format!("{http_base}{action_url}");
-        debug!("{}", result);
+        trace!("{}: {}", function_name!(), result);
         result
     }
 }
