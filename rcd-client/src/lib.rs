@@ -1469,7 +1469,8 @@ impl RcdClient {
                     .await
                     .unwrap()
                     .into_inner();
-                trace!("[{}]: RESPONSE={response:?}", function_name!());
+
+                trace!("[{}]: RESPONSE={:?}", function_name!(), response);
 
                 Ok(response.is_successful)
             }
@@ -1607,7 +1608,7 @@ impl RcdClient {
             database_type: db_type,
         };
 
-        trace!("{}: REQUEST={request:?}", function_name!());
+        trace!("[{}]: REQUEST={request:?}", function_name!());
 
         match self.client_type {
             RcdClientType::Grpc => {

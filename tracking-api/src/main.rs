@@ -3,10 +3,12 @@ use fern::colors::{Color, ColoredLevelConfig};
 use tracing::{debug, info};
 use rcd_client::RcdClient;
 use srv::TrackingServer;
+use tracing_subscriber::EnvFilter;
 use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use tracing_subscriber::util::SubscriberInitExt;
 
 pub mod error;
 mod srv;
@@ -38,7 +40,8 @@ impl ApiSettings {
 
 #[tokio::main]
 async fn main() {
-    init_log_to_screen_fern(log::LevelFilter::Trace);
+    //init_log_to_screen_fern(log::LevelFilter::Trace);
+    init_to_screen();
 
     let settings_location: String;
 
@@ -54,6 +57,24 @@ async fn main() {
     server.start(settings).await.unwrap();
 }
 
+fn init_to_screen() {
+    let filter = EnvFilter::builder()
+       .parse_lossy("rcd=trace");
+
+    println!("{filter:?}");
+
+    let subscriber = 
+    tracing_subscriber::fmt().compact()
+    .with_file(true)
+    .with_line_number(true)
+    .with_target(true)
+    .with_env_filter(filter)
+    .finish();
+    
+    subscriber.init();
+ }
+
+#[allow(dead_code)]
 fn init_log_to_screen_fern(level: log::LevelFilter) {
     use ignore_result::Ignore;
 
