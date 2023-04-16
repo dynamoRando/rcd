@@ -14,3 +14,4 @@ substring = "1.4.5"
 rcdproto = { path = "../rcdproto" }
 rcd-enum = { path = "../rcd-enum" }
 tracing = "0.1"
+stdext = "0.3"

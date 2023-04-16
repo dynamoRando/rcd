@@ -2510,6 +2510,7 @@ dependencies = [
  "rcdproto",
  "serde",
  "sodiumoxide",
+ "stdext",
  "substring",
  "tracing",
 ]

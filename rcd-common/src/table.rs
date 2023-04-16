@@ -1,4 +1,5 @@
 use guid_create::GUID;
+use stdext::function_name;
 use tracing::trace;
 use rcd_enum::column_type::ColumnType;
 use substring::Substring;
@@ -60,7 +61,7 @@ impl Column {
     pub fn data_type_len(&self) -> u32 {
         let str_data_type: String = self.data_type.clone();
 
-        trace!("{str_data_type:?}");
+        trace!("[{}]: {str_data_type:?}", function_name!());
 
         let idx_first_paren = str_data_type.find('(');
 
@@ -71,7 +72,7 @@ impl Column {
             let idx_last = str_data_type.find(')').unwrap();
             let str_length = str_data_type.substring(idx_first, idx_last);
 
-            trace!("{str_length:?}");
+            trace!("[{}]: {str_length:?}", function_name!());
 
             let length: u32 = str_length.parse().unwrap();
             length
