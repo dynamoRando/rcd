@@ -164,11 +164,10 @@ impl RcdProxy {
         };
     }
 
-    #[instrument]
     fn get_settings(dir: &str) -> Result<RcdProxySettings, RcdProxyErr> {
         let config = Path::new(&dir).join(SETTINGS);
 
-        debug!("{config:?}");
+        debug!("[{}]: {config:?}", function_name!());
 
         if !Path::exists(&config) {
             return Err(RcdProxyErr::SettingsNotFound(dir.to_string()));
