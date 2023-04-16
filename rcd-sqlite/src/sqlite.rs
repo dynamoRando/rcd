@@ -11,6 +11,7 @@ pub mod db;
 pub mod db_part;
 pub mod rcd_db;
 mod sql_text;
+use stdext::function_name;
 
 pub fn get_last_log_entries(number_of_entries: u32, config: &DbiConfigSqlite) -> Vec<LogEntry> {
     SqliteLog::get_last_x_logs(number_of_entries, &config.root_folder)
@@ -230,7 +231,7 @@ pub fn execute_read(cmd: &str, conn: &Connection) -> Result<Table, RcdDbError> {
     let cols = statement.columns();
     let mut table = Table::new();
 
-    trace!("execute_read: {:?}", cmd);
+    trace!("{}: {:?}", function_name!(), cmd);
 
     for col in cols {
         let col_idx = statement.column_index(col.name())?;

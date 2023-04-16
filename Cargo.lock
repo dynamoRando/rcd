@@ -2736,6 +2736,7 @@ dependencies = [
  "serde",
  "serde_derive",
  "sodiumoxide",
+ "stdext",
  "substring",
  "thiserror",
  "tokio",
