@@ -23,6 +23,7 @@ pub fn AddMainEvent() -> Html {
             let add_event_result = add_event_result.clone();
 
             let event_date_val = event_date.cast::<HtmlInputElement>().unwrap().value();
+            let event_date_notes = event_date_notes.cast::<HtmlInputElement>().unwrap().value();
 
             spawn_local(async move {
                 let add_event_result = add_event_result.clone();
@@ -30,7 +31,7 @@ pub fn AddMainEvent() -> Html {
                 let event = SharkEvent {
                     id: 0,
                     date: event_date_val,
-                    notes: None,
+                    notes: Some(event_date_notes),
                     associated_events: None,
                     user_id: Some(get_uid()),
                 };
@@ -63,6 +64,12 @@ pub fn AddMainEvent() -> Html {
                     <p>{"This is the start of your period."}</p>
                     <p><label for="main_event">{"Date" }</label>
                     <input type="date" id="main_event" name="main_event" ref={event_date} /></p>
+
+                    <p><label for="notes">{ "Enter Any Notes" }</label></p>
+                    <p>
+                        <textarea class="textarea" rows="5" cols="60"  id ="notes" placeholder="Enter any notes here" ref={&event_date_notes}/>
+                    </p>
+        
 
                     <div class="buttons">
                             <button type="button" class="button is-primary" id="Add" value="Add" {onclick}>

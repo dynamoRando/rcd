@@ -1,5 +1,5 @@
-use tracing::{debug, error};
 use rocket::{http::Status, post, serde::json::Json, State};
+use tracing::{debug, error};
 use tracking_model::event::{SharkAssociatedEvent, SharkEvent};
 
 use crate::{
@@ -50,9 +50,7 @@ pub async fn add_event(
                 let mut request = request.into_inner();
                 request.id = max_id + 1;
 
-                match request.notes {
-                    None => {
-                        let cmd = r#"
+                let cmd = r#"
 INSERT INTO event
 (
     id,
@@ -64,41 +62,39 @@ VALUES
 (
     :id,
     ':event_date',
-    '',
+    ':notes',
     :uid
 )
 ;"#;
 
-                        let id = request.id.to_string();
-                        let uid = request.user_id.unwrap().to_string();
+                let id = request.id.to_string();
+                let uid = request.user_id.unwrap().to_string();
 
-                        let cmd = cmd
-                            .replace(":id", &id)
-                            .replace(":event_date", &request.date)
-                            .replace(":uid", &uid);
+                let cmd = cmd
+                    .replace(":id", &id)
+                    .replace(":event_date", &request.date)
+                    .replace(":uid", &uid)
+                    .replace(":notes", &request.notes.as_ref().unwrap().clone());
 
-                        let mut client = get_client(settings).await;
-                        let add_event_result = client
-                            .execute_cooperative_write_at_host(DB_NAME, &cmd, &user_name, "")
-                            .await;
+                let mut client = get_client(settings).await;
+                let add_event_result = client
+                    .execute_cooperative_write_at_host(DB_NAME, &cmd, &user_name, "")
+                    .await;
 
-                        match add_event_result {
-                            Ok(is_added) => {
-                                if is_added {
-                                    return Status::Ok;
-                                } else {
-                                    return Status::InternalServerError;
-                                }
-                            }
-                            Err(_) => {
-                                error!(
-                                    "unable to add event for token: {} event: {request:?}",
-                                    &token.jwt()
-                                );
-                            }
+                match add_event_result {
+                    Ok(is_added) => {
+                        if is_added {
+                            return Status::Ok;
+                        } else {
+                            return Status::InternalServerError;
                         }
                     }
-                    Some(notes) => todo!(),
+                    Err(_) => {
+                        error!(
+                            "unable to add event for token: {} event: {request:?}",
+                            &token.jwt()
+                        );
+                    }
                 }
             }
 
