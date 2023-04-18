@@ -1,12 +1,183 @@
+use tracking_model::event::{SharkAssociatedEvent, SharkEvent};
+use yew::{platform::spawn_local, prelude::*};
 
-use yew::prelude::*;
-
+use crate::{logging::log_to_console, repo::Repo};
 
 #[function_component]
-pub fn ViewEvents() -> Html { 
+pub fn ViewEvents() -> Html {
+    let events = use_state_eq(move || {
+        let x: Vec<SharkEvent> = Vec::new();
+        x
+    });
+
+    let get_event_result = use_state_eq(|| String::from(""));
+
+    let onclick = {
+        let events = events.clone();
+        let get_event_result = get_event_result.clone();
+
+        Callback::from(move |_| {
+            let events = events.clone();
+            let get_event_result = get_event_result.clone();
+
+            spawn_local(async move {
+                let events = events.clone();
+                let get_event_result = get_event_result.clone();
+
+                let result = Repo::get_events().await;
+                let message = format!("get event response: {:?}", result);
+                log_to_console(&message);
+
+                match result {
+                    Ok(repo_events) => {
+                        events.set(repo_events);
+                    }
+                    Err(_) => {
+                        get_event_result.set("Failed!".to_string());
+                    }
+                }
+            });
+        })
+    };
+
+    let onclick_mock = {
+        let events = events.clone();
+        let get_event_result = get_event_result.clone();
+
+        Callback::from(move |_| {
+            let events = events.clone();
+            let get_event_result = get_event_result.clone();
+
+            spawn_local(async move {
+                let events = events.clone();
+                let get_event_result = get_event_result.clone();
+
+                let result = Repo::get_events_mock().await;
+                let message = format!("get event response: {:?}", result);
+                log_to_console(&message);
+
+                match result {
+                    Ok(repo_events) => {
+                        events.set(repo_events);
+                    }
+                    Err(_) => {
+                        get_event_result.set("Failed!".to_string());
+                    }
+                }
+            });
+        })
+    };
+
     html!(
         <div>
-            <p>{"View Events Placeholder"}</p>
+            <div class="container">
+                <div class="box">
+                    <p><h1 class="subtitle"> {"View Events"} </h1></p>
+                    <div class="buttons">
+                            <button type="button" class="button is-primary" id="Add" value="View" {onclick}>
+                                <span class="mdi mdi-calendar-account">{" View"}</span>
+                            </button>
+                            <button type="button" class="button is-primary" id="Add" value="View" onclick={&onclick_mock}>
+                            <span class="mdi mdi-calendar-account">{" View Mock"}</span>
+                        </button>
+                    </div>
+                    <p>{"Get Events Result: "}{(*get_event_result).clone()}</p>
+
+                    <div class="table-container">
+                        <table class="table is-narrow">
+                            <thead>
+                                <tr>
+                                    <th>{"Main Event Date"}</th>
+                                    <th>{"Associated Event Date"}</th>
+                                    <th>{"Associated Event Type"}</th>
+                                    <th>{"Notes"}</th>
+                                </tr>
+                            </thead>
+                            {
+                                (*events).clone().into_iter().map(|e|{
+                                    let event = e.clone();
+                                    let main_event_date = event.date.clone();
+                                    let main_event_notes = event.notes.clone();
+                                    let associated_events = event.associated_events.clone();
+
+                                    let mut associated_event_html = "".to_string();
+
+                                    // if let Some(associated_events) = associated_events {
+                                    //     for associated_event in &associated_events{
+                                    //         let associated_event_date = associated_event.date.clone();
+                                    //         let associated_event_type = associated_event.event_type.as_string().to_string();
+                                    //         let associated_event_notes = associated_event.notes.clone();
+
+                                    //         let associated_event_notes =
+                                    //         match associated_event_notes {
+                                    //             Some(notes) => notes,
+                                    //             None => "".to_string(),
+                                    //         };
+
+                                    //         associated_event_html += &format!("
+                                    //         <tr>
+                                    //             <td></td>
+                                    //             <td>{associated_event_date}</td>
+                                    //             <td>{associated_event_type}</td>
+                                    //             <td>{associated_event_notes}</td>
+                                    //         </tr>").to_string();
+                                    //     }
+                                    // }
+
+                                    // let ae = html!({associated_event_html});
+
+                                    html!{
+                                        <>
+                                        <tr>
+                                            <td>{main_event_date}</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td>{main_event_notes}</td>
+                                        </tr>
+                                        {get_associated_events_html(associated_events)}
+                                        </>
+                                    }
+                                }).collect::<Html>()
+                            }
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     )
+}
+
+fn get_associated_events_html(associated_events: Option<Vec<SharkAssociatedEvent>>) -> Html {
+    match associated_events {
+        None => {
+            return html!(
+                <>
+                </>
+            )
+        }
+        Some(events) => {
+            return events
+                .into_iter()
+                .map(|ae| {
+                    let date = ae.date.clone();
+                    let event_type = ae.event_type.as_string().to_string();
+                    let notes_option = ae.notes.clone();
+
+                    let notes = match notes_option {
+                        None => "".to_string(),
+                        Some(notes) => notes,
+                    };
+
+                    html! {
+                        <tr>
+                            <td></td>
+                            <td>{date}</td>
+                            <td>{event_type}</td>
+                            <td>{notes}</td>
+                        </tr>
+                    }
+                })
+                .collect::<Html>()
+        }
+    }
 }

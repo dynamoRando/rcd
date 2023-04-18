@@ -228,19 +228,20 @@ impl RcdRemoteDbClient {
         &self,
         participant: CoopDatabaseParticipantData,
         own_host_info: HostInfo,
+        row_id: u32,
     ) -> GetRowFromPartialDatabaseResult {
         match self.comm_type {
             RcdCommunication::Unknown => todo!(),
             RcdCommunication::Grpc => {
                 return self
                     .grpc()
-                    .get_row_from_participant(participant, own_host_info)
+                    .get_row_from_participant(participant, own_host_info, row_id)
                     .await;
             }
             RcdCommunication::Http => {
                 return self
                     .http()
-                    .get_row_from_participant(participant, own_host_info)
+                    .get_row_from_participant(participant, own_host_info, row_id)
                     .await;
             }
         };

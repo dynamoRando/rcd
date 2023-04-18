@@ -119,6 +119,7 @@ impl RemoteHttp {
         &self,
         participant: CoopDatabaseParticipantData,
         own_host_info: HostInfo,
+        row_id: u32,
     ) -> GetRowFromPartialDatabaseResult {
         let message_info = get_message_info(&own_host_info, "".to_string());
         let auth = get_auth_request(&own_host_info);
@@ -126,7 +127,7 @@ impl RemoteHttp {
         let row_address = RowParticipantAddress {
             database_name: participant.db_name.clone(),
             table_name: participant.table_name.clone(),
-            row_id: participant.row_data.first().unwrap().0,
+            row_id: row_id,
         };
 
         let request = GetRowFromPartialDatabaseRequest {

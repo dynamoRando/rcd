@@ -584,7 +584,8 @@ pub fn configure_rcd_db(config: &DbiConfigSqlite) {
             execute_write_on_connection(db_name, &statement, config);
         }
     } else {
-        warn!("[{}]: dir already exists: {db_path:?}", function_name!());
+        trace!("[{}]: dir already exists: {db_path:?}", function_name!());
+        trace!("[{}]: this can happen if RCD is running via a proxy", function_name!());
     }
 }
 

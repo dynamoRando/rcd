@@ -8,14 +8,15 @@ use chrono::{DateTime, Duration, Utc};
 
 use hmac::{Hmac, Mac};
 use jwt::{AlgorithmType, Header, SignWithKey, Token};
-use tracing::debug;
 use sha2::Sha384;
 use std::collections::BTreeMap;
+use stdext::function_name;
+use tracing::{debug, trace};
 
 /// returns a count of rows where the expected column is "cnt"
 pub async fn has_any_rows(sql: &str, settings: &ApiSettings) -> Result<bool, TrackingApiError> {
     let count = get_count(sql, settings).await?;
-    debug!("has any rows: {}", count);
+    trace!("[{}]: has any rows: {}", function_name!(), count);
     Ok(count > 0)
 }
 
@@ -26,21 +27,7 @@ pub async fn get_count(sql: &str, settings: &ApiSettings) -> Result<u32, Trackin
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
 
     if !result.is_error {
-        let rows = result.clone().rows;
-        for row in &rows {
-            for value in &row.values {
-                if let Some(column) = &value.column {
-                    if column.column_name == "cnt" {
-                        let rv = value.string_value.parse::<u32>();
-                        if let Ok(v) = rv {
-                            return Ok(v);
-                        } else {
-                            return Err(TrackingApiError::Unknown);
-                        }
-                    }
-                }
-            }
-        }
+        return Ok(result.clone().rows.len() as u32);
     }
 
     Err(TrackingApiError::Unknown)

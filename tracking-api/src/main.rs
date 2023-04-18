@@ -59,7 +59,7 @@ async fn main() {
 
 fn init_to_screen() {
     let filter = EnvFilter::builder()
-       .parse_lossy("rcd=trace");
+       .parse_lossy("rcd=trace,tracking=trace");
 
     println!("{filter:?}");
 

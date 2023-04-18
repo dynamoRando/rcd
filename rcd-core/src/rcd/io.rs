@@ -2,7 +2,6 @@ use super::Rcd;
 use ::rcd_enum::rcd_database_type::RcdDatabaseType;
 use conv::UnwrapOk;
 use conv::ValueFrom;
-use tracing::{error, info, trace, warn};
 use rcd_common::data_info::DataInfo;
 use rcd_enum::deletes_to_host_behavior::DeletesToHostBehavior;
 use rcd_enum::dml_type::DmlType;
@@ -16,6 +15,8 @@ use rcdproto::rcdp::ExecuteWriteReply;
 use rcdproto::rcdp::ExecuteWriteRequest;
 use rcdproto::rcdp::RcdError;
 use rcdproto::rcdp::{ExecuteReadReply, ExecuteReadRequest, StatementResultset};
+use stdext::function_name;
+use tracing::{error, info, trace, warn};
 
 pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> ExecuteReadReply {
     let auth_result = core.verify_login(request.authentication.unwrap());
@@ -41,60 +42,72 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
             Ok(has_cooperative_tables) => {
                 if has_cooperative_tables {
                     trace!(
-                        "execute_read_at_host: found cooperative tables for: {} w/ sql {}",
+                        "[{}]: found cooperative tables for: {} w/ sql {}",
+                        function_name!(),
                         &db_name,
                         &sql
                     );
 
                     let cooperative_tables = core.dbi().get_cooperative_tables(&db_name, &sql);
 
-                    trace!("execute_read_at_host: cooperative_tables: {cooperative_tables:?}");
+                    trace!("[{}]: cooperative_tables: {cooperative_tables:?}", function_name!());
 
                     for ct in &cooperative_tables {
                         let participants_for_table =
                             core.dbi().get_participants_for_table(&db_name, ct.as_str());
 
-                        trace!("execute_read_at_host: participants_for_table: {participants_for_table:?}");
+                        trace!("[{}]: execute_read_at_host: participants_for_table: {participants_for_table:?}", function_name!());
 
                         if participants_for_table.is_empty() {
-                            warn!("WARN: execute_read_at_host: no participants found for table: {ct:?}");
+                            warn!("[{}]: execute_read_at_host: no participants found for table: {ct:?}", function_name!());
                         }
 
                         for participant in &participants_for_table {
                             trace!("execute_read_at_host: participant: {participant:?}");
 
-                            // we would need to get rows for that table from the participant
-                            let host_info =
-                                core.dbi().rcd_get_host_info().expect("no host info is set");
-                            let remote_data_result = core
-                                .remote()
-                                .get_row_from_participant(participant.clone(), host_info)
-                                .await;
+                            for row in &participant.row_data {
+                                // we would need to get rows for that table from the participant
+                                let host_info =
+                                    core.dbi().rcd_get_host_info().expect("no host info is set");
 
-                            trace!(
-                                "execute_read_at_host: remote_data_result: {remote_data_result:?}"
-                            );
+                                let remote_data_result = core
+                                    .remote()
+                                    .get_row_from_participant(participant.clone(), host_info, row.0)
+                                    .await;
 
-                            if !remote_data_result.is_successful {
-                                warn!("remote data result failed: {remote_data_result:?}");
-                            }
-
-                            let data_hash_for_row =
-                                remote_data_result.row.as_ref().unwrap().hash.clone();
-
-                            let saved_hash_for_row =
-                                participant.row_data.first().unwrap().1.clone();
-
-                            if data_hash_for_row == saved_hash_for_row {
-                                let row = remote_data_result.row.as_ref().unwrap().clone();
-                                result_table.push(row);
-                                statement_result_set.is_error = false;
-                            } else {
-                                let row = remote_data_result.row.as_ref().unwrap().clone();
-                                result_table.push(row);
-                                statement_result_set.result_message = String::from(
-                                    "warning: data hashes for host and participant rows do not match!",
+                                trace!(
+                                    "[{}]: execute_read_at_host: remote_data_result: {remote_data_result:?}", function_name!()
                                 );
+
+                                if !remote_data_result.is_successful {
+                                    warn!(
+                                        "[{}]: remote data result failed: {remote_data_result:?}",
+                                        function_name!()
+                                    );
+                                }
+
+                                let data_hash_for_row =
+                                    remote_data_result.row.as_ref().unwrap().hash.clone();
+
+                                let saved_hash_for_row = row.1.clone();
+
+                                if data_hash_for_row == saved_hash_for_row {
+                                    let row = remote_data_result.row.as_ref().unwrap().clone();
+                                    result_table.push(row);
+                                    statement_result_set.is_error = false;
+                                } else {
+                                    let row = remote_data_result.row.as_ref().unwrap().clone();
+                                    result_table.push(row);
+
+                                    warn!(
+                                        "[{}]: data hashes for host and participant rows do not match!",
+                                        function_name!()
+                                    );
+
+                                    statement_result_set.result_message = String::from(
+                                        "warning: data hashes for host and participant rows do not match!",
+                                    );
+                                }
                             }
                         }
                     }

@@ -75,8 +75,8 @@ pub fn AddMainEvent() -> Html {
                             <button type="button" class="button is-primary" id="Add" value="Add" {onclick}>
                                 <span class="mdi mdi-calendar">{" Add"}</span>
                             </button>
-                            
-                        </div>
+                    </div>
+                    <p>{"Add Event Result: "}{(*add_event_result).clone()}</p>
                 </div>
             </div>
         </div>

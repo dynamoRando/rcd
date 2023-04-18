@@ -242,6 +242,7 @@ impl RemoteGrpc {
         &self,
         participant: CoopDatabaseParticipantData,
         own_host_info: HostInfo,
+        row_id: u32,
     ) -> GetRowFromPartialDatabaseResult {
         let message_info = get_message_info(&own_host_info, self.db_addr_port.clone());
         let auth = get_auth_request(&own_host_info, Some(participant.participant.id.to_string()));
@@ -249,7 +250,7 @@ impl RemoteGrpc {
         let row_address = RowParticipantAddress {
             database_name: participant.db_name.clone(),
             table_name: participant.table_name.clone(),
-            row_id: participant.row_data.first().unwrap().0,
+            row_id: row_id,
         };
 
         let request = GetRowFromPartialDatabaseRequest {

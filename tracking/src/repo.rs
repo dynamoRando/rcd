@@ -135,6 +135,23 @@ impl Repo {
         }
     }
 
+    pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {
+        log_to_console("getting events");
+        let addr = format!("{}{}", REPO_LOCATION, r#"events/get/mock"#);
+        let result_get = Self::get(&addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
+                return Ok(result);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
+    }
+
     pub async fn get_events() -> Result<Vec<SharkEvent>, String> {
         log_to_console("getting events");
         let addr = format!("{}{}", REPO_LOCATION, r#"events/get"#);
