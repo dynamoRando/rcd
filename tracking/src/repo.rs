@@ -7,8 +7,9 @@ use tracking_model::{
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
+use dotenv_codegen::dotenv;
 
-const REPO_LOCATION: &str = "http://shark.home:8020/";
+pub const REPO_LOCATION: &str = dotenv!("TRACKING_API_ADDRESS");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Repo {}

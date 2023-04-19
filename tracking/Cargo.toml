@@ -1,6 +1,6 @@
 [package]
 name = "tracking"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -24,6 +24,8 @@ num-derive = "0.3"
 num-traits = "0.2"
 yew-router = "0.17"
 futures-util = "0.3"
+dotenvy = "0.15.7"
+dotenv_codegen = "0.15.0"
 
 [dependencies.web-sys]
 version = "0.3"

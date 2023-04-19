@@ -23,8 +23,6 @@ pub mod repo;
 pub mod storage;
 pub mod view_events;
 
-const DEFAULT_REPO_ADDR: &str = "localhost:8020";
-
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/")]
