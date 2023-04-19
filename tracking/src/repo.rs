@@ -8,7 +8,7 @@ use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
 
-const REPO_LOCATION: &str = "http://0.0.0.0:8020/";
+const REPO_LOCATION: &str = "http://localhost:8020/";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Repo {}
