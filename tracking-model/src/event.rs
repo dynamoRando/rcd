@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::NaiveDate;
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde_derive::{Deserialize, Serialize};
 
@@ -43,7 +43,6 @@ CREATE TABLE IF NOT EXISTS associated_event
 
 */
 
-
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 pub struct SharkEvent {
     pub id: u32,
@@ -54,8 +53,13 @@ pub struct SharkEvent {
 }
 
 impl SharkEvent {
-    pub fn date(&self) -> Result<NaiveDateTime, String> {
-        todo!()
+    pub fn date(&self) -> Result<NaiveDate, String> {
+        let parse_result = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d");
+
+        match parse_result {
+            Ok(date) => Ok(date),
+            Err(e) => Err(e.to_string()),
+        }
     }
 }
 
@@ -69,8 +73,13 @@ pub struct SharkAssociatedEvent {
 }
 
 impl SharkAssociatedEvent {
-    pub fn date(&self) -> Result<NaiveDateTime, String> {
-        todo!()
+    pub fn date(&self) -> Result<NaiveDate, String> {
+        let parse_result = NaiveDate::parse_from_str(&self.date, "%Y-%m-%d");
+
+        match parse_result {
+            Ok(date) => Ok(date),
+            Err(e) => Err(e.to_string()),
+        }
     }
 }
 

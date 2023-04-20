@@ -1,13 +1,15 @@
 use tracking_model::event::SharkEvent;
 use web_sys::HtmlInputElement;
-use yew::{prelude::*, platform::spawn_local};
+use yew::{platform::spawn_local, prelude::*};
 
-use crate::{repo::Repo, logging::log_to_console, storage::get_uid};
-
+use crate::{
+    logging::log_to_console,
+    repo::Repo,
+    storage::{get_last_x_events, get_uid},
+};
 
 #[function_component]
-pub fn AddMainEvent() -> Html { 
-
+pub fn AddMainEvent() -> Html {
     let event_date = use_node_ref();
     let event_date_notes = use_node_ref();
     let add_event_result = use_state_eq(|| "".to_string());
@@ -69,7 +71,7 @@ pub fn AddMainEvent() -> Html {
                     <p>
                         <textarea class="textarea" rows="5" cols="60"  id ="notes" placeholder="Enter any notes here" ref={&event_date_notes}/>
                     </p>
-        
+
 
                     <div class="buttons">
                             <button type="button" class="button is-primary" id="Add" value="Add" {onclick}>
@@ -84,10 +86,34 @@ pub fn AddMainEvent() -> Html {
 }
 
 #[function_component]
-pub fn AddAssociatedEvent() -> Html { 
+pub fn AddAssociatedEvent() -> Html {
+    let previous_events = get_last_x_events(3);
+    log_to_console(&previous_events.len().to_string());
+
+    let ui_previous_events = use_node_ref();
+
     html!(
         <div>
             <p>{"Associated Event Add Placeholder"}</p>
+
+            <p>{"Previous Events"}</p>
+            <div class="select is-multiple">
+                    <select
+                        name="select_previous_event"
+                        id="select_previous_event"
+                        ref={&ui_previous_events}
+                        // onchange={&onchange_participant}
+                        // disabled={!*participant_dropdown_enabled}
+                    >
+                    <option value="SELECT EVENT">{"SELECT EVENT"}</option>
+                    {
+                        previous_events.clone().into_iter().map(|event| {
+                            html!{
+                            <option value={event.date.clone()}>{event.date.clone()}</option>}
+                        }).collect::<Html>()
+                    }
+                    </select>
+                </div>
         </div>
     )
 }

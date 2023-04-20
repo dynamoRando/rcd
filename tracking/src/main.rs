@@ -16,12 +16,9 @@ use yew_router::prelude::*;
 pub mod pages;
 
 pub mod components;
-pub mod enter_event;
-pub mod event_props;
 pub mod logging;
 pub mod repo;
 pub mod storage;
-pub mod view_events;
 
 #[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {

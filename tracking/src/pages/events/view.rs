@@ -1,7 +1,7 @@
 use tracking_model::event::{SharkAssociatedEvent, SharkEvent};
 use yew::{platform::spawn_local, prelude::*};
 
-use crate::{logging::log_to_console, repo::Repo};
+use crate::{logging::log_to_console, repo::Repo, storage::save_events};
 
 #[function_component]
 pub fn ViewEvents() -> Html {
@@ -30,6 +30,8 @@ pub fn ViewEvents() -> Html {
 
                 match result {
                     Ok(repo_events) => {
+                        save_events(&repo_events);
+                        log_to_console("events saved");
                         events.set(repo_events);
                     }
                     Err(_) => {
@@ -99,32 +101,6 @@ pub fn ViewEvents() -> Html {
                                     let main_event_date = event.date.clone();
                                     let main_event_notes = event.notes.clone();
                                     let associated_events = event.associated_events.clone();
-
-                                    let mut associated_event_html = "".to_string();
-
-                                    // if let Some(associated_events) = associated_events {
-                                    //     for associated_event in &associated_events{
-                                    //         let associated_event_date = associated_event.date.clone();
-                                    //         let associated_event_type = associated_event.event_type.as_string().to_string();
-                                    //         let associated_event_notes = associated_event.notes.clone();
-
-                                    //         let associated_event_notes =
-                                    //         match associated_event_notes {
-                                    //             Some(notes) => notes,
-                                    //             None => "".to_string(),
-                                    //         };
-
-                                    //         associated_event_html += &format!("
-                                    //         <tr>
-                                    //             <td></td>
-                                    //             <td>{associated_event_date}</td>
-                                    //             <td>{associated_event_type}</td>
-                                    //             <td>{associated_event_notes}</td>
-                                    //         </tr>").to_string();
-                                    //     }
-                                    // }
-
-                                    // let ae = html!({associated_event_html});
 
                                     html!{
                                         <>

@@ -5,25 +5,36 @@ use yew::{platform::spawn_local, prelude::*};
 use crate::{
     logging::log_to_console,
     repo::Repo,
-    storage::{save_token, save_uid, save_un},
+    storage::{save_token, save_uid, save_un, save_api_addr},
 };
 
 #[function_component]
 pub fn Login() -> Html {
-    let login_result = use_state_eq(|| "".to_string());
+
     let ui_un = use_node_ref();
+    let ui_api = use_node_ref();
+
+    let login_result = use_state_eq(|| "".to_string());
 
     let onclick = {
         let ui_un = ui_un.clone();
+        let ui_api = ui_api.clone();
+
         let login_result = login_result.clone();
+        
 
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
+            let ui_api = ui_api.clone();
+
             let login_result = login_result.clone();
 
             let un = &ui_un;
-
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
+
+            let api_val = ui_api.cast::<HtmlInputElement>().unwrap().value();
+            log_to_console(&api_val);
+            save_api_addr(&api_val);
 
             spawn_local(async move {
                 let login_result = login_result.clone();
@@ -90,8 +101,12 @@ pub fn Login() -> Html {
                     <div class="has-text-centered">
                         <p><h1 class="title is-1">{ "Login" }</h1></p>
 
-                        <label for="ip_address">{ "User Name" }</label>
+                        <label for="username">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>
+
+                        <label for="api_address">{ "API Location" }</label>
+                        <input type="text" class="input" id ="api_address" placeholder="http://localhost:8020/" ref={&ui_api}/>
+
 
                         <div class="buttons">
                             <button type="button" class="button is-primary" id="login" value="Login" {onclick}>

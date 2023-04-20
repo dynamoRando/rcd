@@ -1,4 +1,4 @@
-use crate::{logging::log_to_console, storage::get_token};
+use crate::{logging::log_to_console, storage::{get_token, get_api_addr}};
 use serde::{Deserialize, Serialize};
 use tracking_model::{
     event::SharkEvent,
@@ -7,9 +7,6 @@ use tracking_model::{
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
-use dotenv_codegen::dotenv;
-
-pub const REPO_LOCATION: &str = dotenv!("TRACKING_API_ADDRESS");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Repo {}
@@ -17,7 +14,7 @@ pub struct Repo {}
 impl Repo {
     pub async fn logout(un: &str) -> Result<(), String> {
         log_to_console("login");
-        let addr = format!("{}{}", REPO_LOCATION, r#"user/logout"#);
+        let addr = format!("{}{}", get_api_addr(), r#"user/logout"#);
 
         let u = User {
             un: un.to_string(),
@@ -37,7 +34,7 @@ impl Repo {
 
     pub async fn login(un: &str) -> Result<Token, String> {
         log_to_console("login");
-        let addr = format!("{}{}", REPO_LOCATION, r#"user/auth"#);
+        let addr = format!("{}{}", get_api_addr(), r#"user/auth"#);
 
         let u = User {
             un: un.to_string(),
@@ -60,7 +57,7 @@ impl Repo {
 
     pub async fn register_user(un: &str, host_id: &str) -> Result<(), String> {
         log_to_console("register user");
-        let addr = format!("{}{}", REPO_LOCATION, r#"user/create"#);
+        let addr = format!("{}{}", get_api_addr(), r#"user/create"#);
 
         let u = User {
             un: un.to_string(),
@@ -80,7 +77,7 @@ impl Repo {
 
     pub async fn get_uid_for_un(un: &str) -> Result<u32, String> {
         log_to_console("getting uid");
-        let addr = format!("{}{}{}", REPO_LOCATION, r#"user/get/"#, un);
+        let addr = format!("{}{}{}", get_api_addr(), r#"user/get/"#, un);
 
         log_to_console(&addr);
 
@@ -102,7 +99,7 @@ impl Repo {
 
     pub async fn get_api_version() -> Result<String, String> {
         log_to_console("getting api version");
-        let addr = format!("{}{}", REPO_LOCATION, r#"version"#);
+        let addr = format!("{}{}", get_api_addr(), r#"version"#);
         let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
@@ -118,7 +115,7 @@ impl Repo {
 
     pub async fn add_event(event: &SharkEvent) -> Result<bool, String> {
         log_to_console("adding event");
-        let addr = format!("{}{}", REPO_LOCATION, r#"events/add"#);
+        let addr = format!("{}{}", get_api_addr(), r#"events/add"#);
 
         let body = serde_json::to_string(&event).unwrap();
 
@@ -138,7 +135,7 @@ impl Repo {
 
     pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {
         log_to_console("getting events");
-        let addr = format!("{}{}", REPO_LOCATION, r#"events/get/mock"#);
+        let addr = format!("{}{}", get_api_addr(), r#"events/get/mock"#);
         let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
@@ -155,7 +152,7 @@ impl Repo {
 
     pub async fn get_events() -> Result<Vec<SharkEvent>, String> {
         log_to_console("getting events");
-        let addr = format!("{}{}", REPO_LOCATION, r#"events/get"#);
+        let addr = format!("{}{}", get_api_addr(), r#"events/get"#);
         let result_get = Self::get(&addr).await;
         match result_get {
             Ok(result) => {
