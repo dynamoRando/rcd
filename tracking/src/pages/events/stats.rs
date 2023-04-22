@@ -38,16 +38,18 @@ fn compute_average_days() -> u32 {
         if i + 1 < num_periods {
             let a = dates[i];
 
-            let message = format!("a: {a:?}");
+            let a_revised = a + Duration::days(-1);
+
+            let message = format!("a_revised: {a_revised:?}");
             log_to_console(&message);
+
 
             let b = dates[i + 1];
-            let b_revised = b + Duration::days(-1);
 
-            let message = format!("b_revised: {b_revised:?}");
+            let message = format!("b: {b:?}");
             log_to_console(&message);
 
-            let duration = a - b_revised;
+            let duration = a_revised - b;
 
             let message = format!("duration: {duration:?}");
             log_to_console(&message);
