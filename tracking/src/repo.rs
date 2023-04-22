@@ -1,7 +1,7 @@
 use crate::{logging::log_to_console, storage::{get_token, get_api_addr}};
 use serde::{Deserialize, Serialize};
 use tracking_model::{
-    event::SharkEvent,
+    event::{SharkEvent, SharkAssociatedEvent},
     user::{Token, User},
 };
 use wasm_bindgen::{JsCast, JsValue};
@@ -131,6 +131,10 @@ impl Repo {
                 Err(e)
             }
         }
+    }
+
+    pub async fn add_associated_event(event: &SharkAssociatedEvent) -> Result<bool, String> {
+        todo!()
     }
 
     pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {
