@@ -93,6 +93,7 @@ pub fn ViewEvents() -> Html {
                                     <th>{"Associated Event Date"}</th>
                                     <th>{"Associated Event Type"}</th>
                                     <th>{"Notes"}</th>
+                                    <th>{"Delete"}</th>
                                 </tr>
                             </thead>
                             {
@@ -109,6 +110,26 @@ pub fn ViewEvents() -> Html {
                                             <td></td>
                                             <td></td>
                                             <td>{main_event_notes}</td>
+                                            <td><button class="button is-danger" onclick=
+                                            {
+                                                let event = event.clone();
+                                                move |_| {
+                                                let event = event.clone();
+                                                spawn_local(async move {
+                                                    let event = event.clone();
+                                                    let delete_result = Repo::delete_event(event.id as usize).await;
+                                                    match delete_result {
+                                                        Ok(is_deleted) => {
+                                                            if is_deleted {
+                                                                log_to_console("event deleted");
+                                                            } else
+                                                            {
+                                                                log_to_console("event NOT deleted");
+                                                            }},
+                                                        Err(e) => log_to_console(&e.to_string())
+                                                        }
+                                                });
+                                            }}>{"Delete"}</button></td>
                                         </tr>
                                         {get_associated_events_html(associated_events)}
                                         </>
@@ -150,6 +171,27 @@ fn get_associated_events_html(associated_events: Option<Vec<SharkAssociatedEvent
                             <td>{date}</td>
                             <td>{event_type}</td>
                             <td>{notes}</td>
+                            <td><button class="button is-danger"
+                            onclick=
+                                            {
+                                                let event = ae.clone();
+                                                move |_| {
+                                                let event = event.clone();
+                                                spawn_local(async move {
+                                                    let event = event.clone();
+                                                    let delete_result = Repo::delete_associated_event(event.uuid.as_ref().unwrap()).await;
+                                                    match delete_result {
+                                                        Ok(is_deleted) => {
+                                                            if is_deleted {
+                                                                log_to_console("event deleted");
+                                                            } else
+                                                            {
+                                                                log_to_console("event NOT deleted");
+                                                            }},
+                                                        Err(e) => log_to_console(&e.to_string())
+                                                        }
+                                                });
+                                            }}>{"Delete"}</button></td>
                         </tr>
                     }
                 })

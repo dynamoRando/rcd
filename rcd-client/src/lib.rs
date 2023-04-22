@@ -1124,7 +1124,7 @@ impl RcdClient {
         cmd: &str,
         participant_alias: &str,
         where_clause: &str,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool, String> {
         let auth = self.gen_auth_request();
 
         let request = ExecuteCooperativeWriteRequest {

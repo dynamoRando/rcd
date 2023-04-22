@@ -157,11 +157,35 @@ impl Repo {
     }
 
     pub async fn delete_event(event_id: usize) -> Result<bool, String> {
-        todo!()
+        log_to_console("delete event");
+        let addr = format!("{}{}{}", get_api_addr(), r#"events/delete/"#, event_id);
+        let result_get = Self::delete(&addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                return Ok(true);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
     }
 
     pub async fn delete_associated_event(uuid: &str) -> Result<bool, String> {
-        todo!()
+        log_to_console("delete associated event");
+        let addr = format!("{}{}{}", get_api_addr(), r#"events/delete/associated/"#, uuid);
+        let result_get = Self::delete(&addr).await;
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);
+                return Ok(true);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
     }
 
     pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {
@@ -264,6 +288,62 @@ impl Repo {
     async fn get(url: &str) -> Result<String, String> {
         let mut opts = RequestInit::new();
         opts.method("GET");
+        opts.mode(RequestMode::Cors);
+
+        let token = get_token();
+        if !token.jwt.is_empty() {
+            let headers = Headers::new().unwrap();
+            let val = format!("{}{}", "Bearer ", token.jwt);
+            headers.append("Authorization", &val).unwrap();
+            opts.headers(&headers);
+        }
+
+        let request = Request::new_with_str_and_init(url, &opts);
+
+        match request {
+            Ok(r) => {
+                r.headers().set("Content-Type", "application/json").unwrap();
+
+                let window = web_sys::window().unwrap();
+                let resp_value_result = JsFuture::from(window.fetch_with_request(&r)).await;
+
+                let message = format!("{resp_value_result:?}");
+                log_to_console(&message);
+
+                match resp_value_result {
+                    Ok(result) => {
+                        assert!(result.is_instance_of::<Response>());
+                        let resp: Response = result.dyn_into().unwrap();
+
+                        let json = JsFuture::from(resp.text().unwrap()).await.unwrap();
+
+                        Ok(JsValue::as_string(&json).unwrap())
+                    }
+                    Err(e) => {
+                        // let m = format!("{:?}", e);
+                        // log_to_console(m);
+
+                        if JsValue::is_string(&e) {
+                            Err(JsValue::as_string(&e).unwrap())
+                        } else {
+                            Err("Unable to connect".to_string())
+                        }
+                    }
+                }
+            }
+            Err(e) => {
+                if JsValue::is_string(&e) {
+                    Err(JsValue::as_string(&e).unwrap())
+                } else {
+                    Err("Unable to connect".to_string())
+                }
+            }
+        }
+    }
+
+    async fn delete(url: &str) -> Result<String, String> {
+        let mut opts = RequestInit::new();
+        opts.method("DELETE");
         opts.mode(RequestMode::Cors);
 
         let token = get_token();
