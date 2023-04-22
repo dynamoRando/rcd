@@ -230,6 +230,7 @@ pub fn AddAssociatedEvent() -> Html {
             <p>{"This is for logging a related entry to your period.
             Please select the date of the start of your period. If it's not in the list,
             please go to View Events and click View, which will reload the latest 3 events."}</p>
+            <p>{"Please be aware that this dropdown will ONLY show the last 3 events."}</p>
 
             <p>{" Period Start Date:" }</p>
             <div class="select is-multiple">
