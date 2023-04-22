@@ -66,7 +66,7 @@ pub fn save_api_addr(addr: &str) {
 }
 
 pub fn get_api_addr() -> String {
-    SessionStorage::get(API).unwrap_or_else(|_| String::from("Not Set"))
+    SessionStorage::get(API).unwrap_or_else(|_| String::from("http://localhost:8020/"))
 }
 
 pub fn save_un(un: &str) {

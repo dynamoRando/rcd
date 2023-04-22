@@ -1,4 +1,4 @@
-use tracing::debug;
+use tracing::{debug, warn};
 use rocket::{http::Status, post, serde::json::Json, State};
 use tracking_model::user::{CreateUserResult, User};
 
@@ -39,6 +39,7 @@ pub async fn create_account(
     }
 
     if has_account {
+        warn!("acount already exists");
         result_message = Some("account already exists".to_string());
     }
 

@@ -27,7 +27,10 @@ pub async fn get_count(sql: &str, settings: &ApiSettings) -> Result<u32, Trackin
     let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
 
     if !result.is_error {
-        return Ok(result.clone().rows.len() as u32);
+        let rows = result.clone();
+        let row = rows.rows.first().unwrap();
+
+        return Ok(row.values.first().unwrap().string_value.parse().unwrap());
     }
 
     Err(TrackingApiError::Unknown)

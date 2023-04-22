@@ -1,7 +1,10 @@
-use crate::{logging::log_to_console, storage::{get_token, get_api_addr}};
+use crate::{
+    logging::log_to_console,
+    storage::{get_api_addr, get_token},
+};
 use serde::{Deserialize, Serialize};
 use tracking_model::{
-    event::{SharkEvent, SharkAssociatedEvent},
+    event::{SharkAssociatedEvent, SharkEvent},
     user::{Token, User},
 };
 use wasm_bindgen::{JsCast, JsValue};
@@ -120,10 +123,10 @@ impl Repo {
         let body = serde_json::to_string(&event).unwrap();
 
         let result_get = Self::post(&addr, &body).await;
-        
+
         match result_get {
             Ok(result) => {
-                log_to_console(&result);   
+                log_to_console(&result);
                 return Ok(true);
             }
             Err(e) => {
@@ -140,10 +143,10 @@ impl Repo {
         let body = serde_json::to_string(&event).unwrap();
 
         let result_get = Self::post(&addr, &body).await;
-        
+
         match result_get {
             Ok(result) => {
-                log_to_console(&result);   
+                log_to_console(&result);
                 return Ok(true);
             }
             Err(e) => {
@@ -153,7 +156,7 @@ impl Repo {
         }
     }
 
-    pub async fn delete_event(event_id: usize) -> Result<bool, String>{
+    pub async fn delete_event(event_id: usize) -> Result<bool, String> {
         todo!()
     }
 
@@ -185,8 +188,14 @@ impl Repo {
         match result_get {
             Ok(result) => {
                 log_to_console(&result);
-                let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
-                return Ok(result);
+                if result == "null" {
+                    log_to_console("no events found");
+                    let x: Vec<SharkEvent> = Vec::new();
+                    return Ok(x);
+                } else {
+                    let result: Vec<SharkEvent> = serde_json::from_str(&result).unwrap();
+                    return Ok(result);
+                }
             }
             Err(e) => {
                 log_to_console(&e);

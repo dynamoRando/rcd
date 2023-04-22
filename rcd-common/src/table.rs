@@ -70,7 +70,7 @@ impl Column {
         } else {
             let idx_first = idx_first_paren.unwrap() + 1;
             let idx_last = str_data_type.find(')').unwrap();
-            let str_length = str_data_type.substring(idx_first, idx_last);
+            let str_length = str_data_type.substring(idx_first, idx_last).trim();
 
             trace!("[{}]: {str_length:?}", function_name!());
 

@@ -175,8 +175,6 @@ pub fn AddAssociatedEvent() -> Html {
                     })
                 }
             }
-
-            todo!();
         })
     };
 
