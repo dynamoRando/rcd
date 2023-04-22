@@ -86,7 +86,7 @@ pub fn ViewEvents() -> Html {
                     <p>{"Get Events Result: "}{(*get_event_result).clone()}</p>
 
                     <div class="table-container">
-                        <table class="table is-narrow">
+                        <table class="table is-narrow is-striped is-hoverable">
                             <thead>
                                 <tr>
                                     <th>{"Main Event Date"}</th>
