@@ -1,6 +1,7 @@
 use chrono::NaiveDate;
 use num_derive::{FromPrimitive, ToPrimitive};
 use serde_derive::{Deserialize, Serialize};
+use num_enum::IntoPrimitive;
 
 extern crate num;
 
@@ -83,7 +84,8 @@ impl SharkAssociatedEvent {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, FromPrimitive, ToPrimitive)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, FromPrimitive, ToPrimitive, IntoPrimitive)]
+#[repr(u8)]
 pub enum EventType {
     Unknown,
     Spotting,

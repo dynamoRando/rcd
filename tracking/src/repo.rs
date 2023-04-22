@@ -134,7 +134,23 @@ impl Repo {
     }
 
     pub async fn add_associated_event(event: &SharkAssociatedEvent) -> Result<bool, String> {
-        todo!()
+        log_to_console("adding associated event");
+        let addr = format!("{}{}", get_api_addr(), r#"events/add/associated"#);
+
+        let body = serde_json::to_string(&event).unwrap();
+
+        let result_get = Self::post(&addr, &body).await;
+        
+        match result_get {
+            Ok(result) => {
+                log_to_console(&result);   
+                return Ok(true);
+            }
+            Err(e) => {
+                log_to_console(&e);
+                Err(e)
+            }
+        }
     }
 
     pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {

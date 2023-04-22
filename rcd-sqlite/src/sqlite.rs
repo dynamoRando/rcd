@@ -6,7 +6,7 @@ use rcd_sqlite_log::{log_entry::LogEntry, SqliteLog};
 use rcdproto::rcdp::{ColumnSchema, RowValue};
 use rusqlite::{types::Type, Connection, Result};
 use std::path::Path;
-use tracing::{debug, info, trace};
+use tracing::{debug, error, info, trace, warn};
 pub mod db;
 pub mod db_part;
 pub mod rcd_db;
@@ -112,7 +112,18 @@ pub fn get_scalar_as_bool(cmd: String, conn: &Connection) -> bool {
 
 pub fn execute_write(conn: &Connection, cmd: &str) -> usize {
     trace!("[{}]: {cmd:?} {conn:?}", function_name!());
-    conn.execute(cmd, []).unwrap()
+    let result = conn.execute(cmd, []);
+    match result {
+        Ok(rows) => rows,
+        Err(e) => {
+            error!("[{}]: {e:?}", function_name!());
+            warn!(
+                "[{}]: this function should return a Result instead.",
+                function_name!()
+            );
+            0
+        }
+    }
 }
 
 pub fn execute_read_on_connection_for_row(
