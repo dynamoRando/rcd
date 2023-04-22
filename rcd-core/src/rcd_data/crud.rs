@@ -159,6 +159,8 @@ pub async fn delete_command_into_table(
         }
     }
 
+    trace!("[{}]: {result:?}", function_name!());
+
     DeleteDataResult {
         authentication_result: Some(auth_result.1),
         is_successful: result.is_successful,

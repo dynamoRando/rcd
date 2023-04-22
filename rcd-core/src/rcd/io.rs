@@ -515,6 +515,8 @@ pub async fn execute_cooperative_write_at_host(
                     )
                     .await;
 
+                trace!("[{}]: remote_delete_result: {remote_delete_result:?}", function_name!());
+
                 if remote_delete_result.is_successful {
                     let row_id: u32 = if remote_delete_result.rows.is_empty() {
                         0
@@ -530,6 +532,8 @@ pub async fn execute_cooperative_write_at_host(
                         row_id,
                         &internal_participant_id,
                     );
+
+                    trace!("[{}]: local_delete_is_successful: {local_delete_is_successful:?}", function_name!());
 
                     if local_delete_is_successful {
                         is_remote_action_successful = true;

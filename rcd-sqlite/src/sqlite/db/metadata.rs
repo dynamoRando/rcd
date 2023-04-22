@@ -1,4 +1,5 @@
 use crate::sqlite::{execute_write, get_db_conn, get_scalar_as_u64, has_table, sql_text};
+use stdext::function_name;
 use tracing::trace;
 use rcd_common::db::{get_metadata_table_name, DbiConfigSqlite};
 use rusqlite::named_params;
@@ -96,10 +97,14 @@ pub fn delete_metadata_in_host_db(
     cmd = cmd.replace(":table_name", &metadata_table_name);
     let mut statement = conn.prepare(&cmd).unwrap();
 
+    trace!("[{}]: statement: {statement:?}", function_name!());
+
     let rows = statement
         .execute(named_params! {":row": row_id, ":pid" : internal_participant_id })
         .unwrap();
 
+    trace!("[{}]: rows affected: {rows:?}", function_name!());
+    
     rows > 0
 }
 
