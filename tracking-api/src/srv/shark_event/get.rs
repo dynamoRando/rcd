@@ -49,8 +49,9 @@ pub async fn get_events(
 
             match uid_result {
                 Ok(uid) => {
+                    let user_id = uid;            
                     let uid = uid.to_string();
-
+        
                     let sql =
                         "SELECT COUNT(*) cnt from event WHERE user_id = :uid".replace(":uid", &uid);
 
@@ -241,7 +242,18 @@ pub async fn get_events(
                                 }
                             }
 
-                            response = Some(shark_events);
+                            let mut events_for_user: Vec<SharkEvent> = Vec::new();
+
+                            for event in &shark_events {
+                                let event_user_id = *(event.user_id.as_ref().unwrap());
+                                if event_user_id == user_id {
+                                    events_for_user.push(event.clone());
+                                }
+                            }
+
+                            trace!("[{}]: events_for_user: {events_for_user:?}", function_name!());
+
+                            response = Some(events_for_user);
                             request_status = Status::Ok;
                         }
                     } else {
