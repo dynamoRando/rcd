@@ -4,6 +4,7 @@ use super::{
     get_table_col_names, get_table_col_names_with_data_type_as_string, has_table, sql_text,
 };
 use chrono::Utc;
+use stdext::function_name;
 use tracing::{debug, trace, warn};
 use rcd_common::db::{
     get_data_log_table_name, get_data_queue_table_name, get_metadata_table_name, DbiConfigSqlite,
@@ -175,6 +176,8 @@ pub fn get_row_from_partial_database(
 
     cmd = cmd.replace(":table_name", table_name);
     cmd = cmd.replace(":rid", &row_id.to_string());
+
+    trace!("[{}]: {config:?}", function_name!());
 
     execute_read_on_connection_for_row(db_name, table_name, row_id, cmd, &conn).unwrap()
 }

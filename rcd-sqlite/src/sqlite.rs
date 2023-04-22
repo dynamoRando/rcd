@@ -202,6 +202,8 @@ pub fn execute_read_on_connection_for_row(
 
     let mut statement = conn.prepare(&cmd).unwrap();
 
+    trace!("[{}]: {statement:?}", function_name!());
+
     let row_to_hash = |hash: Vec<u8>| -> Result<Vec<u8>> { Ok(hash) };
 
     let mut hashes = statement
@@ -230,6 +232,8 @@ pub fn execute_read_on_connection_for_row(
         remote_metadata: None,
         hash,
     };
+
+    trace!("[{}]: {result:?}", function_name!());
 
     Ok(result)
 }

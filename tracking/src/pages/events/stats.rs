@@ -6,16 +6,35 @@ use crate::{storage::get_last_x_events, logging::log_to_console};
 
 #[function_component]
 pub fn Stats() -> Html { 
-
-    let average = compute_average_days();
-
     log_to_console("stats");
-
+    let average = compute_average_days();
+    let next = next_start(average);
+    
     html!(
         <div>
-            <p>{"Average is: "}{average.to_string()}{ " days between periods."}</p>
+            <p>{"Average is: "}<b>{average.to_string()}</b>{ " days between periods."}</p>
+            <p>{"Your projected next start is: "}<b>{next.to_string()}</b></p>
         </div>
     )
+}
+
+fn next_start(avg: u32) -> NaiveDate {
+    let events = get_last_x_events(6);
+    
+    let mut dates: Vec<NaiveDate> = Vec::new();
+
+    for event in events {
+        dates.push(event.date().unwrap());
+    }
+
+    dates.sort();
+    dates.reverse();
+
+
+    let max_date = dates.first().unwrap().clone();
+    let next_date = max_date + Duration::days(avg.into());
+    log_to_console(&next_date.to_string());
+    next_date
 }
 
 fn compute_average_days() -> u32 {
