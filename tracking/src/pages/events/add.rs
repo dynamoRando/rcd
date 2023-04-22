@@ -148,6 +148,7 @@ pub fn AddAssociatedEvent() -> Html {
                         date: associated_event_date_val,
                         notes: Some(associated_event_date_notes_val),
                         user_id: Some(get_uid()),
+                        uuid: None,
                     };
 
                     spawn_local(async move {

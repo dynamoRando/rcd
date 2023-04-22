@@ -2,6 +2,7 @@ use rocket::{http::Status, post, serde::json::Json, State};
 use stdext::function_name;
 use tracing::{debug, error, trace};
 use tracking_model::event::{SharkAssociatedEvent, SharkEvent};
+use uuid::Uuid;
 
 use crate::{
     srv::{
@@ -133,7 +134,11 @@ pub async fn add_associated_event(
                 .await
                 .expect("could not get user name for token");
 
-            let request = request.into_inner();
+            let mut request = request.into_inner();
+
+            if request.uuid.is_none() {
+                request.uuid = Some(Uuid::new_v4().to_string());
+            }
 
             let cmd = r#"
 INSERT INTO associated_event
@@ -142,7 +147,8 @@ INSERT INTO associated_event
     event_type,
     event_date,
     user_id,
-    notes
+    notes,
+    uuid
 )
 VALUES
 (
@@ -150,7 +156,8 @@ VALUES
     :type,
     ':date',
     :uid,
-    ':notes'
+    ':notes',
+    ':uuid'
 )
 ;
 "#;
@@ -162,7 +169,8 @@ VALUES
                 .replace(":type", &event_num.to_string())
                 .replace(":date", &request.date)
                 .replace(":uid", &request.user_id.as_ref().unwrap().to_string())
-                .replace(":notes", &request.notes.as_ref().unwrap().to_string());
+                .replace(":notes", &request.notes.as_ref().unwrap().to_string())
+                .replace(":uuid", &request.uuid.as_ref().unwrap().to_string());
 
             trace!("[{}]: {cmd:?}", function_name!());
 

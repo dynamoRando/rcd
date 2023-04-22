@@ -153,6 +153,14 @@ impl Repo {
         }
     }
 
+    pub async fn delete_event(event_id: usize) -> Result<bool, String>{
+        todo!()
+    }
+
+    pub async fn delete_associated_event(uuid: &str) -> Result<bool, String> {
+        todo!()
+    }
+
     pub async fn get_events_mock() -> Result<Vec<SharkEvent>, String> {
         log_to_console("getting events");
         let addr = format!("{}{}", get_api_addr(), r#"events/get/mock"#);

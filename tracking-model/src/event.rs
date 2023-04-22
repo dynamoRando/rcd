@@ -21,7 +21,8 @@ CREATE TABLE IF NOT EXISTS associated_event
     event_type INT,
     event_date DATETIME,
     notes TEXT,
-    user_id iNT
+    user_id INT,
+    uuid CHAR(36)
 );
 
 # event
@@ -41,6 +42,7 @@ CREATE TABLE IF NOT EXISTS associated_event
 | event_type  | int      |
 | event_date  | datetime |
 | user_id     | int      |
+| uuid        | char(36) |
 
 */
 
@@ -71,6 +73,7 @@ pub struct SharkAssociatedEvent {
     pub date: String,
     pub notes: Option<String>,
     pub user_id: Option<u32>,
+    pub uuid: Option<String>,
 }
 
 impl SharkAssociatedEvent {

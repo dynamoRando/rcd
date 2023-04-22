@@ -12,14 +12,15 @@ use rocket::{get, http::Status, post, serde::json::Json, State};
 use stdext::function_name;
 use tracing::{debug, error, info, trace};
 use tracking_model::{
-    event::{SharkAssociatedEvent, SharkEvent, EventType},
+    event::{EventType, SharkAssociatedEvent, SharkEvent},
     user::Auth,
 };
+use uuid::Uuid;
 
 pub const SQL_GET_EVENTS: &str =
     "SELECT id, event_date, notes, user_id FROM event WHERE user_id = :uid ;";
 pub const SQL_GET_ASSOCIATED_EVENTS: &str =
-    "SELECT event_id, event_type, event_date, user_id FROM associated_event WHERE user_id = :uid ;";
+    "SELECT event_id, event_type, event_date, user_id, uuid FROM associated_event WHERE user_id = :uid ;";
 pub const DB_NAME: &str = "shark.db";
 
 #[get("/events/get")]
@@ -72,7 +73,10 @@ pub async fn get_events(
                                 let rows = result.clone().rows;
 
                                 let total_rows = rows.len();
-                                trace!("[{}]: total_associated_events: {total_rows:?}", function_name!());
+                                trace!(
+                                    "[{}]: total_associated_events: {total_rows:?}",
+                                    function_name!()
+                                );
 
                                 for row in &rows {
                                     let mut event_id: u32 = 0;
@@ -80,6 +84,7 @@ pub async fn get_events(
                                     let mut event_date: String = "".to_string();
                                     let mut notes: String = "".to_string();
                                     let mut user_id: Option<u32> = None;
+                                    let mut uuid: Option<String> = None;
 
                                     for value in &row.values {
                                         if let Some(column) = &value.column {
@@ -118,6 +123,11 @@ pub async fn get_events(
                                                     user_id = Some(id);
                                                 }
                                             }
+
+                                            if column.column_name == "uuid" {
+                                                let result_uuid = value.string_value.clone();
+                                                uuid = Some(result_uuid);
+                                            }
                                         }
                                     }
 
@@ -128,6 +138,7 @@ pub async fn get_events(
                                         date: event_date,
                                         notes: Some(notes),
                                         user_id: user_id,
+                                        uuid: uuid,
                                     };
 
                                     associated_events.push(ae);
@@ -171,12 +182,18 @@ pub async fn get_events(
 
                                             if column.column_name == "event_date" {
                                                 event_date = value.string_value.clone();
-                                                trace!("[{}]: added event_date: {event_date:?}", function_name!());
+                                                trace!(
+                                                    "[{}]: added event_date: {event_date:?}",
+                                                    function_name!()
+                                                );
                                             }
 
                                             if column.column_name == "notes" {
                                                 notes = value.string_value.clone();
-                                                trace!("[{}]: added notes: {notes:?}", function_name!());
+                                                trace!(
+                                                    "[{}]: added notes: {notes:?}",
+                                                    function_name!()
+                                                );
                                             }
 
                                             if column.column_name == "user_id" {
@@ -184,7 +201,10 @@ pub async fn get_events(
                                                     value.string_value.parse::<u32>();
                                                 if let Ok(id) = result_user_id {
                                                     user_id = Some(id);
-                                                    trace!("[{}]: added user_id: {user_id:?}", function_name!());
+                                                    trace!(
+                                                        "[{}]: added user_id: {user_id:?}",
+                                                        function_name!()
+                                                    );
                                                 }
                                             }
                                         }
@@ -246,13 +266,8 @@ pub async fn get_events(
     return (request_status, Json(response));
 }
 
-
 #[get("/events/get/mock")]
-pub async fn get_events_mock(
-    token: ApiToken<'_>,
-    settings: &State<ApiSettings>,
-) -> (Status, Json<Option<Vec<SharkEvent>>>) { 
-
+pub async fn get_events_mock() -> (Status, Json<Option<Vec<SharkEvent>>>) {
     let mut events: Vec<SharkEvent> = Vec::new();
 
     let a1 = SharkAssociatedEvent {
@@ -261,6 +276,7 @@ pub async fn get_events_mock(
         date: "2021-01-01".to_string(),
         notes: Some("test1".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
 
     let a2 = SharkAssociatedEvent {
@@ -269,8 +285,8 @@ pub async fn get_events_mock(
         date: "2021-01-02".to_string(),
         notes: Some("test2".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
-
 
     let a3 = SharkAssociatedEvent {
         event_id: 1,
@@ -278,10 +294,11 @@ pub async fn get_events_mock(
         date: "2021-01-03".to_string(),
         notes: Some("test3".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
 
     let associated_events1 = vec![a1, a2, a3];
-    
+
     let e = SharkEvent {
         id: 1,
         date: "2020-12-31".to_string(),
@@ -298,6 +315,7 @@ pub async fn get_events_mock(
         date: "2021-02-01".to_string(),
         notes: Some("test1".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
 
     let a2 = SharkAssociatedEvent {
@@ -306,8 +324,8 @@ pub async fn get_events_mock(
         date: "2021-02-02".to_string(),
         notes: Some("test2".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
-
 
     let a3 = SharkAssociatedEvent {
         event_id: 1,
@@ -315,10 +333,11 @@ pub async fn get_events_mock(
         date: "2021-02-03".to_string(),
         notes: Some("test3".to_string()),
         user_id: Some(100),
+        uuid: Some(Uuid::new_v4().to_string()),
     };
 
     let associated_events1 = vec![a1, a2, a3];
-    
+
     let e = SharkEvent {
         id: 1,
         date: "2020-01-31".to_string(),
@@ -330,5 +349,4 @@ pub async fn get_events_mock(
     events.push(e);
 
     return (Status::Ok, Json(Some(events)));
-
 }

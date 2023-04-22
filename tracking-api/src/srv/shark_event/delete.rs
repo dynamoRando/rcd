@@ -1,12 +1,14 @@
 use rocket::{delete, http::Status, serde::json::Json, State};
 use tracking_model::event::SharkEvent;
 
-#[delete("/events/delete")]
-pub async fn delete_event() -> (Status, Json<SharkEvent>) {
+use crate::srv::ApiToken;
+
+#[delete("/events/delete/<id>")]
+pub async fn delete_event(token: ApiToken<'_>, id: usize) -> Status {
     todo!()
 }
 
-#[delete("/events/delete/associated")]
-pub async fn delete_associated_event() -> (Status, Json<SharkEvent>) {
+#[delete("/events/delete/associated/<id>")]
+pub async fn delete_associated_event(token: ApiToken<'_>, id: String) -> Status {
     todo!()
 }
