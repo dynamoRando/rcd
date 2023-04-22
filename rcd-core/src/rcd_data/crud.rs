@@ -1,4 +1,5 @@
 use super::RcdData;
+use stdext::function_name;
 use tracing::{trace, warn};
 use rcd_common::db::PartialDataResult;
 use rcd_enum::deletes_from_host_behavior::DeletesFromHostBehavior;
@@ -66,6 +67,8 @@ pub async fn delete_command_into_table(
         action: Some(PartialDataResultAction::Delete),
     };
 
+    trace!("[{}] auth_result: {auth_result:?}", function_name!());
+
     if auth_result.0 {
         let known_host = core.dbi().get_cds_host_for_part_db(&db_name).unwrap();
 
@@ -82,6 +85,7 @@ pub async fn delete_command_into_table(
             }
             DeletesFromHostBehavior::AllowRemoval => {
                 let cmd = &request.cmd;
+                trace!("[{}] {cmd:?}", function_name!());
 
                 result = core.dbi().delete_data_in_partial_db(
                     &db_name,
@@ -90,6 +94,8 @@ pub async fn delete_command_into_table(
                     &where_clause,
                     &known_host.host_id,
                 );
+
+                trace!("[{}] {result:?}", function_name!());
 
                 let hash = match result.data_hash {
                     Some(_) => result.data_hash.unwrap(),

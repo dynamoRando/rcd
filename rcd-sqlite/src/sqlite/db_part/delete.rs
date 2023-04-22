@@ -1,6 +1,7 @@
 use chrono::Utc;
-use tracing::debug;
 use rusqlite::named_params;
+use stdext::function_name;
+use tracing::{debug, trace};
 
 use crate::sqlite::{
     execute_write, get_scalar_as_u32, has_table, rcd_db::get_deletes_from_host_behavior, sql_text,
@@ -64,8 +65,10 @@ pub fn delete_data_into_partial_db_queue(
 
     cmd = cmd.replace(":table_name", &queue_log_table);
 
+    trace!("[{}] {cmd:?}", function_name!());
+
     let mut statement = conn.prepare(&cmd).unwrap();
-    let rows_inserted = statement
+    let rows_affected = statement
         .execute(named_params! {
             ":id": next_id,
             ":statement": delete_statement,
@@ -75,8 +78,10 @@ pub fn delete_data_into_partial_db_queue(
         })
         .unwrap();
 
+    trace!("[{}] rows_affected: {rows_affected:?}", function_name!());
+
     PartialDataResult {
-        is_successful: rows_inserted > 0,
+        is_successful: rows_affected > 0,
         row_id: next_id,
         data_hash: None,
         partial_data_status: None,
@@ -93,6 +98,8 @@ pub fn delete_data_in_partial_db(
     config: &DbiConfigSqlite,
 ) -> PartialDataResult {
     let behavior = get_deletes_from_host_behavior(db_name, table_name, config);
+
+    trace!("[{}] behavior: {behavior:?}", function_name!());
 
     match behavior {
         DeletesFromHostBehavior::Unknown => todo!(),
@@ -124,6 +131,8 @@ fn execute_delete(
 ) -> PartialDataResult {
     let original_cmd = cmd;
 
+    trace!("[{}] {cmd:?}", function_name!());
+
     let mut cmd;
     cmd = String::from("SELECT ROWID FROM :table_name WHERE :where_clause")
         .replace(":table_name", table_name);
@@ -152,11 +161,11 @@ fn execute_delete(
         row_ids.push(id.unwrap());
     }
 
-    debug!("{row_ids:?}");
+    trace!("[{}]: {row_ids:?}", function_name!());
 
     let total_rows = execute_write(&conn, original_cmd);
 
-    debug!("total rows deleted: {total_rows}");
+    trace!("[{}]: total rows deleted: {total_rows}", function_name!());
 
     if total_rows != row_ids.len() {
         panic!("the delete statement did not match the expected count of affected rows");
@@ -170,10 +179,16 @@ fn execute_delete(
     for row in &row_ids {
         let mut statement = conn.prepare(&cmd).unwrap();
         statement.execute(named_params! {":rid" : row}).unwrap();
-        debug!("{statement:?}");
+        trace!("[{}]: {statement:?}", function_name!());
     }
 
-    let deleted_row_id = row_ids.first().unwrap();
+    let deleted_row_id = if row_ids.len() > 0 {
+        row_ids.first().unwrap()
+    } else {
+        &0
+    };
+
+    trace!("[{}]: deleted_row_id: {deleted_row_id:?}", function_name!());
 
     let result = PartialDataResult {
         is_successful: true,
@@ -183,7 +198,7 @@ fn execute_delete(
         action: Some(PartialDataResultAction::Delete),
     };
 
-    debug!("{result:?}");
+    trace!("[{}]: {result:?}", function_name!());
 
     result
 }
