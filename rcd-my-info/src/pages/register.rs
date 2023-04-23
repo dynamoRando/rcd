@@ -11,28 +11,30 @@ pub fn Register() -> Html {
     let ui_un = use_node_ref();
     let ui_pw = use_node_ref();
     let ui_addr_port = use_node_ref();
+    let api_location = use_state_eq(|| "".to_string());
 
     let register_result = use_state_eq(move || String::from(""));
 
     let onclick = {
         let ui_un = ui_un.clone();
         let ui_pw = ui_pw.clone();
-        let ui_addr_port = ui_addr_port.clone();
+        let api_location = api_location.clone();
         let register_result = register_result.clone();
+    
 
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
             let ui_pw = ui_pw.clone();
-            let ui_addr_port = ui_addr_port.clone();
+            let api_location = api_location.clone();
             let register_result = register_result.clone();
 
             let un = &ui_un;
             let pw = &ui_pw;
-            let addr_port = &ui_addr_port;
+            
 
             let un_val = un.cast::<HtmlInputElement>().unwrap().value();
             let pw_val = pw.cast::<HtmlInputElement>().unwrap().value();
-            let addr_port = addr_port.cast::<HtmlInputElement>().unwrap().value();
+            let addr_port = &(*api_location);
 
             let mut proxy = RcdProxy::new(&addr_port);
             set_proxy(&proxy);
@@ -67,14 +69,48 @@ pub fn Register() -> Html {
         })
     };
 
+    let onchange = {
+        log_to_console("onchange");
+
+        let ui_api = ui_addr_port.clone();
+        let api_location = api_location.clone();
+
+        Callback::from(move |_| {
+            let ui_api = ui_api.clone();
+            let api_location = api_location.clone();
+
+            let api_val = ui_api.cast::<HtmlInputElement>();
+
+            if api_val.is_some() {
+                let api_val = ui_api.cast::<HtmlInputElement>().unwrap().value();
+                log_to_console(&api_val);
+                api_location.set(api_val);
+            }
+        })
+    };
+
     html! {
         <div>
             <div class="container">
                 <div class="box">
                     <div class="has-text-centered">
                         <h1 class="subtitle"> {"Register For Account"} </h1>
-                        <label for="ip_address">{ "Address and Port" }</label>
-                        <input type="text" class="input" id ="addr_port" placeholder="127.0.0.1:50040" ref={&ui_addr_port}/>
+                        <p>
+                            <label for="ip_address">{ "API " }</label>
+                            // <input type="text" class="input" id ="addr_port" placeholder="127.0.0.1:50040" ref={&ui_addr_port}/>
+                            <div class="select is-multiple">
+                                    <select
+                                        name="select_api"
+                                        id="select_api"
+                                        ref={&ui_addr_port}
+                                        onchange={&onchange}
+                                    >
+                                        <option value="SELECT EVENT">{"SELECT API LOCATION"}</option>
+                                        <option value={"localhost:50040"}>{"localhost"}</option>
+                                        <option value={"proxy.home:50040"}>{"proxy"}</option>
+                                </select>
+                            </div>
+                        </p>
 
                         <label for="ip_address">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>

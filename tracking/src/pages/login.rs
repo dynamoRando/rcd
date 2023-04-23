@@ -123,7 +123,7 @@ pub fn Login() -> Html {
                         <label for="username">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>
 
-                        <label for="api_address">{ "API Location " }</label>
+                        <label for="api_address">{ "API " }</label>
                         // <input type="text" class="input" id ="api_address" placeholder="http://localhost:8020/" ref={&ui_api}/>
                         <div class="select is-multiple">
                                 <select
