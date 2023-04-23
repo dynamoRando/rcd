@@ -18,10 +18,190 @@ use tracking_model::{
 use uuid::Uuid;
 
 pub const SQL_GET_EVENTS: &str =
-    "SELECT id, event_date, notes, user_id FROM event WHERE user_id = :uid ;";
+    "SELECT id, event_date, notes, user_id FROM event;";
 pub const SQL_GET_ASSOCIATED_EVENTS: &str =
-    "SELECT event_id, event_type, event_date, user_id, uuid FROM associated_event WHERE user_id = :uid ;";
+    "SELECT event_id, event_type, event_date, user_id, uuid FROM associated_event;";
 pub const DB_NAME: &str = "shark.db";
+
+pub async fn get_all_events(
+    settings: &State<ApiSettings>,
+) -> (Status, Json<Option<Vec<SharkEvent>>>) {
+    let mut response: Option<Vec<SharkEvent>> = None;
+    let sql = "SELECT COUNT(*) cnt from event;";
+
+    let has_any_events_result = has_any_rows(&sql, settings).await;
+
+    if let Ok(has_events) = has_any_events_result {
+        if has_events {
+            let mut associated_events: Vec<SharkAssociatedEvent> = Vec::new();
+            let mut shark_events: Vec<SharkEvent> = Vec::new();
+
+            let sql = SQL_GET_ASSOCIATED_EVENTS;
+
+            let mut client = get_client(settings).await;
+            let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
+
+            trace!("[{}]: get_events: {result:?}", function_name!());
+
+            if !result.is_error {
+                let rows = result.clone().rows;
+
+                let total_rows = rows.len();
+                trace!(
+                    "[{}]: total_associated_events: {total_rows:?}",
+                    function_name!()
+                );
+
+                for row in &rows {
+                    let mut event_id: u32 = 0;
+                    let mut event_type: u32 = 0;
+                    let mut event_date: String = "".to_string();
+                    let mut notes: String = "".to_string();
+                    let mut user_id: Option<u32> = None;
+                    let mut uuid: Option<String> = None;
+
+                    for value in &row.values {
+                        if let Some(column) = &value.column {
+                            if column.column_name == "event_id" {
+                                let result_event_id = value.string_value.parse::<u32>();
+                                if let Ok(eid) = result_event_id {
+                                    event_id = eid;
+                                } else {
+                                    event_id = 0;
+                                }
+                            }
+
+                            if column.column_name == "event_type" {
+                                let result_event_type = value.string_value.parse::<u32>();
+                                if let Ok(et) = result_event_type {
+                                    event_type = et;
+                                } else {
+                                    event_type = 0;
+                                }
+                            }
+
+                            if column.column_name == "event_date" {
+                                event_date = value.string_value.clone();
+                            }
+
+                            if column.column_name == "notes" {
+                                notes = value.string_value.clone();
+                            }
+
+                            if column.column_name == "user_id" {
+                                let result_user_id = value.string_value.parse::<u32>();
+                                if let Ok(id) = result_user_id {
+                                    user_id = Some(id);
+                                }
+                            }
+
+                            if column.column_name == "uuid" {
+                                let result_uuid = value.string_value.clone();
+                                uuid = Some(result_uuid);
+                            }
+                        }
+                    }
+
+                    let ae = SharkAssociatedEvent {
+                        event_id: event_id,
+                        event_type: num::FromPrimitive::from_u32(event_type).unwrap(),
+                        date: event_date,
+                        notes: Some(notes),
+                        user_id: user_id,
+                        uuid: uuid,
+                    };
+
+                    associated_events.push(ae);
+                }
+            } else {
+                warn!(
+                    "unable to get associated events, result message was: {}",
+                    result.result_message
+                );
+                // return (Status::InternalServerError, Json(response));
+            }
+
+            let sql = SQL_GET_EVENTS;
+
+            let result = client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
+
+            if !result.is_error {
+                let rows = result.clone().rows;
+
+                let total_rows = rows.len();
+                trace!("[{}]: events: {total_rows:?}", function_name!());
+
+                for row in &rows {
+                    let mut event_id: u32 = 0;
+                    let mut event_date: String = "".to_string();
+                    let mut notes: String = "".to_string();
+                    let mut user_id: Option<u32> = None;
+
+                    for value in &row.values {
+                        if let Some(column) = &value.column {
+                            if column.column_name == "id" {
+                                let result_event_id = value.string_value.parse::<u32>();
+                                if let Ok(eid) = result_event_id {
+                                    event_id = eid;
+                                } else {
+                                    event_id = 0;
+                                }
+                            }
+
+                            if column.column_name == "event_date" {
+                                event_date = value.string_value.clone();
+                                trace!("[{}]: added event_date: {event_date:?}", function_name!());
+                            }
+
+                            if column.column_name == "notes" {
+                                notes = value.string_value.clone();
+                                trace!("[{}]: added notes: {notes:?}", function_name!());
+                            }
+
+                            if column.column_name == "user_id" {
+                                let result_user_id = value.string_value.parse::<u32>();
+                                if let Ok(id) = result_user_id {
+                                    user_id = Some(id);
+                                    trace!("[{}]: added user_id: {user_id:?}", function_name!());
+                                }
+                            }
+                        }
+                    }
+
+                    let e = SharkEvent {
+                        id: event_id,
+                        date: event_date,
+                        notes: Some(notes),
+                        associated_events: None,
+                        user_id: user_id,
+                    };
+
+                    shark_events.push(e);
+                }
+            } else {
+                error!("unable to get associated events: {}", result.result_message);
+                return (Status::InternalServerError, Json(response));
+            }
+
+            for event in shark_events.iter_mut() {
+                for ae in &associated_events {
+                    if ae.event_id == event.id {
+                        if event.associated_events.is_none() {
+                            let x: Vec<SharkAssociatedEvent> = Vec::new();
+                            event.associated_events = Some(x);
+                        }
+
+                        event.associated_events.as_mut().unwrap().push(ae.clone());
+                    }
+                }
+            }
+
+            return (Status::Ok, Json(Some(shark_events)))
+        }
+    }
+
+    (Status::InternalServerError, Json(None))
+}
 
 #[get("/events/get")]
 pub async fn get_events(
@@ -49,216 +229,33 @@ pub async fn get_events(
 
             match uid_result {
                 Ok(uid) => {
-                    let user_id = uid;            
+                    let user_id = uid;
                     let uid = uid.to_string();
-        
-                    let sql =
-                        "SELECT COUNT(*) cnt from event WHERE user_id = :uid".replace(":uid", &uid);
 
-                    let has_any_events_result = has_any_rows(&sql, settings).await;
+                    let get_all_events_result = get_all_events(settings).await;
 
-                    if let Ok(has_events) = has_any_events_result {
-                        if has_events {
-                            let mut associated_events: Vec<SharkAssociatedEvent> = Vec::new();
-                            let mut shark_events: Vec<SharkEvent> = Vec::new();
-
-                            let sql = SQL_GET_ASSOCIATED_EVENTS.replace(":uid", &uid);
-
-                            let mut client = get_client(settings).await;
-                            let result =
-                                client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
-
-                            trace!("[{}]: get_events: {result:?}", function_name!());
-
-                            if !result.is_error {
-                                let rows = result.clone().rows;
-
-                                let total_rows = rows.len();
-                                trace!(
-                                    "[{}]: total_associated_events: {total_rows:?}",
-                                    function_name!()
-                                );
-
-                                for row in &rows {
-                                    let mut event_id: u32 = 0;
-                                    let mut event_type: u32 = 0;
-                                    let mut event_date: String = "".to_string();
-                                    let mut notes: String = "".to_string();
-                                    let mut user_id: Option<u32> = None;
-                                    let mut uuid: Option<String> = None;
-
-                                    for value in &row.values {
-                                        if let Some(column) = &value.column {
-                                            if column.column_name == "event_id" {
-                                                let result_event_id =
-                                                    value.string_value.parse::<u32>();
-                                                if let Ok(eid) = result_event_id {
-                                                    event_id = eid;
-                                                } else {
-                                                    event_id = 0;
-                                                }
-                                            }
-
-                                            if column.column_name == "event_type" {
-                                                let result_event_type =
-                                                    value.string_value.parse::<u32>();
-                                                if let Ok(et) = result_event_type {
-                                                    event_type = et;
-                                                } else {
-                                                    event_type = 0;
-                                                }
-                                            }
-
-                                            if column.column_name == "event_date" {
-                                                event_date = value.string_value.clone();
-                                            }
-
-                                            if column.column_name == "notes" {
-                                                notes = value.string_value.clone();
-                                            }
-
-                                            if column.column_name == "user_id" {
-                                                let result_user_id =
-                                                    value.string_value.parse::<u32>();
-                                                if let Ok(id) = result_user_id {
-                                                    user_id = Some(id);
-                                                }
-                                            }
-
-                                            if column.column_name == "uuid" {
-                                                let result_uuid = value.string_value.clone();
-                                                uuid = Some(result_uuid);
-                                            }
-                                        }
-                                    }
-
-                                    let ae = SharkAssociatedEvent {
-                                        event_id: event_id,
-                                        event_type: num::FromPrimitive::from_u32(event_type)
-                                            .unwrap(),
-                                        date: event_date,
-                                        notes: Some(notes),
-                                        user_id: user_id,
-                                        uuid: uuid,
-                                    };
-
-                                    associated_events.push(ae);
-                                }
-                            } else {
-                                warn!(
-                                    "unable to get associated events, result message was: {}",
-                                    result.result_message
-                                );
-                                // return (Status::InternalServerError, Json(response));
-                            }
-
-                            let sql = SQL_GET_EVENTS.replace(":uid", &uid);
-
-                            let result =
-                                client.execute_read_at_host(DB_NAME, &sql, 1).await.unwrap();
-
-                            if !result.is_error {
-                                let rows = result.clone().rows;
-
-                                let total_rows = rows.len();
-                                trace!("[{}]: events: {total_rows:?}", function_name!());
-
-                                for row in &rows {
-                                    let mut event_id: u32 = 0;
-                                    let mut event_date: String = "".to_string();
-                                    let mut notes: String = "".to_string();
-                                    let mut user_id: Option<u32> = None;
-
-                                    for value in &row.values {
-                                        if let Some(column) = &value.column {
-                                            if column.column_name == "id" {
-                                                let result_event_id =
-                                                    value.string_value.parse::<u32>();
-                                                if let Ok(eid) = result_event_id {
-                                                    event_id = eid;
-                                                } else {
-                                                    event_id = 0;
-                                                }
-                                            }
-
-                                            if column.column_name == "event_date" {
-                                                event_date = value.string_value.clone();
-                                                trace!(
-                                                    "[{}]: added event_date: {event_date:?}",
-                                                    function_name!()
-                                                );
-                                            }
-
-                                            if column.column_name == "notes" {
-                                                notes = value.string_value.clone();
-                                                trace!(
-                                                    "[{}]: added notes: {notes:?}",
-                                                    function_name!()
-                                                );
-                                            }
-
-                                            if column.column_name == "user_id" {
-                                                let result_user_id =
-                                                    value.string_value.parse::<u32>();
-                                                if let Ok(id) = result_user_id {
-                                                    user_id = Some(id);
-                                                    trace!(
-                                                        "[{}]: added user_id: {user_id:?}",
-                                                        function_name!()
-                                                    );
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    let e = SharkEvent {
-                                        id: event_id,
-                                        date: event_date,
-                                        notes: Some(notes),
-                                        associated_events: None,
-                                        user_id: user_id,
-                                    };
-
-                                    shark_events.push(e);
-                                }
-                            } else {
-                                error!(
-                                    "unable to get associated events: {}",
-                                    result.result_message
-                                );
-                                return (Status::InternalServerError, Json(response));
-                            }
-
-                            for event in shark_events.iter_mut() {
-                                for ae in &associated_events {
-                                    if ae.event_id == event.id {
-                                        if event.associated_events.is_none() {
-                                            let x: Vec<SharkAssociatedEvent> = Vec::new();
-                                            event.associated_events = Some(x);
-                                        }
-
-                                        event.associated_events.as_mut().unwrap().push(ae.clone());
-                                    }
-                                }
-                            }
-
+                    if let Some(all_events) = get_all_events_result.1.into_inner() {
+                        if all_events.len() > 0 {
                             let mut events_for_user: Vec<SharkEvent> = Vec::new();
 
-                            for event in &shark_events {
+                            for event in &all_events {
                                 let event_user_id = *(event.user_id.as_ref().unwrap());
                                 if event_user_id == user_id {
                                     events_for_user.push(event.clone());
                                 }
                             }
 
-                            trace!("[{}]: events_for_user: {events_for_user:?}", function_name!());
+                            trace!(
+                                "[{}]: events_for_user: {events_for_user:?}",
+                                function_name!()
+                            );
 
                             response = Some(events_for_user);
                             request_status = Status::Ok;
+                        } else {
+                            info!("[{}]: we don't have any events", function_name!());
+                            return (Status::Ok, Json(response));
                         }
-                    } else {
-                        info!("[{}]: we don't have any events", function_name!());
-                        return (Status::Ok, Json(response));
                     }
                 }
                 Err(e) => {

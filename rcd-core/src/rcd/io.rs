@@ -112,6 +112,11 @@ pub async fn execute_read_at_host(core: &Rcd, request: ExecuteReadRequest) -> Ex
                         }
                     }
 
+                    if sql.contains("WHERE") {
+                        warn!("[{}]: tables with cooperative data will not be filterd, statement has a filter: {sql:?}", function_name!());
+                        warn!("[{}]: this functionality has yet to be implemented", function_name!());
+                    }
+
                     statement_result_set.rows = result_table;
                 } else {
                     let query_result = core.dbi().execute_read_at_host(&db_name, &sql);

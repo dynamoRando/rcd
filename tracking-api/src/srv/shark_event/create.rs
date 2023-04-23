@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::{
     srv::{
         get_client,
-        shark_event::get::{get_events, DB_NAME},
+        shark_event::get::{get_events, DB_NAME, get_all_events},
         user::get::{delete_expired_tokens, get_user_name_for_token, verify_token},
         ApiToken,
     },
@@ -35,7 +35,7 @@ pub async fn add_event(
                 .await
                 .expect("could not get user name for token");
 
-            let get_events_result = get_events(token.clone(), settings).await;
+            let get_events_result = get_all_events(settings).await;
             if get_events_result.0 == Status::Ok {
                 let mut max_id = 0;
 
