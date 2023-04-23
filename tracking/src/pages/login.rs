@@ -5,23 +5,22 @@ use yew::{platform::spawn_local, prelude::*};
 use crate::{
     logging::log_to_console,
     repo::Repo,
-    storage::{save_token, save_uid, save_un, save_api_addr},
+    storage::{save_api_addr, save_token, save_uid, save_un},
 };
 
 #[function_component]
 pub fn Login() -> Html {
-
     let ui_un = use_node_ref();
     let ui_api = use_node_ref();
 
     let login_result = use_state_eq(|| "".to_string());
+    let api_location = use_state_eq(|| "".to_string());
 
     let onclick = {
         let ui_un = ui_un.clone();
         let ui_api = ui_api.clone();
 
         let login_result = login_result.clone();
-        
 
         Callback::from(move |_| {
             let ui_un = ui_un.clone();
@@ -94,6 +93,26 @@ pub fn Login() -> Html {
         })
     };
 
+    let onchange = {
+        log_to_console("onchange");
+
+        let ui_api = ui_api.clone();
+        let api_location = api_location.clone();
+
+        Callback::from(move |_| {
+            let ui_api = ui_api.clone();
+            let api_location = api_location.clone();
+
+            let api_val = ui_api.cast::<HtmlInputElement>();
+
+            if api_val.is_some() {
+                let api_val = ui_api.cast::<HtmlInputElement>().unwrap().value();
+                log_to_console(&api_val);
+                api_location.set(api_val);
+            }
+        })
+    };
+
     html! {
         <div class="tile is-ancestor is-vertical">
             <div class="tile is-child hero">
@@ -104,9 +123,20 @@ pub fn Login() -> Html {
                         <label for="username">{ "User Name" }</label>
                         <input type="text" class="input" id ="username" placeholder="username" ref={&ui_un}/>
 
-                        <label for="api_address">{ "API Location" }</label>
-                        <input type="text" class="input" id ="api_address" placeholder="http://localhost:8020/" ref={&ui_api}/>
-
+                        <label for="api_address">{ "API Location " }</label>
+                        // <input type="text" class="input" id ="api_address" placeholder="http://localhost:8020/" ref={&ui_api}/>
+                        <div class="select is-multiple">
+                                <select
+                                    name="select_api"
+                                    id="select_api"
+                                    ref={&ui_api}
+                                    onchange={&onchange}
+                                >
+                                    <option value="SELECT EVENT">{"SELECT API LOCATION"}</option>
+                                    <option value={"http://localhost:8020/"}>{"localhost"}</option>
+                                    <option value={"http://shark.home:8020/"}>{"shark"}</option>
+                            </select>
+                        </div>
 
                         <div class="buttons">
                             <button type="button" class="button is-primary" id="login" value="Login" {onclick}>
