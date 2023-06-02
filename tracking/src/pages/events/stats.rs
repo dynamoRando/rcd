@@ -9,16 +9,18 @@ pub fn Stats() -> Html {
     log_to_console("stats");
     let average = compute_average_days();
     let next = next_start(average);
+
+    let average_formatted = format!("{:.2}", average);
     
     html!(
         <div>
-            <p>{"Average is: "}<b>{average.to_string()}</b>{ " days between periods."}</p>
+            <p>{"Average is: "}<b>{average_formatted}</b>{ " days between periods."}</p>
             <p>{"Your projected next start is: "}<b>{next.to_string()}</b></p>
         </div>
     )
 }
 
-fn next_start(avg: u32) -> NaiveDate {
+fn next_start(avg: f32) -> NaiveDate {
     let events = get_last_x_events(6);
     
     let mut dates: Vec<NaiveDate> = Vec::new();
@@ -32,12 +34,12 @@ fn next_start(avg: u32) -> NaiveDate {
 
 
     let max_date = dates.first().unwrap().clone();
-    let next_date = max_date + Duration::days(avg.into());
+    let next_date = max_date + Duration::days(avg.round() as i64);
     log_to_console(&next_date.to_string());
     next_date
 }
 
-fn compute_average_days() -> u32 {
+fn compute_average_days() -> f32 {
     let events = get_last_x_events(6);
 
     let mut dates: Vec<NaiveDate> = Vec::new();
@@ -49,7 +51,7 @@ fn compute_average_days() -> u32 {
     dates.sort();
     dates.reverse();
 
-    let mut days: Vec<u32> = Vec::new();
+    let mut days: Vec<f32> = Vec::new();
 
     let num_periods = dates.len();
 
@@ -78,19 +80,19 @@ fn compute_average_days() -> u32 {
             let message = format!("num_days: {num_days:?}");
             log_to_console(&message);
 
-            days.push(num_days as u32);
+            days.push(num_days as f32);
         }
     }
 
     let message = format!("{days:?}");
     log_to_console(&message);
 
-    let mut sum:u32  = 0;
+    let mut sum: f32 = 0.0;
     
     
     for day in &days {
         sum += day;
     } 
 
-    sum / days.len() as u32
+    sum / days.len() as f32
 }
